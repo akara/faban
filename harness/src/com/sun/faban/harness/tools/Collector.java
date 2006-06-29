@@ -11,13 +11,13 @@
  *
  * When distributing Covered Code, include this CDDL
  * Header Notice in each file and include the License file
- * at faban/src/legal/CDDLv1.0.txt.
+ * at install_dir/legal/LICENSE.
  * If applicable, add the following below the CDDL Header,
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Collector.java,v 1.1 2006/06/29 18:51:43 akara Exp $
+ * $Id: Collector.java,v 1.2 2006/06/29 19:38:43 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
