@@ -1,0 +1,33 @@
+#!/bin/ksh
+#########################################################################
+# The sysinfo script reads many files and calls many platform-dependent
+# tools to determine the system configuration. The output is a html
+# snippet recording the files and tools output.
+#########################################################################
+
+HOSTNAME=`uname -n`
+
+echo "        <h3>Contents of /etc/system on server ${HOSTNAME}</h3>"
+echo "        <pre>"
+grep '^set' /etc/system
+echo "        </pre>"
+echo "        <h3>Processors on server ${HOSTNAME}</h3>"
+echo "        <pre>"
+/usr/sbin/psrinfo -v
+echo "        </pre>"
+echo "        <h3>Kernel on server ${HOSTNAME}</h3>"
+echo "        <pre>"
+uname -srvm
+echo "        </pre>"
+PRTDIAG=/usr/platform/`uname -m`/sbin/prtdiag
+if [ -x "${PRTDIAG}" ] ; then
+    echo "        <h3>Prtdiag on server ${HOSTNAME}</h3>"
+    echo "        <pre>"
+    ${PRTDIAG}
+    echo "        </pre>"
+else
+    echo "        <h3>Prtconf on server ${HOSTNAME}</h3>"
+    echo "        <pre>"
+    /usr/sbin/prtconf | head -5
+    echo "        </pre>"
+fi

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE web-app PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN" "http://java.sun.com/dtd/web-app_2_3.dtd">
+<!--
+ Copyright 2002, 2003 Sun Microsystems, Inc. All Rights Reserved.
+-->
+<web-app>
+    <context-param>
+        <param-name>debug</param-name>
+        <param-value>true</param-value>
+        <description>flag for debugging the whole app</description>
+    </context-param>
+
+    <filter>
+        <filter-name>InitFilter</filter-name>
+        <filter-class>com.sun.faban.harness.engine.InitFilter</filter-class>
+    </filter>
+
+   <filter-mapping>
+      <filter-name>InitFilter</filter-name>
+      <url-pattern>/*</url-pattern>
+   </filter-mapping>
+
+    <servlet>
+        <servlet-name>XFormServlet</servlet-name>
+        <servlet-class>com.sun.faban.harness.webclient.XFormServlet</servlet-class>
+        <init-param>
+            <param-name>configFile</param-name>
+            <param-value>WEB-INF/chiba-config.xml</param-value>
+        </init-param>
+        <init-param>
+            <param-name>xsltDir</param-name>
+            <param-value>xslt</param-value>
+        </init-param>
+    </servlet>
+
+    <servlet>
+        <servlet-name>LogReader</servlet-name>
+        <servlet-class>com.sun.faban.harness.webclient.LogReader</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>ContentReader</servlet-name>
+        <servlet-class>com.sun.faban.harness.webclient.ContentReader</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>Deployer</servlet-name>
+        <servlet-class>com.sun.faban.harness.webclient.Deployer</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>LogReader</servlet-name>
+        <url-pattern>/LogReader</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>ContentReader</servlet-name>
+        <url-pattern>/output/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>ContentReader</servlet-name>
+        <url-pattern>/bench_downloads/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>Deployer</servlet-name>
+        <url-pattern>/deploy</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>XFormServlet</servlet-name>
+        <url-pattern>*.xhtml</url-pattern>
+    </servlet-mapping>
+
+    <session-config>
+        <session-timeout>-1</session-timeout>
+    </session-config>
+    
+  <welcome-file-list>
+    <welcome-file>index.jsp</welcome-file>
+  </welcome-file-list>
+</web-app>

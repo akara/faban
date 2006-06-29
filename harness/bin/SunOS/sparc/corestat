@@ -1,0 +1,204 @@
+#!/bin/perl -w
+
+#################################
+# corestat
+# version 2.2 Ravindra.Talashikar@sun.com Mon Nov 14 18:08:43 IST 2005
+#
+# Read from a file or standard input
+#
+# Typical input line will look like :
+# 20.024   1  tick    231640  53787286  # pic0=L2_imiss,pic1=Instr_cnt,nouser,sys
+# OR
+# 18.006   0  tick     79783  27979245  # pic1=Instr_cnt,pic0=L2_dmiss_ld,nouser,sys
+#
+##################################
+# Define constants here 
+*DEFAULT_FREQUENCY = \1194 ; # 1194 MHz
+*DEFAULT_INTERVAL = \10 ; # 10 sec 
+##################################
+
+$frequency = $DEFAULT_FREQUENCY ;
+$interval = $DEFAULT_INTERVAL ;
+
+&clear_stats () ; # Initialize 
+
+$flag = " " ;
+$val = " " ;
+
+if ($#ARGV >= 0) {
+  while ($#ARGV > -1) {
+    $arg = shift @ARGV;
+    if ( $arg =~ /^-(.)(.*)$/ ) {
+      $flag=$1; 
+      if ( $flag eq "f" ) {
+        $val = shift @ARGV;
+        if ($val) { $fname = $val ;}
+        else { &print_usage () ; exit ; } 
+      } elsif ( $flag eq "i" ) {
+        $val = shift @ARGV;
+        if ($val) { $interval = $val ;}
+        else { &print_usage () ; exit ; } 
+      } elsif ( $flag eq "r" ) {
+        $val = shift @ARGV;
+        if ($val) { $frequency = $val ;}
+        else { &print_usage () ; exit ; } 
+      } elsif ( $flag eq "h" ) { 
+        &print_usage () ; 
+        exit ; 
+      } else {
+        printf ("$0 : Invalid option -%s\n", $flag) ;
+        &print_usage () ;
+        exit ;
+      }
+    }
+    else {
+      printf ("$0 : Invalid option %s\n", $arg) ;
+      &print_usage () ;
+      exit ;
+    }
+  }
+}
+
+if (($frequency < 600) || ($frequency > 1200)) {
+  printf ("$0 : Invalid frequency - %d MHz \n", $frequency) ;
+  &print_usage () ;
+  exit ;
+} else { $max_mips = $frequency*1024*1024 ;}
+
+if ($interval < 10) {
+  $interval = 10 ; # Minimum reporting interval
+}
+
+if ($fname) { open (fd_in, $fname) || die ("Cannot open $fname") ; }
+else {
+  open (fd_in, "/bin/id |") || die "Can't fork : $!" ;
+  $line = <fd_in> ;
+  close (fd_in) ;
+  if ($line =~ m/uid=0\(root\)/i) {
+    open (fd_in, "priocntl -e -c RT cpustat -n -c pic0=L2_dmiss_ld,pic1=Instr_cnt -c pic0=L2_dmiss_ld,pic1=Instr_cnt,nouser,sys 1 2>&1  |") || die "Can't fork : $!" ;
+  } else {
+    printf ("$0 : Permission denied. Needs root privilege... \n") ;
+    &print_usage () ;
+    exit ;
+  }
+}
+
+while ($line = <fd_in>) { 
+  $line = " " . $line ;
+  @list = split (/\s+/, $line) ;
+  $len = $#list ;
+
+  if (($len >= 7) && ($list[3] ne "total")) { # Ignore header and totals
+    $cpu_id = $list[2] ;
+    $pic0 = $list[4] ;
+    $pic1 = $list[5] ;
+
+    # Detect mode for which data is collected
+
+    if ($list[7] =~ m/nouser,sys/i) {
+      $mode = 1 ; # system mode
+      $sys_mode = 1 ;
+    }elsif ($list[7] =~ m/sys/i) {
+      $mode = 2 ; # Total time
+      $tot_mode = 1 ; 
+    }else {
+      $mode = 0 ; # User mode
+      $usr_mode = 1 ;
+    }
+
+    # Detect which counter holds instruction count
+    if ($list[7] =~ m/pic1=Instr_cnt/i) {
+      $instr_ctr = $pic1 ;
+    } else {
+      $instr_ctr = $pic0 ;
+    }
+    if ($cpu_stat_pic1[$cpu_id][$mode] == 0) {
+      $cpu_stat_pic1[$cpu_id][$mode] = $instr_ctr ;
+      $unique_events ++ ;
+    } else { # Save minsamples
+      $minsamples = $unique_events * ($interval-($interval%($usr_mode+$sys_mode+$tot_mode))) / ($usr_mode+$sys_mode+$tot_mode) ;
+      if ($nsamples == $minsamples) {
+        &print_stats () ;
+        &clear_stats () ;
+        $cpu_stat_pic1[$cpu_id][$mode] = $instr_ctr ; # Save the current sample
+        $unique_events++ ;
+      } else {
+         $cpu_stat_pic1[$cpu_id][$mode] = ($cpu_stat_pic1[$cpu_id][$mode] + $instr_ctr)/2 ;
+      }
+    }
+    $nsamples++ ;
+  }
+}
+
+&print_stats () ;
+
+sub clear_stats () {
+  $cpu = 0 ;
+  $m = 0 ;
+  $nsamples = 0 ;
+  $minsamples = 0 ;
+  $usr_mode = 0 ;
+  $sys_mode = 0 ;
+  $tot_mode = 0 ;
+  $unique_events = 0 ;
+
+  while ($cpu < 32) {
+    while ($m < 3) {
+      $cpu_stat_pic1[$cpu][$m] = 0 ;
+      $core_stat_pic1[$cpu/4][$m] = 0 ;
+      $m++ ;
+    }
+    $m = 0 ;
+    $cpu++ ;
+  }
+  $core_avg_pic1[0] = 0 ;
+  $core_avg_pic1[1] = 0 ;
+  $core_avg_pic1[2] = 0 ;
+}
+
+sub print_stats () {
+  $core_id = 0 ;
+  $cpu = 0 ;
+  $ncores = 0 ;
+  $header = 1 ;
+
+  # Process sequentially
+  while ($cpu < 32) {
+    $core_id = $cpu/4 ;
+    $core_stat_pic1[$core_id][0] += $cpu_stat_pic1[$cpu][0] ;
+    $core_stat_pic1[$core_id][1] += $cpu_stat_pic1[$cpu][1] ;
+    if (($cpu+1) % 4 == 0) {
+      if ($core_stat_pic1[$core_id][0] || $core_stat_pic1[$core_id][1]) {
+        if ($header) {
+          &print_header () ;
+          $header = 0 ;
+        }
+        printf ("  %d       %5.2f     %5.2f     %5.2f \n", $core_id, $core_stat_pic1[$core_id][0]*100/$max_mips, $core_stat_pic1[$core_id][1]*100/$max_mips, $core_stat_pic1[$core_id][0]*100/$max_mips + $core_stat_pic1[$core_id][1]*100/$max_mips) ;
+	$core_avg_pic1[0] += $core_stat_pic1[$core_id][0]*100/$max_mips ;	
+	$core_avg_pic1[1] += $core_stat_pic1[$core_id][1]*100/$max_mips ;	
+	$ncores++ ;
+      }
+    }
+    $cpu++ ;
+  }
+  if ($core_avg_pic1[0] || $core_avg_pic1[1]) {
+    printf ("------    -----     -----    ------ \n") ;
+    printf (" Avg      %5.2f     %5.2f     %5.2f \n", $core_avg_pic1[0]/$ncores, $core_avg_pic1[1]/$ncores, $core_avg_pic1[0]/$ncores + $core_avg_pic1[1]/$ncores) ;
+  }
+}
+
+sub print_header () {
+  printf ("\n") ;
+  printf ("        Core Utilization          \n") ;
+  printf ("CoreId     %%Usr     %%Sys     %%Total \n") ;
+  printf ("------    -----     -----    ------ \n") ;
+}
+
+sub print_usage () {
+  printf ("\n") ;
+  printf ("Usage : corestat [-f <infile>] [-i <interval>] [-r <freq>] \n\n") ;
+  printf ("                  -f infile   : Filename containing sampled cpustat data \n") ;
+  printf ("                  -i interval : Reporting interval in sec \(default = 10 sec\)\n") ;
+  printf ("                  -r freq     : CPU frequency in MHz \(default = 1194 MHz\)\n") ;
+  printf ("\n") ;
+}

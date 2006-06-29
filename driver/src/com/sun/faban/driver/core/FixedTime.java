@@ -1,0 +1,125 @@
+/* The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.sun.com/cddl/cddl.html or
+ * install_dir/legal/LICENSE
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL
+ * Header Notice in each file and include the License file
+ * at faban/src/legal/CDDLv1.0.txt.
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ * "Portions Copyrighted [year] [name of copyright owner]"
+ *
+ * $Id: FixedTime.java,v 1.1 2006/06/29 18:51:33 akara Exp $
+ *
+ * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
+ */
+package com.sun.faban.driver.core;
+
+import com.sun.faban.driver.util.Random;
+import com.sun.faban.driver.DefinitionException;
+import com.sun.faban.driver.CycleType;
+import com.sun.faban.driver.FatalException;
+
+import java.lang.annotation.Annotation;
+import java.io.IOException;
+
+/**
+ * Implements the fixed time setting for an operation.
+ *
+ * @author Akara Sucharitakul
+ */
+public class FixedTime extends Cycle {
+
+    /**
+     * InitialCycle for a thread to call, tested against null whether this
+     * is actually the first call. If not null, this is not the first call.
+     */
+    private transient ThreadLocal initialCycle = new ThreadLocal();
+
+    int cycleTime;
+    boolean randomStart;
+
+    /**
+     * Initializes this cycle according to the annotation.
+     * @param a The annotation
+     * @throws DefinitionException If there is an error in the annotation
+     */
+    public void init(Annotation a) throws DefinitionException {
+        com.sun.faban.driver.FixedTime cycleDef =
+                (com.sun.faban.driver.FixedTime) a;
+        cycleType = cycleDef.cycleType();
+        cycleDeviation = cycleDef.cycleDeviation();
+        cycleTime = cycleDef.cycleTime();
+        randomStart = cycleDef.randomStart();
+
+        // Now check parameters for validity.
+        if (cycleTime == 0 && cycleType == CycleType.CYCLETIME)
+            throw new DefinitionException("@FixedTime cycle time " +
+                    "cannot be 0, use think time instead.");
+
+    }
+
+    /**
+     * Returns a delay time for the thread. The initial delay time
+     * returned is randomly selected between 0 and the set cycle time.
+     * The subsequent times are exactly the cycle time. This is to
+     * prevent thundering of operations when using @FixedTime. 
+     *
+     * @param random The random number generator used
+     * @return The delay time
+     */
+    public int getDelay(Random random) {
+        if (randomStart && isInitialCycle())
+            return random.random(0, cycleTime);
+        return cycleTime;
+    }
+
+    /**
+     * Provides the maximum value to be represented inside a histogram.
+     *
+     * @return The max reasonable delay to be presented in the output histogram.
+     */
+    public double getHistogramMax() {
+        if (cycleTime > 0)
+            return cycleTime * 2;
+
+        // We know it takes very little time to prepare the data to submit.
+        // This case can only happen for think time. Giving a histogram
+        // max of 2 seconds for data prep should be enough.
+        return 2d;
+    }
+
+    private boolean isInitialCycle() {
+        if (initialCycle.get() == null) {
+            initialCycle.set(Boolean.FALSE);
+            RunInfo runInfo = RunInfo.getInstance();
+            // Check that by the time rampup ends, we're not in the first cycle.
+            // Or otherwise the recorded cycle time will be the initial one.
+            if (runInfo.rampUp * 1000 < cycleTime) {
+                int minRampup = (int) Math.ceil((cycleTime + 100) / 1000d);
+                throw new FatalException("Ramp up time must be at least " +
+                        minRampup + " seconds. Currently it is " +
+                        runInfo.rampUp + " seconds. This will produce " +
+                        "inaccurate results." );
+            }
+            return true;
+        }
+        return false;
+    }
+
+    // How to load myself from a stream
+    private void readObject(java.io.ObjectInputStream in)
+        throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        if (initialCycle == null)
+            initialCycle = new ThreadLocal();
+    }
+}

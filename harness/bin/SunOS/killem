@@ -1,0 +1,95 @@
+#! /bin/sh
+#
+#
+#	Copyright (c) 1994 by Sun Microsystems, Inc.
+#
+# @(#)killem	1.5	94/11/30	SMI
+#
+# killem
+#
+# Written by Jim Skeen
+# 7/14/88
+
+# 9/17/92 - ported to SVR4 by Shanti S
+# 3/10/94 - Added <signal> and <quiet> options - Shanti
+# This scripts kills all the processes currently running, by
+# first asking for confirmation.
+# 05/01/95 - ported to bourne shell by Gyan Bhal
+
+if [ "$#" -lt 1 ]
+then
+	echo "Usage:  killem <search string> [-y][-q][-<signal>]"
+	echo "        -y: Don't ask for confirmation before killing"
+	echo "        -q: Don't display processes before killing"
+	echo " -<signal>: Kill with Signal number (default -9)"
+	exit 1
+fi
+
+searchstr=$1
+SIG=-9
+
+while [ "$#" -ge 2 ]
+do
+	if [ "$2" = "-y" ]
+	then
+   		AUTO=1
+	elif [ "$2" = "-q" ]
+	then
+		QUIET=1
+	else
+		SIG=$2
+	fi
+	shift
+done
+
+if [ "$QUIET" -ne 1 ]
+then
+	procs=`/bin/ps -ef| grep $searchstr| grep -v killem| grep -v grep | tee /dev/tty | grep -v "PID" | awk '{print $2}'`
+else
+	procs=`/bin/ps -ef| grep $searchstr| grep -v killem| grep -v grep | grep -v "PID" | awk '{print $2}'`
+fi
+
+if [ -z "$procs" ]
+then
+	echo "No processes found"
+	exit
+fi
+
+
+if [ "$AUTO" -ne 1 ]
+then
+	echo "----------------------------------------------------------"
+	echo "Do you want to kill the following processes:"
+	echo $procs | tr '\040' '\012' | pr -t -4 -l4
+	/bin/echo "		(y/n/s)? \c"
+	read input
+	if [ "$input" = "Y" -o "$input" = "y" ]
+	then
+		for i in $procs
+		do
+			echo "	...killing $i"
+			kill $SIG $i
+		done
+  	elif [ "$input" = "S" -o "$input" = "s" ] 
+  	then
+  		for i in $procs
+		do
+			/bin/echo "Do you want to kill process ${i}? (y/n) \c"
+			read answer
+			if [ "$answer" = "Y" -o "$answer" = "y" ] 
+			then
+				echo "	...killing $i"
+				kill $SIG $i
+			fi
+		done
+	fi
+else
+	for i in $procs
+	do
+		if [ "$QUIET" -ne 1 ]
+		then
+			echo "	...killing $i"
+		fi
+		kill $SIG $i
+	done
+fi

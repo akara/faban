@@ -1,0 +1,62 @@
+                              Faban README
+                              ============
+
+
+  What is Faban?
+  --------------
+  Faban is a benchmark automation tool and development framework. It is
+  practically the consolidation of the team's benchmark development and
+  management knowledge. The driver framework provides a simple yet mature
+  framework for benchmark development. The harness is all about automation
+  of benchmark runs and data collection, and is managed using a web interface.
+
+  There are three download packages:
+    - Server package. This is for the Faban server. If you drive and control
+      the benchmark from a single server, this all you need. The file is named
+      faban-0.7-server-mmddyy.tar.gz
+
+    - Client package. This is needed for all additional systems in you rig,
+      except the server. The file is named
+      faban-0.7-client-mmddyy.tar.gz
+
+    - Bundling package. This includes the server, client, and a build scripts
+      for integrating and shipping Faban with other benchmarks. The file
+      is named
+      faban-0.7-bundle-mmddyy.tar.gz
+
+  Note that the mmddyy in the file name refers to the build date of the package.
+
+  For complete information on Faban, please visit the project web site at
+
+      http://faban.sunsource.net/
+
+
+  The Latest Version
+  ------------------
+  - The latest stable version is available at
+
+     http://faban.sunsource.net/downloads
+
+
+  - You can also find the most recent builds at
+
+     http://faban.sunsource.net/nightly/
+
+
+  Documentation
+  -------------
+  All Faban documentation is in HTML format and is available on
+
+    http://faban.sunsource.net/docs/
+
+  Legal
+  -----
+  - This software is licensed under the terms you may find in the file
+    named "LICENSE" in the "legal" directory.
+
+  - This software also includes third party software licensed under the
+    terms you my find in the file named "THIRDPARTYLICENSES" in the
+    "legal" directory.
+
+  - You may find the copyright notices for this software in the file named
+    "COPYRIGHT" in the "legal" directory.

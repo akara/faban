@@ -1,0 +1,234 @@
+<!--
+  XML file for launching Catalina applications using ant.
+-->
+
+<project name="Catalina Launcher" default="catalina" basedir=".">
+  <property file="${user.home}/.tomcat5.properties"/>
+
+  <!-- Set the application home to the parent directory of this directory -->
+  <property name="catalina.home" location="${basedir}/.."/>
+  <property name="bootstrap.jar" location="${catalina.home}/bin/bootstrap.jar"/>
+
+  <!-- Import the user's custom properties -->
+  <property file="${catalina.home}/bin/catalina.properties"/> <!-- XXX shold it be conf ?? -->
+  <property file="${catalina.home}/conf/catalina.properties"/> <!-- XXX shold it be conf ?? -->
+
+
+  <!-- Set user configurable properties -->
+  <property name="jsse.home" location="${catalina.home}"/>
+  <property name="catalina.base" location="${catalina.home}"/>
+  <property name="catalina.tmpdir" location="${catalina.base}/temp"/>
+  <property name="catalina.out" location="${catalina.base}/logs/catalina.out"/>
+  <property name="catalina.policy" location="${catalina.base}/conf/catalina.policy"/>
+  <property name="catalina.jvm.args" value="-Dsun.io.useCanonCaches=false"/>
+
+  <property name="catalina.source.path" value="${catalina.home}/../../jakarta-servletapi-5/src/share:${catalina.home}/../../jakarta-tomcat-jasper/jasper2/src/share:${catalina.home}/../../jakarta-tomcat-connectors/coyote/src/java:${catalina.home}/../../jakarta-tomcat-catalina/catalina/src/share"/>
+
+
+  <!-- Build the classpath relative to the application home -->
+  <path id="base.class.path">
+    <pathelement location="${bootstrap.jar}"/>
+    <pathelement path="${jsse.home}/lib/jsse.jar:${jsse.home}/lib/jcert.jar:${jsse.home}/lib/jnet.jar"/>
+  </path>
+
+  <property name="basedir" location="."/>
+  
+  <property name="tools.jar" location="${java.home}/../lib/tools.jar" />
+
+  <path id="tomcatcp" >
+    <pathelement location="${catalina.home}/bin/bootstrap.jar"/>
+    <!-- 
+    <fileset dir="${catalina.home}/common/lib" includes="*.jar"/>
+    <fileset dir="${catalina.home}/server/lib" includes="*.jar"/>
+    <pathelement location="${catalina.home}/common/classes"/>
+    -->
+    <!-- 
+       <pathelement location="${ant.home}/lib/xercesImpl.jar" />
+       <pathelement location="${ant.home}/lib/xml-apis.jar" />
+    -->
+    <pathelement location="${ant.home}/lib/ant.jar" />
+    <pathelement location="${tools.jar}" />
+  </path>
+ 
+
+  <!-- =================== Initialization/helpers ================== -->
+
+
+  <target name="init"
+          description="Display configuration and conditional compilation flags">
+  </target>
+
+  <target name="init-launcher" >
+    <!-- Build the sysproperties relative to the application home -->
+    <syspropertyset id="base.sys.properties">
+      <sysproperty key="java.endorsed.dirs" file="${catalina.home}/common/endorsed"/>
+      <sysproperty key="java.io.tmpdir" file="${catalina.tmpdir}"/>
+      <sysproperty key="catalina.home" file="${catalina.home}"/>
+      <sysproperty key="catalina.base" file="${catalina.base}"/>
+    </syspropertyset>
+
+    <!-- Build the standard jvmargs -->
+    <jvmargset id="base.jvm.args">
+      <jvmarg line="${catalina.jvm.args}"/>
+      <jvmarg value="-Xdebug" if="jpda.settings"/>
+      <jvmarg value="-Xrunjdwp:${jpda.settings}" if="jpda.settings"/>
+      <jvmarg value="-sourcepath" if="jdb"/>
+      <jvmarg path="${catalina.source.path}" if="jdb"/>
+    </jvmargset>
+  </target>
+
+  <target name="echo-config" >
+    <echo>TOMCAT_HOME=${catalina.home}</echo>
+    <echo>CLASSPATH=${toString:tomcatcp}</echo>
+  </target>
+
+  <target name="help" >
+    <echo>
+  To run any of the applications in the JDB debugger, execute the Launcher with
+  a "-Ddebug=true" argument.
+
+  To run any of the applications in JPDA mode, execute the Launcher with a
+  "-Djpda=true" argument.
+   </echo>
+  </target>
+
+  <!-- Target that sets JDB properties when the "debug" property is set -->
+  <target name="setjdb" description="Set JDB properties" if="debug">
+    <property name="jdb" value="true"/>
+  </target>
+
+  <!-- Target that sets JPDA properties when the "jpda" property is set -->
+  <target name="setjpda" description="Set JPDA properties" if="jpda">
+    <condition property="jpda.transport" value="dt_shmem">
+      <os family="windows"/>
+    </condition>
+    <condition property="jpda.transport" value="dt_socket">
+      <not>
+        <os family="windows"/>
+      </not>
+    </condition>
+    <condition property="jpda.address" value="jdbconn">
+      <equals arg1="${jpda.transport}" arg2="dt_shmem"/>
+    </condition>
+    <condition property="jpda.address" value="8000">
+      <not>
+        <equals arg1="${jpda.transport}" arg2="dt_shmem"/>
+      </not>
+    </condition>
+    <property name="jpda.suspend" value="y"/>
+    <property name="jpda.settings" value="transport=${jpda.transport},address=${jpda.address},server=y,suspend=${jpda.suspend}"/>
+  </target>
+
+  <!-- =================== Launcher-based ================== -->
+
+  <!-- Target that executes Catalina -->
+  <target name="catalina" description="Execute Catalina"
+    depends="init-launcher,setjdb,setjpda" >
+
+    <!-- Set default title for minimized window -->
+    <property name="catalina.window.title" value="Catalina"/>
+
+    <!--
+      Launch Catalina. Note that the "filterclassname" attribute will force
+      the "waitforchild" attribute to "true" if any invalid arguments are
+      used or if "start" is not the last argument.
+    -->
+    <launch classname="org.apache.catalina.startup.Bootstrap"
+      waitforchild="${wait}"
+      debug="${jdb}"
+      print="${print}"
+      filterclassname="org.apache.catalina.launcher.CatalinaLaunchFilter"
+      filterclasspath="${bootstrap.jar}"
+      usesystemin="false"
+      requiretools="true"
+      redirectoutput="true"
+      output="${catalina.out}"
+      displayMinimizedWindow="true"
+      minimizedWindowTitle="${catalina.window.title}">
+        <jvmargset refid="base.jvm.args"/>
+        <syspropertyset refid="base.sys.properties"/>
+        <sysproperty key="java.security.manager" value="" if="security"/>
+        <sysproperty key="java.security.policy" value="=${catalina.policy}" if="security"/>
+        <classpath refid="base.class.path"/>
+    </launch>
+
+  </target>
+
+  <!-- Target that executes the Catalina tool wrapper -->
+  <target name="tool-wrapper" description="Execute Catalina tool wrapper"
+    depends="setjdb,setjpda" >
+
+    <!-- Launch Catalina tool wrapper -->
+    <launch classname="org.apache.catalina.startup.Tool"
+      debug="${jdb}"
+      print="${print}"
+      usesystemin="false"
+      requiretools="true">
+        <jvmargset refid="base.jvm.args"/>
+        <syspropertyset refid="base.sys.properties"/>
+        <classpath refid="base.class.path"/>
+    </launch>
+
+  </target>
+
+  <!-- ======================= Ant/JMX based ================ -->
+
+  <target name="taskdef" >
+    <property name="tomcat.home" location=".." />
+
+    <path id="jmx.test.classpath">
+      <pathelement location="${commons-modeler.jar}" />
+      <fileset dir="${tomcat.home}/common/lib" includes="*.jar"/>
+      <fileset dir="${tomcat.home}/server/lib" includes="*.jar"/>
+      <fileset dir="${tomcat.home}/bin" includes="*.jar"/>
+    </path>
+
+    <!-- part of modeler -->
+    <taskdef resource="META-INF/ant.properties"
+             classpathref="jmx.test.classpath" />
+  </target>
+
+
+  <target name="run" depends="echo-config,taskdef"
+        description="Start tomcat as a task and return">
+   
+    <MLET code="org.apache.commons.modeler.BaseModelMBean"
+          name="catalina:type=server" >
+       <arg value="org.apache.catalina.startup.Catalina" />
+    </MLET>
+
+    <jmxSet name="catalina:type=server"
+            attribute="catalinaHome"
+            value="${tomcat.home}"/>
+  
+    <!-- We could also call init and set other properties - 
+         init should load the modules -->
+
+    <jmx name="catalina:type=server"
+         method="start" />
+    
+    <echo message="Tomcat5 running"/>
+
+  </target>
+
+
+  <!-- ======================= Exec/java  ================ -->
+
+  <target name="java-start" depends="echo-config" 
+        description="Run tomcat in-process and wait for it to end, using java task" >
+
+    <property name="tomcat.fork" value="false" />
+
+    <java classname="org.apache.catalina.startup.Bootstrap" fork="${tomcat.fork}">
+      <classpath refid="tomcatcp" />
+      <arg value="startd" />
+      <sysproperty key="catalina.home" value="${catalina.home}"/>
+      <sysproperty key="build.compiler" value="jikes"/>
+      <sysproperty key="java.endorsed.dirs" value="${ant.home}/lib:${java.home}/lib"/>
+    </java>
+
+    <echo message="Tomcat5 running"/>
+
+  </target>
+
+</project>

@@ -1,0 +1,29 @@
+#!/bin/sh
+
+BINDIR=`dirname $0`
+
+if [ -n "$BINDIR" ]
+then
+   FABAN_HOME=`cd $BINDIR/.. > /dev/null 2>&1 && pwd`
+    export FABAN_HOME
+fi
+
+cd $FABAN_HOME/logs
+
+# If we can't locate JAVA_HOME then we use the default
+JAVA_HOME=$4
+if [ ! -f "$JAVA_HOME/bin/java" ] ; then
+    JAVA_HOME=/usr/java
+fi
+
+
+CLASSPATH=$FABAN_HOME/lib/fabancommon.jar:$FABAN_HOME/lib/fabanagents.jar
+export CLASSPATH
+
+PATH=$JAVA_HOME/bin:/usr/bin:/usr/ucb:/usr/sbin:$FABAN_HOME/bin
+export PATH
+
+$JAVA_HOME/bin/java -server -classpath $CLASSPATH -Dfaban.home=$FABAN_HOME \
+-Djava.security.policy=$FABAN_HOME"/config/faban.policy" \
+com.sun.faban.harness.agent.CmdAgentImpl $* >>cmdagent.log 2>&1 &
+

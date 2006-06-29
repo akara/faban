@@ -1,0 +1,14 @@
+<!--
+
+    Context configuration file for the Tomcat Balancer Web App
+    This is only needed to keep the distribution small and avoid duplicating
+    commons libraries
+
+    $Id: balancer.xml,v 1.1 2006/06/29 18:52:03 akara Exp $
+
+-->
+
+
+<Context path="/balancer" docBase="balancer" debug="0" privileged="true">
+
+</Context>

@@ -1,0 +1,144 @@
+$Id: RUNNING.txt,v 1.1 2006/06/29 18:51:51 akara Exp $
+
+
+                 Running The Tomcat 5 Servlet/JSP Container
+                 ==========================================
+
+This subproject contains Tomcat 5, a server that implements the Servlet 2.4
+and JSP 2.0 specifications from the Java Community Process
+<http://www.jcp.org/>.  In order to install and run this container, you must do
+the following:
+
+
+(0) Download and Install a Java Development Kit
+
+* Download a Java Development Kit (JDK) release (version 1.3 or later) from:
+
+    http://java.sun.com/j2se/
+
+* Install the JDK according to the instructions included with the release.
+
+* Set an environment variable JAVA_HOME to the pathname of the directory
+  into which you installed the JDK release.
+
+
+(1) Download and Install the Tomcat 5 Binary Distribution
+
+NOTE:  As an alternative to downloading a binary distribution, you can create
+your own from the Tomcat source repository, as described in "BUILDING.txt".
+If you do this, the value to use for "${catalina.home}" will be the "dist"
+subdirectory of your source distribution.
+
+* Download a binary distribution of Tomcat from:
+
+    http://jakarta.apache.org/site/binindex.cgi
+
+* Unpack the binary distribution into a convenient location so that the
+  distribution resides in its own directory (conventionally named
+  "jakarta-tomcat-5").  For the purposes of the remainder of this document,
+  the symbolic name "$CATALINA_HOME" is used to refer to the full
+  pathname of the release directory.
+
+
+(2) Start Up Tomcat 5
+
+Tomcat 5 can be started by executing the following commands:
+
+      $CATALINA_HOME\bin\startup.bat          (Windows)
+
+      $CATALINA_HOME/bin/startup.sh           (Unix)
+
+After startup, the default web applications included with Tomcat 5 will be
+available by visiting:
+
+    http://localhost:8080/
+
+Further information about configuring and running Tomcat 5 can be found in
+the documentation included here, as well as on the Tomcat web site:
+
+    http://jakarta.apache.org/tomcat/
+
+
+(3) Shut Down Tomcat 5
+
+Tomcat 5 can be shut down by executing the following command:
+
+      $CATALINA_HOME\bin\shutdown            (Windows)
+
+      $CATALINA_HOME/bin/shutdown.sh         (Unix)
+
+
+(4) Advanced Configuration - Multiple Tomcat 5 Instances
+
+In many circumstances, it is desirable to have a single copy of a Tomcat 5
+binary distribution shared among multiple users on the same server.  To make
+this possible, you can pass a "-Dcatalina.base=$CATALINA_BASE" argument when
+executing the startup command (see (2)). In this
+"-Dcatalina.base=$CATALINA_BASE" argument, replace $CATALINA_BASE with the
+directory that contains the files for your 'personal' Tomcat 5 instance.
+
+When you use this "-Dcatalina.base=$CATALINA_BASE" argument, Tomcat 5 will
+calculate all relative references for files in the following directories based
+on the value of $CATALINA_BASE instead of $CATALINA_HOME	:
+
+* conf - Server configuration files (including server.xml)
+
+* logs - Log and output files
+
+* shared - For classes and resources that must be shared across all web
+           applications
+
+* webapps - Automatically loaded web applications
+
+* work - Temporary working directories for web applications
+
+* temp - Directory used by the JVM for temporary files (java.io.tmpdir)
+
+If you do not pass the "-Dcatalina.base=$CATALINA_BASE" argument to the startup command, $CATALINA_BASE will default to the same value as $CATALINA_HOME (which means that the same directory is used for all relative path resolutions).
+
+The administration and manager web applications, which are defined in the
+$CATALINA_BASE/conf/Catalina/localhost/admin.xml and $CATALINA_BASE/conf/Catalina/localhost/manager.xml files, will
+not run in that configuration, unless either:
+- The path specified in the docBase attribute of the Context element is made
+  absolute, and replaced respectively by $CATALINA_HOME/server/webapps/admin
+  and $CATALINA_HOME/server/webapps/manager
+- Both web applications are copied or moved to $CATALINA_BASE, and the path specified in the   docBase attribute of the Context element is modified appropriately.
+- Both web applications are disabled by removing $CATALINA_BASE/conf/Catalina/localhost/admin.xml
+  and $CATALINA_BASE/conf/Catalina/localhost/manager.xml
+
+
+(5) Troubleshooting:
+
+There are only really 3 things likely to go wrong during the stand-alone
+Tomcat 5 install:
+
+1) The most common hiccup is when another web server (or any process for that
+   matter) has laid claim to port 8080.  This is the default HTTP port that
+   Tomcat attempts to bind to at startup.  To change this, open the file:
+
+       $CATALINA_HOME/conf/server.xml
+
+   and search for '8080'.  Change it to a port that isn't in use, and is
+   greater than 1024, as ports less than or equal to 1024 require superuser
+   access to bind under UNIX.
+
+   Restart Tomcat and you're in business.  Be sure that you replace the "8080"
+   in the URL you're using to access Tomcat.  For example, if you change the
+   port to 1977, you would request the URL http://localhost:1977/ in your browser.
+
+2) An "out of environment space" error when running the batch files in
+   Windows 95, 98, or ME operating systems.
+
+   Right-click on the STARTUP.BAT and SHUTDOWN.BAT files.  Click on
+   "Properties", then on the "Memory" tab.  For the "Initial environment" field,
+   enter in something like 4096.
+
+   After you click apply, Windows will create shortcuts which you can use to start and stop the container.
+
+3) The 'localhost' machine isn't found.  This could happen if you're behind a
+   proxy.  If that's the case, make sure the proxy configuration for your
+   browser knows that you shouldn't be going through the proxy to access the
+   "localhost".
+
+   In Netscape, this is under Edit/Preferences -> Advanced/Proxies, and in
+   Internet Explorer, Tools -> Internet Options -> Connections -> LAN Settings.

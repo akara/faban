@@ -1,0 +1,45 @@
+#!/bin/ksh
+#########################################################################
+# The interface script determines the ip address of the interface used to
+# talk to the given remote host. If remote host cannot be contacted, it
+# will exit with an exit value of 1.
+#########################################################################
+
+COMMAND="$0"
+TARGET="$1"
+
+usage() {
+    echo "usage: ${COMMAND} host" >&2
+    exit 1;
+}
+
+if [ -z "${TARGET}" ] ; then
+    usage
+fi
+
+ROUTE=`/usr/sbin/ping -s -R -v "${TARGET}" 64 1 2> /dev/null`
+
+if [ "$?" != "0" ] ; then
+    echo "Cannot contact ${TARGET}" >&2
+    exit 1
+fi
+
+LASTLINE=""
+FOUND=""
+for ia in ${ROUTE}
+do
+    if [ "${ia}" = "(End" ] ; then
+        FOUND="true"
+        break
+    else
+        LASTLINE="${ia}"
+    fi
+done
+
+if [ -z "${FOUND}" ] ; then
+    echo "Host ${TARGET} is too far, cannot determine route" >&2
+    exit 1
+else
+    LASTLINE="${LASTLINE%\)\,}"
+    echo "${LASTLINE#\(}"
+fi

@@ -1,0 +1,248 @@
+
+
+                     Apache Tomcat Version @VERSION@
+                            Release Notes
+
+
+$Id: RELEASE-NOTES,v 1.1 2006/06/29 18:51:51 akara Exp $
+
+
+============================
+KNOWN ISSUES IN THIS RELEASE:
+============================
+
+* Tomcat 5.0 and JNI Based Applications
+* Tomcat 5.0 Standard APIs Available
+* Tomcat 5.0 and XML Parsers
+* Web application reloading and static fields in shared libraries
+* JAVAC leaking memory
+* Tomcat on Linux
+* Enabling SSI and CGI Support
+* Security manager URLs
+* Symlinking static resources
+* Enabling invoker servlet
+* Viewing the Tomcat Change Log
+* When all else fails
+
+
+-------------------------------------
+Tomcat 5.0 and JNI Based Applications:
+-------------------------------------
+
+Applications that require native libraries must ensure that the libraries have
+been loaded prior to use.  Typically, this is done with a call like:
+
+  static {
+    System.loadLibrary("path-to-library-file");
+  }
+
+in some class.  However, the application must also ensure that the library is
+not loaded more than once.  If the above code were placed in a class inside
+the web application (i.e. under /WEB-INF/classes or /WEB-INF/lib), and the
+application were reloaded, the loadLibrary() call would be attempted a second
+time.
+
+To avoid this problem, place classes that load native libraries outside of the
+web application, and ensure that the loadLibrary() call is executed only once
+during the lifetime of a particular JVM.
+
+
+----------------------------------
+Tomcat 5.0 Standard APIs Available:
+----------------------------------
+
+A standard installation of Tomcat 5 makes all of the following APIs available
+for use by web applications (by placing them in "common/lib" or "shared/lib"):
+* ant.jar (Apache Ant 1.6 or later)
+* commons-collections*.jar (Commons Collections 2.1 or later)
+* commons-dbcp.jar (Commons DBCP 1.1 or later)
+* commons-el.jar (Commons Expression Language 1.0)
+* commons-logging-api.jar (Commons Logging API 1.0.3 or later)
+* commons-pool.jar (Commons Pool 1.1 or later)
+* jasper-compiler.jar (Jasper 2 Compiler)
+* jasper-runtime.jar (Jasper 2 Runtime)
+* jsp-api.jar (JSP 2.0 API)
+* commons-el.jar (JSP 2.0 Expression Language)
+* naming-common.jar (JNDI Context implementation)
+* naming-factory.jar (JNDI object factories for J2EE ENC support)
+* naming-resources.jar (JNDI DirContext implementations)
+* servlet-api.jar (Servlet 2.4 API)
+
+You can make additional APIs available to all of your web applications by
+putting unpacked classes into a "classes" directory (not created by default),
+or by placing them in JAR files in the "lib" directory.
+
+Tomcat 5.0 also makes Xerces 2 and the Commons Logging API (release 1.0.3)
+available to web applications.
+
+Please note that the JMX API is available to applications as well.  The jmx.jar
+file used to be located in the common/lib directory, but was moved to the bin
+directory as part of the Tomcat 5.0.20 release.  The jmx.jar is in Tomcat's
+bootstrap classpath (included via the Class Path line in bootstrap.jar's manifest).
+
+
+--------------------------
+Tomcat 5.0 and XML Parsers:
+--------------------------
+
+As described above, Tomcat 5.0 makes an XML parser (and many other standard
+APIs) available to web applications.  This parser is also used internally
+to parse web.xml files and the server.xml configuration file.  If you wish,
+you may replace the "xercesImpl.jar" file in "common/endorsed" with another
+XML parser, as long as it is compatible with the JAXP 1.2 APIs.
+
+Xerces 2.6.2 is included.
+
+
+---------------------------------------------------------------
+Web application reloading and static fields in shared libraries:
+---------------------------------------------------------------
+
+Some shared libraries (many are part of the JDK) keep references to objects
+instantiated by the web application. To avoid class loading related problems
+(ClassCastExceptions, messages indicating that the classloader
+is stopped, etc.), the shared libraries state should be reinitialized.
+
+Something which might help is to avoid putting classes which would be
+referenced by a shared static field in the web application classloader,
+and putting them in the shared classloader instead (JARs should be put in the
+"lib" folder, and classes should be put in the "classes" folder).
+
+
+--------------------
+JAVAC leaking memory:
+--------------------
+
+The Java compiler leaks memory each time a class is compiled. Web applications
+containing hundreds of JSP files may as a result trigger out of memory errors
+once a significant number of pages have been accessed. The memory can only be
+freed by stopping Tomcat and then restarting it.
+
+The JSP command line compiler (JSPC) can also be used to precompile the JSPs.
+
+Note: This issue has been fixed in Sun JDK 1.4.x.
+
+
+---------------
+Tomcat on Linux:
+---------------
+
+Virtual machine crashes can be experienced when using certain combinations of
+kernel / glibc under Linux with Sun Hotspot 1.2 to 1.3. The crashes were
+reported to occur mostly on startup. Sun JDK 1.4 does not exhibit the problems,
+and neither does IBM JDK for Linux.
+
+The problems can be fixed by reducing the default stack size. At bash shell,
+do "ulimit -s 2048"; use "limit stacksize 2048" for tcsh.
+
+GLIBC 2.2 / Linux 2.4 users should also define an environment variable:
+export LD_ASSUME_KERNEL=2.2.5
+
+Additionally, Redhat Linux 9.0 users should use the same setting, to avoid
+stability problems.
+
+
+----------------------------
+Enabling SSI and CGI Support:
+----------------------------
+
+Having CGI and SSI available to web applications created security problems when
+using a security manager (as a malicious web application could use them to
+sidestep the security manager access control). In Tomcat 5.0, they have been
+disabled by default, as our goal is to provide a fully secure default
+configuration. However, CGI and SSI remain available.
+
+
+To enable CGI:
+* rename the file $CATALINA_HOME/server/lib/servlets-cgi.renametojar to
+  $CATALINA_HOME/server/lib/servlets-cgi.jar.
+* in $CATALINA_HOME/conf/web.xml, you will need to uncomment 2 areas, the
+  servlet declaration and the servlet mapping. The servlet declaration
+  looks similar to this:
+    <servlet>
+        <servlet-name>cgi</servlet-name>
+        ...
+    </servlet>
+
+  While the servlet mapping looks similar to this:
+    <servlet-mapping>
+        <servlet-name>cgi</servlet-name>
+        <url-pattern>/cgi-bin/*</url-pattern>
+    </servlet-mapping>
+
+  Alternately, these servlet declarations and mappings
+  can be added to your web application deployment descriptor.
+
+To enable SSI:
+* rename the file $CATALINA_HOME/server/lib/servlets-ssi.renametojar to
+  $CATALINA_HOME/server/lib/servlets-ssi.jar.
+* in $CATALINA_HOME/conf/web.xml, you will need to uncomment 2 areas, the
+  servlet declaration and the servlet mapping. The servlet declaration
+  looks similar to this:
+    <servlet>
+        <servlet-name>ssi</servlet-name>
+        ...
+    </servlet>
+
+  While the servlet mapping looks similar to this:
+    <servlet-mapping>
+        <servlet-name>ssi</servlet-name>
+        <url-pattern>*.shtml</url-pattern>
+    </servlet-mapping>
+
+  Alternately, these servlet declarations and mappings
+  can be added to your web application deployment descriptor.
+
+
+
+---------------------
+Security manager URLs:
+---------------------
+
+The URLs to be used in the policy file to grant permissions to JARs located
+inside the web application repositories have changed as of Tomcat 4.1.
+
+In Tomcat 4.0, codeBase URLs for JARs loaded from web application
+repositories were:
+jar:file:${catalina.home}/webapps/examples/WEB-INF/lib/driver.jar!/-
+
+In Tomcat 4.1 and 5.0, they should be:
+file:${catalina.home}/webapps/examples/WEB-INF/lib/driver.jar
+
+
+---------------------------
+Symlinking static resources:
+---------------------------
+
+By default, Unix symlinks will not work when used in a web application to link
+resources located outside the web application root directory.
+
+This behavior is optional, and the "allowLinking" flag may be used to disable
+the check.
+
+
+------------------------
+Enabling invoker servlet:
+------------------------
+
+Starting with Tomcat 4.1.12, the invoker servlet is no longer available by
+default in all webapps. Enabling it for all webapps is possible by editing
+$CATALINA_HOME/conf/web.xml to uncomment the "/servlet/*" servlet-mapping
+definition.
+
+Using the invoker servlet in a production environment is not recommended and
+is unsupported.
+
+------------------------
+Viewing the Tomcat Change Log 
+------------------------
+
+The Change Log for tomcat 5 is available at
+http://jakarta.apache.org/tomcat/tomcat-5.0-doc/changelog.html.
+
+-------------------
+When all else fails:
+-------------------
+
+See the FAQ
+http://jakarta.apache.org/tomcat/faq/

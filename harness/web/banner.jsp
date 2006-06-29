@@ -1,0 +1,42 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!--
+/* The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.sun.com/cddl/cddl.html or
+ * install_dir/legal/LICENSE
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL
+ * Header Notice in each file and include the License file
+ * at faban/src/legal/CDDLv1.0.txt.
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ * "Portions Copyrighted [year] [name of copyright owner]"
+ *
+ * $Id: banner.jsp,v 1.1 2006/06/29 18:51:45 akara Exp $
+ *
+ * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
+ */
+-->
+<%@ page language="java" import="com.sun.faban.harness.common.BenchmarkDescription"%>
+<html>
+    <head>
+        <title></title>
+        <link rel="icon" type="image/gif" href="img/faban.gif">
+    </head>
+    <body>
+        <table BORDER="0" CELLSPACING="5" CELLPADDING="10" WIDTH="100%" BGCOLOR="#FFFFFF" >
+            <tr>
+                <td ALIGN="CENTER" WIDTH="33%" BGCOLOR="#5382A1"> Sun Microsystems </td>
+                <td ALIGN="CENTER" WIDTH="34%" BGCOLOR="#E76F00"><b><%=BenchmarkDescription.getBannerName()%> Administration</b></td>
+                <td ALIGN="CENTER" WIDTH="33%" BGCOLOR="#B2BC00"> Version <%=BenchmarkDescription.getBannerVersion()%> </td>
+            </tr>  
+        </table>  
+    </body>
+</html>

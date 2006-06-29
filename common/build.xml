@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+* The contents of this file are subject to the terms
+* of the Common Development and Distribution License
+* (the License). You may not use this file except in
+* compliance with the License.
+*
+* You can obtain a copy of the License at
+* http://www.sun.com/cddl/cddl.html or
+* install_dir/legal/LICENSE
+* See the License for the specific language governing
+* permission and limitations under the License.
+*
+* When distributing Covered Code, include this CDDL
+* Header Notice in each file and include the License file
+* at faban/src/legal/CDDLv1.0.txt.
+* If applicable, add the following below the CDDL Header,
+* with the fields enclosed by brackets [] replaced by
+* your own identifying information:
+* "Portions Copyrighted [year] [name of copyright owner]"
+*
+* $Id: build.xml,v 1.1 2006/06/29 18:51:31 akara Exp $
+*
+* Copyright 2005 Sun Microsystems Inc. All Rights Reserved
+-->
+<project name="Faban Common Facilities" default="fabancommon.jar">
+
+    <!-- Compiler options -->
+    <property file="build.properties"/>
+    <property name="compile.output" value="build/classes"/>
+    <property name="jar.output" value="build/lib"/>
+    <property name="jar.file" value="fabancommon.jar"/>
+
+    <path id="source.path">
+        <dirset dir=".">
+            <include name="src"/>
+        </dirset>
+    </path>
+
+    <target name="compile"
+        description="Compile Faban Driver classes">
+        <mkdir dir="${compile.output}"/>
+        <javac destdir="${compile.output}" debug="${compiler.debug}"
+            nowarn="${compiler.generate.no.warnings}"
+            memoryMaximumSize="${compiler.max.memory}" fork="true">
+            <compilerarg line="${compiler.args}"/>
+            <src refid="source.path"/>
+        </javac>
+    </target>
+
+    <target name="rmic" depends="compile"
+        description="Create rmi stubs and skeletons">
+        <rmic base="${compile.output}"
+            includes="**/*Impl.class"
+            excludes="**/*$*.class"/>
+    </target>
+
+    <target name="fabancommon.jar" depends="rmic"
+        description="Package fabancommon.jar">
+        <mkdir dir="${jar.output}"/>
+        <jar jarfile="${jar.output}/${jar.file}">
+            <fileset dir="${compile.output}" includes="**"/>
+        </jar>
+    </target>
+
+    <target name="clean" description="cleanup module">
+        <delete dir="${compile.output}"/>
+        <delete dir="${jar.output}"/>
+    </target>
+</project>

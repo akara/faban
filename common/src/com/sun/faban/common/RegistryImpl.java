@@ -1,0 +1,376 @@
+/* The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.sun.com/cddl/cddl.html or
+ * install_dir/legal/LICENSE
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL
+ * Header Notice in each file and include the License file
+ * at faban/src/legal/CDDLv1.0.txt.
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ * "Portions Copyrighted [year] [name of copyright owner]"
+ *
+ * $Id: RegistryImpl.java,v 1.1 2006/06/29 18:51:31 akara Exp $
+ *
+ * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
+ */
+package com.sun.faban.common;
+
+import java.rmi.RMISecurityManager;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.server.UnicastRemoteObject;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.logging.Logger;
+
+/**
+ * This class implements the Registry interface
+ * The Registry is the single remote object that runs on the master
+ * machine and with which all other instances of remote servers register.
+ * A remote reference to any remote service is obtained by the GUI as
+ * well as the Engine through the registry. There is only one remote
+ * server object (the Registry) that is known by rmiregistry running
+ * on the master machine. Once a reference to the Registry is obtained
+ * by the client, it should use the 'getReference' method to obtain a
+ * reference to any type of remote server.<p>
+ *
+ * Although the Registry implementation uses rmi underneath, the rmi registry
+ * is fully encapsulated inside the Registry and RegistryLocator to avoid any
+ * confusion in the agent programs and other programs accessing the registry.
+ *
+ * @author Shanti Subramanyam
+ */
+public class RegistryImpl extends UnicastRemoteObject implements Registry {
+
+    // This field is a legal requirement and serves no other purpose.
+    static final String COPYRIGHT =
+            "Copyright \251 2006 Sun Microsystems, Inc., 4150 Network Circle, " +
+            "Santa Clara, California 95054, U.S.A. All rights reserved.\n" +
+            "U.S. Government Rights - Commercial software.  Government users " +
+            "are subject to the Sun Microsystems, Inc. standard license " +
+            "agreement and applicable provisions of the FAR and its " +
+            "supplements.\n" +
+            "Use is subject to license terms.\n" +
+            "This distribution may include materials developed by third " +
+            "parties.\n" +
+            "Sun,  Sun Microsystems,  the Sun logo and  Java are trademarks " +
+            "or registered trademarks of Sun Microsystems, Inc. in the U.S. " +
+            "and other countries.\n" +
+            "Apache is a trademark of The Apache Software Foundation, and is " +
+            "used with permission.\n" +
+            "This product is covered and controlled by U.S. Export Control " +
+            "laws and may be subject to the export or import laws in other " +
+            "countries.  Nuclear, missile, chemical biological weapons or " +
+            "nuclear maritime end uses or end users, whether direct or " +
+            "indirect, are strictly prohibited.  Export or reexport to " +
+            "countries subject to U.S. embargo or to entities identified on " +
+            "U.S. export exclusion lists, including, but not limited to, the " +
+            "denied persons and specially designated nationals lists is " +
+            "strictly prohibited.\n" +
+            "\n" +
+            "Copyright \251 2006 Sun Microsystems, Inc., 4150 Network Circle, " +
+            "Santa Clara, California 95054, Etats-Unis. Tous droits " +
+            "r\351serv\351s.\n" +
+            "L'utilisation est soumise aux termes de la Licence.\n" +
+            "Cette distribution peut comprendre des composants " +
+            "d\351velopp\351s par des tierces parties.\n" +
+            "Sun,  Sun Microsystems,  le logo Sun et  Java sont des marques " +
+            "de fabrique ou des marques d\351pos\351es de " +
+            "Sun Microsystems, Inc. aux Etats-Unis et dans d'autres pays.\n" +
+            "Apache est une marque d’Apache Software Foundation, utilis\351e " +
+            "avec leur permission.\n" +
+            "Ce produit est soumis \340 la l\351gislation am\351ricaine " +
+            "en mati\350re de contr\364le des exportations et peut \352tre " +
+            "soumis \340 la r\350glementation en vigueur dans d'autres pays " +
+            "dans le domaine des exportations et importations. Les " +
+            "utilisations, ou utilisateurs finaux, pour des armes " +
+            "nucl\351aires, des missiles, des armes biologiques et chimiques " +
+            "ou du nucl\351aire maritime, directement ou indirectement, sont " +
+            "strictement interdites. Les exportations ou r\351exportations " +
+            "vers les pays sous embargo am\351ricain, ou vers des entit\351s " +
+            "figurant sur les listes d'exclusion d'exportation " +
+            "am\351ricaines, y compris, mais de mani\350re non exhaustive, " +
+            "la liste de personnes qui font objet d'un ordre de ne pas " +
+            "participer, d'une fa\347on directe ou indirecte, aux " +
+            "exportations des produits ou des services qui sont r\351gis par " +
+            "la l\351gislation am\351ricaine en mati\350re de contr\364le " +
+            "des exportations et la liste de ressortissants sp\351cifiquement " +
+            "d\351sign\351s, sont rigoureusement interdites.\n";
+
+    static int rmiPort = RegistryLocator.DEFAULT_PORT;
+    private HashMap servicesTable = new HashMap();
+    private String className;
+    private Logger logger;
+
+    RegistryImpl() throws RemoteException {
+        super();
+        className = getClass().getName();
+        logger=Logger.getLogger(className);
+    }
+
+
+    /**
+      * register service with Registry
+      * The service driverName is of the form &lt;driverName&gt;@&lt;host&gt;
+      * For example, a CmdAgent will register itself as CmdAgent@&lt;host&gt;
+      * so all CmdAgents on different machiens can be uniquely
+      * identified by driverName.
+      * @param name public driverName of service
+      * @param service Remote reference to service
+      */
+    public synchronized void register(String name, Remote service)
+    {
+        logger.fine("Registry: Registering " + name +
+                " on machine " + getCaller());
+        servicesTable.put(name, service);
+    }
+
+    /**
+      * register service with Registry
+      * The service driverName is of the form &lt;driverName&gt;@&lt;host&gt;
+      * For example, a CmdAgent will register itself as CmdAgent@&lt;host&gt;
+      * so all CmdAgents on different machiens can be uniquely
+      * identified by driverName.
+      * @param type of service
+      * @param name of service
+      * @param service Remote reference to service
+      */
+    public synchronized void register(String type, String name, Remote service) {
+
+        if (service == null)
+            throw new NullPointerException("Type: " + type + ", Name: " +
+                    name + "| Service reference is null");
+        // First check if the type of service exists
+        HashMap h = (HashMap) servicesTable.get(type);
+
+        if (h == null) {
+            h = new HashMap();
+            servicesTable.put(type, h);
+        }
+
+        logger.fine("Registry: Registering " + name +
+                " on machine " + getCaller());
+        h.put(name, service);
+    }
+
+    /**
+      * unregister service from Registry
+      * The registry removes this service from its list and clients
+      * can no longer access it. This method is typically called when
+      * the service exits.
+      * @param name public driverName of service
+      */
+    public synchronized void unregister(String name) {
+        servicesTable.remove(name);
+    }
+
+    /**
+      * unregister service from Registry
+      * The registry removes this service from its list and clients
+      * can no longer access it. This method is typically called when
+      * the service exits.
+      * @param type of service
+      * @param name public driverName of service
+      */
+    public synchronized void unregister(String type, String name) {
+        // First check if the type of service exists
+        HashMap h = (HashMap) servicesTable.get(type);
+
+        if (h == null) {
+            logger.warning("Registry.unregister : " +
+                    "Cannot find Service type : " + type);
+        }
+        else {
+            h.remove(name);
+        }
+    }
+
+
+    /**
+      * get reference to service from Registry
+      * The registry searches in its list of registered services
+      * and returns a remote reference to the requested one.
+      * The service driverName is of the form <driverName>@<host>
+      * @param name public driverName of service
+      * @return remote reference
+      */
+    public synchronized Remote getService(String name) {
+        Remote r = (Remote) servicesTable.get(name);
+        return(r);
+    }
+
+    /**
+      * get reference to service from Registry
+      * The registry searches in its list of registered services
+      * and returns a remote reference to the requested one.
+      * The service driverName is of the form <driverName>@<host>
+      * @param type of service
+      * @param name public driverName of service
+      * @return remote reference
+      */
+    public synchronized Remote getService(String type, String name) {
+        Remote r = null;
+        // First check if the type of service exists
+        HashMap h = (HashMap) servicesTable.get(type);
+
+        if (h == null) {
+            logger.warning("Registry.getService : " +
+                    "Cannot find Service type : " + type);
+        }
+        else {
+            r = (Remote) h.get(name);
+        }
+        return(r);
+    }
+
+    /**
+      * get all references to a type of services from Registry
+      * The registry searches in its list of registered services
+      * and returns all  remote references to the requested type.
+      * The service driverName is of the form <driverName>@<host>
+      * @param type of service
+      * @return remote references
+      */
+    public synchronized Remote[] getServices(String type) {
+        Remote[] r = null;
+        // First check if the type of service exists
+        HashMap h = (HashMap) servicesTable.get(type);
+
+        if (h == null) {
+            logger.warning("Registry.getServices : " +
+                    "Cannot find Service type : " + type);
+        }
+        else {
+            r = new Remote[h.size()];
+            Iterator iter =h.values().iterator();
+            int i = 0;
+            while (iter.hasNext()) {
+                r[i] = (Remote) iter.next();
+                if (r[i] == null)
+                    logger.warning("Service reference is null");
+                ++i;
+            }
+        }
+        return(r);
+    }
+
+    /**
+      * Get the number of registered Services of a type
+      * @param type of service
+      * @return int number of registered services
+      */
+    public synchronized int getNumServices(String type) {
+        // First check if the type of service exists
+        HashMap h = (HashMap) servicesTable.get(type);
+        int i = 0;
+        if (h == null) {
+            logger.warning("Registry.getNumServices : " +
+                    "Cannot find Service type : " + type);
+        }
+        else {
+            i = h.size();
+        }
+        return i;
+    }
+
+    // Get the caller
+    private String getCaller() {
+        String s = null;
+
+        try {
+            s = getClientHost();
+        }
+        catch (Exception e) {
+            logger.severe(e.getMessage());
+            logger.throwing(className, "getCaller", e);
+        }
+
+        return s;
+    }
+
+    /**
+     * Kill is called to exit the RMI registry and Registry
+     */
+    public void kill() {
+        logger.info("Unregistering Services");
+
+        for(Iterator i = servicesTable.keySet().iterator(); i.hasNext();) {
+            unregister((String)i.next());
+            logger.fine("Unregistering " + i.next());
+        }
+
+        // *** This is to gracefully return from this method.
+        // *** The Agent will exit after 5 seconds
+        // *** If the System.exit(0) is called in this method
+        // *** the Service will get a RemoteException
+        Thread exitThread = new Thread() {
+            public void run() {
+                try {
+                    Thread.sleep(5000);
+                    System.exit(0);
+                }
+                catch(Exception e) {}
+            }
+        };
+        exitThread.start();
+        logger.info("Registry will exit in 5 secs");
+    }
+
+
+
+    /**
+     * Registration for RMI serving
+     */
+    public static void main(String [] argv) {
+
+        String portString = System.getProperty("faban.registry.port");
+        if (portString != null)
+            try {
+                rmiPort = Integer.parseInt(portString);
+            } catch (NumberFormatException e) {
+                System.err.println("Property faban.registry.port " +
+                        e.getMessage());
+                e.printStackTrace();
+                System.exit(-1);
+            }
+
+        java.rmi.registry.Registry rmiRegistry = null;
+        try {
+            rmiRegistry = LocateRegistry.createRegistry(rmiPort);
+            System.out.println("Registry listening on port " +
+                    rmiPort + ".");
+        } catch (Exception e) {
+            System.err.println("Exception starting registry:");
+            e.printStackTrace();
+            System.exit(-1);
+        }
+
+        System.setSecurityManager (new RMISecurityManager());
+        try {
+            Registry registry = new RegistryImpl();
+            rmiRegistry.bind(RegistryLocator.BIND_NAME, registry);
+//            debug.println(3, "Binding registry to " + s);
+            // If the debug level is set to too high and if this is not
+            // printed driver will hang !!!!
+            System.out.println("Registry bound.");
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            try {
+                rmiRegistry.unbind(RegistryLocator.BIND_NAME);
+            }
+            catch (Exception ei) { }
+            System.exit(-1);
+        }
+    }
+}
+

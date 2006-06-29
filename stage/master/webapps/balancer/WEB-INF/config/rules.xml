@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rules>
+  <!-- If the URL contains News (case-sensitive), go to CNN.com -->
+  <rule className="org.apache.webapp.balancer.rules.URLStringMatchRule"
+    targetString="News"
+    redirectUrl="http://www.cnn.com" />
+
+  <!-- If the request contains a parameter named paramName whose value
+       is paramValue, go to Yahoo.com. -->
+  <rule className="org.apache.webapp.balancer.rules.RequestParameterRule"
+    paramName="paramName"
+    paramValue="paramValue"
+    redirectUrl="http://www.yahoo.com" />
+
+  <!-- Redirect all requests to jakarta.apache.org. -->
+  <rule className="org.apache.webapp.balancer.rules.AcceptEverythingRule"
+    redirectUrl="http://jakarta.apache.org" />
+</rules>

@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+* The contents of this file are subject to the terms
+* of the Common Development and Distribution License
+* (the License). You may not use this file except in
+* compliance with the License.
+*
+* You can obtain a copy of the License at
+* https://faban.dev.java.net/public/CDDLv1.0.html or
+* install_dir/license.txt
+* See the License for the specific language governing
+* permission and limitations under the License.
+*
+* When distributing Covered Code, include this CDDL
+* Header Notice in each file and include the License file
+* at faban/src/legal/CDDLv1.0.txt.
+* If applicable, add the following below the CDDL Header,
+* with the fields enclosed by brackets [] replaced by
+* your own identifying information:
+* "Portions Copyrighted [year] [name of copyright owner]"
+*
+* $Id: build.xml,v 1.1 2006/06/29 18:51:49 akara Exp $
+*
+* Copyright 2005 Sun Microsystems Inc. All Rights Reserved
+-->
+<project name="Faban Kit" default="all">
+
+    <property file="build.properties"/>
+    <property name="jar.output" value="build/lib"/>
+    <property name="lib.dir" value="lib"/>
+    <tstamp>
+        <format property="build.date" pattern="MMddyy"/>
+    </tstamp>
+    <condition property="faban.bundled">
+        <not>
+            <equals arg1="faban" arg2="${package.name}"/>
+        </not>
+    </condition>
+
+    <condition property="benchmark.dir"
+        value= "benchmarks" else="benchmarks/${package.name}">
+        <equals arg1="faban" arg2="${package.name}"/>
+    </condition>
+
+    <target name="build-faban" unless="faban.bundled"
+        description="Build all the Faban components">
+	    <ant dir="${workspace.dir}/common"/>
+	    <ant dir="${workspace.dir}/driver"/>
+	    <ant dir="${workspace.dir}/harness"/>
+        <antcall target="copy"/>
+    </target>
+
+    <target name="copy" unless="faban.bundled"
+        description="Populates the staging area with all necessary files" >
+        <mkdir dir="ant/lib"/>
+        <copy file="${workspace.dir}/harness/${jar.output}/faban-ant.jar"
+            tofile="ant/lib/faban-ant.jar"
+            overwrite="true" preservelastmodified="true"
+            includeEmptyDirs="true" verbose="true"/>
+        <copy todir="ant/lib"
+            overwrite="true" preservelastmodified="true"
+            includeEmptyDirs="true" verbose="true">
+            <fileset dir="${workspace.dir}/harness/lib"
+                includes="commons-httpclient-2.0.1.jar, commons-logging.jar"/>
+        </copy>
+
+        <mkdir dir="benchmarks"/>
+
+        <mkdir dir="bin"/>
+        <copy todir="bin"
+            overwrite="true" preservelastmodified="true"
+            includeEmptyDirs="true" verbose="true">
+            <fileset dir="${workspace.dir}/harness/bin"/>
+        </copy>
+
+        <chmod dir="bin" perm="755" includes="**"/>
+
+        <mkdir dir="config"/>
+        <copy todir="config"
+            overwrite="true" preservelastmodified="true"
+            includeEmptyDirs="true" verbose="true">
+            <fileset dir="${workspace.dir}/harness/config"/>
+        </copy>
+
+        <copy file="${workspace.dir}/common/${jar.output}/fabancommon.jar"
+            tofile="lib/fabancommon.jar"
+            overwrite="true" preservelastmodified="true"
+            includeEmptyDirs="true" verbose="true"/>
+        <copy file="${workspace.dir}/driver/${jar.output}/fabandriver.jar"
+            tofile="lib/fabandriver.jar"
+            overwrite="true" preservelastmodified="true"
+            includeEmptyDirs="true" verbose="true"/>
+        <copy file="${workspace.dir}/harness/${jar.output}/fabanagents.jar"
+            tofile="lib/fabanagents.jar"
+            overwrite="true" preservelastmodified="true"
+            includeEmptyDirs="true" verbose="true"/>
+
+        <mkdir dir="logs"/>
+
+        <mkdir dir="output"/>
+
+        <mkdir dir="samples/web1"/>
+        <copy todir="samples/web1"
+            overwrite="true" preservelastmodified="true"
+            includeEmptyDirs="true" verbose="true">
+            <fileset dir="${workspace.dir}/samples/web1"/>
+        </copy>
+
+        <copy todir="master/common/endorsed"
+            overwrite="true" preservelastmodified="true"
+            includeEmptyDirs="true" verbose="true">
+            <fileset dir="${workspace.dir}/harness/lib" includes="dom3-*, xalan.jar"/>
+        </copy>
+
+        <copy file="${workspace.dir}/harness/deploy/context.xml"
+            tofile="master/conf/Catalina/localhost/faban.xml"
+            overwrite="true" preservelastmodified="true"
+            includeEmptyDirs="true" verbose="true"/>
+
+        <copy file="${workspace.dir}/harness/${jar.output}/faban.war"
+            tofile="master/webapps/faban.war"
+            overwrite="true" preservelastmodified="true"
+            includeEmptyDirs="true" verbose="true"/>
+    </target>
+
+    <patternset id="client.bin">
+        <include name="bin/**"/>
+    </patternset>
+
+    <patternset id="server.bin">
+        <patternset refid="client.bin"/>
+        <include name="master/bin/*.sh"/>
+        <include name="samples/**/bin/**" unless="faban.bundled"/>
+        <include name="samples/**/sbin/**" unless="faban.bundled"/>
+    </patternset>
+
+    <patternset id="package.bin">
+        <patternset refid="server.bin"/>
+        <include name="samples/**/bin/**" if="faban.bundled"/>
+        <include name="samples/**/sbin/**" if="faban.bundled"/>
+    </patternset>
+
+    <patternset id="package.excludes">
+        <exclude name="**/.nfs*"/>
+        <exclude name=".*.swap"/>
+        <exclude name="bin/**"/>
+        <exclude name="benchmarks/?*"/>
+        <exclude name="benchmarks/?*/**"/>
+        <exclude name="output/?*"/>
+        <exclude name="output/?*/**"/>
+        <exclude name="logs/?*"/>
+        <exclude name="logs/?*/**"/>
+        <exclude name="config/sequence"/>
+        <exclude name="config/runq/?*"/>
+        <exclude name="config/runq/?*/**"/>
+        <exclude name="config/users/?*"/>
+        <exclude name="config/users/?*/**"/>
+        <exclude name="master/bin/*.sh"/>
+        <exclude name="master/logs/?*"/>
+        <exclude name="master/logs/?*/**"/>
+        <exclude name="master/webapps/faban/**"/>
+        <exclude name="master/webapps/xanadu/**"/>
+        <exclude name="master/work/Catalina/localhost/?*"/>
+        <exclude name="master/work/Catalina/localhost/?*/**"/>
+        <exclude name="samples/**/bin/**"/>
+        <exclude name="samples/**/sbin/**"/>
+        <exclude name="samples/**/build/**"/>
+    </patternset>
+
+    <patternset id="server.excludes">
+        <patternset refid="package.excludes"/>
+        <exclude name="build.xml"/>
+        <exclude name="build.properties"/>
+        <exclude name="ant/**" if="faban.bundled"/>
+        <exclude name="lib/pkglists/**"/>
+        <exclude name="samples/**" if="faban.bundled"/>
+    </patternset>
+
+    <patternset id="client.excludes">
+        <patternset refid="server.excludes"/>
+        <exclude name="README.*"/>
+        <exclude name="output/**"/>
+        <exclude name="ant/**"/>
+        <exclude name="benchmarks/**"/>
+        <exclude name="master/**"/>
+        <exclude name="samples/**"/>
+        <exclude name="config/runq/**"/>
+        <exclude name="config/users/**"/>
+        <exclude name="legal/*.tar.gz"/>
+    </patternset>
+
+    <patternset id="benchmark.bundle">
+        <include name="benchmarks/${package.name}.jar" if="faban.bundled"/>
+        <exclude name="**" unless="faban.bundled"/>
+    </patternset>
+
+    <patternset id="benchmark.readme">
+        <include name="README*" if="faban.bundled"/>
+        <exclude name="**" unless="faban.bundled"/>
+    </patternset>
+
+    <target name="package-bundle" unless="faban.bundled"
+        description="Package bundle for re-shipping with benchmark">
+        <tar destfile="${kit.dir}/${package.name}-bundle-${build.date}.tar.gz"
+            longfile="warn" compression="gzip">
+            <tarfileset dir="." prefix="${package.name}" mode="755" dirmode="755">
+                <patternset refid="package.bin"/>
+            </tarfileset>
+            <tarfileset dir="." prefix="${package.name}" dirmode="755">
+                <patternset refid="package.excludes"/>
+            </tarfileset>
+            <tarfileset dir="." prefix="${package.name}" dirmode="755">
+                <patternset refid="benchmark.bundle"/>
+            </tarfileset>
+        </tar>
+    </target>
+
+    <target name="package-server"
+        description="Package server install image">
+        <tar destfile="${kit.dir}/${package.name}-server-${build.date}.tar.gz"
+            longfile="warn" compression="gzip">
+            <tarfileset dir="." prefix="${package.name}" mode="755" dirmode="755">
+                <patternset refid="server.bin"/>
+            </tarfileset>
+            <tarfileset dir="." prefix="${package.name}" dirmode="755">
+                <patternset refid="server.excludes"/>
+            </tarfileset>
+            <tarfileset dir="." prefix="${package.name}" dirmode="755">
+                <patternset refid="benchmark.bundle"/>
+            </tarfileset>
+            <tarfileset dir="${benchmark.dir}"
+                prefix="${package.name}" dirmode="755">
+                <patternset refid="benchmark.readme"/>
+            </tarfileset>
+        </tar>
+    </target>
+
+    <target name="package-client"
+        description="Package client/agent install image">
+        <tar destfile="${kit.dir}/${package.name}-client-${build.date}.tar.gz"
+            longfile="warn" compression="gzip">
+            <tarfileset dir="." prefix="${package.name}" mode="755" dirmode="755">
+                <patternset refid="client.bin"/>
+            </tarfileset>
+            <tarfileset dir="." prefix="${package.name}">
+                <patternset refid="client.excludes"/>
+            </tarfileset>
+        </tar>
+    </target>
+
+    <target name="javadoc" unless="faban.bundled"
+            description="Generate Javadoc documents">
+        <path id="class.path">
+            <fileset dir="${workspace.dir}/harness/lib" includes="*.jar"/>
+            <fileset dir="master/common/lib" includes="*.jar"/>
+        </path>
+        <javadoc packagenames="com.sun.faban.**"
+            destdir="${docs.dir}/api"
+            classpathref="class.path"
+            verbose="false"
+            windowtitle="Faban Driver Framework 0.5">
+            <fileset dir="${workspace.dir}/common" includes="src/**/*.java"/>
+            <fileset dir="${workspace.dir}/driver" includes="src/**/*.java"/>
+            <fileset dir="${workspace.dir}/harness" includes="src/**/*.java"/>
+            <package name="com.sun.faban.**"/>
+            <excludepackage name="**/*.html"/>
+            <link href="http://java.sun.com/j2se/1.5.0/docs/api"
+                offline="true" packagelistloc="lib/pkglists/j2se" />
+            <link href="http://java.sun.com/j2ee/1.4/docs/api"
+                offline="true" packagelistloc="lib/pkglists/j2ee"/>
+        </javadoc>
+        <tar destfile="${kit.dir}/${package.name}-docs-${build.date}.tar.gz"
+            longfile="warn" compression="gzip">
+            <tarfileset dir="${docs.dir}" prefix="docs" dirmode="755"/>
+        </tar>
+    </target>
+
+    <target name="package-faban" depends="build-faban, package-bundle, javadoc"
+        unless="faban.bundled"
+        description="Package the Faban kit only packages."/>
+
+    <target name="all" depends="package-faban, package-server, package-client"
+        description="Create all packages."/>
+
+    <target name="clean-master"
+        description="Clean staging area from master-generated files like logs, etc.">
+        <delete includeemptydirs="true">
+            <fileset dir=".">
+                <include name="benchmarks/?*/**"/>
+                <include name="benchmarks/?*"/>
+                <exclude name="benchmarks/${package.name}.jar"/>
+                <include name="output/?*/**"/>
+                <include name="output/?*"/>
+                <include name="logs/?*/**"/>
+                <include name="logs/?*"/>
+                <include name="config/sequence"/>
+                <include name="config/runq/?*/**"/>
+                <include name="config/runq/?*"/>
+                <include name="config/users/?*/**"/>
+                <include name="config/users/?*"/>
+                <include name="master/logs/?*/**"/>
+                <include name="master/logs/?*"/>
+                <include name="master/webapps/faban/**"/>
+                <include name="master/webapps/xanadu/**"/>
+                <include name="master/work/Catalina/localhost/?*/**"/>
+                <include name="master/work/Catalina/localhost/?*"/>
+                <include name="samples/**/build/**"/>
+            </fileset>
+        </delete>
+    </target>
+    
+    <target name="clean-copies" depends="clean-master" unless="faban.bundled"
+        description="Clean staging area from all files copied over from the components">
+        <delete includeemptydirs="true">
+            <fileset dir=".">
+                <include name="ant/**"/>
+                <include name="bin/**"/>
+                <include name="config/**"/>
+                <include name="lib/**"/>
+                <exclude name="lib/**/pkglists/**"/>
+                <include name="samples/**"/>
+                <include name="master/common/endorsed/?*"/>
+                <include name="master/conf/Catalina/localhost/faban.xml"/>
+                <include name="master/webapps/faban.war"/>
+            </fileset>
+        </delete>
+    </target>
+    
+    <target name="clean-modules" depends="clean-copies" unless="faban.bundled"
+        description="Clean all modules">
+        <ant dir="${workspace.dir}/common" target="clean"/>
+        <ant dir="${workspace.dir}/driver" target="clean"/>
+        <ant dir="${workspace.dir}/harness" target="clean"/>
+    </target>
+
+    <target name="clean-all" depends="clean-master, clean-modules"
+        description="Clean staging area and modules, if applicable"/>
+</project>

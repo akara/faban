@@ -1,0 +1,819 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<!DOCTYPE web-app
+    PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+    "http://java.sun.com/dtd/web-app_2_3.dtd">
+
+<web-app>
+
+  <display-name>Tomcat Administration Application</display-name>
+  <description>
+    Tomcat HTML based administration web application.
+  </description>
+
+  <!-- Example filter to set character encoding on each request.
+       Uncomment this filter definition and the mapping to use
+       the filter to decode post and get parameters -->
+
+  <!--
+  <filter>
+    <filter-name>Set Character Encoding</filter-name>
+    <filter-class>filters.SetCharacterEncodingFilter</filter-class>
+    <init-param>
+      <param-name>encoding</param-name>
+      <param-value>UTF8</param-value>
+    </init-param>
+  </filter>
+  -->
+
+  <!-- Example filter mapping to apply the "Set Character Encoding" filter
+       to *all* requests processed by this web application -->
+
+  <!--
+  <filter-mapping>
+    <filter-name>Set Character Encoding</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+  -->
+
+  <!-- Action Servlet Configuration -->
+  <servlet>
+    <servlet-name>action</servlet-name>
+    <servlet-class>
+      org.apache.webapp.admin.ApplicationServlet
+    </servlet-class>
+    <init-param>
+      <param-name>application</param-name>
+      <param-value>
+        org.apache.webapp.admin.ApplicationResources
+      </param-value>
+    </init-param>
+    <init-param>
+      <param-name>config</param-name>
+      <param-value>/WEB-INF/struts-config.xml</param-value>
+    </init-param>
+    <init-param>
+      <param-name>debug</param-name>
+      <param-value>0</param-value>
+    </init-param>
+    <init-param>
+      <param-name>detail</param-name>
+      <param-value>0</param-value>
+    </init-param>
+    <init-param>
+      <param-name>locale</param-name>
+      <param-value>true</param-value>
+    </init-param>
+    <init-param>
+      <param-name>nocache</param-name>
+      <param-value>true</param-value>
+    </init-param>
+    <init-param>
+      <param-name>validate</param-name>
+      <param-value>false</param-value>
+    </init-param>
+    <!-- Label to be displayed for rootnode. If absent, rootnode is not rendered -->
+    <!--
+    <init-param>
+      <param-name>rootnodename</param-name>
+      <param-value>Tomcat Root</param-value>
+    </init-param>
+    -->
+    <init-param>
+      <param-name>treebuilders</param-name>
+      <param-value>
+        org.apache.webapp.admin.TomcatTreeBuilder,
+        org.apache.webapp.admin.resources.ResourcesTreeBuilder,
+        org.apache.webapp.admin.users.UsersTreeBuilder
+    </param-value>
+    </init-param>
+    <init-param>
+      <param-name>domain</param-name>
+      <param-value>Catalina</param-value>
+    </init-param>
+
+    <load-on-startup>2</load-on-startup>
+  </servlet>
+
+  <!-- Action Servlet Mapping -->
+  
+<!-- JSPC servlet mappings start -->
+
+    <servlet>
+        <servlet-name>admin.header_jsp</servlet-name>
+        <servlet-class>admin.header_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.index_jsp</servlet-name>
+        <servlet-class>admin.index_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.saved_jsp</servlet-name>
+        <servlet-class>admin.saved_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.error_jsp</servlet-name>
+        <servlet-class>admin.error_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.banner_jsp</servlet-name>
+        <servlet-class>admin.banner_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.savefail_jsp</servlet-name>
+        <servlet-class>admin.savefail_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.blank_jsp</servlet-name>
+        <servlet-class>admin.blank_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.footer_jsp</servlet-name>
+        <servlet-class>admin.footer_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.tree_002dcontrol_002dtest_jsp</servlet-name>
+        <servlet-class>admin.tree_002dcontrol_002dtest_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.dumpServer_jsp</servlet-name>
+        <servlet-class>admin.dumpServer_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.dumpRegistry_jsp</servlet-name>
+        <servlet-class>admin.dumpRegistry_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.buttons_jsp</servlet-name>
+        <servlet-class>admin.buttons_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.frameset_jsp</servlet-name>
+        <servlet-class>admin.frameset_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.login_jsp</servlet-name>
+        <servlet-class>admin.login_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.connector.connectors_jsp</servlet-name>
+        <servlet-class>admin.connector.connectors_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.connector.connector_jsp</servlet-name>
+        <servlet-class>admin.connector.connector_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.context.context_jsp</servlet-name>
+        <servlet-class>admin.context.context_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.context.contexts_jsp</servlet-name>
+        <servlet-class>admin.context.contexts_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.defaultcontext.defaultcontext_jsp</servlet-name>
+        <servlet-class>admin.defaultcontext.defaultcontext_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.logger.logger_jsp</servlet-name>
+        <servlet-class>admin.logger.logger_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.logger.loggers_jsp</servlet-name>
+        <servlet-class>admin.logger.loggers_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.server.server_jsp</servlet-name>
+        <servlet-class>admin.server.server_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.service.services_jsp</servlet-name>
+        <servlet-class>admin.service.services_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.service.service_jsp</servlet-name>
+        <servlet-class>admin.service.service_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.host.host_jsp</servlet-name>
+        <servlet-class>admin.host.host_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.host.hosts_jsp</servlet-name>
+        <servlet-class>admin.host.hosts_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.host.aliases_jsp</servlet-name>
+        <servlet-class>admin.host.aliases_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.host.alias_jsp</servlet-name>
+        <servlet-class>admin.host.alias_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.users.footer_jsp</servlet-name>
+        <servlet-class>admin.users.footer_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.users.user_jsp</servlet-name>
+        <servlet-class>admin.users.user_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.users.listUsers_jsp</servlet-name>
+        <servlet-class>admin.users.listUsers_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.users.group_jsp</servlet-name>
+        <servlet-class>admin.users.group_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.users.deleteUsers_jsp</servlet-name>
+        <servlet-class>admin.users.deleteUsers_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.users.listRoles_jsp</servlet-name>
+        <servlet-class>admin.users.listRoles_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.users.listGroups_jsp</servlet-name>
+        <servlet-class>admin.users.listGroups_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.users.deleteGroups_jsp</servlet-name>
+        <servlet-class>admin.users.deleteGroups_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.users.header_jsp</servlet-name>
+        <servlet-class>admin.users.header_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.users.deleteRoles_jsp</servlet-name>
+        <servlet-class>admin.users.deleteRoles_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.users.role_jsp</servlet-name>
+        <servlet-class>admin.users.role_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.realm.userDatabaseRealm_jsp</servlet-name>
+        <servlet-class>admin.realm.userDatabaseRealm_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.realm.dataSourceRealm_jsp</servlet-name>
+        <servlet-class>admin.realm.dataSourceRealm_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.realm.jdbcRealm_jsp</servlet-name>
+        <servlet-class>admin.realm.jdbcRealm_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.realm.memoryRealm_jsp</servlet-name>
+        <servlet-class>admin.realm.memoryRealm_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.realm.realms_jsp</servlet-name>
+        <servlet-class>admin.realm.realms_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.realm.jndiRealm_jsp</servlet-name>
+        <servlet-class>admin.realm.jndiRealm_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.resources.resourceLink_jsp</servlet-name>
+        <servlet-class>admin.resources.resourceLink_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.resources.listResourceLinks_jsp</servlet-name>
+        <servlet-class>admin.resources.listResourceLinks_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.resources.deleteResourceLinks_jsp</servlet-name>
+        <servlet-class>admin.resources.deleteResourceLinks_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.resources.deleteDataSources_jsp</servlet-name>
+        <servlet-class>admin.resources.deleteDataSources_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.resources.deleteEnvEntries_jsp</servlet-name>
+        <servlet-class>admin.resources.deleteEnvEntries_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.resources.listDataSources_jsp</servlet-name>
+        <servlet-class>admin.resources.listDataSources_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.resources.listEnvEntries_jsp</servlet-name>
+        <servlet-class>admin.resources.listEnvEntries_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.resources.envEntry_jsp</servlet-name>
+        <servlet-class>admin.resources.envEntry_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.resources.userDatabase_jsp</servlet-name>
+        <servlet-class>admin.resources.userDatabase_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.resources.dataSource_jsp</servlet-name>
+        <servlet-class>admin.resources.dataSource_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.resources.listUserDatabases_jsp</servlet-name>
+        <servlet-class>admin.resources.listUserDatabases_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.resources.deleteUserDatabases_jsp</servlet-name>
+        <servlet-class>admin.resources.deleteUserDatabases_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.resources.listMailSessions_jsp</servlet-name>
+        <servlet-class>admin.resources.listMailSessions_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.resources.deleteMailSessions_jsp</servlet-name>
+        <servlet-class>admin.resources.deleteMailSessions_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.resources.mailSession_jsp</servlet-name>
+        <servlet-class>admin.resources.mailSession_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.valve.accessLogValve_jsp</servlet-name>
+        <servlet-class>admin.valve.accessLogValve_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.valve.remoteAddrValve_jsp</servlet-name>
+        <servlet-class>admin.valve.remoteAddrValve_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.valve.singleSignOnValve_jsp</servlet-name>
+        <servlet-class>admin.valve.singleSignOnValve_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.valve.remoteHostValve_jsp</servlet-name>
+        <servlet-class>admin.valve.remoteHostValve_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.valve.valves_jsp</servlet-name>
+        <servlet-class>admin.valve.valves_jsp</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>admin.valve.requestDumperValve_jsp</servlet-name>
+        <servlet-class>admin.valve.requestDumperValve_jsp</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>admin.header_jsp</servlet-name>
+        <url-pattern>/header.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.index_jsp</servlet-name>
+        <url-pattern>/index.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.saved_jsp</servlet-name>
+        <url-pattern>/saved.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.error_jsp</servlet-name>
+        <url-pattern>/error.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.banner_jsp</servlet-name>
+        <url-pattern>/banner.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.savefail_jsp</servlet-name>
+        <url-pattern>/savefail.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.blank_jsp</servlet-name>
+        <url-pattern>/blank.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.footer_jsp</servlet-name>
+        <url-pattern>/footer.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.tree_002dcontrol_002dtest_jsp</servlet-name>
+        <url-pattern>/tree-control-test.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.dumpServer_jsp</servlet-name>
+        <url-pattern>/dumpServer.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.dumpRegistry_jsp</servlet-name>
+        <url-pattern>/dumpRegistry.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.buttons_jsp</servlet-name>
+        <url-pattern>/buttons.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.frameset_jsp</servlet-name>
+        <url-pattern>/frameset.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.login_jsp</servlet-name>
+        <url-pattern>/login.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.connector.connectors_jsp</servlet-name>
+        <url-pattern>/connector/connectors.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.connector.connector_jsp</servlet-name>
+        <url-pattern>/connector/connector.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.context.context_jsp</servlet-name>
+        <url-pattern>/context/context.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.context.contexts_jsp</servlet-name>
+        <url-pattern>/context/contexts.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.defaultcontext.defaultcontext_jsp</servlet-name>
+        <url-pattern>/defaultcontext/defaultcontext.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.logger.logger_jsp</servlet-name>
+        <url-pattern>/logger/logger.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.logger.loggers_jsp</servlet-name>
+        <url-pattern>/logger/loggers.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.server.server_jsp</servlet-name>
+        <url-pattern>/server/server.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.service.services_jsp</servlet-name>
+        <url-pattern>/service/services.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.service.service_jsp</servlet-name>
+        <url-pattern>/service/service.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.host.host_jsp</servlet-name>
+        <url-pattern>/host/host.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.host.hosts_jsp</servlet-name>
+        <url-pattern>/host/hosts.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.host.aliases_jsp</servlet-name>
+        <url-pattern>/host/aliases.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.host.alias_jsp</servlet-name>
+        <url-pattern>/host/alias.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.users.footer_jsp</servlet-name>
+        <url-pattern>/users/footer.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.users.user_jsp</servlet-name>
+        <url-pattern>/users/user.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.users.listUsers_jsp</servlet-name>
+        <url-pattern>/users/listUsers.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.users.group_jsp</servlet-name>
+        <url-pattern>/users/group.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.users.deleteUsers_jsp</servlet-name>
+        <url-pattern>/users/deleteUsers.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.users.listRoles_jsp</servlet-name>
+        <url-pattern>/users/listRoles.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.users.listGroups_jsp</servlet-name>
+        <url-pattern>/users/listGroups.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.users.deleteGroups_jsp</servlet-name>
+        <url-pattern>/users/deleteGroups.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.users.header_jsp</servlet-name>
+        <url-pattern>/users/header.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.users.deleteRoles_jsp</servlet-name>
+        <url-pattern>/users/deleteRoles.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.users.role_jsp</servlet-name>
+        <url-pattern>/users/role.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.realm.userDatabaseRealm_jsp</servlet-name>
+        <url-pattern>/realm/userDatabaseRealm.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.realm.dataSourceRealm_jsp</servlet-name>
+        <url-pattern>/realm/dataSourceRealm.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.realm.jdbcRealm_jsp</servlet-name>
+        <url-pattern>/realm/jdbcRealm.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.realm.memoryRealm_jsp</servlet-name>
+        <url-pattern>/realm/memoryRealm.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.realm.realms_jsp</servlet-name>
+        <url-pattern>/realm/realms.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.realm.jndiRealm_jsp</servlet-name>
+        <url-pattern>/realm/jndiRealm.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.resources.resourceLink_jsp</servlet-name>
+        <url-pattern>/resources/resourceLink.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.resources.listResourceLinks_jsp</servlet-name>
+        <url-pattern>/resources/listResourceLinks.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.resources.deleteResourceLinks_jsp</servlet-name>
+        <url-pattern>/resources/deleteResourceLinks.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.resources.deleteDataSources_jsp</servlet-name>
+        <url-pattern>/resources/deleteDataSources.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.resources.deleteEnvEntries_jsp</servlet-name>
+        <url-pattern>/resources/deleteEnvEntries.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.resources.listDataSources_jsp</servlet-name>
+        <url-pattern>/resources/listDataSources.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.resources.listEnvEntries_jsp</servlet-name>
+        <url-pattern>/resources/listEnvEntries.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.resources.envEntry_jsp</servlet-name>
+        <url-pattern>/resources/envEntry.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.resources.userDatabase_jsp</servlet-name>
+        <url-pattern>/resources/userDatabase.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.resources.dataSource_jsp</servlet-name>
+        <url-pattern>/resources/dataSource.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.resources.listUserDatabases_jsp</servlet-name>
+        <url-pattern>/resources/listUserDatabases.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.resources.deleteUserDatabases_jsp</servlet-name>
+        <url-pattern>/resources/deleteUserDatabases.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.resources.listMailSessions_jsp</servlet-name>
+        <url-pattern>/resources/listMailSessions.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.resources.deleteMailSessions_jsp</servlet-name>
+        <url-pattern>/resources/deleteMailSessions.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.resources.mailSession_jsp</servlet-name>
+        <url-pattern>/resources/mailSession.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.valve.accessLogValve_jsp</servlet-name>
+        <url-pattern>/valve/accessLogValve.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.valve.remoteAddrValve_jsp</servlet-name>
+        <url-pattern>/valve/remoteAddrValve.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.valve.singleSignOnValve_jsp</servlet-name>
+        <url-pattern>/valve/singleSignOnValve.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.valve.remoteHostValve_jsp</servlet-name>
+        <url-pattern>/valve/remoteHostValve.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.valve.valves_jsp</servlet-name>
+        <url-pattern>/valve/valves.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>admin.valve.requestDumperValve_jsp</servlet-name>
+        <url-pattern>/valve/requestDumperValve.jsp</url-pattern>
+    </servlet-mapping>
+
+<!-- JSPC servlet mappings end -->
+
+  <servlet-mapping>
+    <servlet-name>action</servlet-name>
+    <url-pattern>*.do</url-pattern>
+  </servlet-mapping>
+
+  <!-- Struts Tag Library Descriptors -->
+  <taglib>
+    <taglib-uri>/WEB-INF/struts-bean.tld</taglib-uri>
+    <taglib-location>/WEB-INF/struts-bean.tld</taglib-location>
+  </taglib>
+
+  <taglib>
+    <taglib-uri>/WEB-INF/struts-html.tld</taglib-uri>
+    <taglib-location>/WEB-INF/struts-html.tld</taglib-location>
+  </taglib>
+
+  <taglib>
+    <taglib-uri>/WEB-INF/struts-logic.tld</taglib-uri>
+    <taglib-location>/WEB-INF/struts-logic.tld</taglib-location>
+  </taglib>
+
+  <!-- Security is active on entire directory -->
+  <security-constraint>
+    <display-name>Tomcat Server Configuration Security Constraint</display-name>
+    <web-resource-collection>
+      <web-resource-name>Protected Area</web-resource-name>
+      <!-- Define the context-relative URL(s) to be protected -->
+      <url-pattern>*.jsp</url-pattern>
+      <url-pattern>*.do</url-pattern>
+      <url-pattern>*.html</url-pattern>
+    </web-resource-collection>
+    <auth-constraint>
+      <!-- Anyone with one of the listed roles may access this area -->
+      <role-name>admin</role-name>
+    </auth-constraint>
+  </security-constraint>
+
+  <!-- Login configuration uses form-based authentication -->
+  <login-config>
+    <auth-method>FORM</auth-method>
+    <realm-name>Tomcat Server Configuration Form-Based Authentication Area</realm-name>
+    <form-login-config>
+      <form-login-page>/login.jsp</form-login-page>
+      <form-error-page>/error.jsp</form-error-page>
+    </form-login-config>
+  </login-config>
+
+  <!-- Security roles referenced by this web application -->
+  <security-role>
+    <description>
+      The role that is required to log in to the Administration Application
+    </description>
+    <role-name>admin</role-name>
+  </security-role>
+
+</web-app>
