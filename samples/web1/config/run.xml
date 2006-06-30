@@ -1,18 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <webBenchmark>
-    <jvmConfig>
-        <javaHome>/usr/java</javaHome>
-        <jvmOptions>-Xmx1g -Xms256m -XX:+DisableExplicitGC</jvmOptions>
-    </jvmConfig>
     <!-- The definition binds the config file with the benchmark class -->
     <runConfig definition="sample.driver.WebDriver">
         <!-- The hostConfig section is used by the harness to control hosts -->
         <hostConfig>
             <host>brazilian.sfbay</host>
-            <enabled>true</enabled>
-            <cpus>0</cpus>
-            <tools>NONE</tools>
-            <userCommands></userCommands>
         </hostConfig>
         <!-- The scale of the benchmark run, the driver definition
         defines the number of threads for each driver scale
