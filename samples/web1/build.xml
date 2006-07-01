@@ -52,7 +52,8 @@
         description="Assembles deployment jar image for Faban harness">
         <jar jarfile="${build.dir}/${bench.shortname}.jar">
             <metainf dir="deploy" includes="*"/>
-            <fileset dir="." includes="${lib.dir}/**/*, bin/**/*, lib/**/*"/>
+            <fileset dir="${build.dir}" includes="lib/**/*"/>
+            <fileset dir="." includes="bin/**/*, lib/**/*"/>
         </jar>
     </target>
 
