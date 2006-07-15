@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdMap.java,v 1.2 2006/06/29 19:38:43 akara Exp $
+ * $Id: CmdMap.java,v 1.3 2006/07/15 03:09:46 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -50,49 +50,53 @@ public class CmdMap {
     public static void addTo(Map<String, String> binMap) throws Exception {
         ArrayList<CmdDetail> cmdList = new ArrayList<CmdDetail>();
 
-        FileInputStream is = new FileInputStream(Config.CONFIG_DIR +
-                                 System.getProperty("os.name") +
-                                 File.separator + "cmdmap.xml");
-        parseStream(is, cmdList);
+        File cmdMap = new File(Config.CONFIG_DIR +
+                System.getProperty("os.name") + File.separator + "cmdmap.xml");
 
-        // Next step is to use the map command path and prefixes to the
-        // actual executable.
-        for (Iterator<CmdDetail> iter = cmdList.iterator();
-             iter.hasNext();) {
-            CmdDetail c = iter.next();
-            if (c.path == null)
-                c.path = binMap.get(c.name);
-            if (c.path == null)
-                c.path = c.name;
-            for (int i = 0; i < c.prefix.length; i++) {
-                int spIdx = c.prefix[i].indexOf(' ');
-                String cmd;
-                if (spIdx == -1) // No prefix args?
-                    cmd = c.prefix[i]; // take the whole
-                else
-                    cmd = c.prefix[i].substring(0, spIdx); // take command only
-                // Lookup the actual path from the binMap
-                String path = binMap.get(cmd);
-                if (path == null)
-                    path = cmd;
-                if (spIdx == -1) // No prefix args?
-                    c.prefix[i] = path; // Set the whole
-                else
-                    c.prefix[i] = path + c.prefix[i].substring(spIdx);
-            }
-        }
+        if (cmdMap.exists()) {
 
-        StringBuilder exec = new StringBuilder();
-        for (Iterator<CmdDetail> iter = cmdList.iterator();
-             iter.hasNext();) {
-            CmdDetail c = iter.next();
-            for (int i = 0; i < c.prefix.length; i++) {
-                exec.append(c.prefix[i]);
-                exec.append(' ');
+            FileInputStream is = new FileInputStream(cmdMap);
+            parseStream(is, cmdList);
+
+            // Next step is to use the map command path and prefixes to the
+            // actual executable.
+            for (Iterator<CmdDetail> iter = cmdList.iterator();
+                 iter.hasNext();) {
+                CmdDetail c = iter.next();
+                if (c.path == null)
+                    c.path = binMap.get(c.name);
+                if (c.path == null)
+                    c.path = c.name;
+                for (int i = 0; i < c.prefix.length; i++) {
+                    int spIdx = c.prefix[i].indexOf(' ');
+                    String cmd;
+                    if (spIdx == -1) // No prefix args?
+                        cmd = c.prefix[i]; // take the whole
+                    else
+                        cmd = c.prefix[i].substring(0, spIdx); // command only
+                    // Lookup the actual path from the binMap
+                    String path = binMap.get(cmd);
+                    if (path == null)
+                        path = cmd;
+                    if (spIdx == -1) // No prefix args?
+                        c.prefix[i] = path; // Set the whole
+                    else
+                        c.prefix[i] = path + c.prefix[i].substring(spIdx);
+                }
             }
-            exec.append(c.path);
-            binMap.put(c.name, exec.toString());
-            exec.setLength(0);
+
+            StringBuilder exec = new StringBuilder();
+            for (Iterator<CmdDetail> iter = cmdList.iterator();
+                 iter.hasNext();) {
+                CmdDetail c = iter.next();
+                for (int i = 0; i < c.prefix.length; i++) {
+                    exec.append(c.prefix[i]);
+                    exec.append(' ');
+                }
+                exec.append(c.path);
+                binMap.put(c.name, exec.toString());
+                exec.setLength(0);
+            }
         }
     }
 
@@ -214,8 +218,8 @@ public class CmdMap {
                     throw new SAXException("Command name not specified");
                 // Get all the prefixes
                 int prefixSize = prefixes.size();
+                currentCmd.prefix = new String[prefixSize];
                 if (prefixSize > 0) {
-                    currentCmd.prefix = new String[prefixSize];
                     Iterator<Map.Entry<Integer, String>> iter =
                             prefixes.entrySet().iterator();
                     for (int i = 0; i < prefixSize; i++) {

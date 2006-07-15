@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.2 2006/06/29 19:38:41 akara Exp $
+ * $Id: CmdService.java,v 1.3 2006/07/15 03:09:45 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -888,13 +888,13 @@ final public class CmdService { 	// The final keyword prevents clones
         }
 
         //Exiting RMI registry and Registry
-
-        try {
-            rmi.destroy();
-        } catch (RemoteException e) {
-            logger.log(Level.SEVERE, "Caught RemoteException on local " +
-                    "CommandHandle destroy. Please report bug.",e);
-        }
+        if (rmi != null)
+            try {
+                rmi.destroy();
+            } catch (RemoteException e) {
+                logger.log(Level.SEVERE, "Caught RemoteException on local " +
+                        "CommandHandle destroy. Please report bug.",e);
+            }
     }
 
     /**

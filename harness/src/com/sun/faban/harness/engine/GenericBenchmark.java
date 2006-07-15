@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.2 2006/06/29 19:38:41 akara Exp $
+ * $Id: GenericBenchmark.java,v 1.3 2006/07/15 03:09:45 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -311,7 +311,7 @@ public class GenericBenchmark {
         if(!(new File(xanaduDir)).mkdirs())
             return false;
 
-        String xanaduCommand = "csh " + Config.FABAN_ROOT + ".." + File.separator +
+        String xanaduCommand = "/bin/sh " + Config.FABAN_ROOT + ".." + File.separator +
                 "xanadu" + File.separator + "scripts" + File.separator + "xanadu";
 
         // Text => xml

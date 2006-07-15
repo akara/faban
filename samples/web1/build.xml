@@ -4,7 +4,8 @@
     <property name="src.dir" value="src"/>
     <property name="build.dir" value="build"/>
     <property name="classes.dir" value="${build.dir}/classes"/>
-    <property name="lib.dir" value="${build.dir}/lib"/>
+    <property name="lib.dir" value="/lib"/>
+    <property name="buildlib.dir" value="${build.dir}/lib"/>
     <property name="faban.libs" value="${faban.home}/lib"/>
     <property name="faban.classes" value="${faban.home}/master/webapps/faban/WEB-INF/classes"/>
 
@@ -43,7 +44,8 @@
 
 
     <target name="bench.jar" depends="compile" description="Assembles library jar with benchmark classes">
-        <jar jarfile="${lib.dir}/${bench.shortname}.jar">
+        <mkdir dir="${buildlib.dir}"/>
+        <jar jarfile="${buildlib.dir}/${bench.shortname}.jar">
             <fileset dir="${classes.dir}" includes="**/*.class"/>
         </jar>
     </target>

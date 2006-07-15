@@ -1,0 +1,16 @@
+#!/bin/sh
+#########################################################################
+# The sysinfo script reads many files and calls many platform-dependent
+# tools to determine the system configuration. The output is a html
+# snippet recording the files and tools output.
+#########################################################################
+
+PATH=$PATH:/bin
+export PATH
+
+HOSTNAME=`uname -n`
+
+echo "        <h3>Kernel on server ${HOSTNAME}</h3>"
+echo "        <pre>"
+uname -srvm
+echo "        </pre>"
