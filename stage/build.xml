@@ -19,7 +19,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: build.xml,v 1.1 2006/06/29 18:51:49 akara Exp $
+* $Id: build.xml,v 1.2 2006/07/21 06:37:44 akara Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 -->
@@ -48,6 +48,7 @@
 	    <ant dir="${workspace.dir}/driver"/>
 	    <ant dir="${workspace.dir}/harness"/>
         <antcall target="copy"/>
+        <ant dir="samples/web1"/>
     </target>
 
     <target name="copy" unless="faban.bundled"
@@ -164,13 +165,15 @@
         <exclude name="master/work/Catalina/localhost/?*/**"/>
         <exclude name="samples/**/bin/**"/>
         <exclude name="samples/**/sbin/**"/>
-        <exclude name="samples/**/build/**"/>
+        <exclude name="samples/**/build/classes/**"/>
+        <exclude name="samples/**/build/lib/**"/>
     </patternset>
 
     <patternset id="server.excludes">
         <patternset refid="package.excludes"/>
         <exclude name="build.xml"/>
         <exclude name="build.properties"/>
+        <exclude name="*.zip" if="faban.bundled"/>
         <exclude name="ant/**" if="faban.bundled"/>
         <exclude name="lib/pkglists/**"/>
         <exclude name="samples/**" if="faban.bundled"/>
@@ -179,6 +182,7 @@
     <patternset id="client.excludes">
         <patternset refid="server.excludes"/>
         <exclude name="README.*"/>
+        <exclude name="*.zip"/>
         <exclude name="output/**"/>
         <exclude name="ant/**"/>
         <exclude name="benchmarks/**"/>
@@ -269,13 +273,24 @@
             <link href="http://java.sun.com/j2ee/1.4/docs/api"
                 offline="true" packagelistloc="lib/pkglists/j2ee"/>
         </javadoc>
-        <tar destfile="${kit.dir}/${package.name}-docs-${build.date}.tar.gz"
-            longfile="warn" compression="gzip">
-            <tarfileset dir="${docs.dir}" prefix="docs" dirmode="755"/>
-        </tar>
+        <!-- Just the javadocs to be used by modern IDEs -->
+        <zip destfile="javadocs.zip" basedir="${docs.dir}/api"/>
+        <!-- The docs download including the guides -->
+        <zip destfile="${kit.dir}/${package.name}-docs-${build.date}.zip">
+            <zipfileset dir="${docs.dir}" prefix="docs"/>
+        </zip>
     </target>
 
-    <target name="package-faban" depends="build-faban, package-bundle, javadoc"
+    <target name="package-src" unless="faban.bundled">
+        <zip destfile="src.zip">
+            <zipfileset dir="${workspace.dir}/common/src" excludes="**/package.html"/>
+            <zipfileset dir="${workspace.dir}/driver/src" excludes="**/package.html"/>
+            <zipfileset dir="${workspace.dir}/harness/src" excludes="**/package.html"/>
+        </zip>
+    </target>
+
+    <target name="package-faban"
+        depends="build-faban, javadoc, package-src, package-bundle"
         unless="faban.bundled"
         description="Package the Faban kit only packages."/>
 
@@ -313,6 +328,7 @@
         description="Clean staging area from all files copied over from the components">
         <delete includeemptydirs="true">
             <fileset dir=".">
+                <include name="*.zip"/>                
                 <include name="ant/**"/>
                 <include name="bin/**"/>
                 <include name="config/**"/>
