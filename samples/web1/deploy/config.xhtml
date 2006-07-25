@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<!-- $Id: config.xhtml,v 1.1 2006/06/29 18:51:47 akara Exp $ -->
+<!-- $Id: config.xhtml,v 1.2 2006/07/25 19:51:18 akara Exp $ -->
 <html xmlns:chiba="http://chiba.sourceforge.net/2003/08/xforms"
     xmlns:xforms="http://www.w3.org/2002/xforms"
     chiba:stylesheet="faban.xsl">
@@ -33,6 +33,13 @@
                     <xforms:bind id="bind-webDriver" xforms:nodeset="driverConfig[@name='WebDriver']">
                         <xforms:bind id="bind-driver-agents" xforms:nodeset="agents" xforms:type="positiveInteger"/>
                         <xforms:bind id="bind-driver-statsInterval" xforms:nodeset="stats/interval" xforms:type="positiveInteger"/>
+                        <xforms:bind id="bind-driver-properties" xforms:nodeset="properties">
+                            <!-- The property bindings below show the way to bind to properties of different
+                                 styles in the config file. Please see the config file for reference. -->
+                            <xforms:bind id="bind-driver-path1" xforms:nodeset="property[name='path1']/value"/>
+                            <xforms:bind id="bind-driver-path2" xforms:nodeset="property[@name='path2']/value"/>
+                            <xforms:bind id="bind-driver-path3" xforms:nodeset="property[@name='path3']"/>
+                        </xforms:bind>
                     </xforms:bind>
                 </xforms:bind>
                 <xforms:bind id="bind-serverConfig" xforms:nodeset="serverConfig">
@@ -70,6 +77,10 @@
                     <serverConfig>Server Information</serverConfig>
                     <host>Host</host>
                     <port>Port</port>
+                    <pathConfig>URL Path Configurations</pathConfig>
+                    <path1>Path1</path1>
+                    <path2>Path2</path2>
+                    <path3>Path3</path3>
                     <tools>Tools</tools>
                     <ok>Ok</ok>
                     <cancel>Cancel</cancel>
@@ -174,6 +185,24 @@
                             <xforms:hint>The server port</xforms:hint>
                             <xforms:help>Enter the server port</xforms:help>
                             <xforms:alert>Not a valid port number</xforms:alert>
+                        </xforms:input>
+                    </xforms:group>
+                    <xforms:group id="group-pathConfig">
+                        <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/pathConfig"/>
+                        <xforms:input id="input-driver-path1" xforms:bind="bind-driver-path1">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/path1"/>
+                            <xforms:hint>The first URL path to hit</xforms:hint>
+                            <xforms:help>Enter the first URL path to hit</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-driver-path2" xforms:bind="bind-driver-path2">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/path2"/>
+                            <xforms:hint>The second URL path to hit</xforms:hint>
+                            <xforms:help>Enter the second URL path to hit</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-driver-path3" xforms:bind="bind-driver-path3">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/path3"/>
+                            <xforms:hint>The third URL path to hit</xforms:hint>
+                            <xforms:help>Enter the third URL path to hit</xforms:help>
                         </xforms:input>
                     </xforms:group>
                 </xforms:case>
