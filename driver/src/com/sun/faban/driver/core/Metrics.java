@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.2 2006/06/29 19:38:37 akara Exp $
+ * $Id: Metrics.java,v 1.3 2006/07/26 20:14:43 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -838,7 +838,7 @@ public class Metrics implements Serializable, Cloneable {
 
         // Data header
         b.append("<stat_group name=\"").append(driverName).append(' ').
-                append(label).append("\" display=\"gnuplot-png\">\n");
+                append(label).append("\" display=\"Line\">\n");
         b.append("<cell_list>\n");
 
         // The actual data
@@ -883,7 +883,7 @@ public class Metrics implements Serializable, Cloneable {
 
         // Data header
         b.append("<stat_group name=\"").append(driverName).append(' ').
-                append(label).append("\" display=\"gnuplot-png\">\n");
+                append(label).append("\" display=\"Line\">\n");
         b.append("<cell_list>\n");
 
         // The actual data
@@ -941,7 +941,7 @@ public class Metrics implements Serializable, Cloneable {
 
         // Data header
         b.append("<stat_group name=\"").append(driverName).append(' ').
-                append(label).append("\" display=\"gnuplot-png\">\n");
+                append(label).append("\" display=\"Line\">\n");
         b.append("<cell_list>\n");
 
         // The actual data
