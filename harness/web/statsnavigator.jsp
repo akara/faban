@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: statsnavigator.jsp,v 1.2 2006/06/29 19:38:44 akara Exp $
+ * $Id: statsnavigator.jsp,v 1.3 2006/07/26 20:12:11 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -81,6 +81,8 @@
         // Process the real stats files.
         } else {
             int logIdx = fileName.indexOf(".log.");
+            if (logIdx == -1) // New xanadu files need to be .xan.
+                logIdx = fileName.indexOf(".xan.");
             if (logIdx == -1)
                 continue;
             String toolName = fileName.substring(0, logIdx);
@@ -163,23 +165,42 @@
                                 String fullName = toolHostMap.get(host);
                                 if (fullName == null)
                                     fullName = host;
-                                String filePrefix = tool + ".log." + fullName;
+                                String[] filePrefix = new String[2];
+                                filePrefix[0] = tool + ".log." + fullName;
+                                filePrefix[1] = tool + ".xan." + fullName;
                                 String path = "output/" + runId + '/';
                      %>
                                 <td style="text-align: center;">
                      <%
                                 // Do the html link
-                                String fileName = filePrefix + ".html";
-                                if (!toolFiles.contains(fileName))
-                                    fileName = filePrefix + ".htm";
-                                if (!toolFiles.contains(fileName))
-                                    fileName = null;
-                                if (fileName != null) { %>
+                                boolean found = false;
+                                String fileName = null;
+                                for (int i = 0; i < filePrefix.length; i++) {
+                                    fileName = filePrefix[i] + ".html";
+                                    if (toolFiles.contains(fileName)) {
+                                        found = true;
+                                        break;
+                                    }
+                                    fileName = filePrefix[i] + ".htm";
+                                    if (toolFiles.contains(fileName)) {
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                                if (found) { %>
                                     <font size="-1"><i><a href="<%= path + fileName %>">html</a></i></font>
                              <% }
                                 // Do the text link
-                                if (toolFiles.contains(filePrefix)) { %>
-                                    <font size="-1"><i><a href="<%= path + filePrefix %>">text</a></i></font>
+                                found = false;
+                                for (int i = 0; i < filePrefix.length; i++) {
+                                    fileName = filePrefix[i];
+                                    if (toolFiles.contains(fileName)) {
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                                if (found) { %>
+                                    <font size="-1"><i><a href="<%= path + fileName %>">text</a></i></font>
                              <% }
 
                      %>
