@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: BenchmarkDescription.java,v 1.2 2006/06/29 19:38:41 akara Exp $
+ * $Id: BenchmarkDescription.java,v 1.3 2006/07/26 18:18:07 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -64,6 +64,9 @@ public class BenchmarkDescription implements Serializable {
 
     /** The file used for configuring the benchmark. */
     public String configFileName;
+
+    /** The result file path relative to the output directory */
+    public String resultFilePath = "summary.xml";
 
     /** The benchmark class name. */
     public String benchmarkClass;
@@ -251,6 +254,10 @@ public class BenchmarkDescription implements Serializable {
                 if (desc.configForm == null || desc.configForm.length() == 0)
                     throw new IOException("Element <config-form> empty or " +
                             "missing in " + benchmarkXml.getAbsolutePath());
+
+                value = xPath.evaluate("result-file-path", root);
+                if (value != null && value.length() > 0)
+                    desc.resultFilePath = value;
 
                 value = xPath.evaluate("metric", root);
                 if (value != null && value.length() > 0)

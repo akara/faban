@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Result.java,v 1.2 2006/06/29 19:38:44 akara Exp $
+ * $Id: Result.java,v 1.3 2006/07/26 18:18:07 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -115,6 +115,21 @@ public class Result {
                 Result result = new Result();
                 result.runId = resultDir.getName();
 
+                // First, check whether the results contain meta info.
+                String shortName = result.runId.substring(0,
+                                    result.runId.lastIndexOf('.'));
+                BenchmarkDescription desc = BenchmarkDescription.
+                        readDescription(shortName, resultDir.getAbsolutePath());
+                if (desc == null) {
+
+                    // If not, we fetch it from the benchmark meta info.
+                    if (benchMap == null)
+                        benchMap = BenchmarkDescription.getBenchDirMap();
+
+                    desc = (BenchmarkDescription) benchMap.get(shortName);
+                }
+
+
                 String href = null;
 
                 // run result and HREF to the summary or log file.
@@ -124,7 +139,8 @@ public class Result {
                             files[j].length() > 0) {
                         result.result = "PASSED";
                         href = "<a href=\"resultframe.jsp?runId=" +
-                                result.runId + "\">";
+                                result.runId + "&result=" +
+                                desc.resultFilePath + "\">";
 
                         //Use the XMLReader and locate the <passed> elements
                         XMLReader reader = new XMLReader(files[j].
@@ -149,30 +165,20 @@ public class Result {
 
                     }
                 }
+
                 if(href != null)
                     result.result = href + result.result + "</a>";
 
                 StringBuilder b = new StringBuilder(
 					"<a href=\"resultframe.jsp?runId=");
                 b.append(result.runId);
+                b.append("&result=");
+                b.append(desc.resultFilePath);
                 b.append("&show=logs\">");
                 b.append(getStatus(result.runId));
                 b.append("</a>");
                 result.status = b.toString();
 
-                // First, check whether the results contain meta info.
-                String shortName = result.runId.substring(0,
-                                    result.runId.lastIndexOf('.'));
-                BenchmarkDescription desc = BenchmarkDescription.
-                        readDescription(shortName, resultDir.getAbsolutePath());
-                if (desc == null) {
-
-                    // If not, we fetch it from the benchmark meta info.
-                    if (benchMap == null)
-                        benchMap = BenchmarkDescription.getBenchDirMap();
-
-                    desc = (BenchmarkDescription) benchMap.get(shortName);
-                }
                 String paramFileName = resultDir.getAbsolutePath() +
                         File.separator + desc.configFileName;
                 File paramFile = new File(paramFileName);
