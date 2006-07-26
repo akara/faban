@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgentImpl.java,v 1.2 2006/06/29 19:38:40 akara Exp $
+ * $Id: CmdAgentImpl.java,v 1.3 2006/07/26 06:12:01 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -973,6 +973,9 @@ public class CmdAgentImpl extends UnicastRemoteObject
                 if(host.equals(master)) {
                     ident = Config.CMD_AGENT;
                     registry.register(ident, cmd);
+                } else if (cmdImpl.sameHost(host, master)) {
+                    ident = Config.CMD_AGENT;
+                    registry.register(ident, cmd);
                 }
 
                 // Create and register FileAgent
@@ -985,6 +988,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
                 if(!host.equals(hostname))
                     registry.register(Config.FILE_AGENT + "@" + hostname, f);
 
+                // Register a blank Config.FILE_AGENT for the master's file agent.
                 if (cmdImpl.sameHost(host, master))
                     registry.register(Config.FILE_AGENT, f);
             }
