@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultnavigator.jsp,v 1.2 2006/06/29 19:38:44 akara Exp $
+ * $Id: resultnavigator.jsp,v 1.3 2006/07/26 18:19:09 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -58,7 +58,7 @@
 %>
 <html>
     <head>
-        <title>JESMark Result for Run <%=runId%></title>
+        <title>Result for Run <%=runId%></title>
         <link rel="icon" type="image/gif" href="img/faban.gif">
         <% if (!finished) { %>
             <meta http-equiv="refresh" content="10">
@@ -66,7 +66,7 @@
     </head>
     <body>
         <% if (completed) {  %>
-               <a href="output/<%= runId %>/summary.xml" target="display">Summary&nbsp;Result</a>&nbsp;
+               <a href="output/<%= runId %>/<%= desc.resultFilePath %>" target="display">Summary&nbsp;Result</a>&nbsp;
         <%     String outputRef = null;
                File detailOutput = new File (Config.OUT_DIR + runId, "detail.html");
                if (detailOutput.exists()) {

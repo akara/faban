@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultframe.jsp,v 1.2 2006/06/29 19:38:44 akara Exp $
+ * $Id: resultframe.jsp,v 1.3 2006/07/26 18:19:09 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -31,6 +31,7 @@
                                  com.sun.faban.harness.webclient.Result"%>
 <%
     String runId = request.getParameter("runId");
+    String resultFile = request.getParameter("result");
     String show = request.getParameter("show");
     String displayFrame = null;
     if ("logs".equals(show)) {
@@ -40,7 +41,7 @@
             displayFrame = "LogReader?runId=" + runId;
 
     } else {
-        displayFrame = "output/" + runId + "/summary.xml";
+        displayFrame = "output/" + runId + '/' + resultFile;
     }
 %>
 <html>
