@@ -17,16 +17,16 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Cpustat.java,v 1.1 2006/07/26 06:12:02 akara Exp $
+ * $Id: Cpustat.java,v 1.2 2006/07/26 06:16:07 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.tools;
 
 import com.sun.faban.common.Command;
-import com.sun.faban.common.CommandHandle;
+import com.sun.faban.harness.agent.CmdAgent;
+import com.sun.faban.harness.agent.CmdAgentImpl;
 import com.sun.faban.harness.common.Config;
-import com.sun.faban.harness.agent.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -40,14 +40,14 @@ import java.util.List;
  */
 public class Cpustat extends GenericTool {
 
-    String remotePost;
+    String postFile;
 
     public void configure(String tool, List argList, String path, String outDir,
                           String host, String masterhost, CmdAgent cmdAgent) {
         super.configure(tool, argList, path, outDir, host, masterhost, cmdAgent);
 
         // The postprocessed output is in .xan.host file
-        remotePost = outfile.replace(".log.", ".xan.");
+        postFile = outfile.replace(".log.", ".xan.");
 
         // The raw output will come into the .raw.host file
         outfile = outfile.replace(".log.", ".raw.");
@@ -61,7 +61,7 @@ public class Cpustat extends GenericTool {
 
             // Run postprocessor on master
             Command c = new Command("cpustat " + outfile);
-            c.setOutputFile(Command.STDOUT, remotePost);
+            c.setOutputFile(Command.STDOUT, postFile);
             CmdAgent masterAgent = (CmdAgent) CmdAgentImpl.getRegistry().
                                    getService(Config.CMD_AGENT);
             masterAgent.execute(c);
