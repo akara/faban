@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.3 2006/07/15 03:09:45 akara Exp $
+ * $Id: GenericBenchmark.java,v 1.4 2006/07/26 06:58:10 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -26,6 +26,8 @@ package com.sun.faban.harness.engine;
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.Run;
+import com.sun.faban.harness.agent.CmdAgent;
+import com.sun.faban.harness.agent.CmdAgentImpl;
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
 
@@ -311,19 +313,23 @@ public class GenericBenchmark {
         if(!(new File(xanaduDir)).mkdirs())
             return false;
 
-        String xanaduCommand = "/bin/sh " + Config.FABAN_ROOT + ".." + File.separator +
-                "xanadu" + File.separator + "scripts" + File.separator + "xanadu";
+        String xanaduCommand = "xanadu" + File.separator + "scripts" +
+                               File.separator + "xanadu";
 
         // Text => xml
-        Command cmd = new Command(xanaduCommand + " import " + outDir + " " +
+        Command xanadu = new Command(xanaduCommand + " import " + outDir + " " +
                 xanaduDir + " " + run.getRunName());
 
+        CmdAgent masterAgent = null;
         try {
-            CommandHandle handle = cmd.execute();
+            // Obtain the local CmdAgent
+            masterAgent = (CmdAgent) CmdAgentImpl.getRegistry().
+                    getService(Config.CMD_AGENT);
+            CommandHandle handle = masterAgent.execute(xanadu);
             if (handle.exitValue() != 0)
-                logger.severe("Xanadu Import command " + cmd + " Failed");
+                logger.severe("Xanadu Import command " + xanadu + " Failed");
         } catch(Exception e) {
-            logger.log(Level.SEVERE, "Xanadu Import command " + cmd +
+            logger.log(Level.SEVERE, "Xanadu Import command " + xanadu +
                     " failed.", e);
             return false;
         }
@@ -337,13 +343,13 @@ public class GenericBenchmark {
                 logger.warning("Cannot move detail file to Xanadu directory");
 
         // xml => html + graphs
-        cmd = new Command(xanaduCommand + " export " + xanaduDir + " " + outDir);
-        try {
-            CommandHandle handle = cmd.execute();
+        xanadu = new Command(xanaduCommand + " export " + xanaduDir + " " + outDir);
+        try {            
+            CommandHandle handle = masterAgent.execute(xanadu);
             if (handle.exitValue() != 0)
-                logger.severe("Xanadu Export command " + cmd + " Failed");
+                logger.severe("Xanadu Export command " + xanadu + " Failed");
         } catch(Exception e) {
-            logger.log(Level.SEVERE, "Xanadu Export command " + cmd +
+            logger.log(Level.SEVERE, "Xanadu Export command " + xanadu +
                     " failed.", e);
             return false;
         }
