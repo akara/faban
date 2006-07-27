@@ -7,7 +7,6 @@
 <commands>
     <command>
         <name>cpustat</name>
-        <path>/usr/sbin/cpustat</path>
         <prefix sequence="1">fastsu</prefix>
         <prefix sequence="2">priocntl -e -c RT</prefix>
     </command>
