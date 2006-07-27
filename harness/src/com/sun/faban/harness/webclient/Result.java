@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Result.java,v 1.3 2006/07/26 18:18:07 akara Exp $
+ * $Id: Result.java,v 1.4 2006/07/27 19:46:49 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -75,9 +76,12 @@ public class Result {
                 }
             };
 
-            // The date format.
+            // The output format
             SimpleDateFormat dateFormat = new SimpleDateFormat(
                                       "EEE'&nbsp;'MM/dd/yy HH:mm:ss'&nbsp;'z");
+            // The format in the result file
+            SimpleDateFormat parseFormat = new SimpleDateFormat(
+                                      "EEE MMM dd HH:mm:ss z yyyy");
 
             // Sort the result list by time, descending. Newest run first.
             TreeMap<String, File> dirMap = new TreeMap<String, File>(descend);
@@ -148,6 +152,15 @@ public class Result {
 
                         // Obtain the metric before we break pass/fail.
                         result.metric = reader.getValue("benchSummary/metric");
+                        try {
+                            Date runTime = parseFormat.parse(
+                                    reader.getValue("benchSummary/endTime"));
+                            result.time = dateFormat.format(runTime);
+                        } catch (ParseException e) {
+                            // Do nothing. result.time will be null and
+                            // later we'll use the param file's mod time
+                            // for this field instead.
+                        }
 
                         List v = reader.getValues("passed");
                         for(int k = 0; k < v.size(); k++) {
@@ -183,7 +196,8 @@ public class Result {
                         File.separator + desc.configFileName;
                 File paramFile = new File(paramFileName);
                 if (paramFile.isFile()) {
-                    result.time = dateFormat.format(new Date(
+                    if (result.time == null)
+                        result.time = dateFormat.format(new Date(
                                                   paramFile.lastModified()));
                     ParamRepository par = new ParamRepository(paramFileName);
                     result.description = par.getParameter("runConfig/description");

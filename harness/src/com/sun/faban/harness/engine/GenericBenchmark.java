@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.5 2006/07/27 07:00:05 akara Exp $
+ * $Id: GenericBenchmark.java,v 1.6 2006/07/27 19:46:49 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,7 +25,6 @@ package com.sun.faban.harness.engine;
 
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
-import com.sun.faban.harness.agent.CmdAgent;
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.Run;
@@ -78,11 +77,18 @@ public class GenericBenchmark {
         ParamRepository par = null;
         ServerConfig server;
 
-        // Create benchmark object
+        // Read the benchmark description.
         BenchmarkDescription benchDesc = run.getBenchDesc();
 
         long startTime;	// benchmark start/end time
         long endTime;
+
+        // Create benchmark object.
+        logger.fine("Instantiating benchmark class " +
+                benchDesc.benchmarkClass);
+        bm = newInstance(benchDesc);
+        if (bm == null)
+            return;
 
         startTime = System.currentTimeMillis();
 
@@ -178,11 +184,6 @@ public class GenericBenchmark {
 
             // Log parameters that were changed since last run.
 
-            logger.fine("Instantiating benchmark class " +
-                    benchDesc.benchmarkClass);
-            bm = newInstance(benchDesc);
-            if (bm == null)
-                return;
 
             // Configure benchmark
             try {
@@ -217,8 +218,8 @@ public class GenericBenchmark {
             return;
 
         } finally { // Ensure we kill the processes in any case.
-            _kill();
             postProcess();
+            _kill();
         }
     }
 
@@ -312,19 +313,12 @@ public class GenericBenchmark {
         if(!(new File(xanaduDir)).mkdirs())
             return false;
 
-        String xanaduCommand = "xanadu" + File.separator + "scripts" +
-                               File.separator + "xanadu";
-
         // Text => xml
-        Command xanadu = new Command(xanaduCommand + " import " + outDir + " " +
+        Command xanadu = new Command("xanadu import " + outDir + " " +
                 xanaduDir + " " + run.getRunName());
 
-        CmdAgent masterAgent = null;
         try {
-            // Obtain the local CmdAgent
-            masterAgent = (CmdAgent) CmdService.getHandle().getRegistry().
-                    getService(Config.CMD_AGENT);
-            CommandHandle handle = masterAgent.execute(xanadu);
+            CommandHandle handle = cmds.execute(xanadu);
             if (handle.exitValue() != 0)
                 logger.severe("Xanadu Import command " + xanadu + " Failed");
         } catch(Exception e) {
@@ -342,9 +336,9 @@ public class GenericBenchmark {
                 logger.warning("Cannot move detail file to Xanadu directory");
 
         // xml => html + graphs
-        xanadu = new Command(xanaduCommand + " export " + xanaduDir + " " + outDir);
+        xanadu = new Command("xanadu export " + xanaduDir + " " + outDir);
         try {            
-            CommandHandle handle = masterAgent.execute(xanadu);
+            CommandHandle handle = cmds.execute(xanadu);
             if (handle.exitValue() != 0)
                 logger.severe("Xanadu Export command " + xanadu + " Failed");
         } catch(Exception e) {

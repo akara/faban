@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.4 2006/07/26 05:47:31 akara Exp $
+ * $Id: CmdService.java,v 1.5 2006/07/27 19:46:49 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -504,6 +504,20 @@ final public class CmdService { 	// The final keyword prevents clones
             return machineName;
         }
         return retVal;
+    }
+
+    /**
+     * Executes a command from the master's command agent.
+     * @param c The command to be executed
+     * @return  A handle to the command
+     * @throws IOException Error communicating with resulting process
+     * @throws InterruptedException Thread got interrupted waiting
+     * @throws RemoteException If there is a communication error to the
+     *                         remote agent
+     */
+    public CommandHandle execute(Command c)
+            throws IOException, InterruptedException, RemoteException {
+        return execute(master, c);
     }
 
     /**

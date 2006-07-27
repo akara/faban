@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MasterImpl.java,v 1.2 2006/06/29 19:38:37 akara Exp $
+ * $Id: MasterImpl.java,v 1.3 2006/07/27 19:46:48 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -97,7 +97,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
             "Sun,  Sun Microsystems,  le logo Sun et  Java sont des marques " +
             "de fabrique ou des marques d\351pos\351es de " +
             "Sun Microsystems, Inc. aux Etats-Unis et dans d'autres pays.\n" +
-            "Apache est une marque d’Apache Software Foundation, utilis\351e " +
+            "Apache est une marque d\264Apache Software Foundation, utilis\351e " +
             "avec leur permission.\n" +
             "Ce produit est soumis \340 la l\351gislation am\351ricaine " +
             "en mati\350re de contr\364le des exportations et peut \352tre " +
