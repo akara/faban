@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.6 2006/07/27 19:46:49 akara Exp $
+ * $Id: GenericBenchmark.java,v 1.7 2006/07/27 22:34:35 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -28,6 +28,8 @@ import com.sun.faban.common.CommandHandle;
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.Run;
+import com.sun.faban.harness.Benchmark;
+import com.sun.faban.harness.ParamRepository;
 
 import java.io.BufferedWriter;
 import java.io.File;

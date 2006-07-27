@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: BenchmarkDescription.java,v 1.3 2006/07/26 18:18:07 akara Exp $
+ * $Id: BenchmarkDescription.java,v 1.4 2006/07/27 22:34:34 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -302,7 +302,7 @@ public class BenchmarkDescription implements Serializable {
                 if (desc.benchmarkClass == null ||
                     desc.benchmarkClass.length() == 0)
                     desc.benchmarkClass =
-                            "com.sun.faban.harness.engine.DefaultFabanBenchmark";
+                            "com.sun.faban.harness.DefaultFabanBenchmark";
 
             } catch (Exception e) {
                 logger.log(Level.WARNING, "Error reading faban driver " +

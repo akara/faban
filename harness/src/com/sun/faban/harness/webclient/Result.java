@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Result.java,v 1.4 2006/07/27 19:46:49 akara Exp $
+ * $Id: Result.java,v 1.5 2006/07/27 22:34:35 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,8 +25,9 @@ package com.sun.faban.harness.webclient;
 
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
-import com.sun.faban.harness.engine.ParamRepository;
+import com.sun.faban.harness.ParamRepository;
 import com.sun.faban.harness.util.XMLReader;
+import com.sun.faban.harness.ParamRepository;
 
 import java.io.File;
 import java.io.FileReader;

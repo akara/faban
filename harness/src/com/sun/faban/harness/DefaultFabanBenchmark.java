@@ -17,13 +17,15 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DefaultFabanBenchmark.java,v 1.2 2006/06/29 19:38:41 akara Exp $
+ * $Id: DefaultFabanBenchmark.java,v 1.1 2006/07/27 22:34:34 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
-package com.sun.faban.harness.engine;
+package com.sun.faban.harness;
 
 import com.sun.faban.harness.common.Run;
+import com.sun.faban.harness.engine.CmdService;
+import com.sun.faban.harness.engine.ToolService;
 
 import java.util.List;
 import java.util.logging.Level;
@@ -44,38 +46,49 @@ public class DefaultFabanBenchmark implements Benchmark {
     protected Run run;
     protected ParamRepository params;
     protected List agents;
+    protected String ident;
+    protected String[] master;
+
+    /**
+     * Allows benchmark to validate the configuration file. Note that no
+     * remote execution facility is available during validation. Only
+     * executions on the master is allowed.
+     *
+     * @param run The run context for this run.
+     * @throws Exception if any error occurred.
+     * @see RunContext#execute(com.sun.faban.common.Command)
+     */
+    public void validate(RunContext run) throws Exception {
+        // Do nothing.
+    }
 
     /**
      * This method is called to configure the specific benchmark run
      * Tasks done in this method include reading user parameters,
      * logging them and initializing various local variables.
      *
-     * @param r   Run object that identifies this run
-     * @param par ParamRepository for this run
-     * @return true if configuration was successful,
-     *         false otherwise (abort run)
+     * @param run The run context for this run.
+     * @throws Exception if any error occurred.
      */
-    public boolean configure(Run r, ParamRepository par) throws Exception {
+    public void configure(RunContext run) throws Exception {
         logger = Logger.getLogger(getClass().getName());
-        params = par;
-        run = r;
+        params = run.getParamRepository();
 
         // Update the output directory to the one assigned by the harness.
         try {
             params.setParameter("runConfig/outputDir", run.getOutDir());
             params.save();
-            return true;
         } catch(Exception e) {
             logger.severe("Exception updating " + run.getParamFile() + " : " + e);
             logger.log(Level.FINE, "Exception", e);
-            return false;
+            throw e;
         }
     }
 
     /**
      * This method is responsible for starting the benchmark run
      */
-    public void start() throws Exception {
+    public void start(RunContext run) throws Exception {
 
         // First, list the drivers in the config file.
         agents = params.getAttributeValues(
@@ -127,11 +140,22 @@ public class DefaultFabanBenchmark implements Benchmark {
         cmd = "-Dbenchmark.config=" + run.getParamFile() +
                 " -Dfaban.outputdir.unique=true com.sun.faban.driver.core.MasterImpl";
 
-        String ident = "Master";
-        String[ ] master = { CmdService.getHandle().getMaster() };
+        ident = "Master";
+        master = new String[1];
+        master[0] = CmdService.getHandle().getMaster();
 
         CmdService.getHandle().startJavaCmd(master, cmd, ident, null);
         // Start the monitoring tools using ToolService.
+    }
+
+    /**
+     * This method is responsible for waiting for all commands started and
+     * run all postprocessing needed.
+     *
+     * @param run The run context for this run.
+     * @throws Exception if any error occurred.
+     */
+    public void end(RunContext run) throws Exception {
         int delay = Integer.parseInt(params.getParameter("runControl/rampUp").trim());
         int stdyState = Integer.parseInt(params.getParameter("runControl/steadyState").trim());
         ToolService.getHandle().start(delay, stdyState);
@@ -145,8 +169,10 @@ public class DefaultFabanBenchmark implements Benchmark {
     /**
      * This method aborts the current benchmark run and is
      * called when a user asks for a run to be killed
+     *
+     * @param run The run context for this run.
+     * @throws Exception if any error occurred.
      */
-    public void kill() {
-        //To change body of implemented methods use File | Settings | File Templates.
+    public void kill(RunContext run) throws Exception {
     }
 }

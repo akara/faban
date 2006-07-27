@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ToolService.java,v 1.2 2006/06/29 19:38:42 akara Exp $
+ * $Id: ToolService.java,v 1.3 2006/07/27 22:34:35 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -26,6 +26,7 @@ package com.sun.faban.harness.engine;
 import com.sun.faban.harness.agent.ToolAgent;
 import com.sun.faban.harness.agent.ToolAgentImpl;
 import com.sun.faban.harness.common.Config;
+import com.sun.faban.harness.ParamRepository;
 
 import java.rmi.RemoteException;
 import java.util.*;
