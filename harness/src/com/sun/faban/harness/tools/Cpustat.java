@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Cpustat.java,v 1.2 2006/07/26 06:16:07 akara Exp $
+ * $Id: Cpustat.java,v 1.3 2006/07/27 21:18:02 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -60,7 +60,7 @@ public class Cpustat extends GenericTool {
         try {
 
             // Run postprocessor on master
-            Command c = new Command("cpustat " + outfile);
+            Command c = new Command("cpustat -p " + outfile);
             c.setOutputFile(Command.STDOUT, postFile);
             CmdAgent masterAgent = (CmdAgent) CmdAgentImpl.getRegistry().
                                    getService(Config.CMD_AGENT);

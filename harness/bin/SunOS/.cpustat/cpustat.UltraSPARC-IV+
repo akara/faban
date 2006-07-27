@@ -1,3 +1,9 @@
+RUNTIME=600
+
+if [ -n "${1}" ] ; then
+  RUNTIME=${1}
+fi
+
 /usr/sbin/cpustat  \
 	-c pic0=Cycle_cnt,pic1=Instr_cnt \
 	-c pic0=Cycle_cnt,pic1=Instr_cnt,sys \
@@ -163,6 +169,4 @@
         -c pic0=MC_stalls_2_sh,pic1=MC_stalls_3_sh,nouser,sys \
         -c pic0=L2_rd_miss,pic1=FM_pipe_completion \
         -c pic0=L2_rd_miss,pic1=FM_pipe_completion,sys \
-        -c pic0=L2_rd_miss,pic1=FM_pipe_completion,nouser,sys  1 1650 
-#        -c pic0=L2_rd_miss,pic1=FM_pipe_completion,nouser,sys  1 1155 
-#        -c pic0=L2_rd_miss,pic1=FM_pipe_completion,nouser,sys  1 1485 
+        -c pic0=L2_rd_miss,pic1=FM_pipe_completion,nouser,sys  1 ${RUNTIME}

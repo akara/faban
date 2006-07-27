@@ -1,3 +1,9 @@
+RUNTIME=600
+
+if [ -n "${1}" ] ; then
+  RUNTIME=${1}
+fi
+
 cpustat  \
 	-c pic0=Cycle_cnt,pic1=Instr_cnt \
 	-c pic0=Cycle_cnt,pic1=Instr_cnt,sys \
@@ -31,4 +37,4 @@ cpustat  \
 	-c pic0=EC_snoop_inv,sys,pic1=EC_snoop_cb,sys,nouser  \
 	-c pic0=EC_rd_hit,pic1=EC_ic_hit \
 	-c pic0=EC_rd_hit,sys,pic1=EC_ic_hit,sys  \
-	-c pic0=EC_rd_hit,sys,pic1=EC_ic_hit,sys,nouser 1 600 \
+	-c pic0=EC_rd_hit,sys,pic1=EC_ic_hit,sys,nouser 1 ${RUNTIME} \
