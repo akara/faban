@@ -17,19 +17,18 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.4 2006/07/26 06:58:10 akara Exp $
+ * $Id: GenericBenchmark.java,v 1.5 2006/07/27 07:00:05 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.engine;
 
+import com.sun.faban.common.Command;
+import com.sun.faban.common.CommandHandle;
+import com.sun.faban.harness.agent.CmdAgent;
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.Run;
-import com.sun.faban.harness.agent.CmdAgent;
-import com.sun.faban.harness.agent.CmdAgentImpl;
-import com.sun.faban.common.Command;
-import com.sun.faban.common.CommandHandle;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -323,7 +322,7 @@ public class GenericBenchmark {
         CmdAgent masterAgent = null;
         try {
             // Obtain the local CmdAgent
-            masterAgent = (CmdAgent) CmdAgentImpl.getRegistry().
+            masterAgent = (CmdAgent) CmdService.getHandle().getRegistry().
                     getService(Config.CMD_AGENT);
             CommandHandle handle = masterAgent.execute(xanadu);
             if (handle.exitValue() != 0)
