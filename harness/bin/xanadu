@@ -1,0 +1,27 @@
+#!/bin/sh
+
+BINDIR=`dirname $0`
+
+if [ -n "$BINDIR" ] ; then
+    FABAN_HOME=`cd $BINDIR/.. > /dev/null 2>&1 && pwd`
+    XANADU_HOME=`cd $FABAN_HOME/master/webapps/xanadu/scripts > /dev/null 2>&1 && pwd`
+    export FABAN_HOME XANADU_HOME
+fi
+
+
+XANADU_HOST=localinstance
+export XANADU_HOST
+
+LOG_FILE=/net/romulus.sfbay/export/home/xanadu2/usage-log/log
+
+if [ -w $LOG_FILE ] ; then
+    who am i | awk '{print $3, $4, $5, $1};' >> $LOG_FILE
+    uname -a | awk '{print $2, $3, $5};' >> $LOG_FILE
+fi
+
+if [ -n "$JAVA_HOME" ] ; then
+   PATH=$JAVA_HOME/bin:$PATH
+   export PATH
+fi
+
+perl -w $XANADU_HOME/xanadu.pl $*
