@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CommandChecker.java,v 1.2 2006/06/29 19:38:35 akara Exp $
+ * $Id: CommandChecker.java,v 1.3 2006/07/28 07:30:20 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -38,4 +38,11 @@ public interface CommandChecker {
      * @return The completed command
      */
     public String checkCommand(String cmd);
+
+    /**
+     * Checks and completes the java command, if possible.
+     * @param cmd The original command
+     * @return The completed java command
+     */
+    public String checkJavaCommand(String cmd);
 }

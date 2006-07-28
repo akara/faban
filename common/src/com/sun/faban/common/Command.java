@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Command.java,v 1.2 2006/06/29 19:38:35 akara Exp $
+ * $Id: Command.java,v 1.3 2006/07/28 07:30:20 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -110,6 +110,22 @@ public class Command implements Serializable {
         remote = true;
         return execute();
     }
+
+   /**
+    * Called from the command agent to execute java allowing the agent to
+    * ensure the java command will work in the agent environment.
+    * @param checker The command checker
+    * @return A handle to the executing command
+    * @throws IOException Error dealing with the stdin, stdout, or stderr
+    * @throws InterruptedException The execute thread got interrupted.
+    */
+    public CommandHandle executeJava(CommandChecker checker)
+            throws IOException, InterruptedException {
+        command = checker.checkJavaCommand(command);
+        remote = true;
+        return execute();
+    }
+
     /**
      * Executes the command locally on this system. Please use CmdAgent.execute
      * instead to execute this command in a remote location.
