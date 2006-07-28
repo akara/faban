@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.7 2006/07/27 22:34:35 akara Exp $
+ * $Id: GenericBenchmark.java,v 1.8 2006/07/28 07:33:46 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -110,6 +110,16 @@ public class GenericBenchmark {
                 return;		// can't proceed with benchmark
             }
 
+            // Create the facade for the benchmark to access.
+            RunFacade.newInstance(run, par);
+
+            try {
+                bm.validate();
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, "Benchmark validation failed.", e);
+                return;
+            }
+
             try {
                 // Initialize CmdService
                 logger.fine("Initializing Command Service");
@@ -189,7 +199,7 @@ public class GenericBenchmark {
 
             // Configure benchmark
             try {
-                bm.configure(run, par);
+                bm.configure();
                 logger.fine("configured benchmark " + benchDesc.name);
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Run configuration failed!", e);
@@ -200,7 +210,22 @@ public class GenericBenchmark {
             try {
                 bm.start();
             } catch (Exception e) {
-                logger.log(Level.SEVERE, "Run failed!", e);
+                logger.log(Level.SEVERE, "Run start failed!", e);
+                return;
+            }
+
+            // Start the tools
+            int delay = Integer.parseInt(
+                    par.getParameter("runControl/rampUp").trim());
+            int stdyState = Integer.parseInt(
+                    par.getParameter("runControl/steadyState").trim());
+            ToolService.getHandle().start(delay, stdyState);
+
+            // Wait and end the benchmark
+            try {
+                bm.end();
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, "Run end failed!", e);
                 return;
             }
 
@@ -222,6 +247,7 @@ public class GenericBenchmark {
         } finally { // Ensure we kill the processes in any case.
             postProcess();
             _kill();
+            RunFacade.clearInstance();
         }
     }
 
@@ -278,7 +304,11 @@ public class GenericBenchmark {
 
         if(bm != null) {
             logger.info("Killing benchmark");
-            bm.kill();
+            try {
+                bm.kill();
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Exceptions killing benchmark.", e);
+            }
         }
 
         if (tools != null) {

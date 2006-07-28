@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.5 2006/07/27 19:46:49 akara Exp $
+ * $Id: CmdService.java,v 1.6 2006/07/28 07:33:46 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -557,6 +557,55 @@ final public class CmdService { 	// The final keyword prevents clones
         return result;
     }
 
+    /**
+     * Executes a java command from the master's command agent.
+     * @param c The command to be executed
+     * @return  A handle to the command
+     * @throws IOException Error communicating with resulting process
+     * @throws InterruptedException Thread got interrupted waiting
+     * @throws RemoteException If there is a communication error to the
+     *                         remote agent
+     */
+    public CommandHandle java(Command c)
+            throws IOException, InterruptedException, RemoteException {
+        return java(master, c);
+    }
+    /**
+     * Executes a java command from the remote command agent.
+     * @param machine The target machine to execute the command
+     * @param c The command to be executed
+     * @return  A handle to the command
+     * @throws IOException Error communicating with resulting process
+     * @throws InterruptedException Thread got interrupted waiting
+     * @throws RemoteException If there is a communication error to the
+     *                         remote agent
+     */
+    public CommandHandle java(String machine, Command c)
+            throws IOException, InterruptedException, RemoteException {
+        int index = machinesList.indexOf(machine);
+        return ((CmdAgent)(cmdp.get(index))).java(c);
+    }
+
+    /**
+     * Executes a java command from the remote command agent.
+     * @param machines The target machines to execute the command
+     * @param c The command to be executed
+     * @return  Handles to the command on each of the target machines
+     * @throws IOException Error communicating with resulting process
+     * @throws InterruptedException Thread got interrupted waiting
+     * @throws RemoteException If there is a communication error to the
+     *                         remote agent
+     */
+    public CommandHandle[] java(String[] machines, Command c)
+            throws IOException, InterruptedException, RemoteException {
+        CommandHandle[] result = new CommandHandle[machines.length];
+        for (int i = 0; i < machines.length; i++) {
+            String machine = machines[i];
+            int index = machinesList.indexOf(machine);
+            result[i] = ((CmdAgent)(cmdp.get(index))).java(c);
+        }
+        return result;
+    }
     /**
      * Start commands sequentially in foreground on machines
      * The command string should include all stdin, stdout, stderr

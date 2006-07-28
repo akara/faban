@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgentImpl.java,v 1.3 2006/07/26 06:12:01 akara Exp $
+ * $Id: CmdAgentImpl.java,v 1.4 2006/07/28 07:33:45 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -76,7 +76,11 @@ public class CmdAgentImpl extends UnicastRemoteObject
 
     private static CmdAgent cmd;
 
+    // This is actually deprecated. The field is responsible for old style
+    // ident based executions.
     private Map processMap = Collections.synchronizedMap(new HashMap());
+
+    private List handleList = Collections.synchronizedList(new ArrayList());
 
     private String[] baseClassPath;
     Map binMap;
@@ -169,7 +173,23 @@ public class CmdAgentImpl extends UnicastRemoteObject
      */
     public CommandHandle execute(Command c)
             throws IOException, InterruptedException {
-        return c.execute(this);
+        CommandHandle handle = c.execute(this);
+        handleList.add(handle);
+        return handle;
+    }
+
+    /**
+     * Executes a java command from the remote command agent.
+     * @param c The command containing the main class
+     * @return A handle to the command
+     * @throws IOException Error communicating with resulting process
+     * @throws InterruptedException Thread got interrupted waiting
+     */
+    public CommandHandle java(Command c)
+            throws IOException, InterruptedException {
+        CommandHandle handle = c.executeJava(this);
+        handleList.add(handle);
+        return handle;
     }
 
     /**
@@ -559,6 +579,16 @@ public class CmdAgentImpl extends UnicastRemoteObject
                 kill(keys[i]);
         }
 
+        // Now iterate the handle list and kill'em all.
+        for (Iterator iter = handleList.iterator(); iter.hasNext();) {
+            CommandHandle handle = (CommandHandle) iter.next();
+            try {
+                handle.destroy();
+            } catch (RemoteException e) {
+                // These handles are local. RemoteException should not occur.
+            }
+        }
+
         /* Exit application */
         try {
             registry.unregister(ident);
@@ -764,6 +794,36 @@ public class CmdAgentImpl extends UnicastRemoteObject
         if (idx == -1)
             return path;
         return path + cmd.substring(idx);
+    }
+
+    /**
+     * Checks and completes the java command, if possible.
+     *
+     * @param cmd The original command
+     * @return The completed java command
+     */
+    public String checkJavaCommand(String cmd) {
+
+        StringBuilder buf = new StringBuilder(javaHome);
+        buf.append(File.separator);
+        buf.append("bin");
+        buf.append(File.separator);
+        buf.append("java ");
+        buf.append(jvmOptions);
+        buf.append(" -cp ");
+
+        boolean falseEnding = false;
+        for (int i = 0; i < baseClassPath.length; i++) {
+            buf.append(baseClassPath[i]);
+            buf.append(File.pathSeparator);
+            falseEnding = true;
+        }
+        if (falseEnding)
+            buf.setLength(buf.length() - File.pathSeparator.length());
+
+        buf.append(' ');
+        buf.append(cmd);
+        return buf.toString();
     }
 
     private void setBinMap(String benchName) throws Exception {

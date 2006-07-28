@@ -17,15 +17,16 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DefaultFabanBenchmark.java,v 1.1 2006/07/27 22:34:34 akara Exp $
+ * $Id: DefaultFabanBenchmark.java,v 1.2 2006/07/28 07:33:46 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness;
 
-import com.sun.faban.harness.common.Run;
-import com.sun.faban.harness.engine.CmdService;
-import com.sun.faban.harness.engine.ToolService;
+import static com.sun.faban.harness.RunContext.*;
+
+import com.sun.faban.common.Command;
+import com.sun.faban.common.CommandHandle;
 
 import java.util.List;
 import java.util.logging.Level;
@@ -42,24 +43,32 @@ import java.util.logging.Logger;
  */
 public class DefaultFabanBenchmark implements Benchmark {
 
-    private Logger logger;
-    protected Run run;
+    private Logger logger = Logger.getLogger(getClass().getName());;
     protected ParamRepository params;
     protected List agents;
     protected String ident;
     protected String[] master;
+    protected CommandHandle masterHandle;
 
     /**
      * Allows benchmark to validate the configuration file. Note that no
-     * remote execution facility is available during validation. Only
-     * executions on the master is allowed.
+     * execution facility is available during validation.
      *
-     * @param run The run context for this run.
      * @throws Exception if any error occurred.
-     * @see RunContext#execute(com.sun.faban.common.Command)
+     * @see RunContext#exec(com.sun.faban.common.Command)
      */
-    public void validate(RunContext run) throws Exception {
-        // Do nothing.
+    public void validate() throws Exception {
+        params = getParamRepository();
+
+        // Update the output directory to the one assigned by the harness.
+        try {
+            params.setParameter("runConfig/outputDir", getOutDir());
+            params.save();
+        } catch(Exception e) {
+            logger.severe("Exception updating " + getParamFile() + " : " + e);
+            logger.log(Level.FINE, "Exception", e);
+            throw e;
+        }
     }
 
     /**
@@ -67,28 +76,16 @@ public class DefaultFabanBenchmark implements Benchmark {
      * Tasks done in this method include reading user parameters,
      * logging them and initializing various local variables.
      *
-     * @param run The run context for this run.
      * @throws Exception if any error occurred.
      */
-    public void configure(RunContext run) throws Exception {
-        logger = Logger.getLogger(getClass().getName());
-        params = run.getParamRepository();
-
-        // Update the output directory to the one assigned by the harness.
-        try {
-            params.setParameter("runConfig/outputDir", run.getOutDir());
-            params.save();
-        } catch(Exception e) {
-            logger.severe("Exception updating " + run.getParamFile() + " : " + e);
-            logger.log(Level.FINE, "Exception", e);
-            throw e;
-        }
+    public void configure() throws Exception {
+        // No configuration needed.
     }
 
     /**
      * This method is responsible for starting the benchmark run
      */
-    public void start(RunContext run) throws Exception {
+    public void start() throws Exception {
 
         // First, list the drivers in the config file.
         agents = params.getAttributeValues(
@@ -101,7 +98,7 @@ public class DefaultFabanBenchmark implements Benchmark {
         // Start Agents. Other JVM Options like security policy and logging properties are added by CmdAgent when
         // starting the java command.
         String[] host = new String[1];
-        String cmd = null;
+        Command c = null;
 
         int hostIdx = 0;
         for (int i = 0; i < agents.size(); i++) {
@@ -111,10 +108,9 @@ public class DefaultFabanBenchmark implements Benchmark {
                     "\"]/agents").trim());
             for (int j = 0; j < numAgents; j++) {
                 host[0] = agentHosts[hostIdx];
-                cmd = "com.sun.faban.driver.core.AgentImpl " + agentName + " " +
-                      j + " " + CmdService.getHandle().getMaster();
-                CmdService.getHandle().startJavaCmd(host, cmd,
-                                                    agentName + '.' + j, null);
+                Command agent = new Command("com.sun.faban.driver.core.AgentImpl " + agentName + " " +
+                      j + " " + getMaster());
+                java(host, agent);
                 ++hostIdx;
                 if (hostIdx >= agentHosts.length)
                     hostIdx = 0;
@@ -137,42 +133,34 @@ public class DefaultFabanBenchmark implements Benchmark {
         }
 
         // Start the driver
-        cmd = "-Dbenchmark.config=" + run.getParamFile() +
-                " -Dfaban.outputdir.unique=true com.sun.faban.driver.core.MasterImpl";
+        c = new Command("-Dbenchmark.config=" + getParamFile() +
+                " -Dfaban.outputdir.unique=true com.sun.faban.driver.core.MasterImpl");
 
-        ident = "Master";
-        master = new String[1];
-        master[0] = CmdService.getHandle().getMaster();
-
-        CmdService.getHandle().startJavaCmd(master, cmd, ident, null);
-        // Start the monitoring tools using ToolService.
+        masterHandle = java(c);
     }
 
     /**
      * This method is responsible for waiting for all commands started and
      * run all postprocessing needed.
      *
-     * @param run The run context for this run.
      * @throws Exception if any error occurred.
      */
-    public void end(RunContext run) throws Exception {
-        int delay = Integer.parseInt(params.getParameter("runControl/rampUp").trim());
-        int stdyState = Integer.parseInt(params.getParameter("runControl/steadyState").trim());
-        ToolService.getHandle().start(delay, stdyState);
+    public void end() throws Exception {
 
         // Wait for the master to complete the run.
-        if(!CmdService.getHandle().wait(master[0], ident)) {
+        masterHandle.wait();
+        if (masterHandle.exitValue() != 0)
             throw new Exception("Driver failed to complete benchmark run");
-        }
     }
 
     /**
      * This method aborts the current benchmark run and is
      * called when a user asks for a run to be killed
      *
-     * @param run The run context for this run.
      * @throws Exception if any error occurred.
      */
-    public void kill(RunContext run) throws Exception {
+    public void kill() throws Exception {
+        // We don't need to kill off anything here. All processes managed
+        // by the run context are automatically terminated.
     }
 }

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Benchmark.java,v 1.1 2006/07/27 22:34:34 akara Exp $
+ * $Id: Benchmark.java,v 1.2 2006/07/28 07:33:46 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -35,49 +35,44 @@ public interface Benchmark {
 
     /**
      * Allows benchmark to validate the configuration file. Note that no
-     * remote execution facility is available during validation. Only
-     * executions on the master is allowed.
+     * execution facility is available during validation. This method is just
+     * for validation and modifications of the run configuration.
      *
-     * @param run The run context for this run.
      * @throws Exception if any error occurred.
-     * @see com.sun.faban.harness.RunContext#execute(com.sun.faban.common.Command)
+     * @see com.sun.faban.harness.RunContext#exec(com.sun.faban.common.Command)
      */
-    void validate(RunContext run) throws Exception;
+    void validate() throws Exception;
 
 	/**
 	 * This method is called to configure the specific benchmark run
 	 * Tasks done in this method include reading user parameters,
 	 * logging them and initializing various local variables.
 	 *
-	 * @param run The run context for this run.
      * @throws Exception if any error occurred.
 	 */
-  	void configure(RunContext run) throws Exception;
+  	void configure() throws Exception;
 
 	/**
   	 * This method is responsible for starting the benchmark run.
      *
-     * @param run The run context for this run.
      * @throws Exception if any error occurred.
   	 */
-    void start(RunContext run) throws Exception;
+    void start() throws Exception;
 
     /**
      * This method is responsible for waiting for all commands started and
      * run all postprocessing needed.
      *
-     * @param run The run context for this run.
      * @throws Exception if any error occurred.
      */
-    void end(RunContext run) throws Exception;
+    void end() throws Exception;
 
     /**
      * This method aborts the current benchmark run and is
      * called when a user asks for a run to be killed
      *
-     * @param run The run context for this run.
      * @throws Exception if any error occurred.
      */
-     void kill(RunContext run) throws Exception;
+     void kill() throws Exception;
 
 }

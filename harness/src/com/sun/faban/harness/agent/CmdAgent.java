@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgent.java,v 1.2 2006/06/29 19:38:40 akara Exp $
+ * $Id: CmdAgent.java,v 1.3 2006/07/28 07:33:45 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -69,6 +69,16 @@ public interface CmdAgent extends Remote {
      */
     public CommandHandle execute(Command c)
             throws IOException, InterruptedException, RemoteException;
+    /**
+     * Executes a java command from the remote command agent.
+     * @param c The command containing the main class
+     * @return A handle to the command
+     * @throws IOException Error communicating with resulting process
+     * @throws InterruptedException Thread got interrupted waiting
+     */
+    public CommandHandle java(Command c)
+            throws IOException, InterruptedException, RemoteException;    
+
     /**
 	 * This method is responsible for starting the command in foreground
 	 * The caller waits for the command to complete
