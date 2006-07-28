@@ -19,7 +19,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: build.xml,v 1.2 2006/07/21 06:37:44 akara Exp $
+* $Id: build.xml,v 1.3 2006/07/28 07:42:14 akara Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 -->
@@ -122,6 +122,10 @@
             tofile="master/webapps/faban.war"
             overwrite="true" preservelastmodified="true"
             includeEmptyDirs="true" verbose="true"/>
+
+        <!-- We need to unwar to be able to build the samples -->
+        <unwar src="master/webapps/faban.war"
+            dest="master/webapps/faban"/>
     </target>
 
     <patternset id="client.bin">
