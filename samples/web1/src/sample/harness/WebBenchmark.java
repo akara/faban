@@ -17,15 +17,13 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: WebBenchmark.java,v 1.2 2006/06/29 19:38:45 akara Exp $
+ * $Id: WebBenchmark.java,v 1.3 2006/07/28 07:35:24 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package sample.harness;
 
-import com.sun.faban.harness.common.Run;
-import com.sun.faban.harness.engine.DefaultFabanBenchmark;
-import com.sun.faban.harness.engine.ParamRepository;
+import com.sun.faban.harness.DefaultFabanBenchmark;
 
 /**
  * Harness hook for the sample web benchmark. This class is not needed
@@ -43,15 +41,12 @@ public class WebBenchmark extends DefaultFabanBenchmark {
      * Tasks done in this method include reading user parameters,
      * logging them and initializing various local variables.
      *
-     * @param r   Run object that identifies this run
-     * @param par ParamRepository for this run
-     * @return true if configuration was successful,
-     *         false otherwise (abort run)
+     * @throws Exception If configuration was not successful
      */
-    public boolean configure(Run r, ParamRepository par) throws Exception {
+    public void configure() throws Exception {
         // Add additional configuration needs such as restarting/reconfiguring
         // servers here.
-        return super.configure(r, par);
+        super.configure();
     }
 
     /**
@@ -66,7 +61,7 @@ public class WebBenchmark extends DefaultFabanBenchmark {
      * This method aborts the current benchmark run and is
      * called when a user asks for a run to be killed
      */
-    public void kill() {
+    public void kill() throws Exception {
         // Unlikely, but just in case, you'll want to customize the kill.
         super.kill();
     }
