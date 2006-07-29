@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunContext.java,v 1.2 2006/07/28 07:33:46 akara Exp $
+ * $Id: RunContext.java,v 1.3 2006/07/29 01:03:02 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -45,6 +45,22 @@ public class RunContext {
      */
     public static String getBenchmarkDir() {
         return RunFacade.getInstance().getBenchmarkDir();
+    }
+
+    /**
+     * Obtains the id part of the run, not including the benchmark name.
+     * @return The run id
+     */
+    public static String getRunID() {
+        return RunFacade.getInstance().getRunID();
+    }
+
+    /**
+     * Obtains the full name of the run in the form benchmark.id.
+     * @return The run name
+     */
+    public static String getRunName() {
+        return RunFacade.getInstance().getRunName();
     }
 
     /**
@@ -117,7 +133,8 @@ public class RunContext {
      * @throws java.io.IOException  Error communicating with resulting process
      * @throws InterruptedException Thread got interrupted waiting
      */
-    public static CommandHandle java(Command java) throws IOException, InterruptedException {
+    public static CommandHandle java(Command java)
+            throws IOException, InterruptedException {
         return CmdService.getHandle().java(java);
     }
 
@@ -130,8 +147,9 @@ public class RunContext {
      * @throws java.io.IOException  Error communicating with resulting process
      * @throws InterruptedException Thread got interrupted waiting
      */
-    public static CommandHandle java(String host, Command java) throws IOException, InterruptedException {
-        return CmdService.getHandle().execute(host, java);
+    public static CommandHandle java(String host, Command java)
+            throws IOException, InterruptedException {
+        return CmdService.getHandle().java(host, java);
     }
 
     /**
@@ -143,8 +161,9 @@ public class RunContext {
      * @throws java.io.IOException  Error communicating with resulting process
      * @throws InterruptedException Thread got interrupted waiting
      */
-    public static CommandHandle[] java(String[] hosts, Command java) throws IOException, InterruptedException {
-      return CmdService.getHandle().execute(hosts, java);
+    public static CommandHandle[] java(String[] hosts, Command java)
+            throws IOException, InterruptedException {
+      return CmdService.getHandle().java(hosts, java);
     }
 
     /**
@@ -154,5 +173,17 @@ public class RunContext {
      */
     public static String getMaster() {
         return CmdService.getHandle().getMaster();
+    }
+
+    /**
+     * Obtains the actual host name of a host. In most cases, the configuration
+     * refers to a host with the interface name. If the host has multiple
+     * interfaces, the interface name is not the same as the host name. This
+     * method tries to detect the true hostname given a host or interface name.
+     * @param host The known host name
+     * @return The true host name
+     */
+    public static String getHostName(String host) {
+        return CmdService.getHandle().getHostName(host);
     }
 }

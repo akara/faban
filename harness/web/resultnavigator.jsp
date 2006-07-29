@@ -19,14 +19,14 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultnavigator.jsp,v 1.3 2006/07/26 18:19:09 akara Exp $
+ * $Id: resultnavigator.jsp,v 1.4 2006/07/29 01:03:03 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 -->
 <%@ page language="java" import="java.io.FileReader,
                                  com.sun.faban.harness.common.Config,
-                                 com.sun.faban.harness.engine.ParamRepository,
+                                 com.sun.faban.harness.ParamRepository,
                                  java.io.File,
                                  com.sun.faban.harness.common.BenchmarkDescription,
                                  java.io.IOException,
