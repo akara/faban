@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ParamRepository.java,v 1.1 2006/07/27 22:34:34 akara Exp $
+ * $Id: ParamRepository.java,v 1.2 2006/08/01 05:55:17 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -29,6 +29,12 @@ import java.util.List;
 import java.util.StringTokenizer;
 import java.util.ArrayList;
 
+/**
+ * The ParamRepository is the programmatic representation of the
+ * configuration file. It allows access to the xml file via xpath.
+ * In addition, the ParamRepository also allows updating the configuration
+ * file. Such updates should be made during the validation stage.
+ */
 public class ParamRepository {
 
 
