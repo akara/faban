@@ -21,7 +21,7 @@
     </command>
     <command>
         <name>trapstat</name>
-        <path>/usr/sbin/trapstat</path>
-        <prefix>fastsu</prefix>
+        <prefix sequence="1">fastsu</prefix>
+        <prefix sequence="2">priocntl -e -c RT</prefix>
     </command>
 </commands>

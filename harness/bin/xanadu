@@ -20,8 +20,36 @@ if [ -w $LOG_FILE ] ; then
 fi
 
 if [ -n "$JAVA_HOME" ] ; then
-   PATH=$JAVA_HOME/bin:$PATH
-   export PATH
+    PATH=$JAVA_HOME/bin:$PATH
+    export PATH
+fi
+
+# Check and rename tool output that is not supposed to be .xan.
+# Some older versions still use old format and should be named .log.
+if [ $1 = "import" ] ; then
+    IMPORTDIR="$2"
+    cd ${IMPORTDIR}
+            
+    # For this trick, we need nawk or gawk.
+    # Plain old awk usually does not work.
+    # But we still fall back to it if
+    # everything else falls apart.
+    AWK=/usr/bin/awk
+    if [ -x "/usr/bin/nawk" ] ; then
+        AWK=/usr/bin/nawk
+    elif [ -x "/usr/bin/gawk" ] ; then
+        AWK=/usr/bin/gawk
+    fi
+
+    for i in *.xan.*
+    do
+        XANHEADER=`head -1 $i | ${AWK} { print $1 }`
+        if [ "${XANHEADER}" != "Title:" ] ; then
+            TOOL=`echo $i | ${AWK} -F ".xan." ' { print $1 }'`
+            HOST=`echo $i | ${AWK} -F ".xan." ' { print $2 }'`
+            mv $i ${TOOL}.log.${HOST}
+        fi 
+    done
 fi
 
 perl -w $XANADU_HOME/xanadu.pl $*

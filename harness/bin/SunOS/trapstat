@@ -1,0 +1,13 @@
+#!/bin/sh
+
+CPULIST=""
+for CPU in `psrinfo | awk '{ if ($2 == "on-line") { print $1 }}'`
+do
+    if [ -z "${CPULIST}" ] ; then
+        CPULIST=${CPU}
+    else
+        CPULIST=${CPULIST},${CPU}
+    fi
+done
+
+/usr/sbin/trapstat -c ${CPULIST} $*
