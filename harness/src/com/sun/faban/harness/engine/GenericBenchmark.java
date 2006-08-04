@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.8 2006/07/28 07:33:46 akara Exp $
+ * $Id: GenericBenchmark.java,v 1.9 2006/08/04 07:37:20 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -170,6 +170,48 @@ public class GenericBenchmark {
                 return;
             }
 
+            // Reading parameters used by ToolService
+            String s = par.getParameter("runControl/rampUp");
+            if (s != null)
+                s = s.trim();
+            if (s == null || s.length() == 0) {
+                logger.severe("Configuration runControl/rampUp not set.");
+                return;
+            }
+            int delay = 0;
+            try {
+                delay = Integer.parseInt(s);
+            } catch (NumberFormatException e) {
+                logger.log(Level.SEVERE,
+                        "Parameter rampUp is not a number.", e);
+                return;
+            }
+            if (delay < 0) {
+                logger.severe("Parameter rampUp is negative");
+                return;
+            }
+
+            s = par.getParameter("runControl/steadyState");
+            if (s != null)
+                s = s.trim();
+            if (s == null || s.length() == 0) {
+                logger.severe("Configuration runControl/steadyState not set.");
+                return;
+            }
+
+            int stdyState = 0;
+            try {
+                stdyState = Integer.parseInt(s);
+            } catch (NumberFormatException e) {
+                logger.log(Level.SEVERE,
+                        "Parameter steadyState is not a number.", e);
+                return;
+            }
+            if (stdyState <= 0) {
+                logger.severe("Parameter steadyState must be more than zero.");
+                return;
+            }
+
             // Initialize ToolService, call setup with cmds as parameter
             logger.fine("Initializing Tool Service");
             tools = ToolService.getHandle();
@@ -200,7 +242,7 @@ public class GenericBenchmark {
             // Configure benchmark
             try {
                 bm.configure();
-                logger.fine("configured benchmark " + benchDesc.name);
+                logger.fine("Configured benchmark " + benchDesc.name);
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Run configuration failed!", e);
                 return;
@@ -209,17 +251,20 @@ public class GenericBenchmark {
             // Now run the benchmark
             try {
                 bm.start();
+                logger.fine("Started benchmark " + benchDesc.name);
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Run start failed!", e);
                 return;
             }
 
             // Start the tools
-            int delay = Integer.parseInt(
-                    par.getParameter("runControl/rampUp").trim());
-            int stdyState = Integer.parseInt(
-                    par.getParameter("runControl/steadyState").trim());
-            ToolService.getHandle().start(delay, stdyState);
+            try {
+                ToolService.getHandle().start(delay, stdyState);
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "ToolService not started.", e);
+                // Keep running. Failing the tools should not fail the
+                // benchmark.
+            }
 
             // Wait and end the benchmark
             try {
