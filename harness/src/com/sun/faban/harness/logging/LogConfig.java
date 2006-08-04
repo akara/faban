@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: LogConfig.java,v 1.2 2006/06/29 19:38:42 akara Exp $
+ * $Id: LogConfig.java,v 1.3 2006/08/04 07:37:53 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -26,7 +26,7 @@ package com.sun.faban.harness.logging;
 import java.util.concurrent.ExecutorService;
 
 /**
- * Description of new class
+ * The log server configuration class.
  *
  * @author Akara Sucharitakul
  */
