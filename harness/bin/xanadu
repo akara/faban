@@ -43,10 +43,10 @@ if [ $1 = "import" ] ; then
 
     for i in *.xan.*
     do
-        XANHEADER=`head -1 $i | ${AWK} { print $1 }`
-        if [ "${XANHEADER}" != "Title:" ] ; then
-            TOOL=`echo $i | ${AWK} -F ".xan." ' { print $1 }'`
-            HOST=`echo $i | ${AWK} -F ".xan." ' { print $2 }'`
+        XANHEADER=`head -1 $i | ${AWK} -F ":" '{ print $1 }'`
+        if [ "${XANHEADER}" != "Title" ] ; then
+            TOOL=`echo $i | ${AWK} -F ".xan." '{ print $1 }'`
+            HOST=`echo $i | ${AWK} -F ".xan." '{ print $2 }'`
             mv $i ${TOOL}.log.${HOST}
         fi 
     done
