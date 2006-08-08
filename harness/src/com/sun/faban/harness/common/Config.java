@@ -17,13 +17,22 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.3 2006/07/27 19:46:49 akara Exp $
+ * $Id: Config.java,v 1.4 2006/08/08 16:56:00 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.common;
 
+import com.sun.faban.harness.engine.LoginConfiguration;
+import org.w3c.dom.Node;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathFactory;
 import java.io.File;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Config {
 
@@ -140,7 +149,62 @@ public class Config {
     public static String LIB_DIR;
 
 
+    // Configuration from the file
+    public static boolean SECURITY_ENABLED = false;
+    public static LoginConfiguration LOGIN_CONFIG = null;
+
+
     static {
+        deriveConfig();
+    }
+
+    /**
+     * Reads the Faban harness configuration file FABAN_HOME/config/harness.xml
+     * at server startup.
+     */
+    private static void readConfig() {
+        Logger logger = Logger.getLogger(Config.class.getName());
+        File harnessXml = new File(CONFIG_DIR + "harness.xml");
+        if (harnessXml.exists())
+            try {
+                DocumentBuilder parser = DocumentBuilderFactory.newInstance().
+                                            newDocumentBuilder();
+                XPath xPath = XPathFactory.newInstance().newXPath();
+
+                Node root = parser.parse(harnessXml).getDocumentElement();
+
+                String v = xPath.evaluate("security/enabled", root);
+                if ("true".equalsIgnoreCase(v)) {
+                    SECURITY_ENABLED = true;
+                    LOGIN_CONFIG = new LoginConfiguration();
+                    LOGIN_CONFIG.readConfig(root, xPath);
+                }
+
+                v = xPath.evaluate("replication/enabled", root);
+                if ("true".equalsIgnoreCase(v)) {
+                    // TODO: Read replication config
+                }
+
+                // TODO: Read logServer config
+
+                v = xPath.evaluate("rmiPort", root);
+                if (v != null) {
+                    v = v.trim();
+                    if (v.length() > 0) {
+                        RMI_PORT = Integer.parseInt(v);
+                    }
+                }
+            } catch (Exception e) {
+                logger.log(Level.SEVERE,
+                        "Error reading Faban harness configuration.", e);
+            }
+    }
+
+    /**
+     * Sets the derived configuration variables. These are derived from
+     * system properties and previously set variables.
+     */
+    private static void deriveConfig() {
         String userHome  = System.getProperty("user.home");
         if(!userHome.endsWith(File.separator))
             userHome += File.separator;

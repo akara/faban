@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Note: Some parameters have not yet been implemented -->
+<FabanHarness>
+    <security>
+        <enabled>false</enabled>
+        <loginModule>com.sun.security.auth.module.JndiLoginModule</loginModule>
+        <property>
+            <name>user.provider.url</name>
+            <value>ldap://ldap.sun.com:389/ou=People,o=Sun,c=US</value>
+        </property>
+        <property>
+            <name>group.provider.url</name>
+            <value>ldap://ldap.sun.com:389/ou=Groups,o=Sun,c=US</value>
+        </property>
+        <property>
+            <name>debug</name>
+            <value>true</value>
+        </property>
+        <property>
+            <name>useFirstPass</name>
+            <value>false</value>
+        </property>
+        <property>
+            <name>tryFirstPass</name>
+            <value>false</value>
+        </property>
+        <property>
+            <name>storePass</name>
+            <value>false</value>
+        </property>
+        <property>
+            <name>clearPass</name>
+            <value>false</value>
+        </property>
+    </security>
+    <replication>
+        <enabled>false</enabled>
+        <server>faban.sfbay.sun.com:9980</server>
+        <server>faban.sunsource.net:9980</server>
+        <exclude>
+            <size>1M</size> <!-- Do not replicate files larger than 1M -->
+            <name>foo.bar</name>
+        </exclude>
+    </replication>
+    <logServer>  <!-- Don't touch this unless you really know what you're doing -->
+        <port>9999</port>
+        <listenerThreads>1</listenerThreads>
+        <listenQueueSize>-1</listenQueueSize> <!-- system default -->
+        <serviceThreads>
+            <core>2</core>
+            <max>10</max>
+            <timeOut>300</timeOut>
+        </serviceThreads>
+        <bufferSize>2048</bufferSize>
+    </logServer>
+    <rmiPort>9998</rmiPort>
+</FabanHarness>
