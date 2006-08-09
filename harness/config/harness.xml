@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Note: Some parameters have not yet been implemented -->
 <FabanHarness>
-    <security>
-        <enabled>false</enabled>
+    <security enabled="false">
         <loginModule>com.sun.security.auth.module.JndiLoginModule</loginModule>
         <property>
             <name>user.provider.url</name>
@@ -34,13 +33,8 @@
         </property>
     </security>
     <replication>
-        <enabled>false</enabled>
-        <server>faban.sfbay.sun.com:9980</server>
-        <server>faban.sunsource.net:9980</server>
-        <exclude>
-            <size>1M</size> <!-- Do not replicate files larger than 1M -->
-            <name>foo.bar</name>
-        </exclude>
+        <server enabled="false">http://faban.sfbay.sun.com:9980</server>
+        <server enabled="false">http://faban.sunsource.net:9980</server>
     </replication>
     <logServer>  <!-- Don't touch this unless you really know what you're doing -->
         <port>9999</port>

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.4 2006/08/08 16:56:00 akara Exp $
+ * $Id: Config.java,v 1.5 2006/08/09 17:37:26 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,14 +25,20 @@ package com.sun.faban.harness.common;
 
 import com.sun.faban.harness.engine.LoginConfiguration;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.net.URL;
+import java.net.MalformedURLException;
 
 public class Config {
 
@@ -153,6 +159,8 @@ public class Config {
     public static boolean SECURITY_ENABLED = false;
     public static LoginConfiguration LOGIN_CONFIG = null;
 
+    public static URL[] replicationURLs = null;
+
 
     static {
         deriveConfig();
@@ -173,16 +181,34 @@ public class Config {
 
                 Node root = parser.parse(harnessXml).getDocumentElement();
 
-                String v = xPath.evaluate("security/enabled", root);
-                if ("true".equalsIgnoreCase(v)) {
+                // Reading security config
+                String v = xPath.evaluate("security/@enabled", root);
+                if ("true".equals(v)) {
                     SECURITY_ENABLED = true;
                     LOGIN_CONFIG = new LoginConfiguration();
                     LOGIN_CONFIG.readConfig(root, xPath);
                 }
 
-                v = xPath.evaluate("replication/enabled", root);
-                if ("true".equalsIgnoreCase(v)) {
-                    // TODO: Read replication config
+                // Reading replication config
+                NodeList servers = (NodeList) xPath.evaluate(
+                        "replication/server[@enabled='true']", root,
+                        XPathConstants.NODESET);
+
+                int serverCount;
+
+                if (servers != null && (serverCount = servers.getLength()) > 0) {
+                    ArrayList<URL> serverList = new ArrayList<URL>(serverCount);
+                    for (int i = 0; i < serverCount; i++) {
+                        String serverURL = servers.item(i).getNodeValue();
+                        try {
+                            serverList.add(new URL(serverURL));
+                        } catch (MalformedURLException e) {
+                            logger.log(Level.WARNING, "Invalid URL " +
+                                                        serverURL, e);
+                        }
+                    }
+                    replicationURLs = new URL[serverList.size()];
+                    replicationURLs = serverList.toArray(replicationURLs);
                 }
 
                 // TODO: Read logServer config
