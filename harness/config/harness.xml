@@ -5,11 +5,11 @@
         <loginModule>com.sun.security.auth.module.JndiLoginModule</loginModule>
         <property>
             <name>user.provider.url</name>
-            <value>ldap://ldap.sun.com:389/ou=People,o=Sun,c=US</value>
+            <value>ldap://sun-ds:389/o=WebAuth</value>
         </property>
         <property>
             <name>group.provider.url</name>
-            <value>ldap://ldap.sun.com:389/ou=Groups,o=Sun,c=US</value>
+            <value>ldap://sun-ds:389/o=WebAuth</value>
         </property>
         <property>
             <name>debug</name>

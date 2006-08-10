@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Engine.java,v 1.2 2006/06/29 19:38:41 akara Exp $
+ * $Id: Engine.java,v 1.3 2006/08/10 01:34:37 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -120,12 +120,8 @@ public class Engine {
         runQ = RunQ.getHandle();
         logger.fine("RunQ created");
 
-        //Start LogServer to receive log msgs from remote Agents
-        LogConfig logConfig = new LogConfig();
-        logConfig.port = Config.LOGGING_PORT;
-
         try {
-            logServer = new LogServer(logConfig);
+            logServer = new LogServer(new LogConfig());
             logServer.start();
         } catch (IOException e) {
             logger.log(Level.SEVERE,  "Error starting log server", e);

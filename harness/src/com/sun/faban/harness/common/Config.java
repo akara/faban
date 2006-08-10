@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.5 2006/08/09 17:37:26 akara Exp $
+ * $Id: Config.java,v 1.6 2006/08/10 01:34:36 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -30,15 +30,14 @@ import org.w3c.dom.NodeList;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathFactory;
 import javax.xml.xpath.XPathConstants;
-import javax.xml.namespace.QName;
+import javax.xml.xpath.XPathFactory;
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.ArrayList;
-import java.net.URL;
-import java.net.MalformedURLException;
 
 public class Config {
 
@@ -102,10 +101,10 @@ public class Config {
 
     public static final String LOG_FILE = "log.xml";
 
-    // This is not final as it may be changed if there is a conflict
+    // The default logging port
     public static int LOGGING_PORT = 9999;
 
-    // TODO : The client agents should be able to reconfigure this port
+    // The default RMI port
     public static int RMI_PORT = 9998;
 
     public static final String PROFILE_SIGNAL = "PROF";
@@ -154,6 +153,8 @@ public class Config {
     public static String CMD_SCRIPT;
     public static String LIB_DIR;
 
+    public static String CONFIG_FILE = CONFIG_DIR + "harness.xml";
+
 
     // Configuration from the file
     public static boolean SECURITY_ENABLED = false;
@@ -164,66 +165,7 @@ public class Config {
 
     static {
         deriveConfig();
-    }
-
-    /**
-     * Reads the Faban harness configuration file FABAN_HOME/config/harness.xml
-     * at server startup.
-     */
-    private static void readConfig() {
-        Logger logger = Logger.getLogger(Config.class.getName());
-        File harnessXml = new File(CONFIG_DIR + "harness.xml");
-        if (harnessXml.exists())
-            try {
-                DocumentBuilder parser = DocumentBuilderFactory.newInstance().
-                                            newDocumentBuilder();
-                XPath xPath = XPathFactory.newInstance().newXPath();
-
-                Node root = parser.parse(harnessXml).getDocumentElement();
-
-                // Reading security config
-                String v = xPath.evaluate("security/@enabled", root);
-                if ("true".equals(v)) {
-                    SECURITY_ENABLED = true;
-                    LOGIN_CONFIG = new LoginConfiguration();
-                    LOGIN_CONFIG.readConfig(root, xPath);
-                }
-
-                // Reading replication config
-                NodeList servers = (NodeList) xPath.evaluate(
-                        "replication/server[@enabled='true']", root,
-                        XPathConstants.NODESET);
-
-                int serverCount;
-
-                if (servers != null && (serverCount = servers.getLength()) > 0) {
-                    ArrayList<URL> serverList = new ArrayList<URL>(serverCount);
-                    for (int i = 0; i < serverCount; i++) {
-                        String serverURL = servers.item(i).getNodeValue();
-                        try {
-                            serverList.add(new URL(serverURL));
-                        } catch (MalformedURLException e) {
-                            logger.log(Level.WARNING, "Invalid URL " +
-                                                        serverURL, e);
-                        }
-                    }
-                    replicationURLs = new URL[serverList.size()];
-                    replicationURLs = serverList.toArray(replicationURLs);
-                }
-
-                // TODO: Read logServer config
-
-                v = xPath.evaluate("rmiPort", root);
-                if (v != null) {
-                    v = v.trim();
-                    if (v.length() > 0) {
-                        RMI_PORT = Integer.parseInt(v);
-                    }
-                }
-            } catch (Exception e) {
-                logger.log(Level.SEVERE,
-                        "Error reading Faban harness configuration.", e);
-            }
+        readConfig();
     }
 
     /**
@@ -282,5 +224,65 @@ public class Config {
         BENCHMARK_DIR = FABAN_HOME + "benchmarks" + File.separator;
         BENCH_FILE = CONFIG_DIR + "benchmarks.list";
         USERS_DIR = CONFIG_DIR + "users" + File.separator;
+    }
+
+    /**
+     * Reads the Faban harness configuration file FABAN_HOME/config/harness.xml
+     * at server startup.
+     */
+    private static void readConfig() {
+        Logger logger = Logger.getLogger(Config.class.getName());
+        File harnessXml = new File(CONFIG_FILE);
+        if (harnessXml.exists())
+            try {
+                DocumentBuilder parser = DocumentBuilderFactory.newInstance().
+                                            newDocumentBuilder();
+                XPath xPath = XPathFactory.newInstance().newXPath();
+
+                Node root = parser.parse(harnessXml).getDocumentElement();
+
+                // Reading security config
+                String v = xPath.evaluate("security/@enabled", root);
+                if ("true".equals(v)) {
+                    SECURITY_ENABLED = true;
+                    LOGIN_CONFIG = new LoginConfiguration();
+                    LOGIN_CONFIG.readConfig(root, xPath);
+                }
+
+                // Reading replication config
+                NodeList servers = (NodeList) xPath.evaluate(
+                        "replication/server[@enabled='true']", root,
+                        XPathConstants.NODESET);
+
+                int serverCount;
+
+                if (servers != null && (serverCount = servers.getLength()) > 0) {
+                    ArrayList<URL> serverList = new ArrayList<URL>(serverCount);
+                    for (int i = 0; i < serverCount; i++) {
+                        String serverURL = servers.item(i).getNodeValue();
+                        try {
+                            serverList.add(new URL(serverURL));
+                        } catch (MalformedURLException e) {
+                            logger.log(Level.WARNING, "Invalid URL " +
+                                                        serverURL, e);
+                        }
+                    }
+                    replicationURLs = new URL[serverList.size()];
+                    replicationURLs = serverList.toArray(replicationURLs);
+                }
+
+                // Note: The logServer config is read by LogConfig, not here.
+
+                v = xPath.evaluate("rmiPort", root);
+                if (v != null) {
+                    v = v.trim();
+                    if (v.length() > 0) {
+                        RMI_PORT = Integer.parseInt(v);
+                    }
+                }
+            } catch (Exception e) {
+                logger.log(Level.SEVERE,
+                        "Error reading Faban harness configuration.", e);
+            }
     }
 }

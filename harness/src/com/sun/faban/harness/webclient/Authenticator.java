@@ -17,12 +17,15 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Authenticator.java,v 1.1 2006/08/08 16:56:01 akara Exp $
+ * $Id: Authenticator.java,v 1.2 2006/08/10 01:34:38 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.webclient;
 
+import com.sun.faban.harness.common.Config;
+
+import javax.security.auth.Subject;
 import javax.security.auth.callback.*;
 import javax.security.auth.login.LoginContext;
 import javax.security.auth.login.LoginException;
@@ -36,22 +39,25 @@ public class Authenticator implements CallbackHandler {
     private String login;
     private String passwd;
     private String message;
-    private String prompt;
+    private Subject subject;
+    private LoginContext loginCtx;
 
 
-    public Authenticator(String login, String passwd) throws LoginException {
+    public Authenticator(String login, String passwd) {
         this.login = login;
         this.passwd = passwd;
-        LoginContext loginCtx = new LoginContext("FabanLoginContext", this);
+    }
+
+    public Subject login() throws LoginException {
+        loginCtx = new LoginContext("FabanLoginContext", null, this,
+                Config.LOGIN_CONFIG);
         loginCtx.login();
+        subject = loginCtx.getSubject();
+        return subject;
     }
 
     public String getMessage() {
         return message;
-    }
-
-    public String getPrompt() {
-        return prompt;
     }
 
     /**
@@ -161,7 +167,6 @@ public class Authenticator implements CallbackHandler {
             } else if (callbacks[i] instanceof PasswordCallback) {
 
                 PasswordCallback pc = (PasswordCallback) callbacks[i];
-                prompt = pc.getPrompt();
                 char[] buffer = new char[passwd.length()];
                 passwd.getChars(0, passwd.length(), buffer, 0);
                 pc.setPassword(buffer);
