@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: LogConfig.java,v 1.4 2006/08/10 01:34:37 akara Exp $
+ * $Id: LogConfig.java,v 1.5 2006/08/10 18:14:03 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -31,6 +31,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
+import javax.xml.xpath.XPathException;
 import java.io.File;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
@@ -62,40 +63,44 @@ public class LogConfig {
                 XPath xPath = XPathFactory.newInstance().newXPath();
 
                 Node root = parser.parse(harnessXml).getDocumentElement();
-                Node logConfig = (Node) xPath.evaluate("logConfig", root,
+                Node logServer = (Node) xPath.evaluate("logServer", root,
                                                         XPathConstants.NODE);
 
-                String v = xPath.evaluate("port", logConfig);
+                if (logServer == null)
+                    throw new XPathException("Element logServer not found.");
+
+                String v = xPath.evaluate("port", logServer);
                 if (v != null && v.length() > 0)
                     port = Integer.parseInt(v);
 
-                v = xPath.evaluate("listenerThreads", logConfig);
+                v = xPath.evaluate("listenerThreads", logServer);
                 if (v != null && v.length() > 0)
                     listenerThreads = Integer.parseInt(v);
 
-                v = xPath.evaluate("listenQueueSize", logConfig);
+                v = xPath.evaluate("listenQueueSize", logServer);
                 if (v != null && v.length() > 0)
                     listenQSize = Integer.parseInt(v);
 
-                v = xPath.evaluate("serviceThreads/core", logConfig);
+                v = xPath.evaluate("serviceThreads/core", logServer);
                 if (v != null && v.length() > 0)
                     coreServiceThreads = Integer.parseInt(v);
 
-                v = xPath.evaluate("serviceThreads/max", logConfig);
+                v = xPath.evaluate("serviceThreads/max", logServer);
                 if (v != null && v.length() > 0)
                     maxServiceThreads = Integer.parseInt(v);
 
-                v = xPath.evaluate("serviceThreads/timeOut", logConfig);
+                v = xPath.evaluate("serviceThreads/timeOut", logServer);
                 if (v != null && v.length() > 0)
                     serviceThreadTimeout = Integer.parseInt(v);
 
-                v = xPath.evaluate("bufferSize", logConfig);
+                v = xPath.evaluate("bufferSize", logServer);
                 if (v != null && v.length() > 0)
                     readBufferSize = Integer.parseInt(v);
 
             } catch (Exception e) {
-                logger.log(Level.SEVERE, "Error reading harness " +
-                                            "configuration file.", e);
+                logger.log(Level.WARNING, "Error reading harness " +
+                                            "configuration file. " +
+                                            e.getMessage(), e);
             }
     }
 }

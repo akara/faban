@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.6 2006/08/10 01:34:36 akara Exp $
+ * $Id: Config.java,v 1.7 2006/08/10 18:14:02 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -153,7 +153,7 @@ public class Config {
     public static String CMD_SCRIPT;
     public static String LIB_DIR;
 
-    public static String CONFIG_FILE = CONFIG_DIR + "harness.xml";
+    public static String CONFIG_FILE;
 
 
     // Configuration from the file
@@ -219,6 +219,7 @@ public class Config {
         CONFIG_DIR = FABAN_HOME + "config" + File.separator;
         RUNQ_DIR = CONFIG_DIR  + "runq" + File.separator;
         SEQUENCE_FILE = CONFIG_DIR  + "sequence";
+        CONFIG_FILE = CONFIG_DIR + "harness.xml";
 
         // Constants used UserEnv
         BENCHMARK_DIR = FABAN_HOME + "benchmarks" + File.separator;
@@ -235,6 +236,7 @@ public class Config {
         File harnessXml = new File(CONFIG_FILE);
         if (harnessXml.exists())
             try {
+                logger.fine("Reading configuration file.");
                 DocumentBuilder parser = DocumentBuilderFactory.newInstance().
                                             newDocumentBuilder();
                 XPath xPath = XPathFactory.newInstance().newXPath();
@@ -243,6 +245,7 @@ public class Config {
 
                 // Reading security config
                 String v = xPath.evaluate("security/@enabled", root);
+                logger.fine("Security enabled: " + v);
                 if ("true".equals(v)) {
                     SECURITY_ENABLED = true;
                     LOGIN_CONFIG = new LoginConfiguration();
@@ -259,12 +262,18 @@ public class Config {
                 if (servers != null && (serverCount = servers.getLength()) > 0) {
                     ArrayList<URL> serverList = new ArrayList<URL>(serverCount);
                     for (int i = 0; i < serverCount; i++) {
-                        String serverURL = servers.item(i).getNodeValue();
-                        try {
-                            serverList.add(new URL(serverURL));
-                        } catch (MalformedURLException e) {
-                            logger.log(Level.WARNING, "Invalid URL " +
-                                                        serverURL, e);
+                        // Fetch the text node underneath.
+                        Node urlNode = servers.item(i).getFirstChild();
+                        if (urlNode != null) {
+                            // Then get the value.
+                            String serverURL = urlNode.getNodeValue();
+                            logger.fine("Upload to:" + serverURL);
+                            try {
+                                serverList.add(new URL(serverURL));
+                            } catch (MalformedURLException e) {
+                                logger.log(Level.WARNING, "Invalid URL " +
+                                        serverURL, e);
+                            }
                         }
                     }
                     replicationURLs = new URL[serverList.size()];
@@ -284,5 +293,8 @@ public class Config {
                 logger.log(Level.SEVERE,
                         "Error reading Faban harness configuration.", e);
             }
+        else
+            logger.warning("Configuration file " + Config.CONFIG_FILE +
+                    " does not exist. Using default settings.");
     }
 }

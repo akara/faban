@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: LoginConfiguration.java,v 1.1 2006/08/08 16:56:01 akara Exp $
+ * $Id: LoginConfiguration.java,v 1.2 2006/08/10 18:14:03 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -46,6 +46,7 @@ import java.util.logging.Logger;
  */
 public class LoginConfiguration extends Configuration {
 
+    Logger logger = Logger.getLogger(getClass().getName());
     AppConfigurationEntry[] entries = new AppConfigurationEntry[1];
 
     /**
@@ -58,6 +59,7 @@ public class LoginConfiguration extends Configuration {
             throws XPathExpressionException {
 
         String moduleName = xPath.evaluate("security/loginModule", root);
+        logger.fine("Login module: " + moduleName);
         Map<String, String> options = new HashMap<String, String>();
         NodeList propNodes = (NodeList) xPath.evaluate("security/property",
                                             root, XPathConstants.NODESET);
@@ -65,6 +67,7 @@ public class LoginConfiguration extends Configuration {
             Node propNode = propNodes.item(i);
             String name = xPath.evaluate("name", propNode);
             String value = xPath.evaluate("value", propNode);
+            logger.fine("Property: " + name + '=' + value);
             options.put(name, value);
         }
 
