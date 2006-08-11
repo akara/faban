@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: login.jsp,v 1.2 2006/08/10 18:14:04 akara Exp $
+ * $Id: login.jsp,v 1.3 2006/08/11 00:05:52 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -92,7 +92,7 @@
         if (s != null) {
             Set<Principal> principals = s.getPrincipals();
 %>
-<h2>Welcome:</h2>
+<h2>Welcome: <%= id %></h2>
 <%          for (Principal p : principals)
                 out.println(p.getName() + "<br>");
         }

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.7 2006/08/10 18:14:02 akara Exp $
+ * $Id: Config.java,v 1.8 2006/08/11 00:05:51 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -33,11 +33,14 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 import java.io.File;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.LogManager;
 
 public class Config {
 
@@ -155,6 +158,8 @@ public class Config {
 
     public static String CONFIG_FILE;
 
+    public static String DEFAULT_LOG_FILE;
+
 
     // Configuration from the file
     public static boolean SECURITY_ENABLED = false;
@@ -165,6 +170,7 @@ public class Config {
 
     static {
         deriveConfig();
+        configLogger();
         readConfig();
     }
 
@@ -225,6 +231,36 @@ public class Config {
         BENCHMARK_DIR = FABAN_HOME + "benchmarks" + File.separator;
         BENCH_FILE = CONFIG_DIR + "benchmarks.list";
         USERS_DIR = CONFIG_DIR + "users" + File.separator;
+    }
+
+    private static void configLogger() {
+        String path = FABAN_HOME + "logs";
+
+        // Redirect log to faban.log.xml
+        if(path == null)
+            path = "%t";
+
+        path = path + File.separator + "faban.log.xml";
+
+        StringBuffer sb = new StringBuffer();
+	    sb.append("\nhandlers = java.util.logging.FileHandler\n");
+        sb.append("java.util.logging.FileHandler.pattern = " + path + "\n");
+        sb.append("java.util.logging.FileHandler.append = true\n");
+        sb.append("java.util.logging.FileHandler.limit = 102400\n");
+        sb.append("java.util.logging.FileHandler.formatter = " +
+                "com.sun.faban.harness.logging.XMLFormatter\n");
+
+        DEFAULT_LOG_FILE = path;
+
+        try {
+            LogManager.getLogManager().readConfiguration(
+                    new ByteArrayInputStream(sb.toString().getBytes()));
+            
+        } catch(IOException e) {
+            Logger logger = Logger.getLogger(Config.class.getName());
+            logger.log(Level.SEVERE, "Error configuring log manager.", e);
+        }
+
     }
 
     /**

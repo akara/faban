@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Engine.java,v 1.3 2006/08/10 01:34:37 akara Exp $
+ * $Id: Engine.java,v 1.4 2006/08/11 00:05:51 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -29,12 +29,10 @@ import com.sun.faban.harness.logging.LogServer;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
-import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 /**
@@ -91,6 +89,7 @@ public class Engine {
         reqUrl.setLength(++uriLength);
         System.setProperty("faban.url", reqUrl.toString());
 
+        /* Note: moved logic to Config.java
         // Read the real path back from the Config and make it
         // faban.home/logs.
         path = Config.FABAN_HOME + "logs";
@@ -112,9 +111,14 @@ public class Engine {
             LogManager.getLogManager().readConfiguration(
                     new ByteArrayInputStream(sb.toString().getBytes()));
         } catch(IOException e) { }
+        */
+
+        // Access config NOW, static initializers will config the logging
+        // before we instatiate a logger.
+        path = Config.DEFAULT_LOG_FILE;
 
         logger = Logger.getLogger(this.getClass().getName());
-        logger.fine("Faban servlet initializing Log file = " + path);
+        logger.fine("Faban logging to " + path);
 
         // Instanciate the runq which in turn will start the runDaemon
         runQ = RunQ.getHandle();

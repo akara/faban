@@ -2,34 +2,10 @@
 <!-- Note: Some parameters have not yet been implemented -->
 <FabanHarness>
     <security enabled="false">
-        <loginModule>com.sun.security.auth.module.JndiLoginModule</loginModule>
-        <property>
-            <name>user.provider.url</name>
-            <value>ldap://sun-ds:389/o=WebAuth</value>
-        </property>
-        <property>
-            <name>group.provider.url</name>
-            <value>ldap://sun-ds:389/o=WebAuth</value>
-        </property>
+        <loginModule>com.sun.security.auth.module.UnixLoginModule</loginModule>
         <property>
             <name>debug</name>
             <value>true</value>
-        </property>
-        <property>
-            <name>useFirstPass</name>
-            <value>false</value>
-        </property>
-        <property>
-            <name>tryFirstPass</name>
-            <value>false</value>
-        </property>
-        <property>
-            <name>storePass</name>
-            <value>false</value>
-        </property>
-        <property>
-            <name>clearPass</name>
-            <value>false</value>
         </property>
     </security>
     <replication>
