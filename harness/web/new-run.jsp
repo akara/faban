@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: new-run.jsp,v 1.2 2006/06/29 19:38:44 akara Exp $
+ * $Id: new-run.jsp,v 1.3 2006/08/12 06:54:24 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -35,10 +35,10 @@
                                  java.util.Map"%>
 <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
 <%
-    String user = (String)session.getAttribute("faban.user");
-    if (user == null) {
-        user = request.getParameter("user");
-        session.setAttribute("faban.user", user);
+    String profile = (String)session.getAttribute("faban.profile");
+    if (profile == null) {
+        profile = request.getParameter("profile");
+        session.setAttribute("faban.profile", profile);
     }
     BenchmarkDescription benchDesc = (BenchmarkDescription)session.getAttribute("faban.benchmark");
     String benchmark = null;
@@ -48,10 +48,10 @@
         benchDesc = (BenchmarkDescription) bms.get(benchmark);
         session.setAttribute("faban.benchmark", benchDesc);
     }
-    usrEnv.copyParamRepository(user, benchDesc);
+    usrEnv.copyParamRepository(profile, benchDesc);
     String url = "benchmarks/" + benchDesc.shortName + '/' + benchDesc.configForm;
 
-    if ((user != null) && (benchDesc != null)) {
+    if ((profile != null) && (benchDesc != null)) {
 %>
 
 <meta HTTP-EQUIV=REFRESH CONTENT="0;URL=<%=url%>">
@@ -62,10 +62,10 @@
    else {
 %>
 <body>
-<form name="bench" method="post" action="select-user.jsp">
+<form name="bench" method="post" action="selectprofile.jsp">
 
   <br/>
-  <center><b>Unable to determine user or benchmark... Please Login</b></center>
+  <center><b>Unable to determine profile or benchmark... please select profile</b></center>
   <br/>
   <center><input type="submit" value="OK"></center>
 </form>

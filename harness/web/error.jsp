@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: error.jsp,v 1.2 2006/06/29 19:38:44 akara Exp $
+ * $Id: error.jsp,v 1.3 2006/08/12 06:54:24 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -31,8 +31,7 @@
     <link rel="stylesheet" type="text/css" href="../styles/chiba-styles.css"/>
 
 <%@ page import="java.io.PrintWriter"%>
-<%@ page session="true" %>
-
+<%@ page session="true" isErrorPage="true" %>
 
 </head>
 <body bgcolor="aabbdd" text="black" link="blue" vlink="purple" alink="orange">
@@ -67,8 +66,15 @@
 						<font face="sans-serif">
 						<b>OOPS - An error occurred.</b><br><br>
 						<%
-                            Exception e=(Exception)session.getAttribute("chiba.exception");
-							String message=e.getMessage();
+
+ // TODO: JSP error handling is still inadequate. Need to revisit this.
+                            Throwable e = (Exception) session.getAttribute("chiba.exception");
+                            String message = null;
+                            if (e != null)
+							    message = e.getMessage();
+                            else
+                                e = exception;
+                                message = e.getMessage();
 							if (message!=null && message.length()>0) {
 								%>
 								<font face="helv" size="+1">

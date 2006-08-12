@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: welcome.jsp,v 1.2 2006/06/29 19:38:44 akara Exp $
+ * $Id: welcome.jsp,v 1.3 2006/08/12 06:54:25 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -31,14 +31,18 @@
     <link rel="icon" type="image/gif" href="img/faban.gif">
   </head>
   <body>
-  <% String bannerName = BenchmarkDescription.getBannerName(); %>
+  <% String bannerName = BenchmarkDescription.getBannerName();
+     if (!"Faban".equals(bannerName)) {
+         out.println("<br/><br/><br/>");
+     }
+  %>
   <h2 align="center">Welcome to <%=bannerName%></h2>
   <% // We only show notices if this is not a benchmark integration.
      // The legal notice is not practical if Faban emulates benchmark-specific
      // behavior.
      if ("Faban".equals(bannerName)) {
   %>
-        <p><br><br></p>
+        <p><br/><br/></p>
         <p style="margin-left: 100px; margin-right: 100px;"><font size="-2">
         Copyright &copy; 2006 Sun Microsystems, Inc. All rights reserved.
         </font></p>
@@ -54,8 +58,8 @@
         <p style="margin-left: 100px; margin-right: 100px;"><font size="-2">
         Sun, Sun Microsystems, the Sun logo and Java are trademarks or
         registered trademarks of Sun Microsystems, Inc. in the U.S. and other
-        countries.<br></font></p>
-        <p><br></p>
+        countries.<br/></font></p>
+        <p><br/></p>
         <p style="margin-left: 100px; margin-right: 100px;"><font size="-2">
         Copyright &copy; 2006 Sun Microsystems, Inc. Tous droits
         r&eacute;serv&eacute;s.</font></p>
@@ -67,7 +71,7 @@
         <p style="margin-left: 100px; margin-right: 100px;"><font size="-2">
         Sun, Sun Microsystems, le logo Sun et Java sont des marques de fabrique
         ou des marques d&eacute;pos&eacute;es de Sun Microsystems, Inc. aux
-        Etats-Unis et dans d'autres pays.</font><br>
+        Etats-Unis et dans d'autres pays.</font><br/>
         </p>
   <%
      }

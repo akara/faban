@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunQ.java,v 1.3 2006/07/27 22:34:35 akara Exp $
+ * $Id: RunQ.java,v 1.4 2006/08/12 06:54:24 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -87,11 +87,11 @@ public class RunQ {
       * directory and stores the parameter repository in it. It also notifies
       * the RunDaemon thread of the newly added run. All operations on the runq
       * directory are synchronized through the use of the LockFileMonitor class.
-      *
+      * @param user The user name or id if logged in, or null
+      * @param profile Profile name for this run
       * @param desc The description of the benchmark to run
-      * @param user name of the benchmark for this run
       */
-    public String addRun(String user, BenchmarkDescription desc) {
+    public String addRun(String user, String profile, BenchmarkDescription desc) {
 
         String runID = getRunID(desc.shortName);
 
@@ -104,11 +104,47 @@ public class RunQ {
         if(dir.mkdirs())
             logger.fine("Created Run Directory " + runDir);
 
-        // copying the parameter repository file from the user's environment.
+        // Record the user
+        if (Config.SECURITY_ENABLED) {
+            if (user == null) {
+                logger.warning("Trying submission - user not logged on.");
+                throw new RuntimeException("User not logged in.");
+            } else {
+                // Set the submitter
+                File metaInf = new File(dir, "META-INF");
+                metaInf.mkdirs();
+                File submitter = new File(metaInf, "submitter");
+                try {
+                    PrintStream p = new PrintStream(submitter);
+                    p.println(user);
+                    p.close();
+                } catch (IOException e) {
+                    logger.log(Level.SEVERE, "Error recording submitter.", e);
+                    throw new RuntimeException("Error recording submitter.", e);
+                }
+
+                // Copy ACL
+                String benchAcl = Config.CONFIG_DIR + desc.shortName + ".acl";
+                String runAcl = null;
+                if (new File(benchAcl).exists())
+                    runAcl = new File(metaInf, "run.acl").getAbsolutePath();
+                else
+                    benchAcl = null;
+
+                if (benchAcl != null &&
+                        FileHelper.copyFile(benchAcl, runAcl, false)) {
+                    logger.log(Level.SEVERE, "Error copying ACL");
+                    throw new RuntimeException("Error copying ACL");
+                }
+            }
+        }
+
+
+        // copying the parameter repository file from the user's profile.
         String paramRepFileName =
                 runDir + File.separator + desc.configFileName;
-        String paramSourceFileName = Config.USERS_DIR + user + File.separator +
-                                     desc.configFileName + "." + desc.shortName;
+        String paramSourceFileName = Config.PROFILES_DIR + profile +
+                File.separator + desc.configFileName + "." + desc.shortName;
 
         logger.fine("Copying " +
                 paramSourceFileName + " to " +

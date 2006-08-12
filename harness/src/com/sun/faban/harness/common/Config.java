@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.8 2006/08/11 00:05:51 akara Exp $
+ * $Id: Config.java,v 1.9 2006/08/12 06:54:23 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -100,7 +100,7 @@ public class Config {
             "d\351sign\351s, sont rigoureusement interdites.\n";
 
     public static final String HARNESS_NAME = "Faban";
-    public static final String HARNESS_VERSION = "0.7";
+    public static final String HARNESS_VERSION = "0.8";
 
     public static final String LOG_FILE = "log.xml";
 
@@ -145,7 +145,7 @@ public class Config {
     // Constants used by UserEnv
     public static String BENCHMARK_DIR;
     public static String BENCH_FILE;
-    public static String USERS_DIR;
+    public static String PROFILES_DIR;
 
     // The URL to the context, initialized only on master process.
     public static String CONTEXT_URL;
@@ -230,7 +230,7 @@ public class Config {
         // Constants used UserEnv
         BENCHMARK_DIR = FABAN_HOME + "benchmarks" + File.separator;
         BENCH_FILE = CONFIG_DIR + "benchmarks.list";
-        USERS_DIR = CONFIG_DIR + "users" + File.separator;
+        PROFILES_DIR = CONFIG_DIR + "profiles" + File.separator;
     }
 
     private static void configLogger() {

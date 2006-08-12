@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Authenticator.java,v 1.2 2006/08/10 01:34:38 akara Exp $
+ * $Id: Authenticator.java,v 1.3 2006/08/12 06:54:24 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -42,17 +42,38 @@ public class Authenticator implements CallbackHandler {
     private Subject subject;
     private LoginContext loginCtx;
 
-
-    public Authenticator(String login, String passwd) {
-        this.login = login;
+    public Subject login(String id, String passwd) throws LoginException {
+        if (loginCtx == null)
+            loginCtx = new LoginContext("FabanLoginContext", null, this,
+                                        Config.LOGIN_CONFIG);
+        login = id;
         this.passwd = passwd;
+        try {
+            loginCtx.login();
+        } catch (LoginException e) {
+            login = null;
+            this.passwd = null;
+            throw e;
+        }
+        subject = loginCtx.getSubject();
+
+        return subject;
     }
 
-    public Subject login() throws LoginException {
-        loginCtx = new LoginContext("FabanLoginContext", null, this,
-                Config.LOGIN_CONFIG);
-        loginCtx.login();
-        subject = loginCtx.getSubject();
+    public void logout() throws LoginException {
+        if (login != null)
+            loginCtx.logout();
+        login = null;
+        passwd = null;
+        message = null;
+        subject = null;
+    }
+
+    public String getLogin() {
+        return login;
+    }
+
+    public Subject getSubject() {
         return subject;
     }
 

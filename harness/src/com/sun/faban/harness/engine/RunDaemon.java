@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunDaemon.java,v 1.2 2006/06/29 19:38:42 akara Exp $
+ * $Id: RunDaemon.java,v 1.3 2006/08/12 06:54:24 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -172,6 +172,24 @@ public class RunDaemon implements Runnable {
             String destParamFile =
                     outDir + File.separator + benchDesc.configFileName;
 
+            String sourceSubmitter = runDir + File.separator + "META-INF" +
+                                         File.separator + "submitter";
+            String destSubmitter = null;
+            if (new File(sourceSubmitter).exists())
+                destSubmitter = outDir + File.separator + "META-INF" +
+                                             File.separator + "submitter";
+            else
+                sourceSubmitter = null;
+
+
+            String sourceAcl = runDir + File.separator + "META-INF" +
+                                         File.separator + "run.acl";
+            String destAcl = null;
+            if (new File(sourceAcl).exists())
+                destAcl = outDir + File.separator + "META-INF" +
+                                         File.separator + "run.acl";
+            else
+                sourceAcl = null;
 
             String benchMetaInf = Config.BENCHMARK_DIR + File.separator +
                     benchName + File.separator + "META-INF" + File.separator;
@@ -187,7 +205,11 @@ public class RunDaemon implements Runnable {
             if (!(FileHelper.copyFile(sourceParamFile, destParamFile, false) &&
                   FileHelper.copyFile(sourceBenchDesc, destBenchDesc, false) &&
                  (sourceFabanDesc == null ||
-                  FileHelper.copyFile(sourceFabanDesc, destFabanDesc, false)))){
+                  FileHelper.copyFile(sourceFabanDesc, destFabanDesc, false)) &&
+                 (sourceSubmitter == null ||
+                  FileHelper.copyFile(sourceSubmitter, destSubmitter, false)) &&
+                 (sourceAcl == null ||
+                  FileHelper.copyFile(sourceAcl, destAcl, false)))) {
                 logger.warning("Error copying Parameter Repository and/or " +
                         "Benchmark metadata. Not Starting " + list[0] + " run");
                 FileHelper.recursiveDelete(new File(Config.RUNQ_DIR), list[0]);

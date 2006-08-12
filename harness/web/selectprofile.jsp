@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: select-user.jsp,v 1.2 2006/06/29 19:38:44 akara Exp $
+ * $Id: selectprofile.jsp,v 1.1 2006/08/12 06:54:24 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -29,25 +29,25 @@
 <link rel="icon" type="image/gif" href="img/faban.gif">
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
 <meta name="Author" content="Ramesh Ramachandran"/>
-<meta name="Description" content="Form to display User login"/>
+<meta name="Description" content="Form to display profile selection"/>
 <%@ page language="java" import="com.sun.faban.harness.webclient.UserEnv,
                                  com.sun.faban.harness.common.BenchmarkDescription,
                                  java.util.Map"%>
 
 <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
 <%
-    String user = (String)session.getAttribute("faban.user");
+    String profile = (String)session.getAttribute("faban.profile");
     BenchmarkDescription desc =  (BenchmarkDescription) session.getAttribute(
             "faban.benchmark");
     String benchmark = desc == null ? null : desc.name;
 
-    if((user != null) && (benchmark != null)) {
+    if((profile != null) && (benchmark != null)) {
 %>
 <meta HTTP-EQUIV=REFRESH CONTENT="0;URL=new-run.jsp">
 <%
     }
     else {
-        String[] users = usrEnv.getUsers();
+        String[] profiles = usrEnv.getProfiles();
         Map benchNameMap = BenchmarkDescription.getBenchNameMap();
         int benchCount = benchNameMap.size();
         if (benchCount < 1) {
@@ -64,8 +64,8 @@
 
 
 <script>
-function updateUser() {
-    document.bench.user.value=document.bench.userlist.value
+function updateProfile() {
+    document.bench.profile.value=document.bench.profilelist.value
 }
 </script>
 
@@ -79,29 +79,29 @@ function updateUser() {
   <table cellpadding="0" cellspacing="2" border="0" align="center">
     <tbody>
       <tr>
-        <td>User Name</td>
+        <td>Profile</td>
         <td>
-          <input type="text" name="user" size="10"
-            <% if(user != null) { %>
-              value= <%=user %>
+          <input type="text" name="profile" size="10"
+            <% if(profile != null) { %>
+              value= <%=profile %>
             <% }
                else {
-                 if((users != null) && (users.length > 0)) {
+                 if((profiles != null) && (profiles.length > 0)) {
             %>
-              value= <%=users[0] %>
+              value= <%=profiles[0] %>
             <%   }
                }
             %>
           >
-          <% if((users != null) && (users.length > 0)) { %>
-            <select name="userlist" ONCHANGE="updateUser()">
-              <% for(int i = 0; i < users.length; i++) { %>
+          <% if((profiles != null) && (profiles.length > 0)) { %>
+            <select name="profilelist" ONCHANGE="updateProfile()">
+              <% for(int i = 0; i < profiles.length; i++) { %>
                 <option
-                  <% if(((user != null) && users[i].equals(user)) ||
-                        ((user == null) && (i == 0))){ %>
+                  <% if(((profile != null) && profiles[i].equals(profile)) ||
+                        ((profile == null) && (i == 0))){ %>
                     SELECTED
                   <% } %>
-                  ><%= users[i]%>
+                  ><%= profiles[i]%>
                 </option>
               <% } %>
             </select>
@@ -133,7 +133,7 @@ function updateUser() {
   <% } %>
   <br>
   <br>
-  <center><input type="submit" value="Login">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="reset"></center>
+  <center><input type="submit" value="Select">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="reset"></center>
 </form>
 
 <%          }

@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: login.jsp,v 1.3 2006/08/11 00:05:52 akara Exp $
+ * $Id: login.jsp,v 1.4 2006/08/12 06:54:24 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -28,7 +28,7 @@
 <head>
 <link rel="icon" type="image/gif" href="img/faban.gif">
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
-<meta name="Author" content="Ramesh Ramachandran"/>
+<meta name="Author" content="Akara Sucharitakul"/>
 <meta name="Description" content="Form to display User login"/>
 <%@ page language="java" import="com.sun.faban.harness.webclient.UserEnv,
                                  com.sun.faban.harness.common.BenchmarkDescription,
@@ -37,20 +37,30 @@
                                  javax.security.auth.Subject,
                                  javax.security.auth.login.LoginException,
                                  java.security.Principal,
-                                 java.util.Set"%>
+                                 java.util.Set,
+                                 com.sun.faban.harness.common.Config"%>
 
 <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
 </head>
-<body>
-<%  String id = request.getParameter("fun");
-    String passwd = request.getParameter("fp");
-    if (id == null || passwd == null ||
-        id.length() == 0 || passwd.length() == 0) {
-%>
-<br/>
-<br/>
-<br/>
+<%  String bodyHdr = "<body><br/><br/><br/>";
+    if (Config.SECURITY_ENABLED) {
+        String reloadFrameBody = "<body onLoad=\"top.banner.document." +
+                "location.reload(); top.menu.document.location.reload()\">" +
+                "<br/><br/><br/>";
+        String id = null;
+        String passwd = null;
+        if ("logout".equals(request.getQueryString())) {
+            usrEnv.getAuthenticator().logout();
+            bodyHdr=reloadFrameBody;
+        } else {
+            id = request.getParameter("fun");
+            passwd = request.getParameter("fp");
+        }
 
+        if (id == null || passwd == null ||
+            id.length() == 0 || passwd.length() == 0) {
+%>
+<%= bodyHdr %>
 <form name="bench" method="post" action="login.jsp">
   <table cellpadding="0" cellspacing="2" border="0" align="center">
     <tbody>
@@ -73,29 +83,36 @@
   <center><input type="submit" value="Login">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="reset"></center>
   </form>
 <%
-    } else {
-       Authenticator a = new Authenticator(id, passwd);
-        Subject s = null;
-        try {
-            s = a.login();
-        } catch (LoginException e) {
-            String aMsg = a.getMessage();
-            if (aMsg != null) {
+        } else {
+            Authenticator a = usrEnv.getAuthenticator();
+            Subject s = null;
+            try {
+                s = a.login(id, passwd);
+            } catch (LoginException e) {
+                out.println(bodyHdr);
+                String aMsg = a.getMessage();
+                if (aMsg != null) {
 %>
 <h2><center><%= aMsg %></center></h2>
 <%
-            }
+                }
 %>
 <h2><center><%= e.getMessage() %></center></h2>
 <%
-        }
-        if (s != null) {
-            Set<Principal> principals = s.getPrincipals();
+            }
+            if (s != null) {
+                bodyHdr = reloadFrameBody;
 %>
-<h2>Welcome: <%= id %></h2>
-<%          for (Principal p : principals)
-                out.println(p.getName() + "<br>");
+<%= bodyHdr %>
+<h2><center>Welcome: <%= id %></center></h2>
+<%
+            }
         }
+    } else {
+%>
+<%= bodyHdr %>
+<h2><center>Security is not enabled!</center></h2>
+<%
     }
 %>
 </body>

@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: schedule-run.jsp,v 1.2 2006/06/29 19:38:44 akara Exp $
+ * $Id: schedule-run.jsp,v 1.3 2006/08/12 06:54:24 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -39,7 +39,6 @@
   <link rel="icon" type="image/gif" href="img/faban.gif">
 </head>
 <body>
-<h3>Run scheduled </h3>
 <%
     Logger logger = Logger.getLogger(this.getClass().getName());
     Reader reader = request.getReader();
@@ -51,15 +50,16 @@
         len += reader.read(buf, len, size - len);
 
     logger.finer("Length of buffer read is " + len);
-    String user = (String)session.getAttribute("faban.user");
+    String profile = (String)session.getAttribute("faban.profile");
     BenchmarkDescription benchmark = (BenchmarkDescription)session.getAttribute(
                                     "faban.benchmark");
 
-    usrEnv.saveParamRepository(user, benchmark, buf);
+    usrEnv.saveParamRepository(profile, benchmark, buf);
     // Call runq to get the run id.
     String runId = null;
-    runId = RunQ.getHandle().addRun(user, benchmark);
+    runId = RunQ.getHandle().addRun(usrEnv.getUser(), profile, benchmark);
 %>
+<h3>Run scheduled </h3>
 Run ID for this run is : <b><%= runId %></b>
 <br/>
 <br/>

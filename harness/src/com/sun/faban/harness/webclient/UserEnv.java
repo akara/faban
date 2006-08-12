@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: UserEnv.java,v 1.2 2006/06/29 19:38:44 akara Exp $
+ * $Id: UserEnv.java,v 1.3 2006/08/12 06:54:24 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -27,77 +27,63 @@ import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.util.FileHelper;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * The user environemnt is kept in the user's session at all times. It contains
+ * many of Faban's necessary states.
+ */
 public class UserEnv {
 
-    Logger logger;
+    Logger logger = Logger.getLogger(this.getClass().getName());
+    Authenticator auth;
 
-    public UserEnv() {
-        logger = Logger.getLogger(this.getClass().getName());
+    public Authenticator getAuthenticator() {
+        if (Config.SECURITY_ENABLED && auth == null)
+            auth = new Authenticator();
+        return auth;
     }
 
-    public String[] getBenchmarks() {
-        String[] benchmarks = null;
-        String fileName = Config.BENCH_FILE;
-        logger.fine("Looking for list of Benchmarks in " + fileName);
-        try {
-            File bm = new File(fileName);
-            if(bm.exists()) {
-                BufferedReader reader = new BufferedReader(new FileReader(bm));
-                String line = reader.readLine();
-                ArrayList benchList = new ArrayList();
-                while(line != null) {
-                    line = line.trim();
-                    if (!line.startsWith("#"))
-                        benchList.add(line);
-                    line = reader.readLine();
-                }
-                benchmarks = new String[benchList.size()];
-                benchmarks = (String[]) benchList.toArray(benchmarks);
-            }
-        }catch(Exception e) {
-            logger.severe("Error reading " + fileName);
-            logger.log(Level.INFO, "Exception", e);
-        }
-        return benchmarks;
+    public String getUser() {
+        String user = null;
+        if (auth != null)
+            user = auth.getLogin();
+        return user;
     }
 
-    public String[] getUsers() {
-        String[] users = null;
-        String fileName = Config.USERS_DIR;
+    public String[] getProfiles() {
+        String[] profiles = null;
+        String fileName = Config.PROFILES_DIR;
         logger.fine("Looking for list of Benchmarks in " + fileName);
         try {
             File f = new File(fileName);
             if(f.exists() && f.isDirectory()) {
                 File [] dir = f.listFiles();
-                ArrayList userList = new ArrayList();
+                ArrayList profileList = new ArrayList();
                 for(int i = 0; i < dir.length; i++)
                     if(dir[i].isDirectory() && !(dir[i].getName().equals("default")))
-                        userList.add(dir[i].getName());
+                        profileList.add(dir[i].getName());
 
-                if(userList.size() > 0) {
-                    users = new String[userList.size()];
-                    users = (String[])userList.toArray(users);
+                if(profileList.size() > 0) {
+                    profiles = new String[profileList.size()];
+                    profiles = (String[])profileList.toArray(profiles);
                 }
             }
             else
-                logger.severe("Unable to locate users in " + fileName);
+                logger.severe("Unable to locate profiles in " + fileName);
         }catch(Exception e) {
             logger.severe("Error reading " + fileName);
             logger.log(Level.INFO, "Exception", e);
         }
-        return users;
+        return profiles;
     }
 
-    public void copyParamRepository(String user, BenchmarkDescription desc) {
-        String srcFile = Config.USERS_DIR + user + File.separator +
+    public void copyParamRepository(String profile, BenchmarkDescription desc) {
+        String srcFile = Config.PROFILES_DIR + profile + File.separator +
                          desc.configFileName + "." + desc.shortName;
         File f = new File(srcFile);
 
@@ -110,7 +96,7 @@ public class UserEnv {
         FileHelper.copyFile(srcFile, dstFile, false);
     }
 
-    public void saveParamRepository(String user, BenchmarkDescription desc,
+    public void saveParamRepository(String profile, BenchmarkDescription desc,
                                     char[] buf) {
 
         String srcFile = "/tmp/" + desc.configFileName;
@@ -122,7 +108,7 @@ public class UserEnv {
             writer.close();
 
 
-            String usrDir = Config.USERS_DIR + user;
+            String usrDir = Config.PROFILES_DIR + profile;
             File dir = new File(usrDir);
             if(dir.exists()) {
                 if(!dir.isDirectory()) {
@@ -134,15 +120,15 @@ public class UserEnv {
                     logger.fine("Saving parameter file to" + usrDir);
             }
             else {
-                logger.fine("Creating new user directory for " + user);
+                logger.fine("Creating new profile directory for " + profile);
                 if(dir.mkdirs())
-                    logger.fine("Created new user directory " + usrDir);
+                    logger.fine("Created new profile directory " + usrDir);
                 else
-                    logger.severe("Failed to create user directory " + usrDir);
+                    logger.severe("Failed to create profile directory " + usrDir);
             }
 
-            // Save the latest config file into the users directory
-            String dstFile = Config.USERS_DIR + user + File.separator +
+            // Save the latest config file into the profile directory
+            String dstFile = Config.PROFILES_DIR + profile + File.separator +
                     desc.configFileName + "." + desc.shortName;
 
             FileHelper.copyFile(srcFile, dstFile, false);

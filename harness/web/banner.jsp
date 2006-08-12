@@ -19,12 +19,14 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: banner.jsp,v 1.2 2006/06/29 19:38:44 akara Exp $
+ * $Id: banner.jsp,v 1.3 2006/08/12 06:54:24 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 -->
-<%@ page language="java" import="com.sun.faban.harness.common.BenchmarkDescription"%>
+<%@ page language="java" import="com.sun.faban.harness.common.BenchmarkDescription,
+                                 com.sun.faban.harness.common.Config"%>
+<jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
 <html>
     <head>
         <title></title>
@@ -33,9 +35,26 @@
     <body>
         <table BORDER="0" CELLSPACING="5" CELLPADDING="10" WIDTH="100%" BGCOLOR="#FFFFFF" >
             <tr>
-                <td ALIGN="CENTER" WIDTH="33%" BGCOLOR="#5382A1"> Sun Microsystems </td>
-                <td ALIGN="CENTER" WIDTH="34%" BGCOLOR="#E76F00"><b><%=BenchmarkDescription.getBannerName()%> Administration</b></td>
-                <td ALIGN="CENTER" WIDTH="33%" BGCOLOR="#B2BC00"> Version <%=BenchmarkDescription.getBannerVersion()%> </td>
+                <td ALIGN="CENTER" VALIGN="TOP" WIDTH="33%" BGCOLOR="#5382A1"> Sun Microsystems </td>
+                <td ALIGN="CENTER" VALIGN="TOP" WIDTH="34%" BGCOLOR="#E76F00"><b><%=BenchmarkDescription.getBannerName()%> Administration</b></td>
+                <td ALIGN="CENTER" VALIGN="TOP" WIDTH="33%" BGCOLOR="#B2BC00"> Version <%=BenchmarkDescription.getBannerVersion()%>
+<% if (Config.SECURITY_ENABLED) {
+
+        String user = usrEnv.getUser();
+        if (user == null) {
+%>
+        <p style="text-align: right; font-size: small"><a href="login.jsp" target="main">Login</a></p>
+<%
+        } else {
+%>
+        <p style="text-align: right; font-size: small">Logged in: <%= user %> |
+        <a href="login.jsp?logout" target="main">Logout</a></p>
+<%
+
+        }
+    }
+%>
+                </td>
             </tr>  
         </table>  
     </body>
