@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Note: Some parameters have not yet been implemented -->
 <FabanHarness>
-    <security enabled="true">
-        <!--loginModule>com.sun.security.auth.module.UnixLoginModule</loginModule>
+    <security enabled="false">
+        <loginModule>com.sun.security.auth.module.UnixLoginModule</loginModule>
         <property>
             <name>debug</name>
             <value>true</value>
-        </property -->
-        <!-- Note: The LdapLoginModule is in JDK6 -->
+        </property>
+        <!-- Note: The LdapLoginModule is in JDK6 >
         <loginModule>com.sun.security.auth.module.LdapLoginModule</loginModule>
         <property>
             <name>userProvider</name>
-            <!--value>ldap://sun-ds/ou=people,dc=sun,dc=com</value-->
-            <value>ldap://sun-ds/ou=people,o=WebAuth</value>
+            <value>ldap://sun-ds/ou=people,dc=sun,dc=com</value>
+            <value>ldap://sun-ds/ou=people,dc=sun,dc=com</value>
         </property>
         <property>
             <name>userFilter</name>
@@ -29,7 +29,7 @@
         <property>
             <name>useSSL</name>
             <value>true</value>
-        </property>
+        </property -->
     </security>
     <replication>
         <server enabled="false">http://faban.sfbay.sun.com:9980</server>

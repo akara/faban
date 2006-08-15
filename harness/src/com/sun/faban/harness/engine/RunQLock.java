@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunQLock.java,v 1.2 2006/06/29 19:38:42 akara Exp $
+ * $Id: RunQLock.java,v 1.3 2006/08/15 02:39:02 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -74,8 +74,10 @@ public class RunQLock {
      *
      */
     public synchronized void releaseLock() {
-        locked = false;
-        notify();
+        if (locked) {
+            locked = false;
+            notify();
+        }
     }
 
 }

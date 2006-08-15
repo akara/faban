@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunDaemon.java,v 1.3 2006/08/12 06:54:24 akara Exp $
+ * $Id: RunDaemon.java,v 1.4 2006/08/15 02:39:02 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -175,12 +175,18 @@ public class RunDaemon implements Runnable {
             String sourceSubmitter = runDir + File.separator + "META-INF" +
                                          File.separator + "submitter";
             String destSubmitter = null;
-            if (new File(sourceSubmitter).exists())
+            if (new File(sourceSubmitter).exists()) {
                 destSubmitter = outDir + File.separator + "META-INF" +
                                              File.separator + "submitter";
-            else
+            } else if (Config.SECURITY_ENABLED) {
+                logger.warning("Unidentified submitter. Not Starting " +
+                                list[0] + " run");
+                FileHelper.recursiveDelete(new File(Config.RUNQ_DIR), list[0]);
+                runqLock.releaseLock();
+                continue;                
+            } else {
                 sourceSubmitter = null;
-
+            }
 
             String sourceAcl = runDir + File.separator + "META-INF" +
                                          File.separator + "run.acl";

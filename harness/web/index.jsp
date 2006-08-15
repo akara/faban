@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: index.jsp,v 1.2 2006/06/29 19:38:44 akara Exp $
+ * $Id: index.jsp,v 1.3 2006/08/15 02:39:03 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -33,7 +33,7 @@
     <frameset rows="80,*">
         <frame name="banner" src="banner.jsp" scrolling="no" noresize="noresize" frameborder="0"/>
         <frameset cols="15%,*">
-            <frame name="menu" src="menu.html" frameborder="0"/>
+            <frame name="menu" src="menu.jsp" frameborder="0"/>
             <frame name="main" src="welcome.jsp" frameborder="0"/>
         </frameset>
         <noframes>

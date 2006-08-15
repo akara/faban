@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: error.jsp,v 1.3 2006/08/12 06:54:24 akara Exp $
+ * $Id: error.jsp,v 1.4 2006/08/15 02:39:03 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -28,27 +28,12 @@
 <head>
 	<title>Error</title>
     <link rel="icon" type="image/gif" href="img/faban.gif">
-    <link rel="stylesheet" type="text/css" href="../styles/chiba-styles.css"/>
 
 <%@ page import="java.io.PrintWriter"%>
 <%@ page session="true" isErrorPage="true" %>
 
 </head>
-<body bgcolor="aabbdd" text="black" link="blue" vlink="purple" alink="orange">
-
-
-<%!
-	boolean debug=false;
-
-	public void jspInit(){
-
-		if(getServletConfig().getServletContext().getInitParameter("debug").equals("true")) {
-			debug=true;
-		}
-	}
-%>
-
-<img src="../images/chiba50t.gif" vspace="3" hspace="10">
+<body>
 <br>
 <center>
 <table bgcolor="lightgrey" border="0" cellpadding="0" cellspacing="0">
@@ -56,7 +41,6 @@
 		<td align="right" valign="top">
 			<br>
 		</td></tr>
-
 		<tr>
 			<td>
 			<table bgcolor="lightgrey" cellspacing="3">
@@ -95,7 +79,7 @@
 							}
 							%>
 
-						<% if (debug){ %>
+						<% if (!(e instanceof SecurityException)) { %>
 
 							<br><br>
 							<b>Stack Trace:</b><br>

@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: schedule-run.jsp,v 1.3 2006/08/12 06:54:24 akara Exp $
+ * $Id: schedule-run.jsp,v 1.4 2006/08/15 02:39:03 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -30,15 +30,16 @@
   <meta name="Author" content="Ramesh Ramachandran"/>
   <meta name="Description" content="JSP to setup run.xml for the XForms servlet"/>
   <title>Failed</title>
-  <%@ page language="java" import="java.io.Reader, com.sun.faban.harness.engine.RunQ,
+  <%@ page language="java" session="true" errorPage="error.jsp"
+           import="java.io.Reader, com.sun.faban.harness.engine.RunQ,
                                    java.util.logging.Logger,
-                                   com.sun.faban.harness.common.BenchmarkDescription" %>
-  <%@ page session="true" %>
-  <%@ page errorPage="error.jsp" %>
+                                   com.sun.faban.harness.common.BenchmarkDescription,
+                   java.security.AccessControlException" %>
   <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
   <link rel="icon" type="image/gif" href="img/faban.gif">
 </head>
 <body>
+<br/><br/><br/>
 <%
     Logger logger = Logger.getLogger(this.getClass().getName());
     Reader reader = request.getReader();
@@ -57,12 +58,20 @@
     usrEnv.saveParamRepository(profile, benchmark, buf);
     // Call runq to get the run id.
     String runId = null;
-    runId = RunQ.getHandle().addRun(usrEnv.getUser(), profile, benchmark);
+    try {
+        runId = RunQ.getHandle().addRun(usrEnv.getUser(), profile, benchmark);
+    } catch (AccessControlException e) {
+%>
+    <center><h2>Permission Denied</h2></center>
+<%
+    }
+    if (runId != null) {
 %>
 <h3>Run scheduled </h3>
 Run ID for this run is : <b><%= runId %></b>
 <br/>
 <br/>
 <b><%=RunQ.getHandle().getRunDaemonStatus() %></b>
+<%  }  %>
 </body>
 </html>

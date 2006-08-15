@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunQ.java,v 1.4 2006/08/12 06:54:24 akara Exp $
+ * $Id: RunQ.java,v 1.5 2006/08/15 02:39:02 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -34,6 +34,7 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.security.AccessControlException;
 
 /**
  * This class implements the Faban RunQ. It provides methods to add a run,
@@ -91,72 +92,69 @@ public class RunQ {
       * @param profile Profile name for this run
       * @param desc The description of the benchmark to run
       */
-    public String addRun(String user, String profile, BenchmarkDescription desc) {
+    public String addRun(String user, String profile, BenchmarkDescription desc)
+            throws IOException {
 
-        String runID = getRunID(desc.shortName);
+        try {
+            // Gets the lock for the runq directory.
+            runqLock.grabLock();
 
-        // Gets the lock for the runq directory.
-        runqLock.grabLock();
+            String runID = getRunID(desc.shortName);
 
-        String runDir = Config.RUNQ_DIR + runID;
-        // create Run Directory
-        File dir = new File(runDir);
-        if(dir.mkdirs())
-            logger.fine("Created Run Directory " + runDir);
+            String runDir = Config.RUNQ_DIR + runID;
+            // create Run Directory
+            File dir = new File(runDir);
+            if(dir.mkdirs())
+                logger.fine("Created Run Directory " + runDir);
 
-        // Record the user
-        if (Config.SECURITY_ENABLED) {
-            if (user == null) {
-                logger.warning("Trying submission - user not logged on.");
-                throw new RuntimeException("User not logged in.");
-            } else {
-                // Set the submitter
-                File metaInf = new File(dir, "META-INF");
-                metaInf.mkdirs();
-                File submitter = new File(metaInf, "submitter");
-                try {
+            // Record the user
+            if (Config.SECURITY_ENABLED) {
+                if (user == null) {
+                    logger.warning("Trying submission - user not logged on.");
+                    throw new AccessControlException("User not logged in.");
+                } else {
+                    // Set the submitter
+                    File metaInf = new File(dir, "META-INF");
+                    metaInf.mkdirs();
+                    File submitter = new File(metaInf, "submitter");
                     PrintStream p = new PrintStream(submitter);
                     p.println(user);
                     p.close();
-                } catch (IOException e) {
-                    logger.log(Level.SEVERE, "Error recording submitter.", e);
-                    throw new RuntimeException("Error recording submitter.", e);
-                }
 
-                // Copy ACL
-                String benchAcl = Config.CONFIG_DIR + desc.shortName + ".acl";
-                String runAcl = null;
-                if (new File(benchAcl).exists())
-                    runAcl = new File(metaInf, "run.acl").getAbsolutePath();
-                else
-                    benchAcl = null;
+                    // Copy ACL
+                    String benchAcl = Config.CONFIG_DIR + desc.shortName + ".acl";
+                    String runAcl = null;
+                    if (new File(benchAcl).exists())
+                        runAcl = new File(metaInf, "run.acl").getAbsolutePath();
+                    else
+                        benchAcl = null;
 
-                if (benchAcl != null &&
-                        FileHelper.copyFile(benchAcl, runAcl, false)) {
-                    logger.log(Level.SEVERE, "Error copying ACL");
-                    throw new RuntimeException("Error copying ACL");
+                    if (benchAcl != null &&
+                            FileHelper.copyFile(benchAcl, runAcl, false)) {
+                        logger.log(Level.SEVERE, "Error copying ACL");
+                        throw new IOException("Error copying ACL");
+                    }
                 }
             }
+
+
+            // copying the parameter repository file from the user's profile.
+            String paramRepFileName =
+                    runDir + File.separator + desc.configFileName;
+            String paramSourceFileName = Config.PROFILES_DIR + profile +
+                    File.separator + desc.configFileName + "." + desc.shortName;
+
+            logger.fine("Copying " +
+                    paramSourceFileName + " to " +
+                    paramRepFileName);
+            FileHelper.copyFile(paramSourceFileName, paramRepFileName, false);
+
+            generateNextID(runID);
+
+            return runID;
+        } finally {
+            runqLock.releaseLock();
         }
-
-
-        // copying the parameter repository file from the user's profile.
-        String paramRepFileName =
-                runDir + File.separator + desc.configFileName;
-        String paramSourceFileName = Config.PROFILES_DIR + profile +
-                File.separator + desc.configFileName + "." + desc.shortName;
-
-        logger.fine("Copying " +
-                paramSourceFileName + " to " +
-                paramRepFileName);
-        FileHelper.copyFile(paramSourceFileName, paramRepFileName, false);
-
-        // releases the Lock on the runq
-        runqLock.releaseLock();
-
-        generateNextID(runID);
-
-        return runID;
     }
 
     // Gets the ID for this run from the sequence file. Creates a new
@@ -212,8 +210,7 @@ public class RunQ {
 
     // Generate the sequence number for the next run and write it to
     // sequence file.
-    private void generateNextID(String runID)
-    {
+    private void generateNextID(String runID) throws IOException {
 
         File seqFile = new File(Config.SEQUENCE_FILE);
         int index = runID.lastIndexOf(".");
@@ -240,8 +237,9 @@ public class RunQ {
             bufOut.write(sb.toString());
             bufOut.close();
         }
-        catch (IOException ie) {
-            logger.severe("Could not write to the sequence file");
+        catch (IOException e) {
+            logger.log(Level.SEVERE, "Could not write to the sequence file", e);
+            throw e;
         }
     }
 

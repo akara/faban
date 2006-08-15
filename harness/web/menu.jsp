@@ -19,11 +19,17 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: menu.html,v 1.3 2006/08/12 06:54:24 akara Exp $
+ * $Id: menu.jsp,v 1.1 2006/08/15 02:39:03 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 -->
+<%@ page language="java" import="com.sun.faban.harness.engine.AccessController"%>
+<jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
+<%
+    String user = usrEnv.getUser();
+    boolean submitAllowed = AccessController.submitAllowed(user);
+%>
 <html>
     <head>
         <title></title>
@@ -32,15 +38,28 @@
     <body>
         <table BORDER="0" WIDTH="100%" BGCOLOR="#FFFFFF" color="#666699" >
             <tr><td VALIGN="TOP"></td></tr>
+            <tr><td VALIGN="CENTER"><br/>
+<% if (submitAllowed) { %>
             <tr><td VALIGN="CENTER"><br/><a href="selectprofile.jsp" target="main">Schedule Run</a></td></tr>
             <tr><td VALIGN="CENTER"><br/><a href="suspend-runs.jsp" target="main">Suspend Pending Runs</a></td></tr>
             <tr><td VALIGN="CENTER"><br/><a href="resume-runs.jsp" target="main">Resume Pending Runs</a></td></tr>
             <tr><td VALIGN="CENTER"><br/><a href="kill-run.jsp" target="main">Kill Current Run</a></td></tr>
+<% } else { %>
+            <tr><td VALIGN="CENTER" style="color: rgb(102, 102, 102);"><br/>Schedule Run</td></tr>
+            <tr><td VALIGN="CENTER" style="color: rgb(102, 102, 102);"><br/>Suspend Pending Runs</td></tr>
+            <tr><td VALIGN="CENTER" style="color: rgb(102, 102, 102);"><br/>Resume Pending Runs</td></tr>
+            <tr><td VALIGN="CENTER" style="color: rgb(102, 102, 102);"><br/>Kill Current Run</td></tr>
+<% } %>
             <tr><td VALIGN="CENTER"><br/><a href="resultlist.jsp" target="main">View Results</a></td></tr>
+<% if (submitAllowed) { %>
             <tr><td VALIGN="CENTER"><br/><a href="pending-runs.jsp" target="main">View Pending Runs</a></td></tr>
             <tr><td VALIGN="CENTER"><br/><a href="switchprofile.jsp" target="main">Switch Profile</a></td></tr>
+<% } else { %>
+            <tr><td VALIGN="CENTER" style="color: rgb(102, 102, 102);"><br/>View Pending Runs</td></tr>
+            <tr><td VALIGN="CENTER" style="color: rgb(102, 102, 102);"><br/>Switch Profile</td></tr>
+<% } %>
             <tr><td VALIGN="CENTER"><br/><a href="http://faban.sunsource.net/docs/guide/harness/toc.html" target="_blank">Help</a></td></tr>
             <tr><td VALIGN="TOP"></td></tr>
-        </table>  
+        </table>
     </body>
 </html>
