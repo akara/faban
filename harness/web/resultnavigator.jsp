@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultnavigator.jsp,v 1.4 2006/07/29 01:03:03 akara Exp $
+ * $Id: resultnavigator.jsp,v 1.5 2006/08/15 23:40:27 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -68,13 +68,13 @@
         <% if (completed) {  %>
                <a href="output/<%= runId %>/<%= desc.resultFilePath %>" target="display">Summary&nbsp;Result</a>&nbsp;
         <%     String outputRef = null;
-               File detailOutput = new File (Config.OUT_DIR + runId, "detail.html");
-               if (detailOutput.exists()) {
-                   outputRef = "output/" + runId + "/detail.html";
-               } else { // old name in previous versions of Faban
-                   detailOutput = new File (Config.OUT_DIR + runId, "detail.xml.html");
-                   if (detailOutput.exists())
-                       outputRef = "output/" + runId + "/detail.xml.html";
+               String[] detailFiles = { "detail.html", "detail.xan.html", "detail.xml.html" };
+               for (int i = 0; i < detailFiles.length; i++) {
+                   File detailOutput = new File (Config.OUT_DIR + runId, detailFiles[i]);
+                   if (detailOutput.exists()) {
+                       outputRef = "output/" + runId + '/' + detailFiles[i];
+                       break;
+                   }
                }
                if (outputRef == null) {
         %>
