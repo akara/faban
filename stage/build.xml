@@ -19,7 +19,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: build.xml,v 1.3 2006/07/28 07:42:14 akara Exp $
+* $Id: build.xml,v 1.4 2006/08/15 06:41:32 akara Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 -->
@@ -158,8 +158,8 @@
         <exclude name="config/sequence"/>
         <exclude name="config/runq/?*"/>
         <exclude name="config/runq/?*/**"/>
-        <exclude name="config/users/?*"/>
-        <exclude name="config/users/?*/**"/>
+        <exclude name="config/profiles/?*"/>
+        <exclude name="config/profiles/?*/**"/>
         <exclude name="master/bin/*.sh"/>
         <exclude name="master/logs/?*"/>
         <exclude name="master/logs/?*/**"/>
@@ -192,8 +192,9 @@
         <exclude name="benchmarks/**"/>
         <exclude name="master/**"/>
         <exclude name="samples/**"/>
+        <exclude name="config/harness.xml"/>
         <exclude name="config/runq/**"/>
-        <exclude name="config/users/**"/>
+        <exclude name="config/profiles/**"/>
         <exclude name="legal/*.tar.gz"/>
     </patternset>
 
@@ -315,8 +316,8 @@
                 <include name="config/sequence"/>
                 <include name="config/runq/?*/**"/>
                 <include name="config/runq/?*"/>
-                <include name="config/users/?*/**"/>
-                <include name="config/users/?*"/>
+                <include name="config/profiles/?*/**"/>
+                <include name="config/profiles/?*"/>
                 <include name="master/logs/?*/**"/>
                 <include name="master/logs/?*"/>
                 <include name="master/webapps/faban/**"/>
