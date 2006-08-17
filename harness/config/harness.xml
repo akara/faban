@@ -2,34 +2,39 @@
 <!-- Note: Some parameters have not yet been implemented -->
 <FabanHarness>
     <security enabled="false">
-        <loginModule>com.sun.security.auth.module.UnixLoginModule</loginModule>
-        <property>
-            <name>debug</name>
-            <value>true</value>
-        </property>
+        <loginModule>
+            <class>com.sun.security.auth.module.UnixLoginModule</class>
+            <property>
+                <name>debug</name>
+                <value>true</value>
+            </property>
+        </loginModule>
         <!-- Note: The LdapLoginModule is in JDK6 >
-        <loginModule>com.sun.security.auth.module.LdapLoginModule</loginModule>
-        <property>
-            <name>userProvider</name>
-            <value>ldap://sun-ds/ou=people,dc=sun,dc=com</value>
-            <value>ldap://sun-ds/ou=people,dc=sun,dc=com</value>
-        </property>
-        <property>
-            <name>userFilter</name>
-            <value>(&amp;(uid={USERNAME})(objectClass=inetOrgPerson))</value>
-        </property>
-        <property>
-            <name>debug</name>
-            <value>true</value>
-        </property>
-        <property>
-            <name>authzIdentity</name>
-            <value>monitorRole</value>
-        </property>
-        <property>
-            <name>useSSL</name>
-            <value>true</value>
-        </property -->
+        <loginModule><class>com.sun.security.auth.module.LdapLoginModule</class>
+            <property>
+                <name>userProvider</name>
+                <value>ldap://sun-ds/ou=people,dc=sun,dc=com</value>
+            </property>
+            <property>
+                <name>userFilter</name>
+                <value>(&amp;(uid={USERNAME})(objectClass=inetOrgPerson))</value>
+            </property>
+            <property>
+                <name>debug</name>
+                <value>true</value>
+            </property>
+            <property>
+                <name>authzIdentity</name>
+                <value>monitorRole</value>
+            </property>
+            <property>
+                <name>useSSL</name>
+                <value>true</value>
+            </property>
+        </loginModule-->
+        <managePrincipals>
+            <!--name>akara</name-->
+        </managePrincipals>
     </security>
     <replication>
         <server enabled="false">http://faban.sfbay.sun.com:9980</server>

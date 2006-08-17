@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.9 2006/08/12 06:54:23 akara Exp $
+ * $Id: Config.java,v 1.10 2006/08/17 06:29:51 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -32,15 +32,15 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
-import java.io.File;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 public class Config {
 
@@ -164,6 +164,7 @@ public class Config {
     // Configuration from the file
     public static boolean SECURITY_ENABLED = false;
     public static LoginConfiguration LOGIN_CONFIG = null;
+    public static String[] PRINCIPALS;
 
     public static URL[] replicationURLs = null;
 
@@ -286,6 +287,26 @@ public class Config {
                     SECURITY_ENABLED = true;
                     LOGIN_CONFIG = new LoginConfiguration();
                     LOGIN_CONFIG.readConfig(root, xPath);
+
+                    // Obtain PRINCIPALS with rig-wide manage rights.
+                    NodeList managePrincipals = (NodeList) xPath.evaluate(
+                            "security/managePrincipals/name", root,
+                            XPathConstants.NODESET);
+                    int principalCount;
+                    if (managePrincipals != null && (principalCount =
+                            managePrincipals.getLength()) > 0) {
+                        ArrayList<String> principalList = new ArrayList<String>(principalCount);
+                        for (int i = 0; i < principalCount; i++) {
+                            Node nameNode = managePrincipals.item(i).getFirstChild();
+                            if (nameNode != null) {
+                                String name = nameNode.getNodeValue();
+                                if (name.length() > 0)
+                                principalList.add(name);
+                            }
+                        }
+                        PRINCIPALS = new String[principalList.size()];
+                        PRINCIPALS = principalList.toArray(PRINCIPALS);
+                    }
                 }
 
                 // Reading replication config

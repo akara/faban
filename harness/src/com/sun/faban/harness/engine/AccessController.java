@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AccessController.java,v 1.2 2006/08/17 01:19:24 akara Exp $
+ * $Id: AccessController.java,v 1.3 2006/08/17 06:29:52 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -40,53 +40,36 @@ public class AccessController {
      * TODO: We need to implement the authorization checks.
      */
 
+
     /**
-     * Checks whether the user is allowed to submit runs for at least one
-     * deployed benchmark.
-     * @param user The logged in user
-     * @return True if submissions are allowed, false otherwise
+     * Checks whether the user has the given permission on one or more
+     * resources.
+     * @param perm The permission to check
+     * @param user The user
+     * @return True if action is permitted, false otherwise
      */
-    public static boolean submitAllowed(Subject user) {
-        if (Config.SECURITY_ENABLED) {
-            if (user != null)
-                return true;
-            else
-                return false;
-        } else {
+    public static boolean isAllowed(Permission perm, Subject user) {
+        if (!Config.SECURITY_ENABLED)
             return true;
+        boolean allowed = false;
+        switch (perm) {
+            case MANAGE :
+            case SUBMIT : if (user != null) allowed = true; break;
+            case VIEW   : allowed = true; break;
+            case WRITE  : break;
         }
+        return allowed;
     }
 
     /**
-     * Checks whether the user is allowed to submit runs for the given
-     * benchmark.
-     * @param user The logged in user
-     * @param benchShortName The benchmark's short name
-     * @return True if submissions are allowed, false otherwise
+     * Checks whether the user has the given permission on the given resource.
+     * @param perm The permission to check
+     * @param user The user
+     * @param resource The resource to check the permission against
+     * @return True if action is permitted, false otherwise
      */
-    public static boolean submitAllowed(Subject user, String benchShortName) {
-        return submitAllowed(user);
-    }
-
-
-    /**
-     * Checks whether the user is allowed to add comments to a benchmark run.
-     * @param user The logged in user
-     * @param runId The runId to check the permission for
-     * @return True if the user is allowed to write comments to the run.
-     */
-    public static boolean writeAllowed(Subject user, String runId) {
-        return false;
-    }
-
-
-    /**
-     * Checks whtehr the user is allowed to view the benchmark run results.
-     * @param user The logged in user
-     * @param runId The runId to check the permission for
-     * @return True if the user is allowed to view the benchmark run results.
-     */
-    public boolean readAllowed(Subject user, String runId) {
-        return true;
+    public static boolean isAllowed(Permission perm, Subject user,
+                                    String resource) {
+        return isAllowed(perm, user);
     }
 }
