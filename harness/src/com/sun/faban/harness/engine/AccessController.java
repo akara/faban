@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AccessController.java,v 1.3 2006/08/17 06:29:52 akara Exp $
+ * $Id: AccessController.java,v 1.4 2006/08/17 17:30:14 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -26,6 +26,15 @@ package com.sun.faban.harness.engine;
 import com.sun.faban.harness.common.Config;
 
 import javax.security.auth.Subject;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.security.Principal;
 
 /**
  * The access controller that gets checked for accessing Faban resources
@@ -71,5 +80,53 @@ public class AccessController {
     public static boolean isAllowed(Permission perm, Subject user,
                                     String resource) {
         return isAllowed(perm, user);
+    }
+
+    static class Acl {
+        static Logger logger = Logger.getLogger(Acl.class.getName());
+        File aclFile;
+        long lastModified = 0l;
+        HashSet<String> entries = new HashSet<String>();
+
+        Acl(String pathName) {
+            aclFile = new File(pathName);
+        }
+
+        public void refresh() {
+            long modified;
+            if (aclFile.isFile() &&
+               (modified = aclFile.lastModified()) > lastModified) {
+                try {
+                    BufferedReader reader = new BufferedReader(
+                                            new FileReader(aclFile));
+                    entries.clear();
+                    String entry;
+                    while ((entry = reader.readLine()) != null) {
+                        entry = entry.trim();
+                        if (entry.length() > 0)
+                            entries.add(entry);
+                    }
+                    reader.close();
+                    lastModified = modified;
+                } catch (IOException e) {
+                    logger.log(Level.SEVERE, "Error reading acl at " +
+                            aclFile.getAbsolutePath(), e);
+                }
+            }
+        }
+
+        public boolean isEmpty() {
+            return entries.isEmpty();
+        }
+
+        public boolean contains(Subject user) {
+            Set<Principal> principals = user.getPrincipals();
+            for (Principal principal : principals) {
+                String name = principal.getName();
+                if (entries.contains(name))
+                    return true;
+            }
+            return false;
+        }
     }
 }
