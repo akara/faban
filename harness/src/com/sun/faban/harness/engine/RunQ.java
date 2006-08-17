@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunQ.java,v 1.5 2006/08/15 02:39:02 akara Exp $
+ * $Id: RunQ.java,v 1.6 2006/08/17 23:22:44 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -290,7 +290,8 @@ public class RunQ {
 
                 // We do not want to check for new deployments in listRunQ,
                 // pass false as getBenchDirMap argument.
-                Map benchMap = BenchmarkDescription.getBenchDirMap(false);
+                Map<String, BenchmarkDescription> benchMap =
+                        BenchmarkDescription.getBenchDirMap(false);
                 for (int i = 0; i < list.length; i++) {
                     int dotPos = list[i].lastIndexOf(".");
                     String tmpBenchName = list[i].substring(0, dotPos);

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: BenchmarkDescription.java,v 1.4 2006/07/27 22:34:34 akara Exp $
+ * $Id: BenchmarkDescription.java,v 1.5 2006/08/17 23:22:44 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -85,8 +85,8 @@ public class BenchmarkDescription implements Serializable {
     static final XPath xPath = XPathFactory.newInstance().newXPath();
     static final DocumentBuilder parser;
 
-    static HashMap benchNameMap;
-    static HashMap benchDirMap;
+    static HashMap<String, BenchmarkDescription> benchNameMap;
+    static HashMap<String, BenchmarkDescription> benchDirMap;
     static long mapTimeStamp = 0l;
 
     static {
@@ -103,12 +103,13 @@ public class BenchmarkDescription implements Serializable {
      * as the key.
      * @return The directory map of currently deployed benchmarks
      */
-    public static Map getBenchDirMap() {
+    public static Map<String, BenchmarkDescription> getBenchDirMap() {
         checkMaps(true);
         return benchDirMap;
     }
 
-    public static Map getBenchDirMap(boolean deploy) {
+    public static Map<String, BenchmarkDescription> getBenchDirMap(
+            boolean deploy) {
         checkMaps(deploy);
         return benchDirMap;
     }
@@ -117,7 +118,7 @@ public class BenchmarkDescription implements Serializable {
      * Obtains a map of benchmarks using the full name as the key.
      * @return The name map of currently deployed benchmarks
      */
-    public static HashMap getBenchNameMap() {
+    public static HashMap<String, BenchmarkDescription> getBenchNameMap() {
         checkMaps(true);
         return benchNameMap;
     }
@@ -173,8 +174,10 @@ public class BenchmarkDescription implements Serializable {
 
 
     private static void generateMaps(boolean deploy) {
-        HashMap nameMap = new HashMap();
-        HashMap dirMap = new HashMap();
+        HashMap<String, BenchmarkDescription> nameMap =
+                new HashMap<String, BenchmarkDescription>();
+        HashMap<String, BenchmarkDescription> dirMap =
+                new HashMap<String, BenchmarkDescription>();
 
         if (deploy)
             DeployUtil.checkDeploy();

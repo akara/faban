@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: selectprofile.jsp,v 1.1 2006/08/12 06:54:24 akara Exp $
+ * $Id: selectprofile.jsp,v 1.2 2006/08/17 23:22:45 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -48,7 +48,8 @@
     }
     else {
         String[] profiles = usrEnv.getProfiles();
-        Map benchNameMap = BenchmarkDescription.getBenchNameMap();
+        Map<String, BenchmarkDescription> benchNameMap =
+                BenchmarkDescription.getBenchNameMap();
         int benchCount = benchNameMap.size();
         if (benchCount < 1) {
 %>
@@ -59,7 +60,7 @@
 <%
         } else {
             String[] benchmarks = new String[benchCount];
-            benchmarks = (String[]) benchNameMap.keySet().toArray(benchmarks);
+            benchmarks = benchNameMap.keySet().toArray(benchmarks);
 %>
 
 

@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: new-run.jsp,v 1.3 2006/08/12 06:54:24 akara Exp $
+ * $Id: new-run.jsp,v 1.4 2006/08/17 23:22:45 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -43,9 +43,10 @@
     BenchmarkDescription benchDesc = (BenchmarkDescription)session.getAttribute("faban.benchmark");
     String benchmark = null;
     if (benchDesc == null) {
-        Map bms = BenchmarkDescription.getBenchNameMap();
+        Map<String, BenchmarkDescription> bms =
+                BenchmarkDescription.getBenchNameMap();
         benchmark = request.getParameter("benchmark");
-        benchDesc = (BenchmarkDescription) bms.get(benchmark);
+        benchDesc = bms.get(benchmark);
         session.setAttribute("faban.benchmark", benchDesc);
     }
     usrEnv.copyParamRepository(profile, benchDesc);

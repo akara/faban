@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.10 2006/08/17 06:29:51 akara Exp $
+ * $Id: Config.java,v 1.11 2006/08/17 23:22:44 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -38,6 +38,8 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
@@ -164,7 +166,7 @@ public class Config {
     // Configuration from the file
     public static boolean SECURITY_ENABLED = false;
     public static LoginConfiguration LOGIN_CONFIG = null;
-    public static String[] PRINCIPALS;
+    public static Set<String> PRINCIPALS;
 
     public static URL[] replicationURLs = null;
 
@@ -295,17 +297,16 @@ public class Config {
                     int principalCount;
                     if (managePrincipals != null && (principalCount =
                             managePrincipals.getLength()) > 0) {
-                        ArrayList<String> principalList = new ArrayList<String>(principalCount);
+                        PRINCIPALS = new HashSet<String>(principalCount);
                         for (int i = 0; i < principalCount; i++) {
-                            Node nameNode = managePrincipals.item(i).getFirstChild();
+                            Node nameNode = managePrincipals.item(i).
+                                            getFirstChild();
                             if (nameNode != null) {
                                 String name = nameNode.getNodeValue();
                                 if (name.length() > 0)
-                                principalList.add(name);
+                                    PRINCIPALS.add(name.trim().toLowerCase());
                             }
                         }
-                        PRINCIPALS = new String[principalList.size()];
-                        PRINCIPALS = principalList.toArray(PRINCIPALS);
                     }
                 }
 

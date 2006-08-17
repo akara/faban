@@ -17,11 +17,11 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Permission.java,v 1.1 2006/08/17 06:29:52 akara Exp $
+ * $Id: Permission.java,v 1.1 2006/08/17 23:22:45 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
-package com.sun.faban.harness.engine;
+package com.sun.faban.harness.security;
 
 /**
  * Permission enumeration used for the Faban access controller.
@@ -50,5 +50,9 @@ public enum Permission {
      * this acl should not exist. All people allowed to view are allowed
      * to comment, unless one really misbehaves.
      */
-    WRITE
+    WRITE;
+
+    public String toString() {
+        return name().toLowerCase();
+    }
 }

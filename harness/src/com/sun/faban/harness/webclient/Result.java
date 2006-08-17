@@ -17,23 +17,22 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Result.java,v 1.5 2006/07/27 22:34:35 akara Exp $
+ * $Id: Result.java,v 1.6 2006/08/17 23:22:45 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.webclient;
 
+import com.sun.faban.harness.ParamRepository;
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
-import com.sun.faban.harness.ParamRepository;
 import com.sun.faban.harness.util.XMLReader;
-import com.sun.faban.harness.ParamRepository;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -105,7 +104,7 @@ public class Result {
 
 
             // Benchmark descriptions
-            Map benchMap = null;
+            Map<String, BenchmarkDescription> benchMap = null;
 
             // Now iterate through the sorted map.
             for (Iterator iter = dirMap.keySet().iterator(); iter.hasNext();) {

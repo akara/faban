@@ -19,14 +19,14 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: menu.jsp,v 1.3 2006/08/17 06:29:52 akara Exp $
+ * $Id: menu.jsp,v 1.4 2006/08/17 23:22:45 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 -->
-<%@ page language="java" import="com.sun.faban.harness.engine.AccessController,
-                                 javax.security.auth.Subject,
-                                 com.sun.faban.harness.engine.Permission"%>
+<%@ page language="java" import="javax.security.auth.Subject,
+                                 com.sun.faban.harness.security.Permission,
+                                 com.sun.faban.harness.security.AccessController"%>
 <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
 <%
     Subject user = usrEnv.getSubject();
