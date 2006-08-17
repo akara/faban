@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: UserEnv.java,v 1.3 2006/08/12 06:54:24 akara Exp $
+ * $Id: UserEnv.java,v 1.4 2006/08/17 01:19:25 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -27,6 +27,7 @@ import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.util.FileHelper;
 
+import javax.security.auth.Subject;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
@@ -42,12 +43,21 @@ public class UserEnv {
     Logger logger = Logger.getLogger(this.getClass().getName());
     Authenticator auth;
 
+    /**
+     * Obtains the authenticator used for user authentication.
+     * This call returns null only if security is disabled.
+     * @return The active authenticator for this session
+     */
     public Authenticator getAuthenticator() {
         if (Config.SECURITY_ENABLED && auth == null)
             auth = new Authenticator();
         return auth;
     }
 
+    /**
+     * Obtains the login name or id of the current user.
+     * @return The login name or id, or null if not logged in.
+     */
     public String getUser() {
         String user = null;
         if (auth != null)
@@ -55,6 +65,21 @@ public class UserEnv {
         return user;
     }
 
+    /**
+     * Obtains the subject of the current user.
+     * @return The user's subject, or null if not logged in.
+     */
+    public Subject getSubject() {
+        Subject user = null;
+        if (auth != null)
+            user = auth.getSubject();
+        return user;
+    }
+
+    /**
+     * Obtains a list of current profiles set up on this Faban harness instance.
+     * @return The list of profiles.
+     */
     public String[] getProfiles() {
         String[] profiles = null;
         String fileName = Config.PROFILES_DIR;
@@ -82,6 +107,13 @@ public class UserEnv {
         return profiles;
     }
 
+    /**
+     * Copies the config file for a certain/benchmark and profile to the
+     * current submission. If the profile does not exist or does not have
+     * a config file, copy the default config file deployed with the benchmark.
+     * @param profile The name of the profile
+     * @param desc The description of the benchmark
+     */
     public void copyParamRepository(String profile, BenchmarkDescription desc) {
         String srcFile = Config.PROFILES_DIR + profile + File.separator +
                          desc.configFileName + "." + desc.shortName;
@@ -96,6 +128,12 @@ public class UserEnv {
         FileHelper.copyFile(srcFile, dstFile, false);
     }
 
+    /**
+     * Saves the config file to the given profile.
+     * @param profile The profile to save to
+     * @param desc The benchmark description
+     * @param buf The buffer containing the run config file
+     */
     public void saveParamRepository(String profile, BenchmarkDescription desc,
                                     char[] buf) {
 

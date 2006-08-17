@@ -17,13 +17,15 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AccessController.java,v 1.1 2006/08/15 02:39:02 akara Exp $
+ * $Id: AccessController.java,v 1.2 2006/08/17 01:19:24 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.engine;
 
 import com.sun.faban.harness.common.Config;
+
+import javax.security.auth.Subject;
 
 /**
  * The access controller that gets checked for accessing Faban resources
@@ -44,7 +46,7 @@ public class AccessController {
      * @param user The logged in user
      * @return True if submissions are allowed, false otherwise
      */
-    public static boolean submitAllowed(String user) {
+    public static boolean submitAllowed(Subject user) {
         if (Config.SECURITY_ENABLED) {
             if (user != null)
                 return true;
@@ -62,7 +64,7 @@ public class AccessController {
      * @param benchShortName The benchmark's short name
      * @return True if submissions are allowed, false otherwise
      */
-    public static boolean submitAllowed(String user, String benchShortName) {
+    public static boolean submitAllowed(Subject user, String benchShortName) {
         return submitAllowed(user);
     }
 
@@ -73,7 +75,7 @@ public class AccessController {
      * @param runId The runId to check the permission for
      * @return True if the user is allowed to write comments to the run.
      */
-    public static boolean writeAllowed(String user, String runId) {
+    public static boolean writeAllowed(Subject user, String runId) {
         return false;
     }
 
@@ -84,7 +86,7 @@ public class AccessController {
      * @param runId The runId to check the permission for
      * @return True if the user is allowed to view the benchmark run results.
      */
-    public boolean readAllowed(String user, String runId) {
+    public boolean readAllowed(Subject user, String runId) {
         return true;
     }
 }
