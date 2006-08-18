@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Permission.java,v 1.1 2006/08/17 23:22:45 akara Exp $
+ * $Id: Permission.java,v 1.2 2006/08/18 05:53:44 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -29,26 +29,46 @@ package com.sun.faban.harness.security;
 public enum Permission {
 
     /**
+     * The rigmanage acl is listed in the harness configuration file
+     * harness.xml at the elements security/managePrincipal and is only read
+     * at startup. By default, a user having manage permission on a benchmark
+     * will have the rigmanage permission on rig-wide resources, i.e. the
+     * run queue. If the list in harness.xml is not empty, only the listed
+     * principals will have rigmanage permission on rig-wide resources.
+     */
+    RIGMANAGE,
+
+    /**
      * The manage permission is allowed all manage actions
-     * on the benchmark or the rig.
+     * on the benchmark. By default, users having submit
+     * permissions will have manage permissions unless overridden by
+     * manage.acl
      */
     MANAGE,
 
     /**
      * The submit permission is allowed to submit runs
-     * and delete submitted runs.
+     * and delete submitted runs. By default, all logged in users
+     * have submit permission on all deployed benchmarks unless
+     * overridden by submit.acl
      */
     SUBMIT,
 
     /**
-     * The view permission is allowed to view run results.
+     * The view permission is allowed to view run results. By default,
+     * everybody is allowed to view results, logged in or not. If
+     * META-INF/view.acl exists and has entries, the user needs to be logged
+     * in and listed in view.acl to view the particular result.
      */
     VIEW,
 
     /**
      * The write permission is allowed to add comments to runs. Usually
      * this acl should not exist. All people allowed to view are allowed
-     * to comment, unless one really misbehaves.
+     * to comment, unless one really misbehaves. The user needs to be logged in
+     * and have view permissions on the benchmark to write. If
+     * META-INF/write.acl exists and has entries, only users listed in
+     * write.acl are allowed to add comments.
      */
     WRITE;
 

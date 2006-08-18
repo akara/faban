@@ -19,18 +19,18 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: menu.jsp,v 1.4 2006/08/17 23:22:45 akara Exp $
+ * $Id: menu.jsp,v 1.5 2006/08/18 05:53:44 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 -->
 <%@ page language="java" import="javax.security.auth.Subject,
-                                 com.sun.faban.harness.security.Permission,
                                  com.sun.faban.harness.security.AccessController"%>
 <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
 <%
     Subject user = usrEnv.getSubject();
-    boolean submitAllowed = AccessController.isAllowed(Permission.SUBMIT, user);
+    boolean submitAllowed = AccessController.isSubmitAllowed(user);
+    boolean rigAllowed = AccessController.isRigManageAllowed(user);
 %>
 <html>
     <head>
@@ -43,13 +43,19 @@
             <tr><td VALIGN="CENTER"><br/>
 <% if (submitAllowed) { %>
             <tr><td VALIGN="CENTER"><br/><a href="selectprofile.jsp" target="main">Schedule Run</a></td></tr>
-            <tr><td VALIGN="CENTER"><br/><a href="suspend-runs.jsp" target="main">Suspend Pending Runs</a></td></tr>
-            <tr><td VALIGN="CENTER"><br/><a href="resume-runs.jsp" target="main">Resume Pending Runs</a></td></tr>
-            <tr><td VALIGN="CENTER"><br/><a href="kill-run.jsp" target="main">Kill Current Run</a></td></tr>
 <% } else { %>
             <tr><td VALIGN="CENTER" style="color: rgb(102, 102, 102);"><br/>Schedule Run</td></tr>
+<% }
+   if (rigAllowed) { %>
+            <tr><td VALIGN="CENTER"><br/><a href="suspend-runs.jsp" target="main">Suspend Pending Runs</a></td></tr>
+            <tr><td VALIGN="CENTER"><br/><a href="resume-runs.jsp" target="main">Resume Pending Runs</a></td></tr>
+<% } else { %>
             <tr><td VALIGN="CENTER" style="color: rgb(102, 102, 102);"><br/>Suspend Pending Runs</td></tr>
             <tr><td VALIGN="CENTER" style="color: rgb(102, 102, 102);"><br/>Resume Pending Runs</td></tr>
+<% }
+   if (submitAllowed) { %>
+            <tr><td VALIGN="CENTER"><br/><a href="kill-run.jsp" target="main">Kill Current Run</a></td></tr>
+<% } else { %>
             <tr><td VALIGN="CENTER" style="color: rgb(102, 102, 102);"><br/>Kill Current Run</td></tr>
 <% } %>
             <tr><td VALIGN="CENTER"><br/><a href="resultlist.jsp" target="main">View Results</a></td></tr>

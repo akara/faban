@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AccessController.java,v 1.1 2006/08/17 23:22:44 akara Exp $
+ * $Id: AccessController.java,v 1.2 2006/08/18 05:53:44 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -40,47 +40,12 @@ import java.io.File;
 public class AccessController {
 
     /**
-     * Checks whether the user has the given permission on one or more
-     * resources.
-     * @param perm The permission to check
-     * @param user The user
-     * @return True if action is permitted, false otherwise
+     * Checks whether the user can submit runs in at least one of the deployed
+     * benchmarks.
+     * @param user The user in question
+     * @return True, if allowed to submit runs, false otherwise
      */
-     public static boolean isAllowed(Permission perm, Subject user) {
-        if (!Config.SECURITY_ENABLED)
-            return true;
-        boolean allowed = false;
-        switch (perm) {
-            case MANAGE : allowed = isManageAllowed(user); break;
-            case SUBMIT : allowed = isSubmitAllowed(user); break;
-            case VIEW   : allowed = isViewAllowed(user);   break;
-            case WRITE  : allowed = isWriteAllowed(user);  break;
-        }
-        return allowed;
-    }
-
-    /**
-     * Checks whether the user has the given permission on the given resource.
-     * @param perm The permission to check
-     * @param user The user
-     * @param resource The resource to check the permission against
-     * @return True if action is permitted, false otherwise
-     */
-    public static boolean isAllowed(Permission perm, Subject user,
-                                    String resource) {
-        if (!Config.SECURITY_ENABLED)
-            return true;
-        boolean allowed = false;
-        switch (perm) {
-            case MANAGE : allowed = isManageAllowed(user, resource); break;
-            case SUBMIT : allowed = isSubmitAllowed(user, resource); break;
-            case VIEW   : allowed = isViewAllowed(user, resource);   break;
-            case WRITE  : allowed = isWriteAllowed(user, resource);  break;
-        }
-        return allowed;
-    }
-
-    private static boolean isSubmitAllowed(Subject user) {
+    public static boolean isSubmitAllowed(Subject user) {
         if (user == null)
             return false; // You need to at least login.
         for (Acl acl : Acl.getInstances(Permission.SUBMIT)) {
@@ -91,14 +56,25 @@ public class AccessController {
         return false;
     }
 
-    private static boolean isSubmitAllowed(Subject user, String resource) {
+    /**
+     * Checks whether the user can submit runs for the given benchmark.
+     * @param user The user in question
+     * @param resource The benchmark short name
+     * @return True, if allowed to submit runs, false otherwise
+     */
+    public static boolean isSubmitAllowed(Subject user, String resource) {
         if (user == null)
             return false;
         Acl acl = Acl.getInstance(Permission.SUBMIT, resource);
         return acl.isEmpty() || acl.contains(user);
     }
 
-    private static boolean isViewAllowed(Subject user) {
+    /**
+     * Checks whether the user can view at least one run result.
+     * @param user The user in question
+     * @return True, if allowed to view results, false otherwise
+     */
+    public static boolean isViewAllowed(Subject user) {
         for (Acl acl : Acl.getInstances(Permission.VIEW)) {
             if (acl.isEmpty()) // Public can view, no login needed.
                 return true;
@@ -108,7 +84,13 @@ public class AccessController {
         return false;
     }
 
-    private static boolean isViewAllowed(Subject user, String resource) {
+    /**
+     * Checks whether the user can view the given run result.
+     * @param user The user in question
+     * @param resource The run id of the run
+     * @return True, if allowed to view results, false otherwise
+     */
+    public static boolean isViewAllowed(Subject user, String resource) {
         Acl acl = Acl.getInstance(Permission.VIEW, resource);
         return acl.isEmpty() || (user != null && acl.contains(user));
     }
@@ -127,6 +109,21 @@ public class AccessController {
         return false;
     }
 
+    /**
+     * Checks whether the user is allowed to manage the rig, such as
+     * stopping or restarting run queues.
+     * @param user The user in question
+     * @return True, if allowed to manage the rig, false otherwise.
+     */
+    public static boolean isRigManageAllowed(Subject user) {
+        if (user == null)
+            return false;
+        if (Config.PRINCIPALS.isEmpty())
+            return checkManageResources(user);
+        else
+            return isRigManager(user);
+    }
+
     /* The manage and write permissions are not so straightforward and
      * they are optional. By default, if you have submit permissions you
      * have manage permissions. If you have view permissions you have write
@@ -137,11 +134,21 @@ public class AccessController {
      * This is a more fine-grained control that sensitive rigs
      * can put in place. I don't expect too frequent use.
      */
-    private static boolean isManageAllowed(Subject user) {
+
+    /**
+     * Checks whether the user is allowed to manage at least one benchmark.
+     * @param user The user in question
+     * @return True, if allowed to manage a benchmark, false otherwise
+     */
+    public static boolean isManageAllowed(Subject user) {
         if (user == null)
             return false;
         if (isRigManager(user))
             return true;
+        return checkManageResources(user);
+    }
+
+    private static boolean checkManageResources(Subject user) {
         for (String resource: BenchmarkDescription.getBenchDirMap().keySet()) {
             if (isManageResource(user, resource))
                 return true;
@@ -149,7 +156,13 @@ public class AccessController {
         return false;
     }
 
-    private static boolean isManageAllowed(Subject user, String resource) {
+    /**
+     * Checks whether the user is allowed to manage the given benchmark.
+     * @param user The user in question
+     * @param resource The short name of the benchmark
+     * @return True, if allowed to manage the benchmark, false otherwise
+     */
+    public static boolean isManageAllowed(Subject user, String resource) {
         return user != null &&
                 (isRigManager(user) || isManageResource(user, resource));
     }
@@ -161,7 +174,12 @@ public class AccessController {
         return acl.contains(user);
     }
 
-    private static boolean isWriteAllowed(Subject user) {
+    /**
+     * Checks whether the user is allowed to add comments to at least one run.
+     * @param user The user in question
+     * @return True, if allowed to add comments, false otherwise
+     */
+    public static boolean isWriteAllowed(Subject user) {
         if (user == null)
             return false;
         for (String resource: new File(Config.OUT_DIR).list()) {
@@ -171,7 +189,13 @@ public class AccessController {
         return false;
     }
 
-    private static boolean isWriteAllowed(Subject user, String resource) {
+    /**
+     * Checks whether the user is allowed to add comments on the given run
+     * @param user The user in question
+     * @param resource The run id of the run
+     * @return True, if allowed to add comments to this run, false otherwise.
+     */
+    public static boolean isWriteAllowed(Subject user, String resource) {
         if (user == null)
             return false;
         Acl acl = Acl.getInstance(Permission.WRITE, resource);
