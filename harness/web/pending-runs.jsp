@@ -19,26 +19,49 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: pending-runs.jsp,v 1.2 2006/06/29 19:38:44 akara Exp $
+ * $Id: pending-runs.jsp,v 1.3 2006/08/19 03:06:12 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 -->
 <html>
-    <%@ page language="java" import="com.sun.faban.harness.engine.RunQ"%>
+    <%@ page language="java" import="javax.security.auth.Subject,
+                                     com.sun.faban.harness.engine.RunQ,
+                                     com.sun.faban.harness.security.AccessController"%>
+    <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
         <meta name="Author" content="Ramesh Ramachandran"/>
         <meta name="Description" content="Pending Runs"/>
         <title>Benchmark results</title>
+
         <link rel="icon" type="image/gif" href="img/faban.gif">
     </head>
     <body>
         <br>
-        <% String[][] pending = RunQ.getHandle().listRunQ();
-            if((pending != null) && (pending.length > 0)) {
+        <%
+            Subject user = usrEnv.getSubject();
+            String[][] pending = RunQ.getHandle().listRunQ();
+            if (!AccessController.isSubmitAllowed(user)) {
+        %>
+                <br/>
+                <br/>
+                <br/>
+                <b><center>Permission Denied.</center></b>
+        <%
+            } else if ((pending != null) && (pending.length > 0)) {
+                boolean form = false;
+                boolean[] killAllowed = new boolean[pending.length];
+                for (int i = 0; i < killAllowed.length; i++) {
+                    killAllowed[i] = AccessController.isKillAllowed(
+                            user, pending[i][0]);
+                    if (killAllowed[i])
+                        form = true;
+                }
+                if (form) {
         %>
                 <form  method="post" action="delete-runs.jsp">
+        <%      } %>
                     <table cellpadding="2" cellspacing="0" border="1" width="80%" align="center">
                     <tbody>
                     <tr>
@@ -51,14 +74,23 @@
                     String runqDir = pending[i][1] + "." + pending[i][0];
         %>
                     <tr>
-                        <td><input type="checkbox" name="selected-runs"
-                             value=<%=runqDir %>><%= pending[i][0] %></td>
+
+                        <td style="text-align: right;">
+        <%
+                        if (killAllowed[i]) {
+        %>
+                            <input type="checkbox" name="selected-runs" value=<%=runqDir %>>
+        <%
+                        }
+        %>
+                            <%= pending[i][0] %></td>
                         <td><%= pending[i][1]%></td>
                         <td><%= pending[i][2]%></td>
                     <tr>
-         <%     } %>           
+         <%     } %>
                  </tbody>
                  </table>
+         <%     if (form) { %>
                  <br>
                  <br>
                  <center>
@@ -66,9 +98,8 @@
                  <input type="reset"></center>
                  </center>
                 </form>
-        <%
-            }
-            else {
+        <%      }
+            } else {
         %>
                 <br/>
                 <br/>

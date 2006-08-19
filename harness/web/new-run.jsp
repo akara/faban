@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: new-run.jsp,v 1.4 2006/08/17 23:22:45 akara Exp $
+ * $Id: new-run.jsp,v 1.5 2006/08/19 03:06:12 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -30,9 +30,10 @@
 <meta name="Author" content="Ramesh Ramachandran"/>
 <meta name="Description" content="JSP to setup run.xml for the XForms servlet"/>
 <title>Failed</title>
-<%@ page language="java" import="com.sun.faban.harness.webclient.UserEnv,
+<%@ page language="java" import="java.util.Map,
                                  com.sun.faban.harness.common.BenchmarkDescription,
-                                 java.util.Map"%>
+                                 com.sun.faban.harness.security.AccessController,
+                                 com.sun.faban.harness.webclient.UserEnv"%>
 <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
 <%
     String profile = (String)session.getAttribute("faban.profile");
@@ -52,7 +53,8 @@
     usrEnv.copyParamRepository(profile, benchDesc);
     String url = "benchmarks/" + benchDesc.shortName + '/' + benchDesc.configForm;
 
-    if ((profile != null) && (benchDesc != null)) {
+    if ((profile != null) && (benchDesc != null) &&
+           AccessController.isSubmitAllowed(usrEnv.getSubject(), benchDesc.shortName)) {
 %>
 
 <meta HTTP-EQUIV=REFRESH CONTENT="0;URL=<%=url%>">

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunDaemon.java,v 1.4 2006/08/15 02:39:02 akara Exp $
+ * $Id: RunDaemon.java,v 1.5 2006/08/19 03:06:11 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -280,15 +280,13 @@ public class RunDaemon implements Runnable {
      * To abort the currently executing benchmark run.
      *
      */
-    public String killCurrentRun(String runId) {
+    public String killCurrentRun(String runId, String user) {
         if (runId.equals(currRun.getRunName()) && gb != null) {
             gb.kill();
-            logger.fine("RunDaemon Killed Current run");
+            logger.info("Audit: Run " + runId + "killed by " + user);
             return runId;
         }
         return null;
-        // call the GenericBenchmark object kill method to abort this run.
-        // think about what to do with this RunDaemon thread suspend ??
     }
 
     private void killCurrentRun() {

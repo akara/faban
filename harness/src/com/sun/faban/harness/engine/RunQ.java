@@ -17,16 +17,16 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunQ.java,v 1.6 2006/08/17 23:22:44 akara Exp $
+ * $Id: RunQ.java,v 1.7 2006/08/19 03:06:11 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.engine;
 
+import com.sun.faban.harness.ParamRepository;
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.util.FileHelper;
-import com.sun.faban.harness.ParamRepository;
 
 import java.io.*;
 import java.util.Arrays;
@@ -34,7 +34,6 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.security.AccessControlException;
 
 /**
  * This class implements the Faban RunQ. It provides methods to add a run,
@@ -109,30 +108,29 @@ public class RunQ {
 
             // Record the user
             if (Config.SECURITY_ENABLED) {
-                if (user == null) {
-                    logger.warning("Trying submission - user not logged on.");
-                    throw new AccessControlException("User not logged in.");
-                } else {
-                    // Set the submitter
-                    File metaInf = new File(dir, "META-INF");
-                    metaInf.mkdirs();
-                    File submitter = new File(metaInf, "submitter");
-                    PrintStream p = new PrintStream(submitter);
-                    p.println(user);
-                    p.close();
+                // Set the submitter
+                File metaInf = new File(dir, "META-INF");
+                metaInf.mkdirs();
+                File submitter = new File(metaInf, "submitter");
+                PrintStream p = new PrintStream(submitter);
+                p.println(user);
+                p.close();
 
-                    // Copy ACL
-                    String benchAcl = Config.CONFIG_DIR + desc.shortName + ".acl";
+                // Copy ACLs
+                String[] aclFiles = { "view.acl", "write.acl" };
+                for (int i = 0; i < aclFiles.length; i++) {
+                    String benchAcl = Config.CONFIG_DIR + desc.shortName +
+                                      File.separator + aclFiles[i];
                     String runAcl = null;
                     if (new File(benchAcl).exists())
-                        runAcl = new File(metaInf, "run.acl").getAbsolutePath();
+                        runAcl = new File(metaInf, aclFiles[i]).getAbsolutePath();
                     else
                         benchAcl = null;
 
                     if (benchAcl != null &&
                             FileHelper.copyFile(benchAcl, runAcl, false)) {
-                        logger.log(Level.SEVERE, "Error copying ACL");
-                        throw new IOException("Error copying ACL");
+                        logger.log(Level.SEVERE, "Error copying " + aclFiles[i]);
+                        throw new IOException("Error copying " + aclFiles[i]);
                     }
                 }
             }
@@ -366,8 +364,8 @@ public class RunQ {
      * @param runId The run id to kill - this is for safety
      * @return current run id.
      */
-    public String killCurrentRun(String runId) {
-        return runDaemon.killCurrentRun(runId);
+    public String killCurrentRun(String runId, String user) {
+        return runDaemon.killCurrentRun(runId, user);
     }
 
     /**

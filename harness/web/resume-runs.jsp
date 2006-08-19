@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resume-runs.jsp,v 1.2 2006/06/29 19:38:44 akara Exp $
+ * $Id: resume-runs.jsp,v 1.3 2006/08/19 03:06:12 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -28,19 +28,30 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
   <meta name="Author" content="Ramesh Ramachandran"/>
-  <meta name="Description" content="JSP to setup run.xml for the XForms servlet"/>
-  <title>Failed</title>
-  <%@ page language="java" import="java.io.Reader, com.sun.faban.harness.engine.RunQ" %>
-  <%@ page session="true" %>
-  <%@ page errorPage="error.jsp" %>
+  <meta name="Description" content="JSP to resume the run queue"/>
+  <title>Resume Run Queue</title>
+  <%@ page language="java" import="com.sun.faban.harness.engine.RunQ,
+                                   com.sun.faban.harness.security.AccessController,
+                                   java.util.logging.Logger"
+      session="true" errorPage="error.jsp"%>
+  <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
   <link rel="icon" type="image/gif" href="img/faban.gif">
 </head>
 <body>
 <%
-    RunQ.getHandle().startRunDaemon();
+    Logger logger = Logger.getLogger(this.getClass().getName());
+    if (AccessController.isRigManageAllowed(usrEnv.getSubject())) {
+        logger.info("Audit: Run queue resumed by " + usrEnv.getUser());
+        RunQ.getHandle().startRunDaemon();
 %>
 <br/>
 <br/>
 <b><%=RunQ.getHandle().getRunDaemonStatus() %></b>
+<%  } else {
+        logger.severe("Security: Attempted resume-runs by user: " + 
+                    usrEnv.getUser() + ". Permission denied!");
+%>
+<br/><br><h3><center>Permission Denied</center></h3>
+<%  } %>
 </body>
 </html>

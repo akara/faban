@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: schedule-run.jsp,v 1.4 2006/08/15 02:39:03 akara Exp $
+ * $Id: schedule-run.jsp,v 1.5 2006/08/19 03:06:12 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -32,9 +32,10 @@
   <title>Failed</title>
   <%@ page language="java" session="true" errorPage="error.jsp"
            import="java.io.Reader, com.sun.faban.harness.engine.RunQ,
-                                   java.util.logging.Logger,
-                                   com.sun.faban.harness.common.BenchmarkDescription,
-                   java.security.AccessControlException" %>
+                   java.util.logging.Logger,
+                   com.sun.faban.harness.common.BenchmarkDescription,
+                   java.security.AccessControlException,
+                   com.sun.faban.harness.security.AccessController" %>
   <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
   <link rel="icon" type="image/gif" href="img/faban.gif">
 </head>
@@ -55,17 +56,17 @@
     BenchmarkDescription benchmark = (BenchmarkDescription)session.getAttribute(
                                     "faban.benchmark");
 
-    usrEnv.saveParamRepository(profile, benchmark, buf);
-    // Call runq to get the run id.
-    String runId = null;
-    try {
-        runId = RunQ.getHandle().addRun(usrEnv.getUser(), profile, benchmark);
-    } catch (AccessControlException e) {
+    if (AccessController.isSubmitAllowed(usrEnv.getSubject(), benchmark.shortName)) {
+        logger.severe("Security: Attempted schedule-run on benchmark " +
+                benchmark.shortName + "by user: " + usrEnv.getUser() +
+                ". Permission denied!");
 %>
     <center><h2>Permission Denied</h2></center>
 <%
-    }
-    if (runId != null) {
+    } else {
+        usrEnv.saveParamRepository(profile, benchmark, buf);
+        // Call runq to get the run id.
+        String runId = RunQ.getHandle().addRun(usrEnv.getUser(), profile, benchmark);
 %>
 <h3>Run scheduled </h3>
 Run ID for this run is : <b><%= runId %></b>

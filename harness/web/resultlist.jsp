@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultlist.jsp,v 1.2 2006/06/29 19:38:44 akara Exp $
+ * $Id: resultlist.jsp,v 1.3 2006/08/19 03:06:12 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -34,7 +34,8 @@
     </head>
     <body method="post" action="compare-runs.jsp">
     <%@ page language="java" import="com.sun.faban.harness.webclient.Result"%>
-    <% Result[] results = Result.getResults();
+    <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
+    <% Result[] results = Result.getResults(usrEnv.getSubject());
         if(results != null && results.length > 0) {
     %>
             <form>

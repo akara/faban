@@ -17,17 +17,19 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Result.java,v 1.6 2006/08/17 23:22:45 akara Exp $
+ * $Id: Result.java,v 1.7 2006/08/19 03:06:12 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.webclient;
 
 import com.sun.faban.harness.ParamRepository;
+import com.sun.faban.harness.security.AccessController;
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.util.XMLReader;
 
+import javax.security.auth.Subject;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -52,7 +54,7 @@ public class Result {
     public String status;
     public String time;
 
-    public static Result[] getResults() {
+    public static Result[] getResults(Subject user) {
 
         ArrayList<Result> resultList = null;
         Result header = null;
@@ -87,6 +89,8 @@ public class Result {
             TreeMap<String, File> dirMap = new TreeMap<String, File>(descend);
             for (int i = 0; i < list.length; i++) {
                 String runId = list[i].getName();
+                if (!AccessController.isViewAllowed(user, runId))
+                    continue;
                 runId = runId.substring(runId.lastIndexOf('.') + 1);
                 dirMap.put(runId, list[i]);
             }
@@ -107,9 +111,8 @@ public class Result {
             Map<String, BenchmarkDescription> benchMap = null;
 
             // Now iterate through the sorted map.
-            for (Iterator iter = dirMap.keySet().iterator(); iter.hasNext();) {
-
-                File resultDir = (File) dirMap.get(iter.next());
+            for (Map.Entry<String, File> entry : dirMap.entrySet()) {
+                File resultDir = entry.getValue();
                 // If we're not dealing with a dir, it's not a run result.
                 File[] files = resultDir.listFiles();
                 if (files == null)

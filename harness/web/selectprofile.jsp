@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: selectprofile.jsp,v 1.2 2006/08/17 23:22:45 akara Exp $
+ * $Id: selectprofile.jsp,v 1.3 2006/08/19 03:06:12 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -30,9 +30,12 @@
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
 <meta name="Author" content="Ramesh Ramachandran"/>
 <meta name="Description" content="Form to display profile selection"/>
-<%@ page language="java" import="com.sun.faban.harness.webclient.UserEnv,
+<%@ page language="java" import="java.util.Map,
+                                 java.util.HashMap,
+                                 javax.security.auth.Subject,
                                  com.sun.faban.harness.common.BenchmarkDescription,
-                                 java.util.Map"%>
+                                 com.sun.faban.harness.security.AccessController,
+                                 com.sun.faban.harness.webclient.UserEnv"%>
 
 <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
 <%
@@ -40,8 +43,10 @@
     BenchmarkDescription desc =  (BenchmarkDescription) session.getAttribute(
             "faban.benchmark");
     String benchmark = desc == null ? null : desc.name;
+    Subject user = usrEnv.getSubject();
 
-    if((profile != null) && (benchmark != null)) {
+    if(profile != null && benchmark != null && 
+       AccessController.isSubmitAllowed(user, benchmark)) {
 %>
 <meta HTTP-EQUIV=REFRESH CONTENT="0;URL=new-run.jsp">
 <%
@@ -50,17 +55,32 @@
         String[] profiles = usrEnv.getProfiles();
         Map<String, BenchmarkDescription> benchNameMap =
                 BenchmarkDescription.getBenchNameMap();
-        int benchCount = benchNameMap.size();
-        if (benchCount < 1) {
+        // We need to ensure only benchmarks the user is allowed to submit are shown.
+        // The benchNameMap is a reference to the cached version. Don't change it.
+        // Make copies instead.
+        HashMap<String, BenchmarkDescription> allowedBench = 
+                new HashMap<String, BenchmarkDescription>(benchNameMap.size());
+        for (Map.Entry<String, BenchmarkDescription> entry : benchNameMap.entrySet()) {
+            BenchmarkDescription d = entry.getValue();
+            if (AccessController.isSubmitAllowed(user, d.shortName))
+                allowedBench.put(entry.getKey(), d);
+        }
+        int benchCount = allowedBench.size();
+        if (benchNameMap.size() < 1) {
 %>
 </head>
 <body>
 <h3><center>Sorry, Faban could not find or successfully deploy any benchmarks.</center></h3>
-
+<%
+        } else if (benchCount < 1) {
+%>
+</head>
+<body>
+<h3><center>Sorry, you're not allowed to submit any benchmark.</center></h3>
 <%
         } else {
             String[] benchmarks = new String[benchCount];
-            benchmarks = benchNameMap.keySet().toArray(benchmarks);
+            benchmarks = allowedBench.keySet().toArray(benchmarks);
 %>
 
 

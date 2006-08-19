@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AccessController.java,v 1.2 2006/08/18 05:53:44 akara Exp $
+ * $Id: AccessController.java,v 1.3 2006/08/19 03:06:12 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -28,7 +28,9 @@ import com.sun.faban.harness.common.BenchmarkDescription;
 
 import javax.security.auth.Subject;
 import java.security.Principal;
-import java.io.File;
+import java.io.*;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * The access controller that gets checked for accessing Faban resources
@@ -39,6 +41,8 @@ import java.io.File;
  */
 public class AccessController {
 
+    static Logger logger = Logger.getLogger(AccessController.class.getName());
+
     /**
      * Checks whether the user can submit runs in at least one of the deployed
      * benchmarks.
@@ -46,6 +50,8 @@ public class AccessController {
      * @return True, if allowed to submit runs, false otherwise
      */
     public static boolean isSubmitAllowed(Subject user) {
+        if (!Config.SECURITY_ENABLED)
+            return true;
         if (user == null)
             return false; // You need to at least login.
         for (Acl acl : Acl.getInstances(Permission.SUBMIT)) {
@@ -63,6 +69,8 @@ public class AccessController {
      * @return True, if allowed to submit runs, false otherwise
      */
     public static boolean isSubmitAllowed(Subject user, String resource) {
+        if (!Config.SECURITY_ENABLED)
+            return true;
         if (user == null)
             return false;
         Acl acl = Acl.getInstance(Permission.SUBMIT, resource);
@@ -75,10 +83,14 @@ public class AccessController {
      * @return True, if allowed to view results, false otherwise
      */
     public static boolean isViewAllowed(Subject user) {
+        if (!Config.SECURITY_ENABLED)
+            return true;
         for (Acl acl : Acl.getInstances(Permission.VIEW)) {
             if (acl.isEmpty()) // Public can view, no login needed.
                 return true;
             if (user != null && acl.contains(user))
+                return true;
+            if (isSubmitter(user, acl.getResource()))
                 return true;
         }
         return false;
@@ -91,8 +103,11 @@ public class AccessController {
      * @return True, if allowed to view results, false otherwise
      */
     public static boolean isViewAllowed(Subject user, String resource) {
+        if (!Config.SECURITY_ENABLED)
+            return true;
         Acl acl = Acl.getInstance(Permission.VIEW, resource);
-        return acl.isEmpty() || (user != null && acl.contains(user));
+        return acl.isEmpty() || isSubmitter(user, resource) ||
+                (user != null && acl.contains(user));
     }
 
     /**
@@ -116,6 +131,8 @@ public class AccessController {
      * @return True, if allowed to manage the rig, false otherwise.
      */
     public static boolean isRigManageAllowed(Subject user) {
+        if (!Config.SECURITY_ENABLED)
+            return true;
         if (user == null)
             return false;
         if (Config.PRINCIPALS.isEmpty())
@@ -141,6 +158,8 @@ public class AccessController {
      * @return True, if allowed to manage a benchmark, false otherwise
      */
     public static boolean isManageAllowed(Subject user) {
+        if (!Config.SECURITY_ENABLED)
+            return true;
         if (user == null)
             return false;
         if (isRigManager(user))
@@ -163,6 +182,8 @@ public class AccessController {
      * @return True, if allowed to manage the benchmark, false otherwise
      */
     public static boolean isManageAllowed(Subject user, String resource) {
+        if (!Config.SECURITY_ENABLED)
+            return true;
         return user != null &&
                 (isRigManager(user) || isManageResource(user, resource));
     }
@@ -180,6 +201,8 @@ public class AccessController {
      * @return True, if allowed to add comments, false otherwise
      */
     public static boolean isWriteAllowed(Subject user) {
+        if (!Config.SECURITY_ENABLED)
+            return true;
         if (user == null)
             return false;
         for (String resource: new File(Config.OUT_DIR).list()) {
@@ -193,14 +216,65 @@ public class AccessController {
      * Checks whether the user is allowed to add comments on the given run
      * @param user The user in question
      * @param resource The run id of the run
-     * @return True, if allowed to add comments to this run, false otherwise.
+     * @return True, if allowed to add comments to this run, false otherwise
      */
     public static boolean isWriteAllowed(Subject user, String resource) {
+        if (!Config.SECURITY_ENABLED)
+            return true;
         if (user == null)
             return false;
         Acl acl = Acl.getInstance(Permission.WRITE, resource);
         if (acl.isEmpty() && isViewAllowed(user, resource))
             return true;
         return acl.contains(user);
+    }
+
+    /**
+     * Checks whether the user is allowed to delete the run from the queue.
+     * @param user The user in question
+     * @param resource The run id of the run in the queue
+     * @return True, if allowed to remove the run from the queue, false otherwise
+     */
+    public static boolean isKillAllowed(Subject user, String resource) {
+        if (!Config.SECURITY_ENABLED)
+            return true;
+        if (user == null)
+            return false;
+
+        if (isSubmitter(user, resource))
+            return true;
+
+        // The resource is the run id. But we need to check benchmark permissions.
+        // So split get the benchmark name.
+        String benchName = resource.substring(0, resource.lastIndexOf('.'));
+        return isManageAllowed(user, benchName);
+    }
+
+    private static boolean isSubmitter(Subject user, String resource) {
+        String submitterPath = resource + File.separator + "META-INF" +
+                                File.separator + "submitter";
+        File submitterFile = new File(Config.RUNQ_DIR + submitterPath);
+        if (!submitterFile.isDirectory()) {
+            submitterFile = new File(Config.OUT_DIR + submitterPath);
+            if (!submitterFile.isDirectory()) {
+                logger.severe("SECURITY: Submitter for " + resource +
+                              " not found!");
+                return false;
+            }
+        }
+        String submitter = null;
+        try {
+            BufferedReader r = new BufferedReader(new FileReader(submitterFile), 64);
+            submitter = r.readLine();
+            r.close();
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "SECURITY: Error fetching submitter!", e);
+            return false;
+        }
+
+        for (Principal p : user.getPrincipals())
+            if (submitter.equalsIgnoreCase(p.getName()))
+                return true;
+        return false;
     }
 }

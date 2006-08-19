@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Acl.java,v 1.1 2006/08/17 23:22:44 akara Exp $
+ * $Id: Acl.java,v 1.2 2006/08/19 03:06:12 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -51,6 +51,7 @@ public class Acl {
     static HashMap<String, Acl> aclMap = new HashMap<String, Acl>();
 
     File aclFile;
+    String resource;
     long lastModified = 0l;
     HashSet<String> entries = new HashSet<String>();
 
@@ -129,7 +130,7 @@ public class Acl {
             }
             acl = aclMap.get(pathName);
             if (acl == null) {
-                acl = new Acl(pathName);
+                acl = new Acl(pathName, resource);
                 aclMap.put(pathName, acl);
             }
         }
@@ -137,8 +138,9 @@ public class Acl {
         return acl;
     }
 
-    private Acl(String pathName) {
+    private Acl(String pathName, String resource) {
         aclFile = new File(pathName);
+        this.resource = resource;
     }
 
     private synchronized void refresh() {
@@ -162,6 +164,14 @@ public class Acl {
                         aclFile.getAbsolutePath(), e);
             }
         }
+    }
+
+    /**
+     * Obtains the resource this ACL represents.
+     * @return The resource name
+     */
+    public String getResource() {
+        return resource;
     }
 
     /**

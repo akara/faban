@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: kill-run.jsp,v 1.2 2006/06/29 19:38:44 akara Exp $
+ * $Id: kill-run.jsp,v 1.3 2006/08/19 03:06:12 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -29,10 +29,13 @@
   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
   <meta name="Author" content="Ramesh Ramachandran"/>
   <meta name="Description" content="JSP to setup run.xml for the XForms servlet"/>
-  <title>Failed</title>
-  <%@ page language="java" import="java.io.Reader, com.sun.faban.harness.engine.RunQ" %>
-  <%@ page session="true" %>
-  <%@ page errorPage="error.jsp" %>
+  <title>Suspend Run Queue</title>
+  <%@ page language="java" import="com.sun.faban.harness.engine.RunQ,
+                                   com.sun.faban.harness.security.AccessController,
+                                   java.util.logging.Logger"
+           session="true" errorPage="error.jsp"%>
+  <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
+
   <link rel="icon" type="image/gif" href="img/faban.gif">
 </head>
 <body>
@@ -52,27 +55,37 @@
         if (lapse < 60000 && lapse > 0) { // The confirm must come within 60 sec
 
             String runId = request.getParameter("runId");
-            String msg = "Run " + runId + " killed!";
-            run = RunQ.getHandle().killCurrentRun(runId);
-            if (run == null)
-                msg = "Run " + runId + " no longer active!";
+            String msg;
+            if (AccessController.isKillAllowed(usrEnv.getSubject(), runId)) {
+                msg = "Run " + runId + " killed!";
+                run = RunQ.getHandle().killCurrentRun(runId, usrEnv.getUser());
+                if (run == null)
+                    msg = "Run " + runId + " no longer active!";
+            } else {
+                msg = "Permission Denied";
+            }
 %>
 <br/>
 <br/>
 <b><%= msg%></b>
+<%      } else {
+            run = RunQ.getHandle().getCurrentRunId();
+            if (AccessController.isKillAllowed(usrEnv.getSubject(), run)) {
 
-<%     } else {
-           run = RunQ.getHandle().getCurrentRunId();
 %>
 <form name="bench" method="post" action="kill-run.jsp">
 <input type="hidden" name="confirm" value="<%=System.currentTimeMillis() %>"></input>
 <input type="hidden" name="runId" value="<%=run %>"></input>
 
-<br><br><center>Are you sure you want to kill run <b><%=run %></b>?<br>
-<br><br>Please press the "Kill" button to continue<br>or choose a different
-action from the menu on your left.<br><br>
+<br/><br/><center>Are you sure you want to kill run <b><%=run %></b>?<br/>
+<br/><br/>Please press the "Kill" button to continue<br>or choose a different
+action from the menu on your left.<br/><br/>
 <input type="submit" value="Kill"></center>
-<%      }
+<%          } else { %>
+<br/><br/><h3><center>Sorry, you have no permission killing run
+                <%= run %></center></h3>                
+<%          }
+        }
     }
 %>
 </body>
