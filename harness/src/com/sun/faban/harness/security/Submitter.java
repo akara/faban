@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Submitter.java,v 1.1 2006/08/22 07:13:08 akara Exp $
+ * $Id: Submitter.java,v 1.2 2006/08/22 22:19:15 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -101,7 +101,7 @@ public class Submitter {
         String submitterPath = resource + File.separator + "META-INF" +
                                File.separator + "submitter";
         File submitterFile = new File(Config.OUT_DIR + submitterPath);
-        if (!submitterFile.isFile())
+        if (submitterFile.isFile())
             return submitterFile;
         submitterFile = new File(Config.RUNQ_DIR + submitterPath);
         if (submitterFile.isFile())

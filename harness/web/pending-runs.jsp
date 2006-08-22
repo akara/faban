@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: pending-runs.jsp,v 1.3 2006/08/19 03:06:12 akara Exp $
+ * $Id: pending-runs.jsp,v 1.4 2006/08/22 22:19:15 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -42,7 +42,7 @@
         <%
             Subject user = usrEnv.getSubject();
             String[][] pending = RunQ.getHandle().listRunQ();
-            if (!AccessController.isSubmitAllowed(user)) {
+            if (!(AccessController.isSubmitAllowed(user) || AccessController.isManageAllowed(user))) {
         %>
                 <br/>
                 <br/>

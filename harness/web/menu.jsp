@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: menu.jsp,v 1.5 2006/08/18 05:53:44 akara Exp $
+ * $Id: menu.jsp,v 1.6 2006/08/22 22:19:15 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -31,6 +31,7 @@
     Subject user = usrEnv.getSubject();
     boolean submitAllowed = AccessController.isSubmitAllowed(user);
     boolean rigAllowed = AccessController.isRigManageAllowed(user);
+    boolean manageAllowed = AccessController.isManageAllowed(user);
 %>
 <html>
     <head>
@@ -53,17 +54,20 @@
             <tr><td VALIGN="CENTER" style="color: rgb(102, 102, 102);"><br/>Suspend Pending Runs</td></tr>
             <tr><td VALIGN="CENTER" style="color: rgb(102, 102, 102);"><br/>Resume Pending Runs</td></tr>
 <% }
-   if (submitAllowed) { %>
+   if (submitAllowed || manageAllowed) { %>
             <tr><td VALIGN="CENTER"><br/><a href="kill-run.jsp" target="main">Kill Current Run</a></td></tr>
 <% } else { %>
             <tr><td VALIGN="CENTER" style="color: rgb(102, 102, 102);"><br/>Kill Current Run</td></tr>
 <% } %>
             <tr><td VALIGN="CENTER"><br/><a href="resultlist.jsp" target="main">View Results</a></td></tr>
-<% if (submitAllowed) { %>
+<% if (submitAllowed || manageAllowed) { %>
             <tr><td VALIGN="CENTER"><br/><a href="pending-runs.jsp" target="main">View Pending Runs</a></td></tr>
-            <tr><td VALIGN="CENTER"><br/><a href="switchprofile.jsp" target="main">Switch Profile</a></td></tr>
 <% } else { %>
             <tr><td VALIGN="CENTER" style="color: rgb(102, 102, 102);"><br/>View Pending Runs</td></tr>
+<% }
+   if (manageAllowed) { %>
+            <tr><td VALIGN="CENTER"><br/><a href="switchprofile.jsp" target="main">Switch Profile</a></td></tr>
+<% } else { %>
             <tr><td VALIGN="CENTER" style="color: rgb(102, 102, 102);"><br/>Switch Profile</td></tr>
 <% } %>
             <tr><td VALIGN="CENTER"><br/><a href="http://faban.sunsource.net/docs/guide/harness/toc.html" target="_blank">Help</a></td></tr>

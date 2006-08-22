@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunDaemon.java,v 1.6 2006/08/22 07:13:08 akara Exp $
+ * $Id: RunDaemon.java,v 1.7 2006/08/22 22:19:14 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -192,21 +192,8 @@ public class RunDaemon implements Runnable {
                 }
             }
 
-            String benchMetaInf = Config.BENCHMARK_DIR + File.separator +
-                    benchName + File.separator + "META-INF" + File.separator;
-            String sourceBenchDesc = benchMetaInf + "benchmark.xml";
-            String destBenchDesc = metaInf + "benchmark.xml";
-            String sourceFabanDesc = benchMetaInf + "faban.xml";
-            String destFabanDesc = null;
-            if (new File(sourceFabanDesc).exists())
-                destFabanDesc = metaInf + "faban.xml";
-            else
-                sourceFabanDesc = null;
 
-            if (!(FileHelper.copyFile(sourceParamFile, destParamFile, false) &&
-                  FileHelper.copyFile(sourceBenchDesc, destBenchDesc, false) &&
-                 (sourceFabanDesc == null ||
-                  FileHelper.copyFile(sourceFabanDesc, destFabanDesc, false)))) {
+            if (!FileHelper.copyFile(sourceParamFile, destParamFile, false)) {
                 logger.warning("Error copying Parameter Repository. " +
                                "Not Starting " + list[0] + " run");
                 FileHelper.recursiveDelete(new File(Config.RUNQ_DIR), list[0]);

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunQ.java,v 1.7 2006/08/19 03:06:11 akara Exp $
+ * $Id: RunQ.java,v 1.8 2006/08/22 22:19:14 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -106,11 +106,36 @@ public class RunQ {
             if(dir.mkdirs())
                 logger.fine("Created Run Directory " + runDir);
 
+            // Create the META-INF and copy deployment info.
+            File metaInf = new File(dir, "META-INF");
+            metaInf.mkdirs();
+
+            String benchMetaInf = Config.BENCHMARK_DIR + File.separator +
+                    desc.shortName + File.separator + "META-INF" + File.separator;
+            String runqMetaInf = metaInf.getAbsolutePath() + File.separator;
+            String sourceBenchDesc = benchMetaInf + "benchmark.xml";
+            String destBenchDesc = runqMetaInf + "benchmark.xml";
+            String sourceFabanDesc = benchMetaInf + "faban.xml";
+            String destFabanDesc = null;
+            if (new File(sourceFabanDesc).exists())
+                destFabanDesc = runqMetaInf + "faban.xml";
+            else
+                sourceFabanDesc = null;
+
+            if (!(FileHelper.copyFile(sourceBenchDesc, destBenchDesc, false) &&
+               (sourceFabanDesc == null ||
+                FileHelper.copyFile(sourceFabanDesc, destFabanDesc, false)))) {
+                String msg = "Error copying benchmark descriptors.";
+                IOException e = new IOException(msg);
+                logger.log(Level.SEVERE, "Error copying benchmark descriptors.",
+                           e);
+                throw e;
+            }
+
+
             // Record the user
             if (Config.SECURITY_ENABLED) {
                 // Set the submitter
-                File metaInf = new File(dir, "META-INF");
-                metaInf.mkdirs();
                 File submitter = new File(metaInf, "submitter");
                 PrintStream p = new PrintStream(submitter);
                 p.println(user);
@@ -128,13 +153,13 @@ public class RunQ {
                         benchAcl = null;
 
                     if (benchAcl != null &&
-                            FileHelper.copyFile(benchAcl, runAcl, false)) {
-                        logger.log(Level.SEVERE, "Error copying " + aclFiles[i]);
-                        throw new IOException("Error copying " + aclFiles[i]);
+                            !FileHelper.copyFile(benchAcl, runAcl, false)) {
+                        String msg = "Error copying " + benchAcl + " to " +
+                                     runAcl + '.';
+                        throw new IOException(msg);
                     }
                 }
             }
-
 
             // copying the parameter repository file from the user's profile.
             String paramRepFileName =

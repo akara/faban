@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Acl.java,v 1.2 2006/08/19 03:06:12 akara Exp $
+ * $Id: Acl.java,v 1.3 2006/08/22 22:19:15 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -119,7 +119,8 @@ public class Acl {
                                 resource + ": No such run!");
                     remove = true;
                 }
-                pathName += "META-INF" + File.separator + perm + ".acl";
+                pathName += File.separator + "META-INF" + File.separator + perm
+                            + ".acl";
                 break;
         }
         Acl acl;
@@ -153,6 +154,9 @@ public class Acl {
                 entries.clear();
                 String entry;
                 while ((entry = reader.readLine()) != null) {
+                    int commentIdx = entry.indexOf('#');
+                    if (commentIdx >= 0)
+                        entry = entry.substring(0, commentIdx);
                     entry = entry.trim().toLowerCase();
                     if (entry.length() > 0)
                         entries.add(entry);

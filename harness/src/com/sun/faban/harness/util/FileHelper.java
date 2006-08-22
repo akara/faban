@@ -17,29 +17,27 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileHelper.java,v 1.3 2006/08/22 07:13:09 akara Exp $
+ * $Id: FileHelper.java,v 1.4 2006/08/22 22:19:15 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.util;
 
-import java.io.*;
-import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.nio.channels.FileChannel;
-import java.nio.ByteBuffer;
-
-import com.sun.faban.harness.common.Config;
-import com.sun.faban.harness.agent.FileAgent;
 import com.sun.faban.harness.agent.CmdAgentImpl;
+import com.sun.faban.harness.agent.FileAgent;
 import com.sun.faban.harness.agent.FileService;
 import com.sun.faban.harness.agent.FileServiceException;
+import com.sun.faban.harness.common.Config;
+
+import java.io.*;
+import java.nio.channels.FileChannel;
+import java.util.Enumeration;
+import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class FileHelper {
     
-    private static int BLOCK = 8192;
-
     private static Logger logger = Logger.getLogger(FileHelper.class.getName());
     /**
       * This method copies a file
@@ -63,27 +61,6 @@ public class FileHelper {
         }
         return true;
     }
-
-    // TODO: This is the old implementation. Remove once new impl is tested.
-	/* public static boolean copyFile(String srcFile, String destFile, boolean append) {
-        try {
-            BufferedInputStream in = new BufferedInputStream(new FileInputStream(srcFile));
-            BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(destFile, append));
-            byte[] buff = new byte[BLOCK];
-            int size = 0;
-            while((size = in.read(buff, 0, BLOCK)) > 0) 
-                out.write(buff, 0, size);
-            in.close();
-            out.close();
-        
-		} catch (Exception e) {
-			logger.severe("Could not copy " + srcFile + " to " + destFile);
-			logger.log(Level.FINE, "Exception", e);
-			return(false);
-		}
-		return(true);
-	} */
-
 
     /**
       * This method opens, traverses through the file and 
