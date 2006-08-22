@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileHelper.java,v 1.2 2006/06/29 19:38:43 akara Exp $
+ * $Id: FileHelper.java,v 1.3 2006/08/22 07:13:09 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -27,6 +27,8 @@ import java.io.*;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.nio.channels.FileChannel;
+import java.nio.ByteBuffer;
 
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.agent.FileAgent;
@@ -45,7 +47,25 @@ public class FileHelper {
       * @param destFile  - the full pathname of the destination file
       * @param append - should destination file be appended with source file
       */    
-	public static boolean copyFile(String srcFile, String destFile, boolean append) {
+    public static boolean copyFile(String srcFile, String destFile, boolean append) {
+        try {
+            FileChannel src = (new FileInputStream(srcFile)).getChannel();
+            FileChannel dest = (new FileOutputStream(destFile)).getChannel();
+            if (append)
+                dest.position(dest.size());
+            src.transferTo(0, src.size(), dest);
+            dest.close();
+            src.close();
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Could not copy " + srcFile + " to " +
+                                     destFile, e);
+            return false;
+        }
+        return true;
+    }
+
+    // TODO: This is the old implementation. Remove once new impl is tested.
+	/* public static boolean copyFile(String srcFile, String destFile, boolean append) {
         try {
             BufferedInputStream in = new BufferedInputStream(new FileInputStream(srcFile));
             BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(destFile, append));
@@ -62,8 +82,9 @@ public class FileHelper {
 			return(false);
 		}
 		return(true);
-	}
-    
+	} */
+
+
     /**
       * This method opens, traverses through the file and 
       * finds the properties and replaces the values 

@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: selectprofile.jsp,v 1.3 2006/08/19 03:06:12 akara Exp $
+ * $Id: selectprofile.jsp,v 1.4 2006/08/22 07:13:09 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -46,7 +46,7 @@
     Subject user = usrEnv.getSubject();
 
     if(profile != null && benchmark != null && 
-       AccessController.isSubmitAllowed(user, benchmark)) {
+       AccessController.isSubmitAllowed(user, desc.shortName)) {
 %>
 <meta HTTP-EQUIV=REFRESH CONTENT="0;URL=new-run.jsp">
 <%

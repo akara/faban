@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: schedule-run.jsp,v 1.5 2006/08/19 03:06:12 akara Exp $
+ * $Id: schedule-run.jsp,v 1.6 2006/08/22 07:13:09 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -56,9 +56,9 @@
     BenchmarkDescription benchmark = (BenchmarkDescription)session.getAttribute(
                                     "faban.benchmark");
 
-    if (AccessController.isSubmitAllowed(usrEnv.getSubject(), benchmark.shortName)) {
+    if (!AccessController.isSubmitAllowed(usrEnv.getSubject(), benchmark.shortName)) {
         logger.severe("Security: Attempted schedule-run on benchmark " +
-                benchmark.shortName + "by user: " + usrEnv.getUser() +
+                benchmark.shortName + " by user: " + usrEnv.getUser() +
                 ". Permission denied!");
 %>
     <center><h2>Permission Denied</h2></center>

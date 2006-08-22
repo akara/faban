@@ -17,20 +17,19 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AccessController.java,v 1.3 2006/08/19 03:06:12 akara Exp $
+ * $Id: AccessController.java,v 1.4 2006/08/22 07:13:08 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.security;
 
-import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.BenchmarkDescription;
+import com.sun.faban.harness.common.Config;
 
 import javax.security.auth.Subject;
+import java.io.File;
 import java.security.Principal;
-import java.io.*;
 import java.util.logging.Logger;
-import java.util.logging.Level;
 
 /**
  * The access controller that gets checked for accessing Faban resources
@@ -90,7 +89,7 @@ public class AccessController {
                 return true;
             if (user != null && acl.contains(user))
                 return true;
-            if (isSubmitter(user, acl.getResource()))
+            if (Submitter.isSubmitter(user, acl.getResource()))
                 return true;
         }
         return false;
@@ -106,7 +105,7 @@ public class AccessController {
         if (!Config.SECURITY_ENABLED)
             return true;
         Acl acl = Acl.getInstance(Permission.VIEW, resource);
-        return acl.isEmpty() || isSubmitter(user, resource) ||
+        return acl.isEmpty() || Submitter.isSubmitter(user, resource) ||
                 (user != null && acl.contains(user));
     }
 
@@ -118,7 +117,8 @@ public class AccessController {
      */
     private static boolean isRigManager(Subject user) {
         for (Principal p : user.getPrincipals()) {
-            if (Config.PRINCIPALS.contains(p.getName().trim().toLowerCase()))
+            if (Config.PRINCIPALS != null && Config.PRINCIPALS.contains(
+                    p.getName().trim().toLowerCase()))
                 return true;
         }
         return false;
@@ -135,7 +135,7 @@ public class AccessController {
             return true;
         if (user == null)
             return false;
-        if (Config.PRINCIPALS.isEmpty())
+        if (Config.PRINCIPALS == null || Config.PRINCIPALS.isEmpty())
             return checkManageResources(user);
         else
             return isRigManager(user);
@@ -241,40 +241,12 @@ public class AccessController {
         if (user == null)
             return false;
 
-        if (isSubmitter(user, resource))
+        if (Submitter.isSubmitter(user, resource))
             return true;
 
         // The resource is the run id. But we need to check benchmark permissions.
         // So split get the benchmark name.
         String benchName = resource.substring(0, resource.lastIndexOf('.'));
         return isManageAllowed(user, benchName);
-    }
-
-    private static boolean isSubmitter(Subject user, String resource) {
-        String submitterPath = resource + File.separator + "META-INF" +
-                                File.separator + "submitter";
-        File submitterFile = new File(Config.RUNQ_DIR + submitterPath);
-        if (!submitterFile.isDirectory()) {
-            submitterFile = new File(Config.OUT_DIR + submitterPath);
-            if (!submitterFile.isDirectory()) {
-                logger.severe("SECURITY: Submitter for " + resource +
-                              " not found!");
-                return false;
-            }
-        }
-        String submitter = null;
-        try {
-            BufferedReader r = new BufferedReader(new FileReader(submitterFile), 64);
-            submitter = r.readLine();
-            r.close();
-        } catch (IOException e) {
-            logger.log(Level.SEVERE, "SECURITY: Error fetching submitter!", e);
-            return false;
-        }
-
-        for (Principal p : user.getPrincipals())
-            if (submitter.equalsIgnoreCase(p.getName()))
-                return true;
-        return false;
     }
 }
