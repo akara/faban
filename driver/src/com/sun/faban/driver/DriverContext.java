@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DriverContext.java,v 1.2 2006/06/29 19:38:36 akara Exp $
+ * $Id: DriverContext.java,v 1.3 2006/08/29 20:16:32 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -148,6 +148,33 @@ public abstract class DriverContext {
      * @return The relative time of the benchmark run
      */
     public abstract int getTime();
+
+    /**
+     * Obtains the relative time - in milliseconds - that steady state starts,
+     * if set. The if the time is not yet set, it will return 0.
+     * @return The relative time steady state starts
+     */
+    public abstract int getSteadyStateStart();
+
+    /**
+     * Obtains the configured ramp up time.
+     * @return The configured ramp up time, in milliseconds
+     */
+    public abstract int getRampUp();
+
+    /**
+     * Obtains the configured steady state time.
+     * @return The configured steady state time, in milliseconds
+     */
+    public abstract int getSteadyState();
+
+    /**
+     * Obtains the configured ramp down time.
+     * @return The configured ramp down time, in milliseconds
+     */
+    public abstract int getRampDown();
+
+
 
     /**
      * Obtains a single-value property from the configuration. If the name

@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: statsnavigator.jsp,v 1.4 2006/07/29 01:03:03 akara Exp $
+ * $Id: statsnavigator.jsp,v 1.5 2006/08/29 20:16:33 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -41,7 +41,7 @@
     // Now check the output files...
     File outDir = new File(Config.OUT_DIR + runId);
     // Tool output file pattern is <tool>.log.<host>[suffix]
-    String[] suffixes = { ".html", "htm", "" }; // The empty string always last
+    String[] suffixes = { ".html", ".htm", "" }; // The empty string always last
     TreeMap<String, HashSet<String>> allHosts =
             new TreeMap<String, HashSet<String>>();
     TreeSet<String> allTools = new TreeSet<String>();
@@ -52,6 +52,7 @@
 
     HashSet<String> toolFiles = new HashSet<String>();
 
+    fileSearchLoop:
     for (String fileName : outDir.list()) {
         // Screen out all image files...
         if (fileName.endsWith(".png") || fileName.endsWith(".jpg") ||
@@ -92,8 +93,12 @@
             for (String suffix : suffixes) {
                 int suffixSize = suffix.length();
                 if (suffixSize == 0 || fileName.endsWith(suffix)) {
-                    hostName = fileName.substring(logIdx + 5,
-                               fileName.length() - suffixSize);
+                    int hostBegin = logIdx + 5;
+                    int hostEnd = fileName.length() - suffixSize;
+                    // if the host name part is missing, it is not a stat file.
+                    if (hostBegin >= hostEnd)
+                        continue fileSearchLoop;
+                    hostName = fileName.substring(hostBegin, hostEnd);
                     break;
                 }
             }

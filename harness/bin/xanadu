@@ -9,7 +9,7 @@ if [ -n "$BINDIR" ] ; then
 fi
 
 
-XANADU_HOST=localinstance
+XANADU_HOST=localhost
 export XANADU_HOST
 
 LOG_FILE=/net/romulus.sfbay/export/home/xanadu2/usage-log/log

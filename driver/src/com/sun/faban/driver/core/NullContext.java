@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: NullContext.java,v 1.2 2006/06/29 19:38:37 akara Exp $
+ * $Id: NullContext.java,v 1.3 2006/08/29 20:16:32 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -157,6 +157,44 @@ public class NullContext extends DriverContext {
      */
     public int getTime() {
         return (int) (System.currentTimeMillis() - baseTime);
+    }
+
+    /**
+     * Obtains the relative time - in milliseconds - that steady state starts,
+     * if set. The if the time is not yet set, it will return 0.
+     *
+     * @return The relative time steady state starts
+     */
+    public int getSteadyStateStart() {
+        return (int) (System.currentTimeMillis() - baseTime + 5000l);
+    }
+
+    /**
+     * Obtains the configured ramp up time.
+     *
+     * @return The configured ramp up time, in milliseconds
+     */
+    public int getRampUp() {
+        return 0;
+    }
+
+    /**
+     * Obtains the configured steady state time.
+     *
+     * @return The configured steady state time, in milliseconds
+     */
+    public int getSteadyState() {
+        // Just provide a very high number.
+        return Integer.MAX_VALUE / 2;
+    }
+
+    /**
+     * Obtains the configured ramp down time.
+     *
+     * @return The configured ramp down time, in milliseconds
+     */
+    public int getRampDown() {
+        return 0;
     }
 
     /**
