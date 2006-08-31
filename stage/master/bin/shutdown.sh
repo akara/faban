@@ -2,12 +2,17 @@
 # -----------------------------------------------------------------------------
 # Stop script for the CATALINA Server
 #
-# $Id: shutdown.sh,v 1.1 2006/06/29 18:51:52 akara Exp $
+# $Id: shutdown.sh,v 1.2 2006/08/31 21:03:33 akara Exp $
 # -----------------------------------------------------------------------------
 
 if [ -z "$JAVA_HOME" ] ; then
-    JAVA_HOME=/usr/dist/share/java,v1.5.0/5.x-sun4
+    JAVA_HOME=/usr/java
     export JAVA_HOME
+fi
+
+if [ ! -x "${JAVA_HOME}/bin/java" ] ; then
+    echo "Could not find java. Please set JAVA_HOME correctly." >&2
+    exit 1
 fi
 
 # resolve links - $0 may be a softlink
