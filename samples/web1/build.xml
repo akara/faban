@@ -4,7 +4,7 @@
     <property name="src.dir" value="src"/>
     <property name="build.dir" value="build"/>
     <property name="classes.dir" value="${build.dir}/classes"/>
-    <property name="lib.dir" value="/lib"/>
+    <property name="lib.dir" value="lib"/>
     <property name="buildlib.dir" value="${build.dir}/lib"/>
     <property name="faban.libs" value="${faban.home}/lib"/>
     <property name="faban.classes" value="${faban.home}/master/webapps/faban/WEB-INF/classes"/>
@@ -14,9 +14,10 @@
     </path>
     
     <path id="classpath" location="${faban.libs}" >
+        <pathelement location="${classes.dir}"/>
         <fileset dir="${lib.dir}" includes="*.jar"/>
         <fileset dir="${faban.libs}" includes="*.jar"/>
-        <dirset dir="${faban.classes}"/>
+        <pathelement location="${faban.classes}"/>
     </path>
     
     <taskdef name="deploy" classname="com.sun.faban.harness.util.DeployTask">
@@ -77,5 +78,49 @@
               <jvmarg value="-Djava.util.logging.config.file=logging.properties"/>
               <jvmarg value="-Dbenchmark.config=../deploy/run.xml"/>
         </java>
+    </target>
+    
+    <target name="registry"
+        description="Starts the Faban registry">
+        <java classname="com.sun.faban.common.RegistryImpl"
+              classpathref="classpath"
+              fork="true"
+              failonerror="true">
+              <jvmarg value="-XX:+DisableExplicitGC"/>
+              <jvmarg value="-Djava.security.policy=security/driver.policy"/>
+              <jvmarg value="-Djava.util.logging.config.file=logging.properties"/>
+        </java>            
+    </target>
+    
+    <target name="agent"
+        description="Start a Faban agent">
+        <!-- To start the agent, properties driver.name, driver.id, 
+             and master.host need to be declared -->
+        <java classname="com.sun.faban.driver.core.AgentImpl"
+              classpathref="classpath"
+              fork="true"
+              failonerror="true">
+              <jvmarg value="-XX:+DisableExplicitGC"/>
+              <jvmarg value="-Djava.security.policy=security/driver.policy"/>
+              <jvmarg value="-Djava.util.logging.config.file=logging.properties"/>
+              <arg value="${driver.name}"/>
+              <arg value="${driver.id}"/>
+              <arg value="${master.host}"/>
+        </java>                        
+    </target>
+    
+    <target name="multi"
+        description="Start a distributed benchmark run">
+        <parallel>
+            <antcall target="registry"/>
+            <sequential>
+                <sleep seconds="2"/>
+                <antcall target="agent"/>                
+            </sequential>
+            <sequential>
+                <sleep seconds="5"/>
+                <antcall target="run"/>
+            </sequential>
+        </parallel>
     </target>
 </project>
