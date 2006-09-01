@@ -19,7 +19,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: build.xml,v 1.4 2006/08/15 06:41:32 akara Exp $
+* $Id: build.xml,v 1.5 2006/09/01 18:32:53 akara Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 -->
@@ -147,6 +147,7 @@
 
     <patternset id="package.excludes">
         <exclude name="**/.nfs*"/>
+        <exclude name="**/*.iml"/>
         <exclude name=".*.swap"/>
         <exclude name="bin/**"/>
         <exclude name="benchmarks/?*"/>
