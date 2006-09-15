@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunContext.java,v 1.3 2006/07/29 01:03:02 akara Exp $
+ * $Id: RunContext.java,v 1.4 2006/09/15 18:51:28 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -185,5 +185,16 @@ public class RunContext {
      */
     public static String getHostName(String host) {
         return CmdService.getHandle().getHostName(host);
+    }
+
+    /**
+     * Pushes a local file on the Faban master to the remote host.
+     * @param fileName The source file name
+     * @param destHost The destination machine
+     * @param destFile The destination file name
+     * @return true if successful, false otherwise
+     */
+    public static boolean pushFile(String fileName, String destHost, String destFile) {
+        return CmdService.getHandle().push(fileName, destHost, destFile);
     }
 }

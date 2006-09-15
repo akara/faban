@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileService.java,v 1.2 2006/06/29 19:38:40 akara Exp $
+ * $Id: FileService.java,v 1.3 2006/09/15 18:51:28 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -41,7 +41,7 @@ public interface FileService extends Remote {
      * This method is responsible for reading a file
      * @return String read, null if end-of-file
      */
-    public String read () throws RemoteException, FileServiceException;
+    public byte[] read() throws RemoteException, FileServiceException;
     
     
     /**
@@ -54,7 +54,7 @@ public interface FileService extends Remote {
      * This method is responsible for writing to a file
      * @param buffer to write
      */
-    public void write (String buffer) throws RemoteException, FileServiceException;
+    public void write (byte[] buffer) throws RemoteException, FileServiceException;
     
     
     /**

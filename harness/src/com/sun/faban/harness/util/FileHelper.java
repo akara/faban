@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileHelper.java,v 1.4 2006/08/22 22:19:15 akara Exp $
+ * $Id: FileHelper.java,v 1.5 2006/09/15 18:51:29 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -30,6 +30,7 @@ import com.sun.faban.harness.agent.FileServiceException;
 import com.sun.faban.harness.common.Config;
 
 import java.io.*;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Enumeration;
 import java.util.Properties;
@@ -276,7 +277,13 @@ public class FileHelper {
     }
 
 
-
+    /**
+     * Transfers a file from the current host to the Faban master.
+     * @param inFile The input file name on the current host
+     * @param outFile The output file name on the Faban master
+     * @param move Whether to remove the original file or not
+     * @return True if the transfer is complete, false otherwise.
+     */
     public static boolean xferFile(String inFile, String outFile, boolean move) {
         File f = new File(inFile);
         if(!f.exists())
@@ -322,6 +329,26 @@ public class FileHelper {
         }
         return true;
     }
+
+    /**
+     * Obtains the whole content of a local file in a byte array.
+     * @param file The file name
+     * @return The byte content of the file
+     * @throws IOException If the file cannot be read.
+     */
+    public static byte[] getContent(String file) throws IOException {
+        FileChannel channel = (new FileInputStream(file)).getChannel();
+        long channelSize = channel.size();
+        if (channelSize >= Integer.MAX_VALUE)
+            throw new IOException("Cannot handle file size >= 2GB");
+        ByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY,
+                0, channelSize);
+        byte[] content = new byte[(int) channelSize];
+        buffer.get(content);
+        channel.close();
+        return content;
+    }
+
 
     // Unit test the functionality
     public static void main(String[] args) {

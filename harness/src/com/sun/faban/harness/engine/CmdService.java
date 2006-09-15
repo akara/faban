@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.6 2006/07/28 07:33:46 akara Exp $
+ * $Id: CmdService.java,v 1.7 2006/09/15 18:51:29 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -27,10 +27,9 @@ import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
 import com.sun.faban.common.Registry;
 import com.sun.faban.common.RegistryLocator;
-import com.sun.faban.harness.agent.CmdAgent;
-import com.sun.faban.harness.agent.FileAgent;
-import com.sun.faban.harness.agent.FileService;
+import com.sun.faban.harness.agent.*;
 import com.sun.faban.harness.common.Config;
+import com.sun.faban.harness.util.FileHelper;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -491,6 +490,8 @@ final public class CmdService { 	// The final keyword prevents clones
     public String getHostName(String machineName) {
 
         int index = machinesList.indexOf(machineName);
+        if (index < 0)
+            return machineName; // Cannot resolve
         String retVal = null;
         try {
             retVal = ((CmdAgent)(cmdp.get(index))).getHostName();
@@ -960,6 +961,47 @@ final public class CmdService { 	// The final keyword prevents clones
     }
 
     /**
+     * Pushes a local file on the Faban master to the remote host.
+     * @param srcfile The source file name
+     * @param destmachine The destination machine
+     * @param destfile The destination file name
+     * @return true if successful, false otherwise
+     */
+    public synchronized boolean push(String srcfile,
+                                     String destmachine, String destfile) {
+        int didx = machinesList.indexOf(destmachine);
+        if (srcfile.equals(destfile)){
+            try {
+                CmdAgent master = (CmdAgent) registry.getService(Config.CMD_AGENT);
+                String src = master.getHostName();
+                String dest = ((CmdAgent) cmdp.get(didx)).getHostName();
+                if (dest == src)
+                    return true;
+            } catch (RemoteException e) {
+                logger.log(Level.SEVERE, "CmdService: Pushing - CmdAgent " +
+                           "getHostName exception", e);
+                return false;
+            }
+        }
+
+        FileAgent destf = (FileAgent)(filep.get(didx));
+        try {
+            FileService destfilep = destf.open(destfile, FileAgent.WRITE);
+            byte[] content = FileHelper.getContent(srcfile);
+            destfilep.write(content);
+            destfilep.close();
+        } catch (FileServiceException e) {
+            logger.log(Level.SEVERE, "CmdService: Pushing - " +
+                    "exception writing file " + destfile, e);
+            return false;
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "CmdService: Pushing - " +
+                    "exception reading file " + srcfile, e);
+            return false;
+        }
+        return true;
+    }
+    /**
      * Copy a file from one remote machine to another
      * This method essentially does the work of 'rcp'
      * using the FileAgents on the machines
@@ -978,13 +1020,13 @@ final public class CmdService { 	// The final keyword prevents clones
         FileService srcfilep = null, destfilep = null;
         int sidx = machinesList.indexOf(srcmachine);
         int didx = machinesList.indexOf(destmachine);
-        String buf;
+        byte[] buf;
         if (sidx == didx && srcfile.equals(destfile))
             return(true);
 
         if (srcfile.equals(destfile)){
             try{
-                String dest = ((CmdAgent) cmdp.get(sidx)).getHostName();
+                String dest = ((CmdAgent) cmdp.get(didx)).getHostName();
                 String src = ((CmdAgent) cmdp.get(sidx)).getHostName();
                 if (dest == src)
                     return true;
@@ -1005,13 +1047,9 @@ final public class CmdService { 	// The final keyword prevents clones
             else
                 destfilep = destf.open(destfile, FileAgent.WRITE);
 
-            // Now loop, reading from src and writing to dest
-            while (true) {
-                buf = srcfilep.read();
-                if (buf == null) // end-of-file
-                    break;
-                destfilep.write(buf);
-            }
+            // Read from src and write to dest.
+            buf = srcfilep.read();
+            destfilep.write(buf);
 
             srcfilep.close();
             destfilep.close();
