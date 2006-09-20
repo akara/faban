@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ToolService.java,v 1.3 2006/07/27 22:34:35 akara Exp $
+ * $Id: ToolService.java,v 1.4 2006/09/20 23:25:12 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -213,7 +213,7 @@ final public class ToolService {
      */
     public void start(int delay) {
 
-        if (runTools == false || toolAgents.length  == 0)
+        if (runTools == false || toolAgents == null || toolAgents.length  == 0)
             return;
 
         for (int i = 0; i < toolAgents.length; i++) {
@@ -234,7 +234,7 @@ final public class ToolService {
      */
     public void start(int delay, int duration) {
 
-        if (runTools == false || toolAgents.length == 0)
+        if (runTools == false || toolAgents == null || toolAgents.length == 0)
             return;
 
         for (int i = 0; i < toolAgents.length; i++) {
@@ -253,7 +253,7 @@ final public class ToolService {
      *
      */
     public void stop() {
-        if (runTools == false || toolAgents.length <= 0)
+        if (runTools == false || toolAgents == null || toolAgents.length <= 0)
             return;
 
         for (int i = 0; i < toolAgents.length; i++) {
@@ -273,7 +273,7 @@ final public class ToolService {
      * or at the end of a benchmark run.
      */
     public void kill() {
-        if (runTools == false || toolAgents.length <= 0)
+        if (runTools == false || toolAgents == null || toolAgents.length <= 0)
             return;
         for (int i = 0; i < toolAgents.length; i++) {
             if (toolAgents[i] != null)
@@ -290,5 +290,7 @@ final public class ToolService {
                 } catch (Exception e) {
                 }
         }
+        toolAgents = null;
+        hostNames = null;
     }
 }

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: XFormServlet.java,v 1.2 2006/06/29 19:38:44 akara Exp $
+ * $Id: XFormServlet.java,v 1.3 2006/09/20 23:25:12 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -309,6 +309,12 @@ public class XFormServlet extends HttpServlet {
         if (errPage != null)
             response.sendRedirect(response.encodeRedirectURL(
                     request.getContextPath() + "/" + errPage));
+        else if (e.getMessage().startsWith(
+                "could not create document container"))
+            // This specific message is so misleading, so we'll change it
+            // to what it really means.
+            throw new ServletException("XForms xml parsing error. " +
+                    "Please check the XForm for xml errors.", e);
         else
             throw new ServletException(e);
     }
