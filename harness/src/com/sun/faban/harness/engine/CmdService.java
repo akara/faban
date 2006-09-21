@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.7 2006/09/15 18:51:29 akara Exp $
+ * $Id: CmdService.java,v 1.8 2006/09/21 22:49:16 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -317,7 +317,10 @@ final public class CmdService { 	// The final keyword prevents clones
                     BufferedReader bufR = new BufferedReader(
                             new InputStreamReader(p.getInputStream()));
 
-                    interfaceAddress = bufR.readLine().trim();
+                    interfaceAddress = bufR.readLine();
+                    if (interfaceAddress != null)
+                        interfaceAddress = interfaceAddress.trim();
+
                     int exitValue = -1;
 
                     if (interfaceAddress != null &&
