@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Deployer.java,v 1.2 2006/06/29 19:38:44 akara Exp $
+ * $Id: Deployer.java,v 1.3 2006/09/21 23:13:14 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -58,6 +58,9 @@ public class Deployer extends HttpServlet {
         writer.write("    	    <p>Benchmark JAR File:</p>\n");
         writer.write("    	    <p><input TYPE=FILE NAME=\"jarfile\" SIZE=64>" +
                      "</p>\n");
+        writer.write("          <p><input TYPE=CHECKBOX NAME=\"clearconfig\" " +
+                     "VALUE=\"true\">Clear previous benchmark configuration" +
+                     "</p>\n");
         writer.write("          <p><input TYPE=SUBMIT NAME=\"Submit\" " +
                      "VALUE=\"Deploy\"></p>\n");
         writer.write("        </form>\n");
@@ -71,6 +74,11 @@ public class Deployer extends HttpServlet {
 
         List deployNames = new ArrayList();
         List cantDeployNames = new ArrayList();
+
+        boolean clearConfig = false;
+        String v = request.getParameter("clearconfig");
+        if (v != null)
+            clearConfig = Boolean.parseBoolean(v.trim());
 
         DiskFileUpload fu = new DiskFileUpload();
         // No maximum size
@@ -137,6 +145,8 @@ public class Deployer extends HttpServlet {
             try {
                 DeployUtil.unjar(benchName);
                 DeployUtil.generateDD(benchName);
+                if (clearConfig)
+                    DeployUtil.clearConfig(benchName);
             } catch (Exception e) {
                 throw new ServletException(e);
             }

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DeployUtil.java,v 1.2 2006/06/29 19:38:43 akara Exp $
+ * $Id: DeployUtil.java,v 1.3 2006/09/21 23:13:14 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -186,5 +186,12 @@ public class DeployUtil {
                 logger.log(Level.SEVERE, "Error deploying benchmark \"" +
                         benchName + "\"", e);
             }
+    }
+
+    public static void clearConfig(String benchName) {
+        // TODO: clear all current benchmark configurations.
+        // 1. Figure out the config file name.
+        // 2. Go to the config/profiles directory and delete all config
+        // files underneath.
     }
 }
