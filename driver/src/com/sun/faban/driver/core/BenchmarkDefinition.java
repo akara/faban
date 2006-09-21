@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: BenchmarkDefinition.java,v 1.2 2006/06/29 19:38:37 akara Exp $
+ * $Id: BenchmarkDefinition.java,v 1.3 2006/09/21 18:26:16 rahulbiswas Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -29,10 +29,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.io.File;
 
 /**
  * Implements the basic benchmark, driver, and operation definitions.
@@ -60,9 +64,40 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
         try {
             defClass = Class.forName(defClassName);
         } catch (ClassNotFoundException e) {
-            ConfigurationException ce = new ConfigurationException(e);
-            logger.log(Level.SEVERE, e.getMessage(), ce);
-            throw ce;
+            
+            //Did not find the class in the default classloader, 
+            //look first in the faban.tmpdir then in java.io.tmpdir
+            //for the generated class
+            String tempDir = System.getProperty("faban.tmpdir");
+            
+            if(tempDir==null){
+                tempDir = System.getProperty("java.io.tmpdir");
+            }
+            
+            File classFile = new File(tempDir);
+            
+            URL url[]= new URL[1];
+            
+            try {
+                url[0] = classFile.toURI().toURL();
+            } catch (MalformedURLException ex) {
+                logger.log(Level.SEVERE, "Bad file URL for generated java class!");
+                throw new ConfigurationException(ex);
+            }
+
+            URLClassLoader loader = new URLClassLoader(url, BenchmarkDefinition.class.getClassLoader());
+            
+            try{
+                
+                defClass=loader.loadClass(defClassName);
+                
+            }catch(ClassNotFoundException cnfex){
+                ConfigurationException ce = new ConfigurationException(e);
+                logger.log(Level.SEVERE, e.getMessage(), ce);
+                throw ce;
+
+            }
+            
         }
 
         if (!defClass.isAnnotationPresent(
