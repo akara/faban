@@ -19,7 +19,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: build.xml,v 1.2 2006/06/29 19:38:36 akara Exp $
+* $Id: build.xml,v 1.3 2006/09/21 19:28:34 rahulbiswas Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 -->
@@ -31,6 +31,7 @@
     <property name="jar.output" value="build/lib"/>
     <property name="jar.file" value="fabandriver.jar"/>
     <property name="lib.dir" value="lib"/>
+    <property name="resources.dir" value="resources"/>
 
 
     <path id="class.path">
@@ -70,6 +71,7 @@
         <mkdir dir="${jar.output}"/>
         <jar jarfile="${jar.output}/${jar.file}">
             <fileset dir="${compile.output}" includes="**"/>
+            <fileset dir="${resources.dir}" includes="**"/>
         </jar>
     </target>
 
