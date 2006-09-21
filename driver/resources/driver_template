@@ -1,0 +1,40 @@
+import com.sun.faban.driver.*;
+import com.sun.faban.driver.util.Random; 
+
+@BenchmarkDefinition@
+
+@BenchmarkDriver (
+ name  = "@BenchmarkDriverName@",
+ threadPerScale = 1 
+)
+
+@RequestLagTime@
+
+public class @DriverClassName@ {
+
+private HttpTransport httpTransport;
+private Random random;
+
+public @DriverClassName@(){
+	 httpTransport = new  HttpTransport();
+         random = DriverContext.getContext().getRandom();
+}
+
+#operation
+@Operations@
+@RequestLagTime@
+public void @operationName@() throws Exception{
+
+	try{
+            String url = @url@;
+            httpTransport.readURL(url@postRequest@);
+            //System.out.println("url:"+url);
+
+	}catch(Exception ex){
+	  ex.printStackTrace();
+          throw ex;
+	}
+
+}
+operation#
+}
