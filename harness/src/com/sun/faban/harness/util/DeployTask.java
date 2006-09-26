@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DeployTask.java,v 1.2 2006/06/29 19:38:43 akara Exp $
+ * $Id: DeployTask.java,v 1.3 2006/09/26 23:28:49 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -44,6 +44,7 @@ public class DeployTask extends Task {
 
     private String target;
     private File jarFile;
+    private boolean clearConfig = false;
 
     /**
      * Sets the target URL to the Faban deployment servlet
@@ -62,6 +63,14 @@ public class DeployTask extends Task {
     }
 
     /**
+     * Sets whether to clear the configuration or not. Defaults to false.
+     * @param clear Whether to clear old config files.
+     */
+    public void setClearConfig(boolean clear) {
+        this.clearConfig = clear;
+    }
+
+    /**
      * Executes the Faban deployment task.
      * @throws BuildException If there is an
      */
@@ -69,6 +78,7 @@ public class DeployTask extends Task {
         try {
             MultipartPostMethod post = new MultipartPostMethod(
                     target + "/deploy");
+            post.addParameter("clearconfig", String.valueOf(clearConfig));
             post.addParameter(jarFile.getName(), jarFile);
             HttpClient client = new HttpClient();
             client.setConnectionTimeout(5000);

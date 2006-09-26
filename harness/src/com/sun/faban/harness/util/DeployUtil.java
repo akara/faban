@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DeployUtil.java,v 1.3 2006/09/21 23:13:14 akara Exp $
+ * $Id: DeployUtil.java,v 1.4 2006/09/26 23:28:49 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,6 +25,7 @@ package com.sun.faban.harness.util;
 
 import com.sun.faban.common.Command;
 import com.sun.faban.harness.common.Config;
+import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.engine.RunQ;
 import org.w3c.dom.Node;
 
@@ -180,8 +181,8 @@ public class DeployUtil {
     public static void checkDeploy(String benchName) {
         if (canDeploy(benchName))
             try {
-                DeployUtil.unjar(benchName);
-                DeployUtil.generateDD(benchName);
+                unjar(benchName);
+                generateDD(benchName);
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Error deploying benchmark \"" +
                         benchName + "\"", e);
@@ -189,9 +190,18 @@ public class DeployUtil {
     }
 
     public static void clearConfig(String benchName) {
-        // TODO: clear all current benchmark configurations.
+
         // 1. Figure out the config file name.
+        String configFileName = BenchmarkDescription.getDescription(benchName).
+                                configFileName + '.' + benchName;
+
         // 2. Go to the config/profiles directory and delete all config
         // files underneath.
+        File[] profiles = new File(Config.PROFILES_DIR).listFiles();
+        for (File profile : profiles) {
+            File configFile = new File(profile, configFileName);
+            if (configFile.exists())
+                configFile.delete();
+        }
     }
 }
