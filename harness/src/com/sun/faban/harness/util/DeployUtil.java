@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DeployUtil.java,v 1.4 2006/09/26 23:28:49 akara Exp $
+ * $Id: DeployUtil.java,v 1.5 2006/09/27 19:04:28 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -37,6 +37,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.Date;
+import java.text.SimpleDateFormat;
 
 /**
  * Benchmark deployment utility used to check/generate the deployment
@@ -195,13 +197,23 @@ public class DeployUtil {
         String configFileName = BenchmarkDescription.getDescription(benchName).
                                 configFileName + '.' + benchName;
 
-        // 2. Go to the config/profiles directory and delete all config
+        // 2. Go to the config/profiles directory and rename all config
         // files underneath.
         File[] profiles = new File(Config.PROFILES_DIR).listFiles();
-        for (File profile : profiles) {
-            File configFile = new File(profile, configFileName);
-            if (configFile.exists())
-                configFile.delete();
+        if (profiles != null && profiles.length > 0) {
+            String date = null;
+            for (File profile : profiles) {
+                File configFile = new File(profile, configFileName);
+                if (configFile.exists()) {
+                    if (date == null) {
+                        SimpleDateFormat format =
+                                new SimpleDateFormat("yyMMddHHmmss");
+                        date = "." + format.format(new Date());
+                    }
+                    File newName = new File(profile, configFileName + date);
+                    configFile.renameTo(newName);
+                }
+            }
         }
     }
 }
