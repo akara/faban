@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Deployer.java,v 1.3 2006/09/21 23:13:14 akara Exp $
+ * $Id: Deployer.java,v 1.4 2006/09/27 17:24:10 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -72,13 +72,10 @@ public class Deployer extends HttpServlet {
     public void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        List deployNames = new ArrayList();
-        List cantDeployNames = new ArrayList();
+        List<String> deployNames = new ArrayList<String>();
+        List<String> cantDeployNames = new ArrayList<String>();
 
         boolean clearConfig = false;
-        String v = request.getParameter("clearconfig");
-        if (v != null)
-            clearConfig = Boolean.parseBoolean(v.trim());
 
         DiskFileUpload fu = new DiskFileUpload();
         // No maximum size
@@ -99,6 +96,13 @@ public class Deployer extends HttpServlet {
         // the server
         for (Iterator i = fileItems.iterator(); i.hasNext();) {
             FileItem item = (FileItem) i.next();
+            if (item.isFormField()) {
+                if ("clearconfig".equals(item.getFieldName())) {
+                    String value = item.getString();
+                    clearConfig = Boolean.parseBoolean(value);
+                }
+                continue;
+            }
             String fileName = item.getName();
 
             if (fileName == null) // We don't process files without names
@@ -142,16 +146,19 @@ public class Deployer extends HttpServlet {
                 throw new ServletException(e);
             }
 
+
             try {
                 DeployUtil.unjar(benchName);
                 DeployUtil.generateDD(benchName);
-                if (clearConfig)
-                    DeployUtil.clearConfig(benchName);
             } catch (Exception e) {
                 throw new ServletException(e);
             }
             deployNames.add(benchName);
         }
+
+        if (clearConfig)
+            for (String benchName: deployNames)
+                DeployUtil.clearConfig(benchName);
 
         if (cantDeployNames.size() > 0)
             response.setStatus(HttpServletResponse.SC_CONFLICT);
