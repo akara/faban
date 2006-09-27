@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: URLStreamHandlerFactory.java,v 1.2 2006/06/29 19:38:38 akara Exp $
+ * $Id: URLStreamHandlerFactory.java,v 1.3 2006/09/27 05:26:47 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -29,6 +29,14 @@ import java.net.URL;
 import java.net.URLStreamHandler;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 /**
  * This is a ThreadLocal cache used by the HTTP client keepalive.
@@ -154,6 +162,49 @@ public class URLStreamHandlerFactory
     public URLStreamHandler createURLStreamHandler(String protocol) {
         if ("http".equals(protocol))
             return new Handler();
+	if ("https".equals(protocol)) {
+	    initSSL();
+	    // We want the default handler; we just needed to make sure that
+	    // the appropriate trust manager was installed
+	    return null;
+	}
         return null;
+    }
+
+    private static boolean doneInitSSL = false;
+    private static synchronized void initSSL() {
+	if (doneInitSSL) return;
+	doneInitSSL = true;
+	try {
+	    // A trust manager that accepts all certificates
+            TrustManager[] tm = new TrustManager[]{
+                new X509TrustManager() {
+                    public X509Certificate[] getAcceptedIssuers() {
+                        return null;
+                    }
+                    public void checkClientTrusted(X509Certificate[] certs,
+                                                   String authType) {
+                    }
+                    public void checkServerTrusted(X509Certificate[] certs,
+                                                   String authType) {
+                    }
+                }
+	    };
+	    SSLContext sc = SSLContext.getInstance("SSL");
+	    sc.init(null, tm, new SecureRandom());
+	    HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+    	    HostnameVerifier verifier = new HostnameVerifier() {
+		public boolean verify(String url, String server) {
+		    return true;
+		}
+		public boolean verify(String url, SSLSession sess) {
+		    return true;
+		}
+	    };
+	    HttpsURLConnection.setDefaultHostnameVerifier(verifier);
+	} catch (Exception e) {
+	    throw new ExceptionInInitializerError(e);
+	}
     }
 }

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: HttpURLConnection.java,v 1.2 2006/06/29 19:38:38 akara Exp $
+ * $Id: HttpURLConnection.java,v 1.3 2006/09/27 05:26:47 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -33,7 +33,8 @@ import java.net.URL;
  * Faban's implementation of HttpURLConnection relies heavily on the sun.net
  * implementation. It is actually a subclass that creates instances of
  * faban's HttpClient instead of the sun.net version. It also opens up the
- * interface for clients to use a custom SocketFactory.
+ * interface for clients to use a custom SocketFactory. This HttpURLConnection
+ * serves both http and https connections.
  *
  * @author Akara Sucharitakul
  */

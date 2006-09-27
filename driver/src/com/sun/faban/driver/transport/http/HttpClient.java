@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: HttpClient.java,v 1.2 2006/06/29 19:38:38 akara Exp $
+ * $Id: HttpClient.java,v 1.3 2006/09/27 05:26:47 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -32,7 +32,8 @@ import java.security.PrivilegedAction;
  * Implementation of the HttpClient for the Faban driver framework.
  * It relies heavily on the sun.net implementation. The only
  * difference is actually the use of SocketFactory instead
- * of plainly creating new sockets.
+ * of plainly creating new sockets. The HttpClient supports both
+ * http and https protocols.<br>
  * Derived from code contributed by Scott Oaks.
  *
  * @author Akara Sucharitakul

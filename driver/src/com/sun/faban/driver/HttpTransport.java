@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: HttpTransport.java,v 1.2 2006/06/29 19:38:36 akara Exp $
+ * $Id: HttpTransport.java,v 1.3 2006/09/27 05:26:48 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -38,8 +38,8 @@ import java.util.regex.Pattern;
 
 /**
  * The HttpTransport provides initialization services and utility methods for
- * using the HTTP protocol. The convention for the method names in this class
- * are as follows:<ul>
+ * using the HTTP and HTTPS protocols. The convention for the method names in
+ * this class are as follows:<ul>
  * <li>Methods starting with "read..." read the data from the network.
  *     They however DO NOT keep a copy of the data. The internal read buffer
  *     is recycled immediately. These methods are useful for reading data for
