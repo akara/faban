@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DeployTask.java,v 1.3 2006/09/26 23:28:49 akara Exp $
+ * $Id: DeployTask.java,v 1.4 2006/09/27 23:25:00 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -45,6 +45,8 @@ public class DeployTask extends Task {
     private String target;
     private File jarFile;
     private boolean clearConfig = false;
+    private String user;
+    private String password;
 
     /**
      * Sets the target URL to the Faban deployment servlet
@@ -52,6 +54,26 @@ public class DeployTask extends Task {
      */
     public void setUrl(String target) {
         this.target = target;
+    }
+
+    /**
+     * Sets the user name for deployment.
+     * Note that the user/password is not checked if the Faban harness
+     * security is turned off.
+     * @param user The user name
+     */
+    public void setUser(String user) {
+        this.user = user;
+    }
+
+    /**
+     * Sets the password for deployment.
+     * Note that the user/password is not checked if the Faban harness
+     * security is turned off.
+     * @param password The user's password.
+     */
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     /**
@@ -78,7 +100,12 @@ public class DeployTask extends Task {
         try {
             MultipartPostMethod post = new MultipartPostMethod(
                     target + "/deploy");
-            post.addParameter("clearconfig", String.valueOf(clearConfig));
+            if (user != null)
+                post.addParameter("user", user);
+            if (password != null)
+                post.addParameter("password", password);
+            if (clearConfig)
+                post.addParameter("clearconfig", "true");
             post.addParameter(jarFile.getName(), jarFile);
             HttpClient client = new HttpClient();
             client.setConnectionTimeout(5000);
