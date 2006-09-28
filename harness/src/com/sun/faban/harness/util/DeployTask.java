@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DeployTask.java,v 1.4 2006/09/27 23:25:00 akara Exp $
+ * $Id: DeployTask.java,v 1.5 2006/09/28 04:57:09 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -106,7 +106,7 @@ public class DeployTask extends Task {
                 post.addParameter("password", password);
             if (clearConfig)
                 post.addParameter("clearconfig", "true");
-            post.addParameter(jarFile.getName(), jarFile);
+            post.addParameter("jarfile", jarFile);
             HttpClient client = new HttpClient();
             client.setConnectionTimeout(5000);
             int status = client.executeMethod(post);

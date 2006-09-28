@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.11 2006/08/17 23:22:44 akara Exp $
+ * $Id: Config.java,v 1.12 2006/09/28 04:57:08 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -167,6 +167,8 @@ public class Config {
     public static boolean SECURITY_ENABLED = false;
     public static LoginConfiguration LOGIN_CONFIG = null;
     public static Set<String> PRINCIPALS;
+    public static String DEPLOY_USER;
+    public static String DEPLOY_PASSWORD;
 
     public static URL[] replicationURLs = null;
 
@@ -308,6 +310,9 @@ public class Config {
                             }
                         }
                     }
+                    DEPLOY_USER = xPath.evaluate("security/deployUser", root);
+                    DEPLOY_PASSWORD = xPath.evaluate("security/deplyPassword", 
+                                                     root);
                 }
 
                 // Reading replication config

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Deployer.java,v 1.4 2006/09/27 17:24:10 akara Exp $
+ * $Id: Deployer.java,v 1.5 2006/09/28 04:57:09 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -55,15 +55,44 @@ public class Deployer extends HttpServlet {
         writer.write("        <form NAME=\"Standard\" ACTION=\"" +
                      request.getRequestURI() +
                      "\" METHOD=\"POST\" ENCTYPE=\"multipart/form-data\">\n");
-        writer.write("    	    <p>Benchmark JAR File:</p>\n");
-        writer.write("    	    <p><input TYPE=FILE NAME=\"jarfile\" SIZE=64>" +
-                     "</p>\n");
-        writer.write("          <p><input TYPE=CHECKBOX NAME=\"clearconfig\" " +
-                     "VALUE=\"true\">Clear previous benchmark configuration" +
-                     "</p>\n");
-        writer.write("          <p><input TYPE=SUBMIT NAME=\"Submit\" " +
-                     "VALUE=\"Deploy\"></p>\n");
-        writer.write("        </form>\n");
+        writer.write("<table cellpadding=\"0\" cellspacing=\"2\" " +
+                     "border=\"0\" align=\"center\">\n");
+        writer.write("  <tbody>\n");
+        writer.write("    <tr>\n");
+        writer.write("        <td style=\"text-align: right;\">" +
+                     "Login ID:</td>\n");
+        writer.write("        <td>\n");
+        writer.write("            <input type=\"text\" name=\"user\" " +
+                     "size=\"10\"/>\n");
+        writer.write("       </td>\n");
+        writer.write("    </tr>\n");
+        writer.write("    <tr>\n");
+        writer.write("        <td style=\"text-align: right;\">" +
+                     "Password:</td>\n");
+        writer.write("        <td>\n");
+        writer.write("            <input type=\"password\" name=\"password\" " +
+                     "size=\"10\"/>\n");
+        writer.write("        </td>\n");
+        writer.write("    </tr>\n");
+        writer.write("    <tr>\n");
+        writer.write("        <td colspan=\"2\">Benchmark JAR File:<br>\n");
+        writer.write("    	      <input type=\"file\" name=\"jarfile\" " +
+                     "size=\"64\"/>\n");
+        writer.write("        </td>\n");
+        writer.write("    </tr>\n");
+        writer.write("    <tr>\n");
+        writer.write("        <td style=\"text-align: right;\">\n");
+        writer.write("            <input type=\"checkbox\" " +
+                     "name=\"clearconfig\" value=\"true\"/>\n");
+        writer.write("        </td>\n");
+        writer.write("        <td>Clear previous benchmark configuration" +
+                     "</td>\n");
+        writer.write("    </tr>\n");
+        writer.write("  </tbody>\n");
+        writer.write("</table>\n");
+        writer.write("<input type=\"submit\" name=\"Submit\" " +
+                     "value=\"Deploy\">\n");
+        writer.write("</form>\n");
         writeTrailer(writer);
         writer.flush();
         writer.close();
@@ -75,7 +104,10 @@ public class Deployer extends HttpServlet {
         List<String> deployNames = new ArrayList<String>();
         List<String> cantDeployNames = new ArrayList<String>();
 
+        String user = null;
+        String password = null;
         boolean clearConfig = false;
+        boolean hasPermission = true;
 
         DiskFileUpload fu = new DiskFileUpload();
         // No maximum size
@@ -96,20 +128,43 @@ public class Deployer extends HttpServlet {
         // the server
         for (Iterator i = fileItems.iterator(); i.hasNext();) {
             FileItem item = (FileItem) i.next();
+            String fieldName = item.getFieldName();
             if (item.isFormField()) {
-                if ("clearconfig".equals(item.getFieldName())) {
+                if ("user".equals(fieldName)) {
+                    user = item.getString();
+                } else if ("password".equals(fieldName)) {
+                    password = item.getString();
+                } else if ("clearconfig".equals(fieldName)) {
                     String value = item.getString();
                     clearConfig = Boolean.parseBoolean(value);
                 }
                 continue;
             }
-            String fileName = item.getName();
+
+            if (!"jarfile".equals(fieldName))
+                continue;
+
+            String fileName = item.getName();            
 
             if (fileName == null) // We don't process files without names
                 continue;
 
+            if (Config.SECURITY_ENABLED) {
+                if (Config.DEPLOY_USER == null ||
+                        Config.DEPLOY_USER.length() == 0 ||
+                        !Config.DEPLOY_USER.equals(user)) {
+                    hasPermission = false;
+                    break;
+                }
+                if (Config.DEPLOY_PASSWORD == null ||
+                        Config.DEPLOY_PASSWORD.length() == 0 ||
+                        !Config.DEPLOY_PASSWORD.equals(password)) {
+                    hasPermission = false;
+                    break;
+                }
+            }
             // Now, this name may have a path attached, dependent on the
-            // source browser. We meed to cover all possible clients...
+            // source browser. We need to cover all possible clients...
 
             char[] pathSeparators = {'/', '\\'};
             // Well, if there is another separator we did not account for,
@@ -160,7 +215,9 @@ public class Deployer extends HttpServlet {
             for (String benchName: deployNames)
                 DeployUtil.clearConfig(benchName);
 
-        if (cantDeployNames.size() > 0)
+        if (!hasPermission)
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        else if (cantDeployNames.size() > 0)
             response.setStatus(HttpServletResponse.SC_CONFLICT);
         else if (deployNames.size() > 0)
             response.setStatus(HttpServletResponse.SC_CREATED);
@@ -194,6 +251,10 @@ public class Deployer extends HttpServlet {
             }
             writer.write(". Benchmark being run or queued up for run.<br>\n");
         }
+
+        if (!hasPermission)
+            writer.write("Permission denied");
+
         writeTrailer(writer);
         writer.flush();
         writer.close();

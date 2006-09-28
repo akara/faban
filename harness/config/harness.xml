@@ -35,6 +35,8 @@
         <managePrincipals>
             <!--name>akara</name-->
         </managePrincipals>
+        <deployUser>deployer</deployUser>
+        <deployPassword>adminadmin</deployPassword>
     </security>
     <replication>
         <server enabled="false">http://faban.sfbay.sun.com:9980</server>
