@@ -64,7 +64,8 @@
         description="Deploys benchmark on the Faban harness">
         <deploy url="${faban.url}"
             jar="${build.dir}/${bench.shortname}.jar"
-            clearConfig="${clearconfig}"/>
+            user="${deploy.user}" password="${deploy.password}"
+            clearConfig="${deploy.clearconfig}"/>
     </target>
 
     <target name="run" depends="bench.jar" 
