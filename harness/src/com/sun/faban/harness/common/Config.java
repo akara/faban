@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.12 2006/09/28 04:57:08 akara Exp $
+ * $Id: Config.java,v 1.13 2006/09/28 05:30:49 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -311,7 +311,7 @@ public class Config {
                         }
                     }
                     DEPLOY_USER = xPath.evaluate("security/deployUser", root);
-                    DEPLOY_PASSWORD = xPath.evaluate("security/deplyPassword", 
+                    DEPLOY_PASSWORD = xPath.evaluate("security/deployPassword", 
                                                      root);
                 }
 

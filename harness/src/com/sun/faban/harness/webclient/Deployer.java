@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Deployer.java,v 1.5 2006/09/28 04:57:09 akara Exp $
+ * $Id: Deployer.java,v 1.6 2006/09/28 05:30:49 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -237,7 +237,9 @@ public class Deployer extends HttpServlet {
                 writer.write(", ");
             writer.write((String) deployNames.get(i));
         }
-        writer.write(" deployed.<br>\n");
+
+        if (deployNames.size() > 0)
+            writer.write(" deployed.<br>\n");
 
         if (cantDeployNames.size() > 0) {
             if (cantDeployNames.size() > 1)
@@ -253,7 +255,7 @@ public class Deployer extends HttpServlet {
         }
 
         if (!hasPermission)
-            writer.write("Permission denied");
+            writer.write("Permission denied!");
 
         writeTrailer(writer);
         writer.flush();
