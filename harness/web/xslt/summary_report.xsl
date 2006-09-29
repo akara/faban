@@ -138,8 +138,11 @@
                                         <xsl:when test="passed='true'">
                                             <td style="color: rgb(0, 192, 0);">PASSED</td>
                                         </xsl:when>
-                                        <xsl:otherwise>
+                                        <xsl:when test="passed='false'">
                                             <td style="color: rgb(255, 0, 0);">FAILED</td>
+                                        </xsl:when>
+                                        <xsl:otherwise>
+                                            <td></td>
                                         </xsl:otherwise>
                                     </xsl:choose>
                                 </tr>
@@ -169,8 +172,11 @@
                                         <xsl:when test="passed='true'">
                                             <td style="color: rgb(0, 192, 0);">PASSED</td>
                                         </xsl:when>
-                                        <xsl:otherwise>
+                                        <xsl:when test="passed='false'">
                                             <td style="color: rgb(255, 0, 0);">FAILED</td>
+                                        </xsl:when>
+                                        <xsl:otherwise>
+                                            <td></td>
                                         </xsl:otherwise>
                                     </xsl:choose>
                                 </tr>
@@ -200,8 +206,11 @@
                                         <xsl:when test="passed='true'">
                                             <td style="color: rgb(0, 192, 0);">PASSED</td>
                                         </xsl:when>
-                                        <xsl:otherwise>
+                                        <xsl:when test="passed='false'">
                                             <td style="color: rgb(255, 0, 0);">FAILED</td>
+                                        </xsl:when>
+                                        <xsl:otherwise>
+                                            <td></td>
                                         </xsl:otherwise>
                                     </xsl:choose>
                                 </tr>

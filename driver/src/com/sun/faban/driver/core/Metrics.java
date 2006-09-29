@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.3 2006/07/26 20:14:43 akara Exp $
+ * $Id: Metrics.java,v 1.4 2006/09/29 00:35:34 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -641,13 +641,10 @@ public class Metrics implements Serializable, Cloneable {
         space(8, buffer).append("<responseTimes>\n");
         for (int i = 0; i < txNames.length; i++) {
             String nameModifier;
-            double targetMix;
             if (i < fgTxTypes) {
                 nameModifier = "";
-                targetMix = mix[0].mix[i];
             } else {
                 nameModifier = " &amp;";
-                targetMix = mix[1].mix[i - fgTxTypes];
             }
             double max90 = driver.operations[i].max90th;
             space(12, buffer);
@@ -678,15 +675,10 @@ public class Metrics implements Serializable, Cloneable {
                 space(16, buffer).append("<passed>").append(pass90).
                         append("</passed>\n");
             } else {
-                space(16, buffer).append("<avg>0.000</avg>\n");
-                space(16, buffer).append("<max>0.000</max>\n");
-                space(16, buffer).append("<p90th>0.000</p90th>\n");
-                if (targetMix > 0.0) {
-                    space(16, buffer).append("<passed>false</passed>\n");
-                    success = false;
-                }
-                else
-                    space(16, buffer).append("<passed>true</passed>\n");
+                space(16, buffer).append("<avg/>\n");
+                space(16, buffer).append("<max/>\n");
+                space(16, buffer).append("<p90th/>\n");
+                space(16, buffer).append("<passed/>\n");
             }
             space(12, buffer).append("</operation>\n");
         }
@@ -696,13 +688,10 @@ public class Metrics implements Serializable, Cloneable {
         for (int i = 0; i < txNames.length; i++) {
             
             String nameModifier;
-            double targetMix;
             if (i < fgTxTypes) {
                 nameModifier = "";
-                targetMix = mix[0].mix[i];
             } else {
                 nameModifier = " &amp;";
-                targetMix = mix[1].mix[i - fgTxTypes];
             }
 
             String typeString = null;
@@ -740,16 +729,11 @@ public class Metrics implements Serializable, Cloneable {
                 if (!passDelay)
                     success = false;
             } else {
-                space(16, buffer).append("<targetedAvg></targetedAvg>\n");
-                space(16, buffer).append("<actualAvg></actualAvg>\n");
-                space(16, buffer).append("<min></min>\n");
-                space(16, buffer).append("<max></max>\n");
-                if (targetMix > 0.0) {
-                    space(16, buffer).append("<passed>false</passed>\n");
-                    success = false;
-                }
-                else
-                    space(16, buffer).append("<passed>true</passed>\n");
+                space(16, buffer).append("<targetedAvg/>\n");
+                space(16, buffer).append("<actualAvg/>\n");
+                space(16, buffer).append("<min/>\n");
+                space(16, buffer).append("<max/>\n");
+                space(16, buffer).append("<passed/>\n");
             }
             space(12, buffer).append("</operation>\n");
         }
