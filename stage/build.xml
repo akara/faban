@@ -19,7 +19,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: build.xml,v 1.5 2006/09/01 18:32:53 akara Exp $
+* $Id: build.xml,v 1.6 2006/09/29 04:50:19 akara Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 -->
@@ -170,7 +170,8 @@
         <exclude name="master/work/Catalina/localhost/?*/**"/>
         <exclude name="samples/**/bin/**"/>
         <exclude name="samples/**/sbin/**"/>
-        <exclude name="samples/**/build/classes/**"/>
+        <exclude name="samples/**/build/classes/?*"/>
+        <exclude name="samples/**/build/classes/?*/**"/>        
         <exclude name="samples/**/build/lib/**"/>
     </patternset>
 
