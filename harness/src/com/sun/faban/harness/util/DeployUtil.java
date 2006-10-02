@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DeployUtil.java,v 1.5 2006/09/27 19:04:28 akara Exp $
+ * $Id: DeployUtil.java,v 1.6 2006/10/02 20:44:27 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -194,8 +194,12 @@ public class DeployUtil {
     public static void clearConfig(String benchName) {
 
         // 1. Figure out the config file name.
-        String configFileName = BenchmarkDescription.getDescription(benchName).
-                                configFileName + '.' + benchName;
+        BenchmarkDescription benchDesc = BenchmarkDescription.
+                getDescription(benchName);
+        if (benchDesc == null)
+            return;
+        
+        String configFileName = benchDesc.configFileName + '.' + benchName;
 
         // 2. Go to the config/profiles directory and rename all config
         // files underneath.

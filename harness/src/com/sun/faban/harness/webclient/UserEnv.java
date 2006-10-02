@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: UserEnv.java,v 1.4 2006/08/17 01:19:25 akara Exp $
+ * $Id: UserEnv.java,v 1.5 2006/10/02 20:44:27 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -99,7 +99,7 @@ public class UserEnv {
                 }
             }
             else
-                logger.severe("Unable to locate profiles in " + fileName);
+                logger.warning("Unable to locate profiles in " + fileName);
         }catch(Exception e) {
             logger.severe("Error reading " + fileName);
             logger.log(Level.INFO, "Exception", e);

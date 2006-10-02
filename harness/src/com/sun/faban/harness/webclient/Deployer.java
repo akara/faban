@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Deployer.java,v 1.6 2006/09/28 05:30:49 akara Exp $
+ * $Id: Deployer.java,v 1.7 2006/10/02 20:44:27 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -40,6 +40,8 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * The Deployer servlet is used to deploy a benchmark from a remote system.
@@ -47,6 +49,8 @@ import java.util.List;
  * @author Akara Sucharitakul
  */
 public class Deployer extends HttpServlet {
+
+    static Logger logger = Logger.getLogger(Deployer.class.getName());
 
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -101,165 +105,176 @@ public class Deployer extends HttpServlet {
     public void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        List<String> deployNames = new ArrayList<String>();
-        List<String> cantDeployNames = new ArrayList<String>();
-
-        String user = null;
-        String password = null;
-        boolean clearConfig = false;
-        boolean hasPermission = true;
-
-        DiskFileUpload fu = new DiskFileUpload();
-        // No maximum size
-        fu.setSizeMax(-1);
-        // maximum size that will be stored in memory
-        fu.setSizeThreshold(4096);
-        // the location for saving data that is larger than getSizeThreshold()
-        fu.setRepositoryPath(System.getProperty("java.io.tmpdir"));
-
-        List fileItems = null;
         try {
-            fileItems = fu.parseRequest(request);
-        } catch (FileUploadException e) {
-            throw new ServletException(e);
-        }
-        // assume we know there are two files. The first file is a small
-        // text file, the second is unknown and is written to a file on
-        // the server
-        for (Iterator i = fileItems.iterator(); i.hasNext();) {
-            FileItem item = (FileItem) i.next();
-            String fieldName = item.getFieldName();
-            if (item.isFormField()) {
-                if ("user".equals(fieldName)) {
-                    user = item.getString();
-                } else if ("password".equals(fieldName)) {
-                    password = item.getString();
-                } else if ("clearconfig".equals(fieldName)) {
-                    String value = item.getString();
-                    clearConfig = Boolean.parseBoolean(value);
-                }
-                continue;
-            }
+            List<String> deployNames = new ArrayList<String>();
+            List<String> cantDeployNames = new ArrayList<String>();
 
-            if (!"jarfile".equals(fieldName))
-                continue;
+            String user = null;
+            String password = null;
+            boolean clearConfig = false;
+            boolean hasPermission = true;
 
-            String fileName = item.getName();            
+            DiskFileUpload fu = new DiskFileUpload();
+            // No maximum size
+            fu.setSizeMax(-1);
+            // maximum size that will be stored in memory
+            fu.setSizeThreshold(4096);
+            // the location for saving data that is larger than getSizeThreshold()
+            fu.setRepositoryPath(System.getProperty("java.io.tmpdir"));
 
-            if (fileName == null) // We don't process files without names
-                continue;
-
-            if (Config.SECURITY_ENABLED) {
-                if (Config.DEPLOY_USER == null ||
-                        Config.DEPLOY_USER.length() == 0 ||
-                        !Config.DEPLOY_USER.equals(user)) {
-                    hasPermission = false;
-                    break;
-                }
-                if (Config.DEPLOY_PASSWORD == null ||
-                        Config.DEPLOY_PASSWORD.length() == 0 ||
-                        !Config.DEPLOY_PASSWORD.equals(password)) {
-                    hasPermission = false;
-                    break;
-                }
-            }
-            // Now, this name may have a path attached, dependent on the
-            // source browser. We need to cover all possible clients...
-
-            char[] pathSeparators = {'/', '\\'};
-            // Well, if there is another separator we did not account for,
-            // just add it above.
-
-            pathCheck:
-            for (int j = 0; j < pathSeparators.length; j++) {
-                int idx = fileName.lastIndexOf(pathSeparators[j]);
-                if (idx != -1) {
-                    fileName = fileName.substring(idx + 1);
-                    break pathCheck;
-                }
-            }
-
-            // Ignore all non-jarfiles.
-            if (!fileName.toLowerCase().endsWith(".jar"))
-                continue;
-
-            // Check whether we can deploy or not. If running or queued,
-            // we won't deploy.
-            String benchName = fileName.substring(0, fileName.length() - 4);
-            if (!DeployUtil.canDeploy(benchName)) {
-                cantDeployNames.add(benchName);
-                continue;
-            }
-
-            File uploadFile = new File(Config.BENCHMARK_DIR, fileName);
-            if (uploadFile.exists())
-                FileHelper.recursiveDelete(uploadFile);
-
+            List fileItems = null;
             try {
-                item.write(uploadFile);
-            } catch (Exception e) {
+                fileItems = fu.parseRequest(request);
+            } catch (FileUploadException e) {
                 throw new ServletException(e);
             }
+            // assume we know there are two files. The first file is a small
+            // text file, the second is unknown and is written to a file on
+            // the server
+            for (Iterator i = fileItems.iterator(); i.hasNext();) {
+                FileItem item = (FileItem) i.next();
+                String fieldName = item.getFieldName();
+                if (item.isFormField()) {
+                    if ("user".equals(fieldName)) {
+                        user = item.getString();
+                    } else if ("password".equals(fieldName)) {
+                        password = item.getString();
+                    } else if ("clearconfig".equals(fieldName)) {
+                        String value = item.getString();
+                        clearConfig = Boolean.parseBoolean(value);
+                    }
+                    continue;
+                }
+
+                if (!"jarfile".equals(fieldName))
+                    continue;
+
+                String fileName = item.getName();
+
+                if (fileName == null) // We don't process files without names
+                    continue;
+
+                if (Config.SECURITY_ENABLED) {
+                    if (Config.DEPLOY_USER == null ||
+                            Config.DEPLOY_USER.length() == 0 ||
+                            !Config.DEPLOY_USER.equals(user)) {
+                        hasPermission = false;
+                        break;
+                    }
+                    if (Config.DEPLOY_PASSWORD == null ||
+                            Config.DEPLOY_PASSWORD.length() == 0 ||
+                            !Config.DEPLOY_PASSWORD.equals(password)) {
+                        hasPermission = false;
+                        break;
+                    }
+                }
+                // Now, this name may have a path attached, dependent on the
+                // source browser. We need to cover all possible clients...
+
+                char[] pathSeparators = {'/', '\\'};
+                // Well, if there is another separator we did not account for,
+                // just add it above.
+
+                pathCheck:
+                for (int j = 0; j < pathSeparators.length; j++) {
+                    int idx = fileName.lastIndexOf(pathSeparators[j]);
+                    if (idx != -1) {
+                        fileName = fileName.substring(idx + 1);
+                        break pathCheck;
+                    }
+                }
+
+                // Ignore all non-jarfiles.
+                if (!fileName.toLowerCase().endsWith(".jar"))
+                    continue;
+
+                // Check whether we can deploy or not. If running or queued,
+                // we won't deploy.
+                String benchName = fileName.substring(0, fileName.length() - 4);
+                if (!DeployUtil.canDeploy(benchName)) {
+                    cantDeployNames.add(benchName);
+                    continue;
+                }
+
+                File uploadFile = new File(Config.BENCHMARK_DIR, fileName);
+                if (uploadFile.exists())
+                    FileHelper.recursiveDelete(uploadFile);
+
+                try {
+                    item.write(uploadFile);
+                } catch (Exception e) {
+                    throw new ServletException(e);
+                }
 
 
-            try {
-                DeployUtil.unjar(benchName);
-                DeployUtil.generateDD(benchName);
-            } catch (Exception e) {
-                throw new ServletException(e);
+                try {
+                    DeployUtil.unjar(benchName);
+                    DeployUtil.generateDD(benchName);
+                } catch (Exception e) {
+                    throw new ServletException(e);
+                }
+                deployNames.add(benchName);
             }
-            deployNames.add(benchName);
-        }
 
-        if (clearConfig)
-            for (String benchName: deployNames)
-                DeployUtil.clearConfig(benchName);
+            if (clearConfig)
+                for (String benchName: deployNames)
+                    DeployUtil.clearConfig(benchName);
 
-        if (!hasPermission)
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-        else if (cantDeployNames.size() > 0)
-            response.setStatus(HttpServletResponse.SC_CONFLICT);
-        else if (deployNames.size() > 0)
-            response.setStatus(HttpServletResponse.SC_CREATED);
-        else
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-
-        Writer writer = response.getWriter();
-        writeHeader(request, writer);
-
-        if (deployNames.size() > 1)
-            writer.write("Benchmarks ");
-        else if (deployNames.size() > 0)
-            writer.write("Benchmark ");
-
-        for (int i = 0; i < deployNames.size(); i++) {
-            if (i > 0)
-                writer.write(", ");
-            writer.write((String) deployNames.get(i));
-        }
-
-        if (deployNames.size() > 0)
-            writer.write(" deployed.<br>\n");
-
-        if (cantDeployNames.size() > 0) {
-            if (cantDeployNames.size() > 1)
-                writer.write("Cannot deploy benchmarks ");
+            if (!hasPermission)
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            else if (cantDeployNames.size() > 0)
+                response.setStatus(HttpServletResponse.SC_CONFLICT);
+            else if (deployNames.size() > 0)
+                response.setStatus(HttpServletResponse.SC_CREATED);
             else
-                writer.write("Cannot deploy benchmark ");
-            for (int i = 0; i < cantDeployNames.size(); i++) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+
+            Writer writer = response.getWriter();
+            writeHeader(request, writer);
+
+            if (deployNames.size() > 1)
+                writer.write("Benchmarks ");
+            else if (deployNames.size() > 0)
+                writer.write("Benchmark ");
+
+            for (int i = 0; i < deployNames.size(); i++) {
                 if (i > 0)
                     writer.write(", ");
-                writer.write((String) cantDeployNames.get(i));
+                writer.write((String) deployNames.get(i));
             }
-            writer.write(". Benchmark being run or queued up for run.<br>\n");
+
+            if (deployNames.size() > 0)
+                writer.write(" deployed.<br>\n");
+
+            if (cantDeployNames.size() > 0) {
+                if (cantDeployNames.size() > 1)
+                    writer.write("Cannot deploy benchmarks ");
+                else
+                    writer.write("Cannot deploy benchmark ");
+                for (int i = 0; i < cantDeployNames.size(); i++) {
+                    if (i > 0)
+                        writer.write(", ");
+                    writer.write((String) cantDeployNames.get(i));
+                }
+                writer.write(". Benchmark being run or queued up for run.<br>\n");
+            }
+
+            if (!hasPermission)
+                writer.write("Permission denied!");
+
+            writeTrailer(writer);
+            writer.flush();
+            writer.close();
+        } catch (ServletException e) {
+            logger.log(Level.SEVERE, e.getMessage(), e);
+            throw e;
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, e.getMessage(), e);
+            throw e;
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, e.getMessage(), e);
+            throw new ServletException(e);
         }
-
-        if (!hasPermission)
-            writer.write("Permission denied!");
-
-        writeTrailer(writer);
-        writer.flush();
-        writer.close();
     }
 
     private static void writeHeader(HttpServletRequest request, Writer w) 
