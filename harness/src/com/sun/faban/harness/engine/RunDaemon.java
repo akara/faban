@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunDaemon.java,v 1.7 2006/08/22 22:19:14 akara Exp $
+ * $Id: RunDaemon.java,v 1.8 2006/10/03 17:50:28 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -261,7 +261,7 @@ public class RunDaemon implements Runnable {
     public String killCurrentRun(String runId, String user) {
         if (runId.equals(currRun.getRunName()) && gb != null) {
             gb.kill();
-            logger.info("Audit: Run " + runId + "killed by " + user);
+            logger.info("Audit: Run " + runId + " killed by " + user);
             return runId;
         }
         return null;

@@ -38,6 +38,16 @@
         <deployUser>deployer</deployUser>
         <deployPassword>adminadmin</deployPassword>
     </security>
+    <runQueue remote="false">
+        <rig enabled="false">
+            <name>master1</name>
+            <key>ABCDEFGHIJKLMNOP</key>
+        </rig>
+        <rig enabled="false">
+            <name>master2</name>
+            <key>QRSTUVWXYZABCDEF</key>
+        </rig>
+    </runQueue>
     <replication>
         <server enabled="false">http://faban.sfbay.sun.com:9980</server>
         <server enabled="false">http://faban.sunsource.net:9980</server>
