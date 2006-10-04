@@ -2,6 +2,10 @@
 <!-- Note: Some parameters have not yet been implemented -->
 <FabanHarness>
     <security enabled="false">
+        <loginPrompt>User ID</loginPrompt>
+        <loginHint>Enter your user id</loginHint>
+        <passwordPrompt>Password</passwordPrompt>
+        <passwordHint>Enter your password</passwordHint>
         <loginModule>
             <class>com.sun.security.auth.module.UnixLoginModule</class>
             <property>
@@ -38,16 +42,16 @@
         <deployUser>deployer</deployUser>
         <deployPassword>adminadmin</deployPassword>
     </security>
-    <runQueue remote="false">
-        <rig enabled="false">
+    <runDaemon mode="poller">     <!-- poller/pollee/local/disbled -->
+        <host enabled="false">      
             <name>master1</name>
             <key>ABCDEFGHIJKLMNOP</key>
-        </rig>
-        <rig enabled="false">
+        </host>
+        <host enabled="false">
             <name>master2</name>
             <key>QRSTUVWXYZABCDEF</key>
-        </rig>
-    </runQueue>
+        </host>
+    </runDaemon>
     <replication>
         <server enabled="false">http://faban.sfbay.sun.com:9980</server>
         <server enabled="false">http://faban.sunsource.net:9980</server>

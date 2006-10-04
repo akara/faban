@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: login.jsp,v 1.4 2006/08/12 06:54:24 akara Exp $
+ * $Id: login.jsp,v 1.5 2006/10/04 23:56:49 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -65,15 +65,15 @@
   <table cellpadding="0" cellspacing="2" border="0" align="center">
     <tbody>
       <tr>
-        <td>Login ID</td>
+        <td><%= Config.loginPrompt %></td>
         <td>
-          <input type="text" name="fun" size="10">
+          <input type="text" name="fun" title="<%= Config.loginHint %>" size="10">
         </td>
       </tr>
       <tr>
-        <td>Password</td>
+        <td><%= Config.passwordPrompt %></td>
         <td>
-          <input type="password" name="fp" size="10">
+          <input type="password" name="fp" title="<%= Config.passwordHint %>" size="10">
         </td>
       </tr>
     </tbody>
