@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.9 2006/08/04 07:37:20 akara Exp $
+ * $Id: GenericBenchmark.java,v 1.10 2006/10/04 23:55:06 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,15 +25,13 @@ package com.sun.faban.harness.engine;
 
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
-import com.sun.faban.harness.common.BenchmarkDescription;
-import com.sun.faban.harness.common.Config;
-import com.sun.faban.harness.common.Run;
 import com.sun.faban.harness.Benchmark;
 import com.sun.faban.harness.ParamRepository;
+import com.sun.faban.harness.common.BenchmarkDescription;
+import com.sun.faban.harness.common.Run;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -57,8 +55,10 @@ public class GenericBenchmark {
     private Run run;
     private CmdService cmds = null;
     private ToolService tools = null;
-    private Logger logger;
     private Benchmark bm = null;
+
+    private static Logger logger =
+            Logger.getLogger(GenericBenchmark.class.getName());
 
     public static final int COMPLETED = 0;
     public static final int FAILED = 1;
@@ -71,7 +71,6 @@ public class GenericBenchmark {
     private int runStatus = FAILED;
 
     public GenericBenchmark(Run r) {
-        logger = Logger.getLogger(this.getClass().getName());
         this.run = r;
     }
 
@@ -95,7 +94,12 @@ public class GenericBenchmark {
         startTime = System.currentTimeMillis();
 
         // Update the status of the run
-        this.updateResultInfoFile("STARTED");
+        try {
+            run.updateStatus("STARTED");
+        } catch (IOException e) {
+            logger.log(Level.SEVERE,  "Failed to update run status.", e);
+            return;
+        }
 
         // Read in user parameters
         logger.info("START TIME : " + new java.util.Date());
@@ -345,7 +349,11 @@ public class GenericBenchmark {
      */ 
     private void _kill() {
 
-        updateResultInfoFile(COMPLETIONMESSAGE[runStatus]);
+        try {
+            run.updateStatus(COMPLETIONMESSAGE[runStatus]);
+        } catch (IOException e) {
+            logger.log(Level.SEVERE,  "Failed to update run status.", e);
+        }
 
         if(bm != null) {
             logger.info("Killing benchmark");
@@ -363,22 +371,6 @@ public class GenericBenchmark {
         if (cmds != null) {
             logger.fine("Calling cmds.kill");
             cmds.kill();
-        }
-    }
-
-    private void updateResultInfoFile(String status) {
-        // Update the resultinfo file with Status
-        try {
-            File resultInfo = new File(run.getOutDir(), Config.RESULT_INFO);
-            resultInfo.delete();
-            resultInfo.createNewFile();
-            BufferedWriter resBuf = new BufferedWriter(new FileWriter(resultInfo));
-            resBuf.write(status);
-            resBuf.flush();
-            resBuf.close();
-        }
-        catch (Exception e) {
-            logger.log(Level.SEVERE,  "Failed to update Result Info File.", e);
         }
     }
 
@@ -414,7 +406,7 @@ public class GenericBenchmark {
 
         // xml => html + graphs
         xanadu = new Command("xanadu export " + xanaduDir + " " + outDir);
-        try {            
+        try {
             CommandHandle handle = cmds.execute(xanadu);
             if (handle.exitValue() != 0)
                 logger.severe("Xanadu Export command " + xanadu + " Failed");

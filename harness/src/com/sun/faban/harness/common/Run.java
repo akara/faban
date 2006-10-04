@@ -17,13 +17,12 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Run.java,v 1.2 2006/06/29 19:38:41 akara Exp $
+ * $Id: Run.java,v 1.3 2006/10/04 23:55:06 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.common;
-import java.io.File;
-import java.io.Serializable;
+import java.io.*;
 
 /**
  * This is the benchmark run object. The run can either be in the
@@ -112,7 +111,23 @@ public class Run implements Serializable {
      * Get output directory pathname
      */
     public String getOutDir() {
-        return(outdir);
+        return outdir;
+    }
+
+    /**
+     * Updates the run status in the result info file.
+     * @param status The new run status
+     * @throws IOException If the update fails
+     */
+    public void updateStatus(String status) throws IOException {
+        // Update the resultinfo file with Status
+        File resultInfo = new File(outdir, Config.RESULT_INFO);
+        resultInfo.delete();
+        resultInfo.createNewFile();
+        FileWriter writer = new FileWriter(resultInfo);
+        writer.write(status);
+        writer.flush();
+        writer.close();
     }
 }
 

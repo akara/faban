@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.13 2006/09/28 05:30:49 akara Exp $
+ * $Id: Config.java,v 1.14 2006/10/04 23:55:06 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -165,12 +165,20 @@ public class Config {
 
     // Configuration from the file
     public static boolean SECURITY_ENABLED = false;
+    public static String loginPrompt;
+    public static String loginHint;
+    public static String passwordPrompt;
+    public static String passwordHint;
     public static LoginConfiguration LOGIN_CONFIG = null;
     public static Set<String> PRINCIPALS;
     public static String DEPLOY_USER;
     public static String DEPLOY_PASSWORD;
 
+    public enum DaemonModes { POLLER, POLLEE, LOCAL, DISABLED };
+    public static DaemonModes daemonMode;
     public static URL[] replicationURLs = null;
+
+
 
 
     static {
@@ -292,6 +300,13 @@ public class Config {
                     LOGIN_CONFIG = new LoginConfiguration();
                     LOGIN_CONFIG.readConfig(root, xPath);
 
+                    loginPrompt = xPath.evaluate("security/loginPrompt", root);
+                    loginHint = xPath.evaluate("security/loginHint", root);
+                    passwordPrompt = xPath.evaluate("security/passwordPrompt",
+                                                    root);
+                    passwordHint = xPath.evaluate("security/passwordHint",
+                                                  root);
+
                     // Obtain PRINCIPALS with rig-wide manage rights.
                     NodeList managePrincipals = (NodeList) xPath.evaluate(
                             "security/managePrincipals/name", root,
@@ -313,6 +328,31 @@ public class Config {
                     DEPLOY_USER = xPath.evaluate("security/deployUser", root);
                     DEPLOY_PASSWORD = xPath.evaluate("security/deployPassword", 
                                                      root);
+                }
+
+                v = xPath.evaluate("runDaemon/@mode", root);
+                if ("poller".equalsIgnoreCase(v))
+                    daemonMode = DaemonModes.POLLER;
+                else if ("pollee".equalsIgnoreCase(v))
+                    daemonMode = DaemonModes.POLLEE;
+                else if ("disabled".equalsIgnoreCase(v))
+                    daemonMode = DaemonModes.DISABLED;
+                else // default is local
+                    daemonMode = DaemonModes.LOCAL;
+
+                if (daemonMode == DaemonModes.POLLER ||
+                        daemonMode == DaemonModes.POLLEE ) {
+                    NodeList servers = (NodeList) xPath.evaluate(
+                            "runDaemon/host[@enabled='true']", root,
+                            XPathConstants.NODESET);
+                    int serverCount = servers.getLength();
+                    if (serverCount < 1) {
+                        if (daemonMode == DaemonModes.POLLER)
+                            daemonMode = DaemonModes.LOCAL;
+                        else
+                            daemonMode = DaemonModes.DISABLED;
+                    }
+                    // TODO: Populate the host structure.
                 }
 
                 // Reading replication config

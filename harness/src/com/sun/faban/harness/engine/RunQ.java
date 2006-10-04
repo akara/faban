@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunQ.java,v 1.8 2006/08/22 22:19:14 akara Exp $
+ * $Id: RunQ.java,v 1.9 2006/10/04 23:55:06 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -26,7 +26,9 @@ package com.sun.faban.harness.engine;
 import com.sun.faban.harness.ParamRepository;
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
+import com.sun.faban.harness.common.Run;
 import com.sun.faban.harness.util.FileHelper;
+import com.sun.faban.harness.util.NameValuePair;
 
 import java.io.*;
 import java.util.Arrays;
@@ -391,6 +393,29 @@ public class RunQ {
      */
     public String killCurrentRun(String runId, String user) {
         return runDaemon.killCurrentRun(runId, user);
+    }
+
+    /**
+     * Moves the run from the queue into the output directory. This
+     * function is normally done by the run daemon with the exception
+     * of a submission proxy where the run daemon is not run. The RunRetriever
+     * servlet will call to fetch this run to run on a remote system instead.
+     * @return The run object representing this run
+     * @throws RunEntryException There is an error in the run queue entry
+     */
+    public Run fetchNextRun() throws RunEntryException {
+        return runDaemon.fetchNextRun();
+    }
+
+    /**
+     * Obtains the name and age of the next run, in milliseconds
+     * since submitted, if the age is more than minAge.
+     * @param minAge The minimum run age to return.
+     * @return The age of the next run, or null if there is no next run or the
+     *         next run is younger than the given age
+     */
+    public NameValuePair<Long> nextRunAge(long minAge) {
+        return runDaemon.nextRunAge(minAge);
     }
 
     /**

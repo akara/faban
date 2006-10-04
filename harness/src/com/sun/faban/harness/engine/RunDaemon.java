@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunDaemon.java,v 1.8 2006/10/03 17:50:28 akara Exp $
+ * $Id: RunDaemon.java,v 1.9 2006/10/04 23:55:06 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -27,16 +27,14 @@ import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.Run;
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.util.FileHelper;
+import com.sun.faban.harness.util.NameValuePair;
 import com.sun.faban.harness.logging.XMLFormatter;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.FileInputStream;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Properties;
-import java.util.Enumeration;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
@@ -80,13 +78,141 @@ public class RunDaemon implements Runnable {
     }
 
     /**
+     * Obtains the name and age of the next run, in milliseconds
+     * since submitted, if the age is more than minAge.
+     * @param minAge The minimum run age to return.
+     * @return The age of the next run, or null if there is no next run or the
+     *         next run is younger than the given age
+     */
+    public NameValuePair<Long> nextRunAge(long minAge) {
+        String runName = getNextRun();
+        if (runName == null)
+            return null;
+        File runqDir = new File(Config.RUNQ_DIR, runName);
+        long age = System.currentTimeMillis() - runqDir.lastModified();
+        if (age <= minAge)
+            return null;
+        return new NameValuePair<Long>(runName, minAge);
+    }
+
+    /**
+     * Obtains the name of the next run.
+     * @return The name of the next run, or null if there is no next run
+     */
+    private String getNextRun() {
+        // get the list of runs in the runq
+        String[] list = new File(Config.RUNQ_DIR).list();
+
+        // if there is no run in the runq then wait for 10 sec and
+        // check again if it is suspended and there are any runs this time.
+        if ((list == null) || (list.length == 0)) {
+            runqLock.releaseLock();
+            return null;
+        }
+
+        Arrays.sort(list, new ComparatorImpl());
+        return list[0];
+    }
+
+    /**
+     * Fetches the next run from the run queue and places it into the output to
+     * be executed.
+     * @return The run object for the next run.
+     */
+    public Run fetchNextRun() throws RunEntryException {
+
+        // get the lock for the runq.
+        runqLock.grabLock();
+
+        // get the list of runs in the runq
+        String runName = getNextRun();
+        if (runName == null) {
+            runqLock.releaseLock();
+            return null;
+        }
+
+        // Get the next run, create an output directory for the run and
+        // copy the parameter repository file to it.
+
+        // Check to see if the dir has anything in it.
+        // $$$$$$$$$$$$$$$$$$$$$$$$$ WARNING $$$$$$$$$$$$$$$$$$$$$$$$$
+        // If the user creates an empty runq dir then it will endup with an infinite loop
+        // Need to enhance this to avoid this problem
+        File runqDir = new File(Config.RUNQ_DIR + runName);
+        if(runqDir.list().length < 1) {
+            runqLock.releaseLock();
+            logger.warning(runName + " is empty. Waiting !!");
+            return null;
+        }
+
+        int dotPos = runName.indexOf(".");
+        String benchName = runName.substring(0, dotPos);
+        String runID = runName.substring(dotPos + 1);
+
+        BenchmarkDescription benchDesc =
+                BenchmarkDescription.getDescription(benchName);
+        String runDir = Config.RUNQ_DIR + runName;
+        String outDir = Config.OUT_DIR + runName;
+
+        // Create output directory
+        File outDirFile = new File(outDir);
+        outDirFile.mkdir();
+
+        // Create the metadata directory
+        File metaInfFile = new File(outDirFile, "META-INF");
+        metaInfFile.mkdir();
+        String metaInf = metaInfFile.getAbsolutePath() + File.separator;
+
+        String sourceParamFile =
+                runDir + File.separator + benchDesc.configFileName;
+        String destParamFile =
+                outDir + File.separator + benchDesc.configFileName;
+
+        // Copy whole META-INF dir.
+        File srcMetaInf = new File(runDir, "META-INF");
+        if (srcMetaInf.isDirectory())
+            for (String metaFile : srcMetaInf.list()) {
+                FileHelper.copyFile(srcMetaInf.getAbsolutePath() +
+                        File.separator + metaFile, metaInf + metaFile, false);
+            }
+
+        if (Config.SECURITY_ENABLED) {
+            File submitter = new File(outDir + File.separator + "META-INF" +
+                                      File.separator + "submitter");
+            if (!submitter.isFile()) {
+                logger.warning("Unidentified submitter. Removing run " +
+                                runName + '.');
+                FileHelper.recursiveDelete(new File(Config.RUNQ_DIR), runName);
+                runqLock.releaseLock();
+                throw new RunEntryException("Unidentified submitter on run " +
+                                            runName + '.');
+            }
+        }
+
+
+        if (!FileHelper.copyFile(sourceParamFile, destParamFile, false)) {
+            logger.warning("Error copying Parameter Repository. " +
+                           "Removing run " + runName + '.');
+            FileHelper.recursiveDelete(new File(Config.RUNQ_DIR), runName);
+            runqLock.releaseLock();
+            throw new RunEntryException("Error run param file on run " +
+                                        runName + '.');
+        }
+
+        FileHelper.recursiveDelete(new File(Config.RUNQ_DIR), runName);
+        runqLock.releaseLock();
+
+        Run run = new Run(runID, benchDesc);
+
+        return run;
+    }
+    /**
      * The run method for the RunDaemonThread. It loops indefinitely and blocks
      * when there are no runs in the runq. It continues when notified of a new
      * run by the RunQ object.
      *
      */
     public void run() {
-        File runqDirPath = new File(Config.RUNQ_DIR);
 
         logger.info("RunDaemon Thread Started");
         // THE loop
@@ -105,17 +231,17 @@ public class RunDaemon implements Runnable {
                     continue;
                 }
             }
-            // get the lock for the runq.
-            runqLock.grabLock();
 
-            // get the list of runs in the runq
-            String[] list = null;
-            list = runqDirPath.list();
+            Run run = null;
+            try {
+                run = fetchNextRun();
+            } catch (RunEntryException e) {
+                // If there is a run entry issue, just skip to the next run
+                // immediately.
+                continue;
+            }
 
-            // if there is no run in the runq then wait for 10 sec and
-            // check again if it is suspended and there are any runs this time.
-            if ((list == null) || (list.length == 0)) {
-                runqLock.releaseLock();
+            if (run == null)
                 try {
                     Thread.sleep(10000);
                     continue; // Go back and check if suspended and then the runq
@@ -124,93 +250,15 @@ public class RunDaemon implements Runnable {
                     logger.severe("RunDaemon Thread interrupted");
                     continue;
                 }
-            }
 
-            Arrays.sort(list, new ComparatorImpl());
-
-            // Get the next run, create an output directory for the run and
-            // copy the parameter repository file to it.
-            int dotPos = list[0].indexOf(".");
-            String benchName = list[0].substring(0, dotPos);
-            String runID = list[0].substring(dotPos + 1);
-            String runDir = Config.RUNQ_DIR + list[0];
-
-            // Check to see if the dir has anything in it.
-            // $$$$$$$$$$$$$$$$$$$$$$$$$ WARNING $$$$$$$$$$$$$$$$$$$$$$$$$
-            // If the user creates an empty runq dir then it will endup with an infinite loop
-            // Need to enhance this to avoid this problem
-            File runqDir = new File(runDir);
-            if(runqDir.list().length < 1) {
-                runqLock.releaseLock();
-                try {
-                    logger.fine(runDir + " is empty. Waiting !!");
-                    Thread.sleep(10000);
-                    continue; // Go back and check if suspended and then the runq
-                }
-                catch (InterruptedException ie)
-                {
-                    logger.severe("RunDaemon Thread interrupted");
-                    logger.log(Level.FINE, "Exception", ie);
-                    continue;
-                }
-            }
-            BenchmarkDescription benchDesc =
-                    BenchmarkDescription.getDescription(benchName);
-            String outDir = Config.OUT_DIR + list[0];
-
-            // Create output directory
-            File outDirFile = new File(outDir);
-            outDirFile.mkdir();
-
-            // Create the metadata directory
-            File metaInfFile = new File(outDirFile, "META-INF");
-            metaInfFile.mkdir();
-            String metaInf = metaInfFile.getAbsolutePath() + File.separator;
-
-            String sourceParamFile =
-                    runDir + File.separator + benchDesc.configFileName;
-            String destParamFile =
-                    outDir + File.separator + benchDesc.configFileName;
-
-            // Copy whole META-INF dir.
-            File srcMetaInf = new File(runDir, "META-INF");
-            if (srcMetaInf.isDirectory())
-                for (String metaFile : srcMetaInf.list()) {
-                    FileHelper.copyFile(srcMetaInf.getAbsolutePath() +
-                            File.separator + metaFile, metaInf + metaFile, false);
-                }
-
-            if (Config.SECURITY_ENABLED) {
-                File submitter = new File(outDir + File.separator + "META-INF" +
-                                          File.separator + "submitter");
-                if (!submitter.isFile()) {
-                    logger.warning("Unidentified submitter. Not Starting " +
-                                    list[0] + " run");
-                    FileHelper.recursiveDelete(new File(Config.RUNQ_DIR), list[0]);
-                    runqLock.releaseLock();
-                    continue;
-                }
-            }
-
-
-            if (!FileHelper.copyFile(sourceParamFile, destParamFile, false)) {
-                logger.warning("Error copying Parameter Repository. " +
-                               "Not Starting " + list[0] + " run");
-                FileHelper.recursiveDelete(new File(Config.RUNQ_DIR), list[0]);
-                runqLock.releaseLock();
-                continue;
-            }
-
-            FileHelper.recursiveDelete(new File(Config.RUNQ_DIR), list[0]);
-            runqLock.releaseLock();
+            String benchName = run.getBenchmarkName();
+            String runDir = run.getOutDir();
 
             // Redirect the log to runOutDir/log.xml
-            String logFile = outDir + File.separator + Config.LOG_FILE;
+            String logFile = runDir + File.separator + Config.LOG_FILE;
             redirectLog(logFile, null);
 
             logger.info("Starting " + benchName + " run using " + runDir);
-
-            currRun = new Run(runID, benchDesc);
 
             // instantiate, start running the benchmark
             gb = new GenericBenchmark(currRun);
@@ -227,7 +275,6 @@ public class RunDaemon implements Runnable {
             logFile = logFile + File.separator + "faban.log.xml";
 
             redirectLog(logFile, "102400");
-
         }
         logger.fine("RunDaemon Thread is Exiting");
     }
