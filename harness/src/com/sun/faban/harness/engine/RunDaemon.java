@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunDaemon.java,v 1.10 2006/10/05 16:17:18 akara Exp $
+ * $Id: RunDaemon.java,v 1.11 2006/10/05 23:42:19 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -29,6 +29,7 @@ import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.util.FileHelper;
 import com.sun.faban.harness.util.NameValuePair;
 import com.sun.faban.harness.logging.XMLFormatter;
+import com.sun.faban.harness.webclient.RunRetriever;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -127,7 +128,9 @@ public class RunDaemon implements Runnable {
 
         // get the list of runs in the runq
         String runName = getNextRun();
-        if (runName == null) {
+
+        // name == null in non-poller mode. Don't check name in such cases.
+        if (runName == null || (name != null && !runName.equals(name))) {
             runqLock.releaseLock();
             return null;
         }
@@ -203,9 +206,7 @@ public class RunDaemon implements Runnable {
         FileHelper.recursiveDelete(new File(Config.RUNQ_DIR), runName);
         runqLock.releaseLock();
 
-        Run run = new Run(runID, benchDesc);
-
-        return run;
+        return new Run(runID, benchDesc);
     }
     /**
      * The run method for the RunDaemonThread. It loops indefinitely and blocks
@@ -234,18 +235,49 @@ public class RunDaemon implements Runnable {
             }
 
             Run run = null;
-            try {
-                run = fetchNextRun();
-            } catch (RunEntryException e) {
-                // If there is a run entry issue, just skip to the next run
-                // immediately.
-                continue;
+            String runName = null;
+
+            // Poll other hosts in poller mode. Otherwise skip this block.
+            if (Config.daemonMode == Config.DaemonModes.POLLER) {
+                NameValuePair<Long> nextLocal = nextRunAge(Long.MIN_VALUE);
+                long runAge = -1;
+                if (nextLocal != null) {
+                    runName = nextLocal.name;
+                    runAge = nextLocal.value;
+                }
+                File tmpRunDir = null;
+                while ((tmpRunDir = RunRetriever.pollRun(runAge)) != null)
+                    try {
+                        run = fetchRemoteRun(tmpRunDir);
+                        break;
+                    } catch (RunEntryException e) {
+                        continue; // If we got a bad run, try polling again
+                    }
+                if (run == null && nextLocal == null) { // No local run or remote run...
+                    try {
+                        Thread.sleep(10000);
+                        continue; // Go back and check if suspended
+                    }
+                    catch (InterruptedException ie) {
+                        logger.severe("RunDaemon Thread interrupted");
+                        continue;
+                    }
+                }
             }
 
             if (run == null)
                 try {
+                    run = fetchNextRun(runName); // runName null if not poller.
+                } catch (RunEntryException e) {
+                    // If there is a run entry issue, just skip to the next run
+                    // immediately.
+                    continue;
+                }
+
+            if (run == null)
+                try {
                     Thread.sleep(10000);
-                    continue; // Go back and check if suspended and then the runq
+                    continue; // Go back and check if suspended
                 }
                 catch (InterruptedException ie) {
                     logger.severe("RunDaemon Thread interrupted");
@@ -278,6 +310,57 @@ public class RunDaemon implements Runnable {
             redirectLog(logFile, "102400");
         }
         logger.fine("RunDaemon Thread is Exiting");
+    }
+
+    /**
+     * Fetches a remote run downloaded into the given run directory.
+     * @param tmpRunDir The temporary directory the run was downloaded into
+     * @return The run object for this run.
+     * @throws RunEntryException The run in the given dir cannot be run.
+     */
+    private Run fetchRemoteRun(File tmpRunDir) throws RunEntryException {
+
+        runqLock.grabLock();
+
+        // 1. get run id and create run directory
+        String benchName = tmpRunDir.getName();
+        int dotPos = benchName.lastIndexOf('.');
+        String runID = benchName.substring(dotPos + 1);
+        benchName = benchName.substring(0, dotPos);
+        String runName = RunQ.getHandle().getRunID(benchName);
+        File runDir = new File(Config.OUT_DIR, runName);
+        runDir.mkdir();
+
+        // 2. copy contents
+        boolean success = true;
+        File[] files = tmpRunDir.listFiles();
+        for (File s : files)
+            if (!FileHelper.recursiveCopy(s, new File(runDir, s.getName())))
+                success = false;
+
+        if (!success) {
+            logger.warning("Error copying remote run. " +
+                           "Removing run " + runName + '.');
+            FileHelper.recursiveDelete(new File(Config.RUNQ_DIR), runName);
+            runqLock.releaseLock();
+            throw new RunEntryException("Error copy param file on run " +
+                                        runName + '.');
+        }
+        runqLock.releaseLock();
+
+        FileHelper.recursiveDelete(tmpRunDir);
+
+        BenchmarkDescription benchDesc = BenchmarkDescription.
+                                            getDescription(benchName);
+        if (benchDesc == null) {
+            RunEntryException e = new RunEntryException(
+                    "Received run for benchmark " + benchName +
+                    "from remote, benchmark not deployed. " +
+                    "Please deploy before continue");
+            logger.log(Level.SEVERE, e.getMessage(), e);
+            throw e;
+        }
+        return new Run(runID, benchDesc);
     }
 
     /**

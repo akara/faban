@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileHelper.java,v 1.5 2006/09/15 18:51:29 akara Exp $
+ * $Id: FileHelper.java,v 1.6 2006/10/05 23:42:20 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -265,7 +265,7 @@ public class FileHelper {
     }
 
     /**
-     * This  method is used to delete a directory and
+     * This method is used to delete a directory and
      * recursively delete files and subdirectories within it.
      *
      * @param parentDir : the file object corresponding to the parent directory
@@ -276,6 +276,31 @@ public class FileHelper {
         return recursiveDelete(new File(parentDir, name));
     }
 
+    /**
+     * Copies a file from source to dest. If src is a directory, the whole
+     * directory tree is copied. The dest file must not exist.
+     * @param src The source file
+     * @param dest The dest file, must not exist before calling method
+     * @return true if copy succeeded, false afterwise
+     */
+    public static boolean recursiveCopy(File src, File dest) {
+        boolean success = true;
+        if (dest.exists())
+            success = false;
+        else if (src.isDirectory()) {
+            dest.mkdir();
+            File[] files = src.listFiles();
+            for (File s : files) {
+                File d = new File(dest, s.getName());
+                if (!recursiveCopy(s, d))
+                    success = false;
+            }
+        } else {
+            success = copyFile(src.getAbsolutePath(), dest.getAbsolutePath(),
+                            false);
+        }
+        return success;
+    }
 
     /**
      * Transfers a file from the current host to the Faban master.

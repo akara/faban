@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunRetriever.java,v 1.2 2006/10/05 16:17:19 akara Exp $
+ * $Id: RunRetriever.java,v 1.3 2006/10/05 23:42:20 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -201,6 +201,28 @@ public class RunRetriever extends HttpServlet {
         return jar;
     }
 
+    public static File unjar(File runJarFile) throws IOException, InterruptedException {
+        logger.info("Preparing run from " + runJarFile.getAbsolutePath() + '.');
+
+        String dirName = runJarFile.getName();
+        int dotPos = dirName.lastIndexOf('.');
+        dirName = dirName.substring(0, dotPos);
+        File unjarDir = new File(Config.TMP_DIR, dirName);
+        unjarDir.mkdir();
+        String jarCmd = DeployUtil.getJavaHome() + File.separator + "bin" +
+                File.separator + "jar";
+        Command cmd = new Command(jarCmd + " xf " +
+                runJarFile.getAbsolutePath());
+        cmd.setWorkingDirectory(unjarDir.getAbsolutePath());
+        cmd.execute();
+        File[] entry = unjarDir.listFiles();
+        if (entry.length != 1) {
+            logger.warning(runJarFile.getName() + "has no entries.");
+            return null;
+        }
+        return entry[0];
+    }
+
     /**
      * Client side method to poll for the oldest run which must be older than
      * localAge. If found, the run will be downloaded into the temp space.
@@ -208,23 +230,52 @@ public class RunRetriever extends HttpServlet {
      * @param localAge The age of the oldest local run in the queue
      * @return The file reference to the local run in the directory
      */
-    public static File pollRun(long localAge) throws IOException {
+    public static File pollRun(long localAge) {
         Config.HostInfo selectedHost = null;
         NameValuePair<Long> selectedRun = null;
         for (int i = 0; i < Config.pollHosts.length; i++) {
             Config.HostInfo pollHost = Config.pollHosts[i];
-            NameValuePair<Long> run = poll(pollHost, localAge);
+            NameValuePair<Long> run = null;
+            try {
+                run = poll(pollHost, localAge);
+            } catch (IOException e) {
+                logger.log(Level.WARNING, "Error polling " + pollHost.url +
+                            '.', e);
+            }
             if (run != null &&
                     (selectedRun == null || run.value > selectedRun.value)) {
                 selectedRun = run;
                 selectedHost = pollHost;
             }
         }
-        File tmpJar = null;
+        File tmpDir = null;
         if (selectedRun != null) {
-            tmpJar = download(selectedHost, selectedRun);
+            try {
+                // Download and unjar the run.
+                File tmpJar = download(selectedHost, selectedRun);
+                tmpDir = unjar(tmpJar);
+                File metaInf = new File(tmpDir, "META-INF");
+                if (!metaInf.isDirectory())
+                    metaInf.mkdir();
+
+                // Create origin file to know where this run came from.
+                File origin = new File(metaInf, "origin");
+                FileOutputStream originOut = new FileOutputStream(origin);
+                originOut.write((selectedHost.name + '.' + selectedRun.name +
+                        '\n').getBytes());
+                originOut.flush();
+                originOut.close();
+                tmpJar.delete();
+            } catch (IOException e) {
+                logger.log(Level.WARNING, "Error downloading run " +
+                           selectedRun.name + " from " + selectedHost.url + '.',
+                           e);
+            } catch (InterruptedException e) {
+                logger.log(Level.WARNING, "Interrupted unjar'ing run " +
+                           selectedRun.name + '.', e);
+            }
         }
-        return tmpJar;
+        return tmpDir;
     }
 
     private static NameValuePair<Long> poll(Config.HostInfo host, long minAge)
@@ -245,7 +296,7 @@ public class RunRetriever extends HttpServlet {
             InputStream is = c.getInputStream();
 
             // The input is a one liner in the form runName\tAge
-            byte[] buffer = new byte[256];
+            byte[] buffer = new byte[256]; // Very little cost for this new/GC.
             int size = is.read(buffer);
 
             // We have to close the input stream in order to return it to
@@ -281,11 +332,15 @@ public class RunRetriever extends HttpServlet {
         FileOutputStream jarOut = null;
         if (c.getResponseCode() == HttpServletResponse.SC_OK) {
             InputStream is = c.getInputStream();
+            // We allocate in every method instead of a central buffer
+            // to allow concurrent downloads. This can be expanded to use
+            // buffer pools to avoid GC, if necessary.
             byte[] buffer = new byte[8192];
             int size;
             while ((size = is.read(buffer)) != -1) {
                 if (size > 0 && jarFile == null) {
-                    jarFile = new File(Config.TMP_DIR, "remote_run.jar");
+                    jarFile = File.createTempFile("run", ".jar",
+                                                  new File(Config.TMP_DIR));
                     jarOut = new FileOutputStream(jarFile);
                 }
                 jarOut.write(buffer, 0, size);

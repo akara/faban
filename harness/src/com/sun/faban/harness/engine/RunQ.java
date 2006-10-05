@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunQ.java,v 1.10 2006/10/05 16:17:18 akara Exp $
+ * $Id: RunQ.java,v 1.11 2006/10/05 23:42:19 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -184,8 +184,7 @@ public class RunQ {
 
     // Gets the ID for this run from the sequence file. Creates a new
     // sequence file if it does not already exist.
-    private String getRunID(String benchName)
-    {
+    String getRunID(String benchName) {
 
         String runID = null;
         String runIDChar, runIDIntChar;
@@ -407,6 +406,8 @@ public class RunQ {
      * @throws RunEntryException There is an error in the run queue entry
      */
     public Run fetchNextRun(String runName) throws RunEntryException {
+        if (runName == null)
+            throw new NullPointerException("Run name cannot be null!");
         return runDaemon.fetchNextRun(runName);
     }
 
@@ -513,7 +514,5 @@ public class RunQ {
 
         }
     }
-
-
 }
 
