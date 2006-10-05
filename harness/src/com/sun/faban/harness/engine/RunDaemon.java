@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunDaemon.java,v 1.11 2006/10/05 23:42:19 akara Exp $
+ * $Id: RunDaemon.java,v 1.12 2006/10/05 23:53:34 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -73,8 +73,11 @@ public class RunDaemon implements Runnable {
         super();
         logger = Logger.getLogger(this.getClass().getName());
         this.runqLock = runqLock;
-        runDaemonThread = new Thread(this);
-        runDaemonThread.start();
+        if (Config.daemonMode == Config.DaemonModes.POLLER ||
+                Config.daemonMode == Config.DaemonModes.LOCAL) {
+            runDaemonThread = new Thread(this);
+            runDaemonThread.start();
+        }
 
     }
 
@@ -431,7 +434,7 @@ public class RunDaemon implements Runnable {
      *
      */
     public boolean suspendRunDaemonThread() {
-        if (!suspended) {
+        if (runDaemonThread != null && !suspended) {
             synchronized (runDaemonThread) {
                 logger.info("RunDaemon Suspended");
                 suspended = true;
@@ -446,6 +449,9 @@ public class RunDaemon implements Runnable {
      *
      */
     public boolean resumeRunDaemonThread() {
+
+        if (runDaemonThread == null)
+            return false;
 
         if (!runDaemonThread.isAlive()) {
             runDaemonThread.start();
