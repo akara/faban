@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunQ.java,v 1.9 2006/10/04 23:55:06 akara Exp $
+ * $Id: RunQ.java,v 1.10 2006/10/05 16:17:18 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -400,11 +400,14 @@ public class RunQ {
      * function is normally done by the run daemon with the exception
      * of a submission proxy where the run daemon is not run. The RunRetriever
      * servlet will call to fetch this run to run on a remote system instead.
+     * If the given run name does not match the name of the next run, some
+     * consistencies have happened. The method returns null in this case.
+     * @param runName The name of the run in question.
      * @return The run object representing this run
      * @throws RunEntryException There is an error in the run queue entry
      */
-    public Run fetchNextRun() throws RunEntryException {
-        return runDaemon.fetchNextRun();
+    public Run fetchNextRun(String runName) throws RunEntryException {
+        return runDaemon.fetchNextRun(runName);
     }
 
     /**
@@ -498,11 +501,9 @@ public class RunQ {
       * the run with the smallest runid.
       *
       */
-    private class ComparatorImpl implements Comparator
-    {
+    private class ComparatorImpl implements Comparator {
 
-        public int compare(Object o1, Object o2)
-        {
+        public int compare(Object o1, Object o2) {
 
             String s1 = (String) o1;
             String s2 = (String) o2;

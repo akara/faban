@@ -45,10 +45,12 @@
     <runDaemon mode="poller">     <!-- poller/pollee/local/disbled -->
         <host enabled="false">      
             <name>master1</name>
+            <url>http://master1:9980</url>
             <key>ABCDEFGHIJKLMNOP</key>
         </host>
         <host enabled="false">
             <name>master2</name>
+            <url>http://master2:9980</url>
             <key>QRSTUVWXYZABCDEF</key>
         </host>
     </runDaemon>

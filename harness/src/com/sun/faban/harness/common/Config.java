@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.14 2006/10/04 23:55:06 akara Exp $
+ * $Id: Config.java,v 1.15 2006/10/05 16:17:18 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -174,8 +174,8 @@ public class Config {
     public static String DEPLOY_USER;
     public static String DEPLOY_PASSWORD;
 
-    public enum DaemonModes { POLLER, POLLEE, LOCAL, DISABLED };
     public static DaemonModes daemonMode;
+    public static HostInfo[] pollHosts;
     public static URL[] replicationURLs = null;
 
 
@@ -186,6 +186,15 @@ public class Config {
         configLogger();
         readConfig();
     }
+
+    public enum DaemonModes { POLLER, POLLEE, LOCAL, DISABLED };
+
+    public static class HostInfo {
+        public String name;
+        public URL url;
+        public String key;
+    }
+
 
     /**
      * Sets the derived configuration variables. These are derived from
@@ -342,17 +351,26 @@ public class Config {
 
                 if (daemonMode == DaemonModes.POLLER ||
                         daemonMode == DaemonModes.POLLEE ) {
-                    NodeList servers = (NodeList) xPath.evaluate(
+                    NodeList hosts = (NodeList) xPath.evaluate(
                             "runDaemon/host[@enabled='true']", root,
                             XPathConstants.NODESET);
-                    int serverCount = servers.getLength();
-                    if (serverCount < 1) {
+                    int hostCount = hosts.getLength();
+                    if (hostCount < 1) {
                         if (daemonMode == DaemonModes.POLLER)
                             daemonMode = DaemonModes.LOCAL;
                         else
                             daemonMode = DaemonModes.DISABLED;
                     }
-                    // TODO: Populate the host structure.
+                    pollHosts = new HostInfo[hostCount];
+                    for (int i = 0; i < hostCount; i++) {
+                        Node hostNode = hosts.item(i);
+                        pollHosts[i] = new HostInfo();
+                        pollHosts[i].name = xPath.evaluate("name", hostNode);
+                        v = xPath.evaluate("url", hostNode);
+                        if (v != null && v.length() > 0)
+                            pollHosts[i].url = new URL(v);
+                        pollHosts[i].key = xPath.evaluate("key", hostNode);
+                    }
                 }
 
                 // Reading replication config

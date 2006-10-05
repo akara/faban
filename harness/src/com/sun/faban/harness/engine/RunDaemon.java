@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunDaemon.java,v 1.9 2006/10/04 23:55:06 akara Exp $
+ * $Id: RunDaemon.java,v 1.10 2006/10/05 16:17:18 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -117,9 +117,10 @@ public class RunDaemon implements Runnable {
     /**
      * Fetches the next run from the run queue and places it into the output to
      * be executed.
-     * @return The run object for the next run.
+     * @param name The name of the run to fetch
+     * @return The run object for the next run
      */
-    public Run fetchNextRun() throws RunEntryException {
+    public Run fetchNextRun(String name) throws RunEntryException {
 
         // get the lock for the runq.
         runqLock.grabLock();

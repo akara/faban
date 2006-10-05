@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunRetriever.java,v 1.1 2006/10/04 23:55:07 akara Exp $
+ * $Id: RunRetriever.java,v 1.2 2006/10/05 16:17:19 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -35,15 +35,16 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
-import java.io.FileInputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.StringTokenizer;
+import java.net.HttpURLConnection;
 
 /**
- * This is the servlet that allows retrieving runs from the run queue.
+ * This class represents both the servlet that allows fetching runs from
+ * the run queue and the client side utility pollRun used to retrieve
+ * remote runs.
  *
  * @author Akara Sucharitakul
  */
@@ -57,14 +58,45 @@ public class RunRetriever extends HttpServlet {
                           HttpServletResponse response)
             throws ServletException, IOException {
 
-        // TODO: 1. Check access rights
-        // TODO: 2. Check that local run queue is disabled
+        // Check that we are a pollee
+        if (Config.daemonMode != Config.DaemonModes.POLLEE) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        // Check access rights
+        String hostName = request.getParameter("host");
+        String key = request.getParameter("key");
+
+        if (hostName == null || key == null) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        boolean authenticated = false;
+
+        // We do not expect too many hosts polling, so we use sequential
+        // search. If this turns out wrong, we can always go for alternatives.
+        for (int i = 0; i < Config.pollHosts.length; i++) {
+            if (hostName.equals(Config.pollHosts[i].name) &&
+                    key.equals(Config.pollHosts[i].key)) {
+                authenticated = true;
+                break;
+            }
+        }
+
+        if (!authenticated) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        // Is this an age probe?
         String v = request.getParameter("minage");
         if (v != null) {
             nextRunAge(Long.parseLong(v), response);
             return;
         }
-        v = request.getParameter("name");
+        v = request.getParameter("runname");
         if (v != null) {
             fetchNextRun(v, response);
             return;
@@ -99,7 +131,7 @@ public class RunRetriever extends HttpServlet {
         Run nextRun = null;
         for (;;)
             try {
-                nextRun = RunQ.getHandle().fetchNextRun();
+                nextRun = RunQ.getHandle().fetchNextRun(runName);
                 break;
             } catch (RunEntryException e) {
             }
@@ -167,5 +199,101 @@ public class RunRetriever extends HttpServlet {
         cmd.setWorkingDirectory(Config.OUT_DIR);
         cmd.execute();
         return jar;
+    }
+
+    /**
+     * Client side method to poll for the oldest run which must be older than
+     * localAge. If found, the run will be downloaded into the temp space.
+     * and the run name will be returned.
+     * @param localAge The age of the oldest local run in the queue
+     * @return The file reference to the local run in the directory
+     */
+    public static File pollRun(long localAge) throws IOException {
+        Config.HostInfo selectedHost = null;
+        NameValuePair<Long> selectedRun = null;
+        for (int i = 0; i < Config.pollHosts.length; i++) {
+            Config.HostInfo pollHost = Config.pollHosts[i];
+            NameValuePair<Long> run = poll(pollHost, localAge);
+            if (run != null &&
+                    (selectedRun == null || run.value > selectedRun.value)) {
+                selectedRun = run;
+                selectedHost = pollHost;
+            }
+        }
+        File tmpJar = null;
+        if (selectedRun != null) {
+            tmpJar = download(selectedHost, selectedRun);
+        }
+        return tmpJar;
+    }
+
+    private static NameValuePair<Long> poll(Config.HostInfo host, long minAge)
+            throws IOException {
+
+        HttpURLConnection c = (HttpURLConnection) host.url.openConnection();
+        c.setRequestMethod("POST");
+        c.setDoOutput(true);
+        c.setDoInput(true);
+        PrintWriter out = new PrintWriter(c.getOutputStream());
+        out.write("host=" + host.name + "&key=" + host.key +
+                  "&minage=" + minAge);
+        out.flush();
+        out.close();
+
+        NameValuePair<Long> run = null;
+        if (c.getResponseCode() == HttpServletResponse.SC_OK) {
+            InputStream is = c.getInputStream();
+
+            // The input is a one liner in the form runName\tAge
+            byte[] buffer = new byte[256];
+            int size = is.read(buffer);
+
+            // We have to close the input stream in order to return it to
+            // the cache, so we get it for all content, even if we don't
+            // use it. It's (I believe) a bug that the content handlers used
+            // by getContent() don't close the input stream, but the JDK team
+            // has marked those bugs as "will not fix."
+            is.close();
+
+            StringTokenizer t = new StringTokenizer(
+                                        new String(buffer, 0, size), "\t\n");
+            run = new NameValuePair<Long>();
+            run.name = t.nextToken();
+            run.value = Long.parseLong(t.nextToken());
+        }
+        return run;
+    }
+
+    private static File download(Config.HostInfo host, NameValuePair<Long> run)
+            throws IOException {
+
+        HttpURLConnection c = (HttpURLConnection) host.url.openConnection();
+        c.setRequestMethod("POST");
+        c.setDoOutput(true);
+        c.setDoInput(true);
+        PrintWriter out = new PrintWriter(c.getOutputStream());
+        out.write("host=" + host.name + "&key=" + host.key +
+                  "&runname=" + run.name);
+        out.flush();
+        out.close();
+
+        File jarFile = null;
+        FileOutputStream jarOut = null;
+        if (c.getResponseCode() == HttpServletResponse.SC_OK) {
+            InputStream is = c.getInputStream();
+            byte[] buffer = new byte[8192];
+            int size;
+            while ((size = is.read(buffer)) != -1) {
+                if (size > 0 && jarFile == null) {
+                    jarFile = new File(Config.TMP_DIR, "remote_run.jar");
+                    jarOut = new FileOutputStream(jarFile);
+                }
+                jarOut.write(buffer, 0, size);
+            }
+            is.close();
+            jarOut.flush();
+            jarOut.close();
+        }
+        return jarFile;
     }
 }
