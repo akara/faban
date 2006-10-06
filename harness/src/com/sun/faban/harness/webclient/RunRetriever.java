@@ -17,18 +17,17 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunRetriever.java,v 1.3 2006/10/05 23:42:20 akara Exp $
+ * $Id: RunRetriever.java,v 1.4 2006/10/06 23:24:20 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.webclient;
 
-import com.sun.faban.common.Command;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.Run;
 import com.sun.faban.harness.engine.RunEntryException;
 import com.sun.faban.harness.engine.RunQ;
-import com.sun.faban.harness.util.DeployUtil;
+import com.sun.faban.harness.util.FileHelper;
 import com.sun.faban.harness.util.NameValuePair;
 
 import javax.servlet.ServletException;
@@ -36,10 +35,11 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.StringTokenizer;
-import java.net.HttpURLConnection;
 
 /**
  * This class represents both the servlet that allows fetching runs from
@@ -49,6 +49,8 @@ import java.net.HttpURLConnection;
  * @author Akara Sucharitakul
  */
 public class RunRetriever extends HttpServlet {
+
+    public static final String SERVLET_PATH = "pollrun";
 
     private static Logger logger = Logger.getLogger(
             RunRetriever.class.getName());
@@ -77,13 +79,12 @@ public class RunRetriever extends HttpServlet {
 
         // We do not expect too many hosts polling, so we use sequential
         // search. If this turns out wrong, we can always go for alternatives.
-        for (int i = 0; i < Config.pollHosts.length; i++) {
+        for (int i = 0; i < Config.pollHosts.length; i++)
             if (hostName.equals(Config.pollHosts[i].name) &&
                     key.equals(Config.pollHosts[i].key)) {
                 authenticated = true;
                 break;
             }
-        }
 
         if (!authenticated) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
@@ -126,7 +127,7 @@ public class RunRetriever extends HttpServlet {
     }
 
     private void fetchNextRun(String runName, HttpServletResponse response)
-            throws ServletException, IOException {
+            throws IOException {
 
         Run nextRun = null;
         for (;;)
@@ -143,12 +144,7 @@ public class RunRetriever extends HttpServlet {
 
         // Jar up the run.
         File jarFile = null;
-        try {
-            jarFile = jar(nextRun);
-        } catch (InterruptedException e) {
-            logger.log(Level.SEVERE, "Run preparation interrupted.", e);
-            throw new ServletException(e);
-        }
+        jarFile = jar(nextRun);
 
         // Send the run jar to the output stream
         long length = jarFile.length();
@@ -180,7 +176,7 @@ public class RunRetriever extends HttpServlet {
      * Jars up the run directory.
      * @param run The run to jar up
      */
-    public static File jar(Run run) throws IOException, InterruptedException {
+    public static File jar(Run run) throws IOException {
 
         logger.info("Preparing run " + run.getRunName() + " for download.");
 
@@ -192,35 +188,8 @@ public class RunRetriever extends HttpServlet {
         if (jar.exists())
             jar.delete();
 
-        String jarCmd = DeployUtil.getJavaHome() + File.separator + "bin" +
-                File.separator + "jar";
-        Command cmd = new Command(jarCmd + " cf " + jar.getAbsolutePath() +
-                ' ' + runName);
-        cmd.setWorkingDirectory(Config.OUT_DIR);
-        cmd.execute();
+        FileHelper.jar(Config.OUT_DIR, runName, jar.getAbsolutePath());
         return jar;
-    }
-
-    public static File unjar(File runJarFile) throws IOException, InterruptedException {
-        logger.info("Preparing run from " + runJarFile.getAbsolutePath() + '.');
-
-        String dirName = runJarFile.getName();
-        int dotPos = dirName.lastIndexOf('.');
-        dirName = dirName.substring(0, dotPos);
-        File unjarDir = new File(Config.TMP_DIR, dirName);
-        unjarDir.mkdir();
-        String jarCmd = DeployUtil.getJavaHome() + File.separator + "bin" +
-                File.separator + "jar";
-        Command cmd = new Command(jarCmd + " xf " +
-                runJarFile.getAbsolutePath());
-        cmd.setWorkingDirectory(unjarDir.getAbsolutePath());
-        cmd.execute();
-        File[] entry = unjarDir.listFiles();
-        if (entry.length != 1) {
-            logger.warning(runJarFile.getName() + "has no entries.");
-            return null;
-        }
-        return entry[0];
     }
 
     /**
@@ -253,7 +222,7 @@ public class RunRetriever extends HttpServlet {
             try {
                 // Download and unjar the run.
                 File tmpJar = download(selectedHost, selectedRun);
-                tmpDir = unjar(tmpJar);
+                tmpDir = FileHelper.unjarTmp(tmpJar);
                 File metaInf = new File(tmpDir, "META-INF");
                 if (!metaInf.isDirectory())
                     metaInf.mkdir();
@@ -270,9 +239,6 @@ public class RunRetriever extends HttpServlet {
                 logger.log(Level.WARNING, "Error downloading run " +
                            selectedRun.name + " from " + selectedHost.url + '.',
                            e);
-            } catch (InterruptedException e) {
-                logger.log(Level.WARNING, "Interrupted unjar'ing run " +
-                           selectedRun.name + '.', e);
             }
         }
         return tmpDir;
@@ -281,12 +247,14 @@ public class RunRetriever extends HttpServlet {
     private static NameValuePair<Long> poll(Config.HostInfo host, long minAge)
             throws IOException {
 
-        HttpURLConnection c = (HttpURLConnection) host.url.openConnection();
+        HttpURLConnection c = (HttpURLConnection) new URL(host.url,
+                                            SERVLET_PATH).openConnection();
+
         c.setRequestMethod("POST");
         c.setDoOutput(true);
         c.setDoInput(true);
         PrintWriter out = new PrintWriter(c.getOutputStream());
-        out.write("host=" + host.name + "&key=" + host.key +
+        out.write("host=" + Config.FABAN_HOST + "&key=" + host.key +
                   "&minage=" + minAge);
         out.flush();
         out.close();
@@ -318,7 +286,8 @@ public class RunRetriever extends HttpServlet {
     private static File download(Config.HostInfo host, NameValuePair<Long> run)
             throws IOException {
 
-        HttpURLConnection c = (HttpURLConnection) host.url.openConnection();
+        HttpURLConnection c = (HttpURLConnection) new URL(host.url,
+                                            SERVLET_PATH).openConnection();
         c.setRequestMethod("POST");
         c.setDoOutput(true);
         c.setDoInput(true);

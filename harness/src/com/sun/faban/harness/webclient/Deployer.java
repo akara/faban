@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Deployer.java,v 1.7 2006/10/02 20:44:27 akara Exp $
+ * $Id: Deployer.java,v 1.8 2006/10/06 23:24:20 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -120,7 +120,7 @@ public class Deployer extends HttpServlet {
             // maximum size that will be stored in memory
             fu.setSizeThreshold(4096);
             // the location for saving data that is larger than getSizeThreshold()
-            fu.setRepositoryPath(System.getProperty("java.io.tmpdir"));
+            fu.setRepositoryPath(Config.TMP_DIR);
 
             List fileItems = null;
             try {
@@ -175,12 +175,11 @@ public class Deployer extends HttpServlet {
                 // Well, if there is another separator we did not account for,
                 // just add it above.
 
-                pathCheck:
                 for (int j = 0; j < pathSeparators.length; j++) {
                     int idx = fileName.lastIndexOf(pathSeparators[j]);
                     if (idx != -1) {
                         fileName = fileName.substring(idx + 1);
-                        break pathCheck;
+                        break;
                     }
                 }
 

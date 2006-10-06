@@ -17,12 +17,14 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileHelper.java,v 1.6 2006/10/05 23:42:20 akara Exp $
+ * $Id: FileHelper.java,v 1.7 2006/10/06 23:24:19 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.util;
 
+import com.sun.faban.common.Command;
+import com.sun.faban.common.CommandHandle;
 import com.sun.faban.harness.agent.CmdAgentImpl;
 import com.sun.faban.harness.agent.FileAgent;
 import com.sun.faban.harness.agent.FileService;
@@ -301,6 +303,89 @@ public class FileHelper {
         }
         return success;
     }
+
+    /**
+     * Obtains the JAVA_HOME of the current JVM.
+     * @return The current JAVA_HOME
+     */
+    public static String getJavaHome() {
+        String javaHome = System.getProperty("java.home");
+        String suffix = File.separator + "jre";
+        if (javaHome.endsWith(suffix))
+            javaHome = javaHome.substring(0, javaHome.length() -
+                       suffix.length());
+        return javaHome;
+    }
+
+    /**
+     * Jars up a directory to a given Jar file
+     * @param dir The base directory to jar (not included in output)
+     * @param fileSpec The file name spec to jar, can be multiple files
+     *        or wildcard '*'
+     * @param jarPath The pathname of the jar file
+     * @throws IOException There is a problem jarring up
+     */
+    public static void jar(String dir, String fileSpec, String jarPath)
+            throws IOException {
+
+        logger.fine("Jar'ring up " + dir + " to " + jarPath + '.');
+
+        String jarCmd = getJavaHome() + File.separator + "bin" +
+                File.separator + "jar";
+        Command cmd = new Command(jarCmd + " cf " + jarPath +
+                ' ' + fileSpec);
+        cmd.setWorkingDirectory(dir);
+        try {
+            CommandHandle handle = cmd.execute();
+            int exitValue = handle.exitValue();
+            if (exitValue != 0)
+                throw new IOException("Command \"jar cf\" has exit value " +
+                                      exitValue);
+        } catch (InterruptedException e) {
+            logger.log(Level.SEVERE, "Jar interrupted", e);
+        }
+    }
+
+    public static void unjar(String jarPath, String outputDir)
+            throws IOException {
+
+        logger.fine("Unjar'ring " + jarPath + " to " + outputDir + '.');
+        String jarCmd = getJavaHome() + File.separator + "bin" +
+                File.separator + "jar";
+        Command cmd = new Command(jarCmd + " xf " + jarPath);
+        cmd.setWorkingDirectory(outputDir);
+        try {
+            CommandHandle handle = cmd.execute();
+            int exitValue = handle.exitValue();
+            if (exitValue != 0)
+                throw new IOException("Command \"jar xf\" has exit value " +
+                                      exitValue);
+        } catch (InterruptedException e) {
+            logger.log(Level.SEVERE, "Unjar interrupted", e);
+        }
+    }
+
+    public static File unjarTmp(File tmpJarFile) throws IOException {
+        logger.info("Preparing run from " + tmpJarFile.getAbsolutePath() + '.');
+
+        String dirName = tmpJarFile.getName();
+        int dotPos = dirName.lastIndexOf('.');
+        dirName = dirName.substring(0, dotPos);
+        File unjarDir = new File(tmpJarFile.getParent(), dirName);
+        unjarDir.mkdir();
+
+        FileHelper.unjar(tmpJarFile.getAbsolutePath(),
+                         unjarDir.getAbsolutePath());
+        File[] entry = unjarDir.listFiles();
+        if (entry.length != 1) {
+            logger.warning(tmpJarFile.getName() + "has no entries.");
+            return null;
+        }
+        return entry[0];
+    }
+
+
+
 
     /**
      * Transfers a file from the current host to the Faban master.

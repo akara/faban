@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.15 2006/10/05 16:17:18 akara Exp $
+ * $Id: Config.java,v 1.16 2006/10/06 23:24:18 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -37,6 +37,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.HashSet;
@@ -136,6 +138,7 @@ public class Config {
 
     public static String TMP_DIR;
     // File related
+    public static String FABAN_HOST; // The host name.
     public static String FABAN_HOME; // This is where Faban is installed
     public static String FABAN_ROOT; // This is the context root for Faban
     public static String FABAN_URL; // The URL to to access Faban
@@ -237,6 +240,11 @@ public class Config {
             CONFIG_DIR = FABAN_HOME + "config" + File.separator;
         }
 
+        try {
+            FABAN_HOST = InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            FABAN_HOST = "";
+        }
 
         // space before and after string are required in next line
         // Constant used by engine.CmdService

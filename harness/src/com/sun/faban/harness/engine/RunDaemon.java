@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunDaemon.java,v 1.12 2006/10/05 23:53:34 akara Exp $
+ * $Id: RunDaemon.java,v 1.13 2006/10/06 23:24:19 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -78,7 +78,6 @@ public class RunDaemon implements Runnable {
             runDaemonThread = new Thread(this);
             runDaemonThread.start();
         }
-
     }
 
     /**

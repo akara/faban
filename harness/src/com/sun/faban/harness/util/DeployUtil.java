@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DeployUtil.java,v 1.6 2006/10/02 20:44:27 akara Exp $
+ * $Id: DeployUtil.java,v 1.7 2006/10/06 23:24:19 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -67,8 +67,7 @@ public class DeployUtil {
      * Unjars the content a benchmark jar file into the benchmark directory.
      * @param benchName The name of the benchmark
      */
-    public static void unjar(String benchName)
-            throws IOException, InterruptedException {
+    public static void unjar(String benchName) throws IOException {
 
         logger.info("Redeploying " + benchName);
 
@@ -79,22 +78,7 @@ public class DeployUtil {
             FileHelper.recursiveDelete(dir);
         dir.mkdir();
 
-        String jarCmd = getJavaHome() + File.separator + "bin" +
-                        File.separator + "jar";
-        Command cmd = new Command(jarCmd + " xf " + Config.BENCHMARK_DIR +
-                                  jarName);
-        cmd.setWorkingDirectory(Config.BENCHMARK_DIR + benchName);
-        cmd.execute();
-    }
-
-    // Get JAVA_HOME and clip off the /jre subpath if necessary
-    public static String getJavaHome() {
-        String javaHome = System.getProperty("java.home");
-        String suffix = File.separator + "jre";
-        if (javaHome.endsWith(suffix))
-            javaHome = javaHome.substring(0, javaHome.length() -
-                       suffix.length());
-        return javaHome;
+        FileHelper.unjar(jarName, Config.BENCHMARK_DIR + benchName);
     }
 
     public static void generateDD(String dir) {
@@ -123,9 +107,9 @@ public class DeployUtil {
                         classpath += File.pathSeparator + benchLib +
                                      File.separator + jarFiles[i];
 
-                String ddCmd = getJavaHome() + File.separator + "bin" +
-                               File.separator + "java -classpath " + classpath +
-                               " -Dbenchmark.config=" + configFile +
+                String ddCmd = FileHelper.getJavaHome() + File.separator +
+                               "bin" + File.separator + "java -classpath " +
+                               classpath + " -Dbenchmark.config=" + configFile +
                                " -Dbenchmark.ddfile=faban.xml" +
                                " com.sun.faban.driver.util.DDGenerator";
 
