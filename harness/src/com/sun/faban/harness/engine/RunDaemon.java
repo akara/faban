@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunDaemon.java,v 1.13 2006/10/06 23:24:19 akara Exp $
+ * $Id: RunDaemon.java,v 1.14 2006/10/07 07:33:40 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -30,6 +30,7 @@ import com.sun.faban.harness.util.FileHelper;
 import com.sun.faban.harness.util.NameValuePair;
 import com.sun.faban.harness.logging.XMLFormatter;
 import com.sun.faban.harness.webclient.RunRetriever;
+import com.sun.faban.harness.webclient.RunUploader;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -267,9 +268,11 @@ public class RunDaemon implements Runnable {
                 }
             }
 
+            boolean remoteRun = true;
             if (run == null)
                 try {
                     run = fetchNextRun(runName); // runName null if not poller.
+                    remoteRun = false;
                 } catch (RunEntryException e) {
                     // If there is a run entry issue, just skip to the next run
                     // immediately.
@@ -298,6 +301,17 @@ public class RunDaemon implements Runnable {
             // instantiate, start running the benchmark
             gb = new GenericBenchmark(currRun);
             gb.start();
+
+            // We could have done the uploads in GenericBenchmark.
+            // But we fetched the remote run here, so we should return it
+            // here, too!
+            if (remoteRun)
+                try {
+                    RunUploader.uploadIfOrigin(run.getRunName());
+                } catch (IOException e) {
+                    logger.log(Level.WARNING, "Run upload failed!", e);
+                }
+
             logger.info(benchName + " Completed/Terminated");
             gb = null;
 
@@ -324,23 +338,16 @@ public class RunDaemon implements Runnable {
 
         runqLock.grabLock();
 
-        // 1. get run id and create run directory
+        // 1. get run id and identify run directory
         String benchName = tmpRunDir.getName();
         int dotPos = benchName.lastIndexOf('.');
         String runID = benchName.substring(dotPos + 1);
         benchName = benchName.substring(0, dotPos);
         String runName = RunQ.getHandle().getRunID(benchName);
         File runDir = new File(Config.OUT_DIR, runName);
-        runDir.mkdir();
 
-        // 2. copy contents
-        boolean success = true;
-        File[] files = tmpRunDir.listFiles();
-        for (File s : files)
-            if (!FileHelper.recursiveCopy(s, new File(runDir, s.getName())))
-                success = false;
-
-        if (!success) {
+        // 2. copy directory
+        if (runDir.exists() || !FileHelper.recursiveCopy(tmpRunDir, runDir)) {
             logger.warning("Error copying remote run. " +
                            "Removing run " + runName + '.');
             FileHelper.recursiveDelete(new File(Config.RUNQ_DIR), runName);

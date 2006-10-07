@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileHelper.java,v 1.7 2006/10/06 23:24:19 akara Exp $
+ * $Id: FileHelper.java,v 1.8 2006/10/07 07:33:40 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -280,28 +280,26 @@ public class FileHelper {
 
     /**
      * Copies a file from source to dest. If src is a directory, the whole
-     * directory tree is copied. The dest file must not exist.
+     * directory tree is copied.
      * @param src The source file
      * @param dest The dest file, must not exist before calling method
      * @return true if copy succeeded, false afterwise
      */
     public static boolean recursiveCopy(File src, File dest) {
-        boolean success = true;
-        if (dest.exists())
-            success = false;
-        else if (src.isDirectory()) {
-            dest.mkdir();
+        if (src.isDirectory()) {
+            if (!dest.exists() && !dest.mkdir())
+                return false;
             File[] files = src.listFiles();
             for (File s : files) {
                 File d = new File(dest, s.getName());
                 if (!recursiveCopy(s, d))
-                    success = false;
+                    return false;
             }
         } else {
-            success = copyFile(src.getAbsolutePath(), dest.getAbsolutePath(),
+            return copyFile(src.getAbsolutePath(), dest.getAbsolutePath(),
                             false);
         }
-        return success;
+        return true;
     }
 
     /**
@@ -346,6 +344,12 @@ public class FileHelper {
         }
     }
 
+    /**
+     * Unjars a jar file into an output directory.
+     * @param jarPath The path to the jar file
+     * @param outputDir The output directory
+     * @throws IOException If there is an error running unjar
+     */
     public static void unjar(String jarPath, String outputDir)
             throws IOException {
 
@@ -365,6 +369,13 @@ public class FileHelper {
         }
     }
 
+    /**
+     * Unjars a temporary jar file xxxx.jar under the directory
+     * xxxx in the same path
+     * @param tmpJarFile The temporary jar file
+     * @return The file reference to the resulting directory
+     * @throws IOException If there is an error unjaring
+     */
     public static File unjarTmp(File tmpJarFile) throws IOException {
         logger.info("Preparing run from " + tmpJarFile.getAbsolutePath() + '.');
 
@@ -384,7 +395,34 @@ public class FileHelper {
         return entry[0];
     }
 
+    /**
+     * Writes a string to a file. Replaces the file if it already exists.
+     * @param string The string to be written
+     * @param file The target file
+     * @throws IOException If the write fails
+     */
+    public static void writeStringToFile(String string, File file)
+            throws IOException {
+        file.delete();
+        file.createNewFile();
+        FileOutputStream out = new FileOutputStream(file);
+        out.write(string.getBytes());
+        out.flush();
+        out.close();
+    }
 
+    /**
+     * Reads a whole file and obtains the contents as a string.
+     * @param file The file to be read
+     * @return The string representing the whole content of the file
+     * @throws IOException If the read fails
+     */
+    public static String readStringFromFile(File file) throws IOException {
+        String content = null;
+        if (file.isFile())
+            content = new String(getContent(file.getAbsolutePath()));
+        return content;
+    }
 
 
     /**

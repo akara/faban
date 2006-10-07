@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunQ.java,v 1.11 2006/10/05 23:42:19 akara Exp $
+ * $Id: RunQ.java,v 1.12 2006/10/07 07:33:40 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -139,9 +139,7 @@ public class RunQ {
             if (Config.SECURITY_ENABLED) {
                 // Set the submitter
                 File submitter = new File(metaInf, "submitter");
-                PrintStream p = new PrintStream(submitter);
-                p.println(user);
-                p.close();
+                FileHelper.writeStringToFile(user, submitter);
 
                 // Copy ACLs
                 String[] aclFiles = { "view.acl", "write.acl" };
@@ -191,20 +189,12 @@ public class RunQ {
         File seqFile = new File(Config.SEQUENCE_FILE);
 
         if (seqFile.exists()) {
-            BufferedReader bufIn = null;
             try {
-                bufIn = new BufferedReader(new FileReader(seqFile));
-            }
-            catch (FileNotFoundException fe) {
-                logger.severe("RunQ getRunID: the sequence file does not exist");
-            }
-            runID = null;
-            try {
-                runID = bufIn.readLine();
-                bufIn.close();
-            }
-            catch (IOException ie) {
-                logger.severe("RunQ getRunID: could not read/close the sequence file");
+                runID = FileHelper.readStringFromFile(seqFile);
+                if (runID.endsWith("\n"))
+                    runID = runID.substring(0, runID.length() - 1);
+            } catch (IOException e) {
+                logger.log(Level.SEVERE, "Cannot read sequence file!", e);
             }
             int colonPos = -1;
             if((runID != null) && ((colonPos = runID.indexOf(":")) != -1)) {
@@ -256,10 +246,7 @@ public class RunQ {
         sb.append(runIDInt).append(':').append(runIDChar);
 
         try {
-            BufferedWriter bufOut =
-                    new BufferedWriter(new FileWriter(seqFile));
-            bufOut.write(sb.toString());
-            bufOut.close();
+            FileHelper.writeStringToFile(sb.toString(), seqFile);
         }
         catch (IOException e) {
             logger.log(Level.SEVERE, "Could not write to the sequence file", e);

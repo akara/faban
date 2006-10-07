@@ -53,6 +53,11 @@
         <servlet-class>com.sun.faban.harness.webclient.RunRetriever</servlet-class>
     </servlet>
 
+    <servlet>
+        <servlet-name>RunUploader</servlet-name>
+        <servlet-class>com.sun.faban.harness.webclient.RunUploader</servlet-class>
+    </servlet>
+
     <servlet-mapping>
         <servlet-name>LogReader</servlet-name>
         <url-pattern>/LogReader</url-pattern>
@@ -76,6 +81,11 @@
     <servlet-mapping>
         <servlet-name>RunRetriever</servlet-name>
         <url-pattern>/pollrun</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>RunUploader</servlet-name>
+        <url-pattern>/upload</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

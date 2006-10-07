@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunRetriever.java,v 1.4 2006/10/06 23:24:20 akara Exp $
+ * $Id: RunRetriever.java,v 1.5 2006/10/07 07:33:40 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -56,7 +56,14 @@ public class RunRetriever extends HttpServlet {
             RunRetriever.class.getName());
     private static String tmpDir = System.getProperty("java.io.tmpdir");
 
-    protected void doPost(HttpServletRequest request,
+    /**
+     * Post method to retrieve a run for a remote queue. Used only by pollees.
+     * @param request The servlet request
+     * @param response The servlet response
+     * @throws ServletException If there is an error in the servlet
+     * @throws IOException If the servlet has an I/O error
+     */
+    public void doPost(HttpServletRequest request,
                           HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -75,18 +82,7 @@ public class RunRetriever extends HttpServlet {
             return;
         }
 
-        boolean authenticated = false;
-
-        // We do not expect too many hosts polling, so we use sequential
-        // search. If this turns out wrong, we can always go for alternatives.
-        for (int i = 0; i < Config.pollHosts.length; i++)
-            if (hostName.equals(Config.pollHosts[i].name) &&
-                    key.equals(Config.pollHosts[i].key)) {
-                authenticated = true;
-                break;
-            }
-
-        if (!authenticated) {
+        if (!authenticate(hostName, key)) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
@@ -105,6 +101,27 @@ public class RunRetriever extends HttpServlet {
 
         response.setStatus(HttpServletResponse.SC_NO_CONTENT);
     }
+
+    /**
+     * Authenticates the host and key against the stored host/key pair.
+     * @param host The name of the communicating host
+     * @param key The host's key
+     * @return True if the authentication succeeds, false otherwise
+     */
+    static boolean authenticate(String host, String key) {
+        boolean authenticated = false;
+
+        // We do not expect too many hosts polling, so we use sequential
+        // search. If this turns out wrong, we can always go for alternatives.
+        for (int i = 0; i < Config.pollHosts.length; i++)
+            if (host.equals(Config.pollHosts[i].name) &&
+                    key.equals(Config.pollHosts[i].key)) {
+                authenticated = true;
+                break;
+            }
+        return authenticated;
+    }
+
 
     private void nextRunAge(long minAge, HttpServletResponse response)
             throws IOException {
@@ -228,12 +245,8 @@ public class RunRetriever extends HttpServlet {
                     metaInf.mkdir();
 
                 // Create origin file to know where this run came from.
-                File origin = new File(metaInf, "origin");
-                FileOutputStream originOut = new FileOutputStream(origin);
-                originOut.write((selectedHost.name + '.' + selectedRun.name +
-                        '\n').getBytes());
-                originOut.flush();
-                originOut.close();
+                FileHelper.writeStringToFile(selectedHost.name + '.' +
+                        selectedRun.name, new File(metaInf, "origin"));
                 tmpJar.delete();
             } catch (IOException e) {
                 logger.log(Level.WARNING, "Error downloading run " +
