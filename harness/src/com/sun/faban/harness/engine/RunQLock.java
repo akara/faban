@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunQLock.java,v 1.3 2006/08/15 02:39:02 akara Exp $
+ * $Id: RunQLock.java,v 1.4 2006/10/08 08:36:56 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -27,13 +27,15 @@ import java.lang.*;
 import java.util.logging.Logger;
 
 /**
- * This class implements a monitor to provide mutually exclusive access to
- * critical sections. It provides two methods, one to grab a lock and the 
- * other to release the lock.
- *
+ * The RunQLock implements monitors to provide mutually exclusive access to
+ * critical sections. One lock provides run queue access locking for submitting
+ * and fetching runs. The other lock is a wait lock to wait for new run
+ * arrivals.
  */
 public class RunQLock {
 
+    private Object queueLock = new Object();
+    private Object waitLock = new Object();
     private boolean locked = false;
     private Logger logger;
 
@@ -50,20 +52,22 @@ public class RunQLock {
      * critical section.
      *
      */
-    public synchronized void grabLock() {
+    public void grabLock() {
 
-        while (true) {
-            if (!locked) {
-                locked = true;
-                return;
-            }
-            else {
-                try {
-                    logger.fine("Waiting");
-                    wait();
+        synchronized (queueLock) {
+            while (true) {
+                if (!locked) {
+                    locked = true;
+                    return;
                 }
-                catch (InterruptedException ie) {
-                    logger.severe("RunQLock.grabLock : Thread interrupted");
+                else {
+                    try {
+                        logger.fine("Waiting");
+                        queueLock.wait();
+                    }
+                    catch (InterruptedException ie) {
+                        logger.severe("RunQLock.grabLock : Thread interrupted");
+                    }
                 }
             }
         }
@@ -73,11 +77,34 @@ public class RunQLock {
      *  Method to release the lock while exit from the critical section.
      *
      */
-    public synchronized void releaseLock() {
-        if (locked) {
-            locked = false;
-            notify();
+    public void releaseLock() {
+        synchronized (queueLock) {
+            if (locked) {
+                locked = false;
+                queueLock.notify();
+            }
         }
     }
 
+    /**
+     * Signals that a run is submitted.
+     */
+    public void signal() {
+        synchronized (waitLock) {
+            waitLock.notify();
+        }
+    }
+
+    /**
+     * Sleeps for the given time, or until a new run is submitted.
+     * @param sleep The max time to sleep, if nothing is submitted.
+     */
+    public void waitForSignal(long sleep) {
+        synchronized (waitLock) {
+            try {
+                waitLock.wait(sleep);
+            } catch (InterruptedException e) {
+            }
+        }
+    }
 }

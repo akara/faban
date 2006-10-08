@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: LogServer.java,v 1.2 2006/06/29 19:38:42 akara Exp $
+ * $Id: LogServer.java,v 1.3 2006/10/08 08:36:56 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -153,7 +153,7 @@ public class LogServer extends Thread {
 
         config.threadPool.shutdown();
 
-        logger.info("LogeServer Shutdown Complete");
+        logger.info("LogServer Shutdown Complete");
     }
 
 }

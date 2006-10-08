@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunUploader.java,v 1.2 2006/10/07 07:33:40 akara Exp $
+ * $Id: RunUploader.java,v 1.3 2006/10/08 08:36:56 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -107,8 +107,8 @@ public class RunUploader extends HttpServlet {
                 break;
             }
 
-            if (origin &&
-                    (key == null && !RunRetriever.authenticate(host, key))) {
+            if (origin && (Config.daemonMode != Config.DaemonModes.POLLEE ||
+                    key == null || !RunRetriever.authenticate(host, key))) {
                 response.sendError(HttpServletResponse.SC_FORBIDDEN);
                 break;
             }

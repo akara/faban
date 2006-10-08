@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunDaemon.java,v 1.14 2006/10/07 07:33:40 akara Exp $
+ * $Id: RunDaemon.java,v 1.15 2006/10/08 08:36:55 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -110,7 +110,6 @@ public class RunDaemon implements Runnable {
         // if there is no run in the runq then wait for 10 sec and
         // check again if it is suspended and there are any runs this time.
         if ((list == null) || (list.length == 0)) {
-            runqLock.releaseLock();
             return null;
         }
 
@@ -257,14 +256,8 @@ public class RunDaemon implements Runnable {
                         continue; // If we got a bad run, try polling again
                     }
                 if (run == null && nextLocal == null) { // No local run or remote run...
-                    try {
-                        Thread.sleep(10000);
-                        continue; // Go back and check if suspended
-                    }
-                    catch (InterruptedException ie) {
-                        logger.severe("RunDaemon Thread interrupted");
-                        continue;
-                    }
+                    runqLock.waitForSignal(10000);
+                    continue;
                 }
             }
 
@@ -279,15 +272,10 @@ public class RunDaemon implements Runnable {
                     continue;
                 }
 
-            if (run == null)
-                try {
-                    Thread.sleep(10000);
-                    continue; // Go back and check if suspended
-                }
-                catch (InterruptedException ie) {
-                    logger.severe("RunDaemon Thread interrupted");
-                    continue;
-                }
+            if (run == null) {
+                runqLock.waitForSignal(10000);
+                continue;
+            }
 
             String benchName = run.getBenchmarkName();
             String runDir = run.getOutDir();
@@ -299,6 +287,7 @@ public class RunDaemon implements Runnable {
             logger.info("Starting " + benchName + " run using " + runDir);
 
             // instantiate, start running the benchmark
+            currRun = run;
             gb = new GenericBenchmark(currRun);
             gb.start();
 

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunQ.java,v 1.12 2006/10/07 07:33:40 akara Exp $
+ * $Id: RunQ.java,v 1.13 2006/10/08 08:36:56 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -173,6 +173,7 @@ public class RunQ {
             FileHelper.copyFile(paramSourceFileName, paramRepFileName, false);
 
             generateNextID(runID);
+            runqLock.signal();  // Signal a new run is submitted.
 
             return runID;
         } finally {

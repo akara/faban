@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DeployUtil.java,v 1.7 2006/10/06 23:24:19 akara Exp $
+ * $Id: DeployUtil.java,v 1.8 2006/10/08 08:36:56 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -78,7 +78,7 @@ public class DeployUtil {
             FileHelper.recursiveDelete(dir);
         dir.mkdir();
 
-        FileHelper.unjar(jarName, Config.BENCHMARK_DIR + benchName);
+        FileHelper.unjar(Config.BENCHMARK_DIR + jarName, dir.getAbsolutePath());
     }
 
     public static void generateDD(String dir) {

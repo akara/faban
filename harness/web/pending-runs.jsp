@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: pending-runs.jsp,v 1.4 2006/08/22 22:19:15 akara Exp $
+ * $Id: pending-runs.jsp,v 1.5 2006/10/08 08:36:57 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -54,7 +54,7 @@
                 boolean[] killAllowed = new boolean[pending.length];
                 for (int i = 0; i < killAllowed.length; i++) {
                     killAllowed[i] = AccessController.isKillAllowed(
-                            user, pending[i][0]);
+                            user, pending[i][1] + '.' + pending[i][0]);
                     if (killAllowed[i])
                         form = true;
                 }

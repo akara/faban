@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunRetriever.java,v 1.5 2006/10/07 07:33:40 akara Exp $
+ * $Id: RunRetriever.java,v 1.6 2006/10/08 08:36:56 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -239,6 +239,10 @@ public class RunRetriever extends HttpServlet {
             try {
                 // Download and unjar the run.
                 File tmpJar = download(selectedHost, selectedRun);
+                if (tmpJar == null) {
+                    logger.warning("Download null jar file.");
+                    return null;
+                }
                 tmpDir = FileHelper.unjarTmp(tmpJar);
                 File metaInf = new File(tmpDir, "META-INF");
                 if (!metaInf.isDirectory())
