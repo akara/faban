@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: BenchmarkDescription.java,v 1.5 2006/08/17 23:22:44 akara Exp $
+ * $Id: BenchmarkDescription.java,v 1.6 2006/10/09 09:57:42 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -167,7 +167,7 @@ public class BenchmarkDescription implements Serializable {
 
 
 
-    private static void checkMaps(boolean deploy) {
+    private static synchronized void checkMaps(boolean deploy) {
         if (System.currentTimeMillis() - mapTimeStamp > MAP_TIMEOUT)
             generateMaps(deploy);
     }

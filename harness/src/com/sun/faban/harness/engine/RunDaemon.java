@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunDaemon.java,v 1.15 2006/10/08 08:36:55 akara Exp $
+ * $Id: RunDaemon.java,v 1.16 2006/10/09 09:57:43 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -328,10 +328,13 @@ public class RunDaemon implements Runnable {
         runqLock.grabLock();
 
         // 1. get run id and identify run directory
+        // tmpRunDir is in the form of host.bench.id
         String benchName = tmpRunDir.getName();
         int dotPos = benchName.lastIndexOf('.');
         String runID = benchName.substring(dotPos + 1);
-        benchName = benchName.substring(0, dotPos);
+        int dotPos2 = benchName.lastIndexOf('.', dotPos - 1);
+        benchName = benchName.substring(dotPos2 + 1, dotPos);
+
         String runName = RunQ.getHandle().getRunID(benchName);
         File runDir = new File(Config.OUT_DIR, runName);
 
@@ -343,6 +346,12 @@ public class RunDaemon implements Runnable {
             runqLock.releaseLock();
             throw new RunEntryException("Error copy param file on run " +
                                         runName + '.');
+        }
+        try {
+            RunQ.getHandle().generateNextID(runName);
+        } catch (IOException e) {
+            logger.warning("Error updating run id.");
+            throw new RunEntryException("Error updating run id");
         }
         runqLock.releaseLock();
 

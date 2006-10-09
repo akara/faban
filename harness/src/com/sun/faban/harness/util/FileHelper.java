@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileHelper.java,v 1.8 2006/10/07 07:33:40 akara Exp $
+ * $Id: FileHelper.java,v 1.9 2006/10/09 09:57:43 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -318,12 +318,11 @@ public class FileHelper {
     /**
      * Jars up a directory to a given Jar file
      * @param dir The base directory to jar (not included in output)
-     * @param fileSpec The file name spec to jar, can be multiple files
-     *        or wildcard '*'
+     * @param fileNames The file names to jar, can be multiple
      * @param jarPath The pathname of the jar file
      * @throws IOException There is a problem jarring up
      */
-    public static void jar(String dir, String fileSpec, String jarPath)
+    public static void jar(String dir, String fileNames, String jarPath)
             throws IOException {
 
         logger.fine("Jar'ring up " + dir + " to " + jarPath + '.');
@@ -331,7 +330,7 @@ public class FileHelper {
         String jarCmd = getJavaHome() + File.separator + "bin" +
                 File.separator + "jar";
         Command cmd = new Command(jarCmd + " cf " + jarPath +
-                ' ' + fileSpec);
+                ' ' + fileNames);
         cmd.setWorkingDirectory(dir);
         try {
             CommandHandle handle = cmd.execute();
@@ -385,14 +384,8 @@ public class FileHelper {
         File unjarDir = new File(tmpJarFile.getParent(), dirName);
         unjarDir.mkdir();
 
-        FileHelper.unjar(tmpJarFile.getAbsolutePath(),
-                         unjarDir.getAbsolutePath());
-        File[] entry = unjarDir.listFiles();
-        if (entry.length != 1) {
-            logger.warning(tmpJarFile.getName() + "has no entries.");
-            return null;
-        }
-        return entry[0];
+        unjar(tmpJarFile.getAbsolutePath(), unjarDir.getAbsolutePath());
+        return unjarDir;
     }
 
     /**

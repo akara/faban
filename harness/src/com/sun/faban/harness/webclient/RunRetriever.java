@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunRetriever.java,v 1.6 2006/10/08 08:36:56 akara Exp $
+ * $Id: RunRetriever.java,v 1.7 2006/10/09 09:57:43 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -37,6 +37,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.SocketTimeoutException;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -54,7 +55,6 @@ public class RunRetriever extends HttpServlet {
 
     private static Logger logger = Logger.getLogger(
             RunRetriever.class.getName());
-    private static String tmpDir = System.getProperty("java.io.tmpdir");
 
     /**
      * Post method to retrieve a run for a remote queue. Used only by pollees.
@@ -69,7 +69,8 @@ public class RunRetriever extends HttpServlet {
 
         // Check that we are a pollee
         if (Config.daemonMode != Config.DaemonModes.POLLEE) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            logger.warning("Being polled for runs, not pollee!");
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 
@@ -78,12 +79,15 @@ public class RunRetriever extends HttpServlet {
         String key = request.getParameter("key");
 
         if (hostName == null || key == null) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            logger.warning("Being polled for runs, no hostname or key!");
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 
         if (!authenticate(hostName, key)) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            logger.warning("Polling authentication from host " + hostName +
+                    " denied!");
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 
@@ -155,6 +159,7 @@ public class RunRetriever extends HttpServlet {
             }
 
         if (nextRun == null) { // Queue empty
+            logger.warning("Fetching run " + runName + ": No longer available!");
             response.setStatus(HttpServletResponse.SC_NO_CONTENT);
             return;
         }
@@ -200,12 +205,24 @@ public class RunRetriever extends HttpServlet {
         String runName = run.getRunName();
 
         String jarName = runName + ".jar";
-        File jar = new File(tmpDir, jarName);
+        File jar = new File(Config.TMP_DIR, jarName);
 
+        String[] files = new File(Config.OUT_DIR, runName).list();
+
+        StringBuilder fileList = new StringBuilder();
+        for (String file : files)
+            fileList.append(file).append(' ');
+
+        // trim off the trailing space.
+        int length = fileList.length();
+        if (length > 0)
+            fileList.setLength(length - 1);
+        
         if (jar.exists())
             jar.delete();
 
-        FileHelper.jar(Config.OUT_DIR, runName, jar.getAbsolutePath());
+        FileHelper.jar(Config.OUT_DIR + runName, fileList.toString(),
+                       jar.getAbsolutePath());
         return jar;
     }
 
@@ -264,20 +281,30 @@ public class RunRetriever extends HttpServlet {
     private static NameValuePair<Long> poll(Config.HostInfo host, long minAge)
             throws IOException {
 
-        HttpURLConnection c = (HttpURLConnection) new URL(host.url,
-                                            SERVLET_PATH).openConnection();
-
-        c.setRequestMethod("POST");
-        c.setDoOutput(true);
-        c.setDoInput(true);
-        PrintWriter out = new PrintWriter(c.getOutputStream());
-        out.write("host=" + Config.FABAN_HOST + "&key=" + host.key +
-                  "&minage=" + minAge);
-        out.flush();
-        out.close();
-
         NameValuePair<Long> run = null;
-        if (c.getResponseCode() == HttpServletResponse.SC_OK) {
+        URL target = new URL(host.url, SERVLET_PATH);
+
+        HttpURLConnection c = (HttpURLConnection) target.openConnection();
+
+        try {
+            c.setRequestMethod("POST");
+            c.setConnectTimeout(2000);
+            c.setDoOutput(true);
+            c.setDoInput(true);
+            PrintWriter out = new PrintWriter(c.getOutputStream());
+            out.write("host=" + Config.FABAN_HOST + "&key=" + host.key +
+                      "&minage=" + minAge);
+            out.flush();
+            out.close();
+        } catch (SocketTimeoutException e) {
+            logger.log(Level.WARNING, "Timeout trying to connect to " +
+                    target + '.', e);
+            throw new IOException("Socket connect timeout");
+        }
+
+        int responseCode = c.getResponseCode();
+
+        if (responseCode == HttpServletResponse.SC_OK) {
             InputStream is = c.getInputStream();
 
             // The input is a one liner in the form runName\tAge
@@ -296,6 +323,9 @@ public class RunRetriever extends HttpServlet {
             run = new NameValuePair<Long>();
             run.name = t.nextToken();
             run.value = Long.parseLong(t.nextToken());
+        } else {
+            logger.warning("Polling " + target + " got response code " +
+                           responseCode);
         }
         return run;
     }
@@ -303,20 +333,30 @@ public class RunRetriever extends HttpServlet {
     private static File download(Config.HostInfo host, NameValuePair<Long> run)
             throws IOException {
 
-        HttpURLConnection c = (HttpURLConnection) new URL(host.url,
-                                            SERVLET_PATH).openConnection();
-        c.setRequestMethod("POST");
-        c.setDoOutput(true);
-        c.setDoInput(true);
-        PrintWriter out = new PrintWriter(c.getOutputStream());
-        out.write("host=" + host.name + "&key=" + host.key +
-                  "&runname=" + run.name);
-        out.flush();
-        out.close();
-
         File jarFile = null;
         FileOutputStream jarOut = null;
-        if (c.getResponseCode() == HttpServletResponse.SC_OK) {
+        URL target = new URL(host.url, SERVLET_PATH);
+
+        HttpURLConnection c = null;
+        try {
+            c = (HttpURLConnection) target.openConnection();
+            c.setRequestMethod("POST");
+            c.setConnectTimeout(2000);
+            c.setDoOutput(true);
+            c.setDoInput(true);
+            PrintWriter out = new PrintWriter(c.getOutputStream());
+            out.write("host=" + Config.FABAN_HOST + "&key=" + host.key +
+                      "&runname=" + run.name);
+            out.flush();
+            out.close();
+        } catch (SocketTimeoutException e) {
+            logger.log(Level.WARNING, "Timeout trying to connect to " +
+                    target + '.', e);
+            throw new IOException("Socket connect timeout");
+        }
+
+        int responseCode = c.getResponseCode();
+        if (responseCode == HttpServletResponse.SC_OK) {
             InputStream is = c.getInputStream();
             // We allocate in every method instead of a central buffer
             // to allow concurrent downloads. This can be expanded to use
@@ -325,8 +365,8 @@ public class RunRetriever extends HttpServlet {
             int size;
             while ((size = is.read(buffer)) != -1) {
                 if (size > 0 && jarFile == null) {
-                    jarFile = File.createTempFile("run", ".jar",
-                                                  new File(Config.TMP_DIR));
+                    jarFile = new File(Config.TMP_DIR, host.name + '.' +
+                                       run.name + ".jar");
                     jarOut = new FileOutputStream(jarFile);
                 }
                 jarOut.write(buffer, 0, size);
@@ -334,6 +374,9 @@ public class RunRetriever extends HttpServlet {
             is.close();
             jarOut.flush();
             jarOut.close();
+        } else {
+            logger.warning("Downloading run " + run.name + " from " + target +
+                           " got response code " + responseCode);
         }
         return jarFile;
     }

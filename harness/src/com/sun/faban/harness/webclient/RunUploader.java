@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunUploader.java,v 1.3 2006/10/08 08:36:56 akara Exp $
+ * $Id: RunUploader.java,v 1.4 2006/10/09 09:57:43 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -144,9 +144,7 @@ public class RunUploader extends HttpServlet {
             // Ignore all non-jarfiles.
             if (!fileName.toLowerCase().endsWith(".jar"))
                 continue;
-
-            File uploadFile = File.createTempFile("run", ".jar",
-                    new File(Config.TMP_DIR));
+            File uploadFile = new File(Config.TMP_DIR, host + '.' + fileName);
             try {
                 item.write(uploadFile);
             } catch (Exception e) {
@@ -252,8 +250,20 @@ public class RunUploader extends HttpServlet {
         }
 
         // 2. Jar up the run
+        String[] files = new File(Config.OUT_DIR, runName).list();
+
+        StringBuilder fileList = new StringBuilder();
+        for (String file : files)
+            fileList.append(file).append(' ');
+
+        // trim off the trailing space.
+        int length = fileList.length();
+        if (length > 0)
+            fileList.setLength(length - 1);
+
         File jarFile = new File(Config.TMP_DIR, runName + ".jar");
-        jar(Config.OUT_DIR, runName, jarFile.getAbsolutePath());
+        jar(Config.OUT_DIR + runName, fileList.toString(),
+                jarFile.getAbsolutePath());
 
         // 3. Upload the run
         MultipartPostMethod post = new MultipartPostMethod(target.toString());

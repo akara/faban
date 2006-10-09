@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunQ.java,v 1.13 2006/10/08 08:36:56 akara Exp $
+ * $Id: RunQ.java,v 1.14 2006/10/09 09:57:43 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -225,7 +225,7 @@ public class RunQ {
 
     // Generate the sequence number for the next run and write it to
     // sequence file.
-    private void generateNextID(String runID) throws IOException {
+    void generateNextID(String runID) throws IOException {
 
         File seqFile = new File(Config.SEQUENCE_FILE);
         int index = runID.lastIndexOf(".");
