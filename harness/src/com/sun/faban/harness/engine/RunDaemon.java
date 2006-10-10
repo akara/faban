@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunDaemon.java,v 1.16 2006/10/09 09:57:43 akara Exp $
+ * $Id: RunDaemon.java,v 1.17 2006/10/10 01:37:37 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -251,7 +251,10 @@ public class RunDaemon implements Runnable {
                 while ((tmpRunDir = RunRetriever.pollRun(runAge)) != null)
                     try {
                         run = fetchRemoteRun(tmpRunDir);
+                        if (run == null)
+                            logger.warning("Fetched null remote run");
                         break;
+
                     } catch (RunEntryException e) {
                         continue; // If we got a bad run, try polling again
                     }
@@ -306,13 +309,7 @@ public class RunDaemon implements Runnable {
 
             // Redirect the log back to faban.log.xml
             // and limit the log file size to 100K.
-            logFile = System.getProperty("faban.root");
-            if(logFile == null)
-                logFile = "%t";
-
-            logFile = logFile + File.separator + "faban.log.xml";
-
-            redirectLog(logFile, "102400");
+            redirectLog(Config.DEFAULT_LOG_FILE, "102400");
         }
         logger.fine("RunDaemon Thread is Exiting");
     }
@@ -331,11 +328,14 @@ public class RunDaemon implements Runnable {
         // tmpRunDir is in the form of host.bench.id
         String benchName = tmpRunDir.getName();
         int dotPos = benchName.lastIndexOf('.');
-        String runID = benchName.substring(dotPos + 1);
+        // We ignore the remote run id at this time.
         int dotPos2 = benchName.lastIndexOf('.', dotPos - 1);
         benchName = benchName.substring(dotPos2 + 1, dotPos);
 
         String runName = RunQ.getHandle().getRunID(benchName);
+        dotPos = runName.lastIndexOf('.');
+        String runID = runName.substring(dotPos + 1);
+
         File runDir = new File(Config.OUT_DIR, runName);
 
         // 2. copy directory
@@ -352,7 +352,7 @@ public class RunDaemon implements Runnable {
         } catch (IOException e) {
             logger.warning("Error updating run id.");
             throw new RunEntryException("Error updating run id");
-        }
+        }        
         runqLock.releaseLock();
 
         FileHelper.recursiveDelete(tmpRunDir);
@@ -480,7 +480,7 @@ public class RunDaemon implements Runnable {
      *
      */
     private void redirectLog(String logFile, String limit) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         // sb.append("\nhandlers = java.util.logging.FileHandler\n");
         // sb.append("java.util.logging.FileHandler.pattern = ");
         // sb.append(logFile + "\n");
@@ -516,6 +516,8 @@ public class RunDaemon implements Runnable {
             // Set system property so that SocketHandler can write the logs from remote machines
             System.setProperty("faban.log.file", logFile);
         } catch(IOException e) {
+            System.err.println("Exception setting log properties.");
+            e.printStackTrace();
             logger.log(Level.WARNING, "Exception setting log properties.", e);
         }
     }

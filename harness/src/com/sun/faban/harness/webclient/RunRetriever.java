@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunRetriever.java,v 1.7 2006/10/09 09:57:43 akara Exp $
+ * $Id: RunRetriever.java,v 1.8 2006/10/10 01:37:37 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -35,9 +35,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.SocketTimeoutException;
+import java.net.*;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -284,6 +282,9 @@ public class RunRetriever extends HttpServlet {
         NameValuePair<Long> run = null;
         URL target = new URL(host.url, SERVLET_PATH);
 
+        // TODO: HttpURLConnection c = (HttpURLConnection) target.
+        // openConnection(new Proxy(Proxy.Type.HTTP,
+        // new InetSocketAddress(proxyHost, proxyPort)));;
         HttpURLConnection c = (HttpURLConnection) target.openConnection();
 
         try {
@@ -323,7 +324,7 @@ public class RunRetriever extends HttpServlet {
             run = new NameValuePair<Long>();
             run.name = t.nextToken();
             run.value = Long.parseLong(t.nextToken());
-        } else {
+        } else if (responseCode != HttpServletResponse.SC_NO_CONTENT) {
             logger.warning("Polling " + target + " got response code " +
                            responseCode);
         }

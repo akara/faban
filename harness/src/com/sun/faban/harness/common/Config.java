@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.16 2006/10/06 23:24:18 akara Exp $
+ * $Id: Config.java,v 1.17 2006/10/10 01:37:36 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -242,6 +242,9 @@ public class Config {
 
         try {
             FABAN_HOST = InetAddress.getLocalHost().getHostName();
+            int dotIdx = FABAN_HOST.indexOf('.');
+            if (dotIdx > 0) // Sometimes we get host.domain, we want only host.
+                FABAN_HOST = FABAN_HOST.substring(0, dotIdx);
         } catch (UnknownHostException e) {
             FABAN_HOST = "";
         }

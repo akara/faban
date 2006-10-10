@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunUploader.java,v 1.4 2006/10/09 09:57:43 akara Exp $
+ * $Id: RunUploader.java,v 1.5 2006/10/10 01:37:37 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -103,14 +103,30 @@ public class RunUploader extends HttpServlet {
             }
 
             if (host == null) {
+                logger.warning("Host not received on upload request!");
                 response.sendError(HttpServletResponse.SC_FORBIDDEN);
                 break;
             }
 
-            if (origin && (Config.daemonMode != Config.DaemonModes.POLLEE ||
-                    key == null || !RunRetriever.authenticate(host, key))) {
-                response.sendError(HttpServletResponse.SC_FORBIDDEN);
-                break;
+            // The host, origin, key info must be here before we receive
+            // any file.
+            if (origin) {
+                if (Config.daemonMode != Config.DaemonModes.POLLEE) {
+                    logger.warning("Origin upload requested. Not pollee!");
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                    break;
+                }
+                if (key == null) {
+                    logger.warning("Origin upload requested. No key!");
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                    break;
+                }
+                if (!RunRetriever.authenticate(host, key)) {
+                    logger.warning("Origin upload requested. " +
+                            "Host/key mismatch: " +host + '/' + key + "!");
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                    break;
+                }
             }
 
             if (!"jarfile".equals(fieldName)) // ignore
@@ -121,12 +137,6 @@ public class RunUploader extends HttpServlet {
             if (fileName == null) // We don't process files without names
                 continue;
 
-            // The host, origin, key info must be here before we receive
-            // any file.
-            if (host == null || (origin && key == null)) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-                break;
-            }
             // Now, this name may have a path attached, dependent on the
             // source browser. We need to cover all possible clients...
             char[] pathSeparators = {'/', '\\'};
@@ -159,6 +169,8 @@ public class RunUploader extends HttpServlet {
                 File metaInf = new File(runTmp, "META-INF");
                 File originFile = new File(metaInf, "origin");
                 if (!originFile.exists()) {
+                    logger.warning("Origin upload requested. Origin file" +
+                                   "does not exist!");
                     response.sendError(
                             HttpServletResponse.SC_NOT_ACCEPTABLE,
                             "Origin file does not exist!");
@@ -168,6 +180,8 @@ public class RunUploader extends HttpServlet {
                 String originSpec = readStringFromFile(originFile);
                 int idx = originSpec.lastIndexOf('.');
                 if (idx == -1) { // This is wrong, we do not accept this.
+                    logger.warning("Origin upload requested. Origin file " +
+                                   "corrupted!");
                     response.sendError(
                             HttpServletResponse.SC_NOT_ACCEPTABLE,
                             "Origin file error!");
@@ -175,6 +189,8 @@ public class RunUploader extends HttpServlet {
                 }
                 idx = originSpec.lastIndexOf('.', idx - 1);
                 if (idx == -1) {
+                    logger.warning("Origin upload requested. Origin file" +
+                                   "corrupted!");
                     response.sendError(
                             HttpServletResponse.SC_NOT_ACCEPTABLE,
                             "Origin file error!");
@@ -184,15 +200,22 @@ public class RunUploader extends HttpServlet {
                 runName = originSpec.substring(idx + 1);
                 String localHost = originSpec.substring(0, idx);
                 if (!localHost.equals(Config.FABAN_HOST)) {
-                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+                    logger.warning("Origin upload requested. Origin host " +
+                                   localHost + " does not match this host " +
+                                   Config.FABAN_HOST + '!');
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN);
                     break;
                 }
-                writeStringToFile(host + '.' + runTmp.getName(), originFile);
+                writeStringToFile(runTmp.getName(), originFile);
             }  else {
-                runName = host + '.' + runTmp.getName();
+                runName = runTmp.getName();
             }
 
-            if (!recursiveCopy(runTmp, new File(Config.OUT_DIR, runName))) {
+            if (recursiveCopy(runTmp, new File(Config.OUT_DIR, runName))) {
+                uploadFile.delete();
+                recursiveDelete(runTmp);
+            } else {
+                logger.warning("Origin upload requested. Copy error!");
                 response.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE);
                 break;
             }
@@ -272,16 +295,18 @@ public class RunUploader extends HttpServlet {
         post.addParameter("origin", "true");
         post.addParameter("jarfile", jarFile);
         HttpClient client = new HttpClient();
+        // TODO: client.getHostConfiguration().setProxy(proxyHost, proxyPort);
         client.setConnectionTimeout(5000);
         int status = client.executeMethod(post);
-        if (status == HttpStatus.SC_UNAUTHORIZED)
-            logger.severe("Server " + host + "denied permission to upload run "
+        if (status == HttpStatus.SC_FORBIDDEN)
+            logger.severe("Server " + host + " denied permission to upload run "
                             + runName + '!');
         else if (status == HttpStatus.SC_NOT_ACCEPTABLE)
             logger.severe("Run " + runName + " origin error!");
         else if (status != HttpStatus.SC_CREATED)
             logger.severe("Server responded with status code " +
                     status + ". Status code 201 (SC_CREATED) expected.");
+        jarFile.delete();
     }
 
     // TODO: General upload client for result server.
