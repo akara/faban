@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.17 2006/10/10 01:37:36 akara Exp $
+ * $Id: Config.java,v 1.18 2006/10/10 02:04:55 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -196,6 +196,8 @@ public class Config {
         public String name;
         public URL url;
         public String key;
+        public String proxyHost;
+        public int proxyPort;
     }
 
 
@@ -381,6 +383,16 @@ public class Config {
                         if (v != null && v.length() > 0)
                             pollHosts[i].url = new URL(v);
                         pollHosts[i].key = xPath.evaluate("key", hostNode);
+                        pollHosts[i].proxyHost =
+                                xPath.evaluate("proxyHost",hostNode);
+                        if (pollHosts[i].proxyHost != null &&
+                                pollHosts[i].proxyHost.length() == 0)
+                            pollHosts[i].proxyHost = null;
+                        v = xPath.evaluate("proxyPort", hostNode);
+                        if (v != null && v.length() > 0)
+                            pollHosts[i].proxyPort = Integer.parseInt(v);
+                        else
+                            pollHosts[i].proxyHost = null;
                     }
                 }
 

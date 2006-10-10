@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunRetriever.java,v 1.8 2006/10/10 01:37:37 akara Exp $
+ * $Id: RunRetriever.java,v 1.9 2006/10/10 02:04:55 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -282,10 +282,13 @@ public class RunRetriever extends HttpServlet {
         NameValuePair<Long> run = null;
         URL target = new URL(host.url, SERVLET_PATH);
 
-        // TODO: HttpURLConnection c = (HttpURLConnection) target.
-        // openConnection(new Proxy(Proxy.Type.HTTP,
-        // new InetSocketAddress(proxyHost, proxyPort)));;
-        HttpURLConnection c = (HttpURLConnection) target.openConnection();
+        HttpURLConnection c;
+        if (host.proxyHost != null)
+            c = (HttpURLConnection) target.openConnection(
+                    new Proxy(Proxy.Type.HTTP,
+                    new InetSocketAddress(host.proxyHost, host.proxyPort)));
+        else
+            c = (HttpURLConnection) target.openConnection();
 
         try {
             c.setRequestMethod("POST");

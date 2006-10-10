@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunUploader.java,v 1.5 2006/10/10 01:37:37 akara Exp $
+ * $Id: RunUploader.java,v 1.6 2006/10/10 02:04:55 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -256,6 +256,8 @@ public class RunUploader extends HttpServlet {
         String host = originSpec.substring(0, idx);
         String key = null;
         URL target = null;
+        String proxyHost = null;
+        int proxyPort = -1;
 
         // Search the poll hosts for this origin.
         for (int i = 0; i < Config.pollHosts.length; i++) {
@@ -263,6 +265,8 @@ public class RunUploader extends HttpServlet {
             if (host.equals(pollHost.name)) {
                 key = pollHost.key;
                 target = new URL(pollHost.url, "upload");
+                proxyHost = pollHost.proxyHost;
+                proxyPort = pollHost.proxyPort;
                 break;
             }
         }
@@ -295,7 +299,8 @@ public class RunUploader extends HttpServlet {
         post.addParameter("origin", "true");
         post.addParameter("jarfile", jarFile);
         HttpClient client = new HttpClient();
-        // TODO: client.getHostConfiguration().setProxy(proxyHost, proxyPort);
+        if (proxyHost != null)
+            client.getHostConfiguration().setProxy(proxyHost, proxyPort);
         client.setConnectionTimeout(5000);
         int status = client.executeMethod(post);
         if (status == HttpStatus.SC_FORBIDDEN)
