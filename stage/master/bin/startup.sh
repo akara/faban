@@ -2,7 +2,7 @@
 # -----------------------------------------------------------------------------
 # Start Script for the CATALINA Server
 #
-# $Id: startup.sh,v 1.3 2006/10/08 08:39:00 akara Exp $
+# $Id: startup.sh,v 1.4 2006/10/19 21:20:59 akara Exp $
 # -----------------------------------------------------------------------------
 
 # Allow JAVA_HOME env setting before starting...
@@ -57,7 +57,7 @@ cd "$PRGDIR"/../webapps
 
 # I know, -nt is a better way to check the date,
 # but this one is OK on all shells.
-NEWWAR=`ls -td faban* | awk '{ if (NR == 1) print $1 }'`
+NEWWAR=`ls -td faban* | head -1`
 
 if [ "${NEWWAR}" = faban.war ] ; then
     rm -rf faban xanadu
