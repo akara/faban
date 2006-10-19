@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MasterImpl.java,v 1.3 2006/07/27 19:46:48 akara Exp $
+ * $Id: MasterImpl.java,v 1.4 2006/10/19 18:48:19 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -141,6 +141,9 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 
     private boolean runAborted = false;
 
+    protected Object stateLock = new Object();
+    protected int state = MasterState.CONFIGURING;
+
     protected java.util.Timer scheduler;
 
     /**
@@ -150,6 +153,13 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
      */
     protected MasterImpl() throws RemoteException {
         super();
+
+        try {
+            RegistryLocator.getRegistry().register("Master", this);
+        } catch (NotBoundException e) {
+            // Do nothing. If we run in single process mode,
+            // the registry is just not there.
+        }
     }
 
     /**
@@ -241,6 +251,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
                     "Error acccessing registry or agent!", t);
             configureLocal();
         }
+        changeState(MasterState.STARTING);
         executeRun();
         postRun();
     }
@@ -542,7 +553,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         if (runInfo.parallelAgentThreadStart)
             waitForThreadStart();
 
-        // Leave plenty of time to notify all agents of th start time.
+        // Leave plenty of time to notify all agents of the start time.
         setStartTime(estimateCommsTime() + timer.getTime());
 
         int sleepTime = runInfo.benchStartTime - timer.getTime();
@@ -579,13 +590,16 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         // know when the run should terminate and can force a kill. But in
         // case of cycle control, we can only wait.
         if (benchDef.runControl == RunControl.TIME) {
+            changeState(MasterState.RAMPUP);
             try {
                 Thread.sleep(runInfo.rampUp * 1000);
             } catch (InterruptedException ie) {}
+            changeState(MasterState.STEADYSTATE);
             logger.info("Ramp up completed");
             try {
                 Thread.sleep(runInfo.stdyState * 1000);
             } catch (InterruptedException ie) {}
+            changeState(MasterState.RAMPDOWN);
             logger.info("Steady state completed");
             try {
                 Thread.sleep(runInfo.rampDown * 1000);
@@ -615,6 +629,8 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
                         }
                     };
             scheduler.schedule(killAtEnd, 120000);
+        } else { // For cycle mode, we never know the end of rampup, steady.
+            changeState(MasterState.STEADYSTATE);
         }
 
         // Now wait for all threads under all agents to terminate.
@@ -649,6 +665,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
             killAtEnd.cancel();
 
         /* Gather stats and print report */
+        changeState(MasterState.RESULTS);
         Metrics[] results = new Metrics[runInfo.driverConfigs.length];
         for (int driverType = 0; driverType < results.length; driverType++)
             results[driverType] = getDriverMetrics(driverType);
@@ -962,6 +979,43 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         return System.currentTimeMillis();
     }
 
+    protected void changeState(int newState) {
+        synchronized (stateLock) {
+            state = newState;
+            stateLock.notifyAll();
+        }
+    }
+
+
+    /**
+     * Obtains the current state of the master.
+     * @return The current state of the master.
+     */
+    public int getCurrentState() {
+        /*
+         * State is an int and changed by int assignment which is atomic.
+         * So we will get one or the other state, but not something in between.
+         * synchronization is not necessary.
+         */
+        return state;
+    }
+
+    /**
+     * Wait for a certain state on the master.
+     * @param state
+     */
+    public void waitForState(int state) {
+        synchronized (stateLock) {
+            while (state > this.state)
+                try {
+                    stateLock.wait();
+                } catch (InterruptedException e) {
+                    logger.log(Level.FINE, "Interrupted waiting for state!",
+                               e);
+                }
+        }
+    }
+
     /**
      * Over-estimate the time it takes to ping all agents.
      * @return A time in ms more than enough to ping all agents
@@ -1029,6 +1083,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
             return;
 
         runAborted = true;
+        changeState(MasterState.ABORTED);
 
         // Note: This is a remote call. We cannot terminate the
         // run right here. We need to schedule the termintation

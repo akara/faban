@@ -17,13 +17,12 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentImpl.java,v 1.2 2006/06/29 19:38:37 akara Exp $
+ * $Id: AgentImpl.java,v 1.3 2006/10/19 18:48:19 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver.core;
 
-import com.sun.faban.common.Registry;
 import com.sun.faban.common.RegistryLocator;
 import com.sun.faban.driver.util.Timer;
 
