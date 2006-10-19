@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DefaultFabanBenchmark.java,v 1.4 2006/07/29 01:03:02 akara Exp $
+ * $Id: DefaultFabanBenchmark.java,v 1.5 2006/10/19 18:50:28 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -133,12 +133,16 @@ public class DefaultFabanBenchmark implements Benchmark {
             logger.log(Level.FINE, "Exception", e);
         }
 
-        // Start the driver
+        // Start the master
         c = new Command("-Dbenchmark.config=" + getParamFile() +
                 " -Dfaban.outputdir.unique=true com.sun.faban.driver.core.MasterImpl");
         c.setSynchronous(false);
 
         masterHandle = java(c);
+
+        // Wait until the master gets to rampup before we give back control.
+        // This will ensure the tools start at correct times.
+        java(new Command("com.sun.faban.driver.core.MasterState RAMPUP"));
     }
 
     /**

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.10 2006/10/04 23:55:06 akara Exp $
+ * $Id: GenericBenchmark.java,v 1.11 2006/10/19 18:50:28 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -378,7 +378,7 @@ public class GenericBenchmark {
         // Create the dir for storing Xanadu XMLs
         String outDir = run.getOutDir();
 
-        String xanaduDir = outDir + File.separator + "xanadu";
+        String xanaduDir = outDir + File.separator + "xmlstats";
         if(!(new File(xanaduDir)).mkdirs())
             return false;
 
@@ -398,8 +398,7 @@ public class GenericBenchmark {
 
         // Move detail file to xanadu directory for postprocessing
         File detailFile = new File(outDir, "detail.xml");
-        File detailDest = new File(outDir, "xanadu" + File.separator +
-                                   "detail.xml");
+        File detailDest = new File(xanaduDir, "detail.xml");
         if (detailFile.exists())
             if (!detailFile.renameTo(detailDest))
                 logger.warning("Cannot move detail file to Xanadu directory");
