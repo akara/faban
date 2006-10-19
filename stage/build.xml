@@ -19,7 +19,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: build.xml,v 1.6 2006/09/29 04:50:19 akara Exp $
+* $Id: build.xml,v 1.7 2006/10/19 18:53:45 akara Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 -->
@@ -105,6 +105,13 @@
             overwrite="true" preservelastmodified="true"
             includeEmptyDirs="true" verbose="true">
             <fileset dir="${workspace.dir}/samples/web1"/>
+        </copy>
+
+        <mkdir dir="samples/http"/>
+        <copy todir="samples/http"
+            overwrite="true" preservelastmodified="true"
+            includeEmptyDirs="true" verbose="true">
+            <fileset dir="${workspace.dir}/samples/http"/>
         </copy>
 
         <copy todir="master/common/endorsed"
