@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultlist.jsp,v 1.3 2006/08/19 03:06:12 akara Exp $
+ * $Id: resultlist.jsp,v 1.4 2006/10/20 22:39:08 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -32,13 +32,13 @@
         <title>Benchmark results</title>
         <link rel="icon" type="image/gif" href="img/faban.gif">
     </head>
-    <body method="post" action="compare-runs.jsp">
+    <body>
     <%@ page language="java" import="com.sun.faban.harness.webclient.Result"%>
     <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
     <% Result[] results = Result.getResults(usrEnv.getSubject());
         if(results != null && results.length > 0) {
     %>
-            <form>
+            <form name="analyze" method="post" action="analyzeruns.jsp">
               <center>
                 <input type="submit" name="process" value="Compare">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 <input type="submit" name="process" value="Average">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -62,7 +62,7 @@
                 Result result = results[i];
     %>
             <tr>
-                <td><input type="checkbox" name="<%= result.runId %>"></input></td>
+                <td><input type="checkbox" name="select" value="<%= result.runId %>"></input></td>
                 <td><%= result.runId %></td>
                 <td><%= result.description %></td>
                 <td><%= result.result %></td>
