@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.18 2006/10/10 02:04:55 akara Exp $
+ * $Id: Config.java,v 1.19 2006/10/24 05:24:21 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -136,6 +136,8 @@ public class Config {
     public static final int DEFAULT_PRIORITY = 1;
     public static final int HIGHER_PRIORITY = 2;
 
+    public static final String XML_STATS_DIR = "xmlstats";
+
     public static String TMP_DIR;
     // File related
     public static String FABAN_HOST; // The host name.
@@ -145,6 +147,7 @@ public class Config {
     public static String CONFIG_DIR;
     public static String RUNQ_DIR;
     public static String OUT_DIR;
+    public static String ANALYSIS_DIR;
     public static String SEQUENCE_FILE;
 
     // Constants used by UserEnv
@@ -257,6 +260,7 @@ public class Config {
         CMD_SCRIPT = BIN_DIR + "faban ";
         LIB_DIR = FABAN_HOME + "lib" + File.separator;
         OUT_DIR = FABAN_HOME + "output" + File.separator;
+        ANALYSIS_DIR = FABAN_HOME + "analysis" + File.separator;
         CONFIG_DIR = FABAN_HOME + "config" + File.separator;
         RUNQ_DIR = CONFIG_DIR  + "runq" + File.separator;
         SEQUENCE_FILE = CONFIG_DIR  + "sequence";

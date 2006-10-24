@@ -70,6 +70,11 @@
 
     <servlet-mapping>
         <servlet-name>ContentReader</servlet-name>
+        <url-pattern>/analysis/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>ContentReader</servlet-name>
         <url-pattern>/bench_downloads/*</url-pattern>
     </servlet-mapping>
 

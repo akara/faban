@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ContentReader.java,v 1.2 2006/06/29 19:38:44 akara Exp $
+ * $Id: ContentReader.java,v 1.3 2006/10/24 05:24:22 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -80,11 +80,14 @@ public class ContentReader extends HttpServlet {
         // We have to append the real output dir to it.
         if ("/output".equals(path)) {
             resource = Config.OUT_DIR + resource;
+        } else if ("/analysis".equals(path)) {
+            resource = Config.ANALYSIS_DIR + resource;
         } else if ("/bench_downloads".equals(path)) {
             resource = Config.BENCHMARK_DIR + resource;
         } else {
-            response.setStatus(HttpServletResponse.SC_NOT_IMPLEMENTED);
-            out.println("Routing of path " + path + " not implemented.");
+            String msg = "Routing of path " + path + " not implemented.";
+            out.println(msg);
+            response.sendError(HttpServletResponse.SC_NOT_IMPLEMENTED, msg);
             out.flush();
             out.close();
             return;
@@ -93,8 +96,9 @@ public class ContentReader extends HttpServlet {
         // Need to check that this file exists and is not a directory.
         File f = new File(resource);
         if (!f.exists()) {
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            String msg = "Resource " + resource + " not found.";
             out.println("Resource " + resource + " not found.");
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, msg);
             out.flush();
             out.close();
             return;

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.11 2006/10/19 18:50:28 akara Exp $
+ * $Id: GenericBenchmark.java,v 1.12 2006/10/24 05:24:21 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -29,6 +29,7 @@ import com.sun.faban.harness.Benchmark;
 import com.sun.faban.harness.ParamRepository;
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Run;
+import com.sun.faban.harness.common.Config;
 
 import java.io.File;
 import java.io.IOException;
@@ -378,7 +379,7 @@ public class GenericBenchmark {
         // Create the dir for storing Xanadu XMLs
         String outDir = run.getOutDir();
 
-        String xanaduDir = outDir + File.separator + "xmlstats";
+        String xanaduDir = outDir + File.separator + Config.XML_STATS_DIR;
         if(!(new File(xanaduDir)).mkdirs())
             return false;
 
