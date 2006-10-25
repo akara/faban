@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Result.java,v 1.7 2006/08/19 03:06:12 akara Exp $
+ * $Id: Result.java,v 1.8 2006/10/25 04:20:21 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -343,6 +343,6 @@ public class Result {
         else
             status = new String(cBuf, 0, length);
 
-        return status;
+        return status.trim();
     }
 }
