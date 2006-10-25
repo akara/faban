@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: SJSAS8AgentImpl.java,v 1.2 2006/06/29 19:38:40 akara Exp $
+ * $Id: SJSAS8AgentImpl.java,v 1.3 2006/10/25 23:04:42 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,6 +25,7 @@ package com.sun.faban.harness.agent;
 
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.Run;
+import com.sun.faban.harness.common.RunId;
 import com.sun.faban.harness.util.FileHelper;
 import com.sun.faban.harness.util.XMLEditor;
 
@@ -59,7 +60,7 @@ public class SJSAS8AgentImpl extends UnicastRemoteObject implements SJSAS8Agent,
     private String[] myInstances = null;
     private String[] myLogs = null;
     private boolean profileRun = false;
-    private String runName = null;
+    private String runId = null;
     private boolean  logGC = false;
 
     private boolean sslRun = false;
@@ -157,7 +158,7 @@ public class SJSAS8AgentImpl extends UnicastRemoteObject implements SJSAS8Agent,
                     }
 
                 }
-                //if(editor.save("/tmp/server.xml.bak."+ runName)) {
+                //if(editor.save("/tmp/server.xml.bak."+ runId)) {
                 // we are no longer need to backup the file
                 if(editor.save(null)) {
                     logger.config("Updated  " + configXML);
@@ -246,7 +247,7 @@ public class SJSAS8AgentImpl extends UnicastRemoteObject implements SJSAS8Agent,
 
             if(profileRun) {
                 File f = new File(instances[i]);
-                String tmpOut = Config.TMP_DIR + runName + File.separator + f.getName();
+                String tmpOut = Config.TMP_DIR + runId + File.separator + f.getName();
 
                 f = new File(tmpOut);
                 f.mkdirs();
@@ -399,8 +400,8 @@ public class SJSAS8AgentImpl extends UnicastRemoteObject implements SJSAS8Agent,
         // If profile run jar up the profile data files and transfer it
         // we need to do this only once even if there are multiple instances running on the machine.
         if(this.profileRun) {
-            String jarFile = "/tmp/" + runName + ".profile.jar";
-            String cmd = "cd /tmp/" + runName +";/usr/java/bin/jar -cf " + jarFile + " *";
+            String jarFile = "/tmp/" + runId + ".profile.jar";
+            String cmd = "cd /tmp/" + runId +";/usr/java/bin/jar -cf " + jarFile + " *";
             try {
                 if(!cmdAgent.start(cmd, Config.DEFAULT_PRIORITY))
                     logger.severe("Failed to create profile jar file ");
@@ -458,7 +459,7 @@ public class SJSAS8AgentImpl extends UnicastRemoteObject implements SJSAS8Agent,
             // stopserv needs the instance dir/s
             if(profileRun) {
                 // Remove the profile directory created for this run
-                File file = new File("/tmp/"+ runName + "/" + instance );
+                File file = new File("/tmp/"+ runId + "/" + instance );
                 String [] list = file.list();
                 for(int j = 0; j < list.length; j++)
                     FileHelper.recursiveDelete(file, list[j]);
@@ -508,7 +509,7 @@ public class SJSAS8AgentImpl extends UnicastRemoteObject implements SJSAS8Agent,
             // remove files with benchmark name or instance name from /tmp
             list = new File("/tmp").listFiles();
             String instance = f.getParent();
-            String bm =runName.substring(0, runName.indexOf("."));
+            String bm = new RunId(runId).getBenchName();
             for (int j = 0; j < list.length; j ++) {
                 if(list[j].isDirectory())
                     continue;
@@ -524,7 +525,7 @@ public class SJSAS8AgentImpl extends UnicastRemoteObject implements SJSAS8Agent,
                 String[] instanceHomess, String[] instanceLogs) throws RemoteException {
         myInstances = instanceHomess;
         myLogs = instanceLogs;
-        runName = run.getRunName();
+        runId = run.getRunId();
 
         cmdAgent = CmdAgentImpl.getHandle();
         outDir =  run.getOutDir();

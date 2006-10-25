@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunDaemon.java,v 1.17 2006/10/10 01:37:37 akara Exp $
+ * $Id: RunDaemon.java,v 1.18 2006/10/25 23:04:43 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -26,6 +26,7 @@ package com.sun.faban.harness.engine;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.Run;
 import com.sun.faban.harness.common.BenchmarkDescription;
+import com.sun.faban.harness.common.RunId;
 import com.sun.faban.harness.util.FileHelper;
 import com.sun.faban.harness.util.NameValuePair;
 import com.sun.faban.harness.logging.XMLFormatter;
@@ -89,19 +90,19 @@ public class RunDaemon implements Runnable {
      *         next run is younger than the given age
      */
     public NameValuePair<Long> nextRunAge(long minAge) {
-        String runName = getNextRun();
-        if (runName == null)
+        String runId = getNextRun();
+        if (runId == null)
             return null;
-        File runqDir = new File(Config.RUNQ_DIR, runName);
+        File runqDir = new File(Config.RUNQ_DIR, runId);
         long age = System.currentTimeMillis() - runqDir.lastModified();
         if (age <= minAge)
             return null;
-        return new NameValuePair<Long>(runName, minAge);
+        return new NameValuePair<Long>(runId, minAge);
     }
 
     /**
      * Obtains the name of the next run.
-     * @return The name of the next run, or null if there is no next run
+     * @return The id of the next run, or null if there is no next run
      */
     private String getNextRun() {
         // get the list of runs in the runq
@@ -129,10 +130,10 @@ public class RunDaemon implements Runnable {
         runqLock.grabLock();
 
         // get the list of runs in the runq
-        String runName = getNextRun();
+        String runId = getNextRun();
 
         // name == null in non-poller mode. Don't check name in such cases.
-        if (runName == null || (name != null && !runName.equals(name))) {
+        if (runId == null || (name != null && !runId.equals(name))) {
             runqLock.releaseLock();
             return null;
         }
@@ -144,21 +145,19 @@ public class RunDaemon implements Runnable {
         // $$$$$$$$$$$$$$$$$$$$$$$$$ WARNING $$$$$$$$$$$$$$$$$$$$$$$$$
         // If the user creates an empty runq dir then it will endup with an infinite loop
         // Need to enhance this to avoid this problem
-        File runqDir = new File(Config.RUNQ_DIR + runName);
+        File runqDir = new File(Config.RUNQ_DIR + runId);
         if(runqDir.list().length < 1) {
             runqLock.releaseLock();
-            logger.warning(runName + " is empty. Waiting !!");
+            logger.warning(runId + " is empty. Waiting !!");
             return null;
         }
 
-        int dotPos = runName.indexOf(".");
-        String benchName = runName.substring(0, dotPos);
-        String runID = runName.substring(dotPos + 1);
+        RunId runIdObj = new RunId(runId);
 
         BenchmarkDescription benchDesc =
-                BenchmarkDescription.getDescription(benchName);
-        String runDir = Config.RUNQ_DIR + runName;
-        String outDir = Config.OUT_DIR + runName;
+                BenchmarkDescription.getDescription(runIdObj.getBenchName());
+        String runDir = Config.RUNQ_DIR + runId;
+        String outDir = Config.OUT_DIR + runId;
 
         // Create output directory
         File outDirFile = new File(outDir);
@@ -187,28 +186,28 @@ public class RunDaemon implements Runnable {
                                       File.separator + "submitter");
             if (!submitter.isFile()) {
                 logger.warning("Unidentified submitter. Removing run " +
-                                runName + '.');
-                FileHelper.recursiveDelete(new File(Config.RUNQ_DIR), runName);
+                                runId + '.');
+                FileHelper.recursiveDelete(new File(Config.RUNQ_DIR), runId);
                 runqLock.releaseLock();
                 throw new RunEntryException("Unidentified submitter on run " +
-                                            runName + '.');
+                                            runId + '.');
             }
         }
 
 
         if (!FileHelper.copyFile(sourceParamFile, destParamFile, false)) {
             logger.warning("Error copying Parameter Repository. " +
-                           "Removing run " + runName + '.');
-            FileHelper.recursiveDelete(new File(Config.RUNQ_DIR), runName);
+                           "Removing run " + runId + '.');
+            FileHelper.recursiveDelete(new File(Config.RUNQ_DIR), runId);
             runqLock.releaseLock();
             throw new RunEntryException("Error run param file on run " +
-                                        runName + '.');
+                                        runId + '.');
         }
 
-        FileHelper.recursiveDelete(new File(Config.RUNQ_DIR), runName);
+        FileHelper.recursiveDelete(new File(Config.RUNQ_DIR), runId);
         runqLock.releaseLock();
 
-        return new Run(runID, benchDesc);
+        return new Run(runIdObj.getRunSeq(), benchDesc);
     }
     /**
      * The run method for the RunDaemonThread. It loops indefinitely and blocks
@@ -237,14 +236,14 @@ public class RunDaemon implements Runnable {
             }
 
             Run run = null;
-            String runName = null;
+            String runId = null;
 
             // Poll other hosts in poller mode. Otherwise skip this block.
             if (Config.daemonMode == Config.DaemonModes.POLLER) {
                 NameValuePair<Long> nextLocal = nextRunAge(Long.MIN_VALUE);
                 long runAge = -1;
                 if (nextLocal != null) {
-                    runName = nextLocal.name;
+                    runId = nextLocal.name;
                     runAge = nextLocal.value;
                 }
                 File tmpRunDir = null;
@@ -267,7 +266,7 @@ public class RunDaemon implements Runnable {
             boolean remoteRun = true;
             if (run == null)
                 try {
-                    run = fetchNextRun(runName); // runName null if not poller.
+                    run = fetchNextRun(runId); // runId null if not poller.
                     remoteRun = false;
                 } catch (RunEntryException e) {
                     // If there is a run entry issue, just skip to the next run
@@ -299,7 +298,7 @@ public class RunDaemon implements Runnable {
             // here, too!
             if (remoteRun)
                 try {
-                    RunUploader.uploadIfOrigin(run.getRunName());
+                    RunUploader.uploadIfOrigin(run.getRunId());
                 } catch (IOException e) {
                     logger.log(Level.WARNING, "Run upload failed!", e);
                 }
@@ -326,29 +325,26 @@ public class RunDaemon implements Runnable {
 
         // 1. get run id and identify run directory
         // tmpRunDir is in the form of host.bench.id
-        String benchName = tmpRunDir.getName();
-        int dotPos = benchName.lastIndexOf('.');
+        RunId runId0 = new RunId(tmpRunDir.getName());
+
         // We ignore the remote run id at this time.
-        int dotPos2 = benchName.lastIndexOf('.', dotPos - 1);
-        benchName = benchName.substring(dotPos2 + 1, dotPos);
+        String benchName = runId0.getBenchName();
+        String runId = RunQ.getHandle().getRunId(benchName);
+        String runSeq = new RunId(runId).getRunSeq();
 
-        String runName = RunQ.getHandle().getRunID(benchName);
-        dotPos = runName.lastIndexOf('.');
-        String runID = runName.substring(dotPos + 1);
-
-        File runDir = new File(Config.OUT_DIR, runName);
+        File runDir = new File(Config.OUT_DIR, runId);
 
         // 2. copy directory
         if (runDir.exists() || !FileHelper.recursiveCopy(tmpRunDir, runDir)) {
             logger.warning("Error copying remote run. " +
-                           "Removing run " + runName + '.');
-            FileHelper.recursiveDelete(new File(Config.RUNQ_DIR), runName);
+                           "Removing run " + runId + '.');
+            FileHelper.recursiveDelete(new File(Config.RUNQ_DIR), runId);
             runqLock.releaseLock();
             throw new RunEntryException("Error copy param file on run " +
-                                        runName + '.');
+                                        runId + '.');
         }
         try {
-            RunQ.getHandle().generateNextID(runName);
+            RunQ.getHandle().generateNextSeq(runId);
         } catch (IOException e) {
             logger.warning("Error updating run id.");
             throw new RunEntryException("Error updating run id");
@@ -367,7 +363,7 @@ public class RunDaemon implements Runnable {
             logger.log(Level.SEVERE, e.getMessage(), e);
             throw e;
         }
-        return new Run(runID, benchDesc);
+        return new Run(runSeq, benchDesc);
     }
 
     /**
@@ -377,7 +373,7 @@ public class RunDaemon implements Runnable {
      */
     public String getCurrentRunId() {
         if (gb!= null)
-            return currRun.getRunName();
+            return currRun.getRunId();
         return null;
     }
 
@@ -391,13 +387,14 @@ public class RunDaemon implements Runnable {
         return null;
     }
 
-
     /**
      * To abort the currently executing benchmark run.
-     *
+     * @param runId The name of the run
+     * @param user The user killing the run
+     * @return The run name being killed
      */
     public String killCurrentRun(String runId, String user) {
-        if (runId.equals(currRun.getRunName()) && gb != null) {
+        if (runId.equals(currRun.getRunId()) && gb != null) {
             gb.kill();
             logger.info("Audit: Run " + runId + " killed by " + user);
             return runId;

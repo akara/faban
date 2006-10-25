@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: analyzeruns.jsp,v 1.2 2006/10/24 05:24:22 akara Exp $
+ * $Id: analyzeruns.jsp,v 1.3 2006/10/25 23:04:43 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -29,7 +29,7 @@
                                  java.util.logging.Logger,
                                  com.sun.faban.common.Command,
                                  com.sun.faban.harness.common.Config,
-                                 com.sun.faban.harness.common.RunName,
+                                 com.sun.faban.harness.common.RunId,
                                  com.sun.faban.harness.webclient.Result"%>
 <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
 
@@ -59,8 +59,8 @@
             return;
         }        
         
-        String[] runNameStrings = request.getParameterValues("select");
-        if (runNameStrings.length < 2) {
+        String[] runIdStrings = request.getParameterValues("select");
+        if (runIdStrings.length < 2) {
             String msg;
             if (mode == COMPARE)
                 msg = "Select 2 runs to compare.";
@@ -71,9 +71,9 @@
             return;
         }
         
-        if (mode == COMPARE & runNameStrings.length > 2) {
+        if (mode == COMPARE & runIdStrings.length > 2) {
             String msg = "Compare no more than two runs. " +
-                         runNameStrings.length + " runs requested.";
+                         runIdStrings.length + " runs requested.";
             out.println(msg);
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, msg);
             return;
@@ -87,17 +87,17 @@
             HashSet<String> hostNameSet = new HashSet<String>();
             suggestion.append(modes[mode]);
 
-            RunName[] runNames = new RunName[runNameStrings.length];
+            RunId[] runIds = new RunId[runIdStrings.length];
             String benchName = null;
             String hostName = null;
-            for (int i = 0; i < runNameStrings.length; i++) {
-                RunName runName = new RunName(runNameStrings[i]);
-                runList.append(runName).append(", ");
-                benchName = runName.getBenchName();
-                hostName = runName.getHostName();
+            for (int i = 0; i < runIdStrings.length; i++) {
+                RunId runId = new RunId(runIdStrings[i]);
+                runList.append(runId).append(", ");
+                benchName = runId.getBenchName();
+                hostName = runId.getHostName();
                 benchNameSet.add(benchName);
                 hostNameSet.add(hostName);
-                runNames[i] = runName;
+                runIds[i] = runId;
             }
             runList.setLength(runList.length() - 2); //Strip off the last comma
 
@@ -105,7 +105,7 @@
              * The run name can come in the form of bench.id or
              * host.bench.id. We try to keep the suggested name
              * as short as possible. We have three formats:
-             * 1. Generic format: mode_runName1_runName2...
+             * 1. Generic format: mode_runId1_runId2...
              * 2. Same benchmark: mode_bench_<host.>runId1_<host>.runId2...
              * 3. Same host, same benchmark: mode_bench_host_runId1_runId2...
              */
@@ -114,20 +114,20 @@
                 if (hostNameSet.size() == 1) {
                     if (hostName.length() > 0)
                         suggestion.append('-').append(hostName);
-                    for (RunName runName : runNames)
-                        suggestion.append('_').append(runName.getRunId());
+                    for (RunId runId : runIds)
+                        suggestion.append('_').append(runId.getRunSeq());
                 } else {
-                    for (RunName runName : runNames) {
+                    for (RunId runId : runIds) {
                         suggestion.append('_');
-                        hostName = runName.getHostName();
+                        hostName = runId.getHostName();
                         if (hostName.length() > 0)
                             suggestion.append(hostName).append('.');
-                        suggestion.append(runName.getRunId());
+                        suggestion.append(runId.getRunSeq());
                     }
                 }
             } else {
-                for (RunName runName : runNames)
-                    suggestion.append('_').append(runName);
+                for (RunId runId : runIds)
+                    suggestion.append('_').append(runId);
             }
     %>
     </head>
@@ -151,9 +151,9 @@
       </tbody>
     </table><br>
     <%
-            for (int i = 0; i < runNameStrings.length; i++) {
+            for (int i = 0; i < runIdStrings.length; i++) {
     %>
-    <input type="hidden" name="select" value="<%= runNameStrings[i] %>">
+    <input type="hidden" name="select" value="<%= runIdStrings[i] %>">
     <%
             }
     %>
@@ -172,8 +172,8 @@
             StringBuilder cmd = new StringBuilder(256);
             cmd.append(Config.BIN_DIR.trim()).append("xanadu ").
                 append(modes[mode]);
-            for (String runName : runNameStrings)
-                cmd.append(' ').append(Config.OUT_DIR).append(runName).
+            for (String runId : runIdStrings)
+                cmd.append(' ').append(Config.OUT_DIR).append(runId).
                         append(File.separator).append(Config.XML_STATS_DIR);
             
             cmd.append(' ').append(Config.ANALYSIS_DIR).append(output);

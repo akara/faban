@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunUploader.java,v 1.6 2006/10/10 02:04:55 akara Exp $
+ * $Id: RunUploader.java,v 1.7 2006/10/25 23:04:43 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -162,7 +162,7 @@ public class RunUploader extends HttpServlet {
             }
             File runTmp = unjarTmp(uploadFile);
 
-            String runName = null;
+            String runId = null;
 
             if (origin) {
                 // Change origin file to know where this run came from.
@@ -197,7 +197,7 @@ public class RunUploader extends HttpServlet {
                     break;
                 }
 
-                runName = originSpec.substring(idx + 1);
+                runId = originSpec.substring(idx + 1);
                 String localHost = originSpec.substring(0, idx);
                 if (!localHost.equals(Config.FABAN_HOST)) {
                     logger.warning("Origin upload requested. Origin host " +
@@ -208,10 +208,10 @@ public class RunUploader extends HttpServlet {
                 }
                 writeStringToFile(runTmp.getName(), originFile);
             }  else {
-                runName = runTmp.getName();
+                runId = runTmp.getName();
             }
 
-            if (recursiveCopy(runTmp, new File(Config.OUT_DIR, runName))) {
+            if (recursiveCopy(runTmp, new File(Config.OUT_DIR, runId))) {
                 uploadFile.delete();
                 recursiveDelete(runTmp);
             } else {
@@ -229,13 +229,13 @@ public class RunUploader extends HttpServlet {
     /**
      * Client call to upload the run back to the originating server.
      * This method does nothing if the run is local.
-     * @param runName The name of the run
+     * @param runId The id of the run
      * @throws IOException If the upload fails
      */
-    public static void uploadIfOrigin(String runName) throws IOException {
+    public static void uploadIfOrigin(String runId) throws IOException {
 
         // 1. Check origin
-        File originFile = new File(Config.OUT_DIR + File.separator + runName +
+        File originFile = new File(Config.OUT_DIR + File.separator + runId +
                     File.separator + "META-INF" + File.separator + "origin");
 
         if (!originFile.isFile())
@@ -277,7 +277,7 @@ public class RunUploader extends HttpServlet {
         }
 
         // 2. Jar up the run
-        String[] files = new File(Config.OUT_DIR, runName).list();
+        String[] files = new File(Config.OUT_DIR, runId).list();
 
         StringBuilder fileList = new StringBuilder();
         for (String file : files)
@@ -288,8 +288,8 @@ public class RunUploader extends HttpServlet {
         if (length > 0)
             fileList.setLength(length - 1);
 
-        File jarFile = new File(Config.TMP_DIR, runName + ".jar");
-        jar(Config.OUT_DIR + runName, fileList.toString(),
+        File jarFile = new File(Config.TMP_DIR, runId + ".jar");
+        jar(Config.OUT_DIR + runId, fileList.toString(),
                 jarFile.getAbsolutePath());
 
         // 3. Upload the run
@@ -305,9 +305,9 @@ public class RunUploader extends HttpServlet {
         int status = client.executeMethod(post);
         if (status == HttpStatus.SC_FORBIDDEN)
             logger.severe("Server " + host + " denied permission to upload run "
-                            + runName + '!');
+                            + runId + '!');
         else if (status == HttpStatus.SC_NOT_ACCEPTABLE)
-            logger.severe("Run " + runName + " origin error!");
+            logger.severe("Run " + runId + " origin error!");
         else if (status != HttpStatus.SC_CREATED)
             logger.severe("Server responded with status code " +
                     status + ". Status code 201 (SC_CREATED) expected.");

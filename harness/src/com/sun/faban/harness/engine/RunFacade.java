@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunFacade.java,v 1.2 2006/07/29 01:03:02 akara Exp $
+ * $Id: RunFacade.java,v 1.3 2006/10/25 23:04:43 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -91,18 +91,18 @@ public class RunFacade {
     }
 
     /**
-     * Obtains the id part of the run, not including the benchmark name.
+     * Obtains the sequence part of the run id.
      * @return The run id
      */
-    public String getRunID() {
-        return run.getRunID();
+    public String getRunSeq() {
+        return run.getRunSeq();
     }
 
     /**
-     * Obtains the full name of the run in the form benchmark.id.
-     * @return The run name
+     * Obtains the run id in the form benchmark.id.
+     * @return The run id
      */
-    public String getRunName() {
-        return run.getRunName();
+    public String getRunId() {
+        return run.getRunId();
     }
 }

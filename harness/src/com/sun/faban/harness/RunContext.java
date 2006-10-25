@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunContext.java,v 1.4 2006/09/15 18:51:28 akara Exp $
+ * $Id: RunContext.java,v 1.5 2006/10/25 23:04:42 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -48,19 +48,19 @@ public class RunContext {
     }
 
     /**
-     * Obtains the id part of the run, not including the benchmark name.
-     * @return The run id
+     * Obtains the sequence part of the run id.
+     * @return The run sequence
      */
-    public static String getRunID() {
-        return RunFacade.getInstance().getRunID();
+    public static String getRunSeq() {
+        return RunFacade.getInstance().getRunSeq();
     }
 
     /**
      * Obtains the full name of the run in the form benchmark.id.
      * @return The run name
      */
-    public static String getRunName() {
-        return RunFacade.getInstance().getRunName();
+    public static String getRunId() {
+        return RunFacade.getInstance().getRunId();
     }
 
     /**

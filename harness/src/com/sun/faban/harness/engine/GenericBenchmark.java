@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.12 2006/10/24 05:24:21 akara Exp $
+ * $Id: GenericBenchmark.java,v 1.13 2006/10/25 23:04:43 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -385,7 +385,7 @@ public class GenericBenchmark {
 
         // Text => xml
         Command xanadu = new Command("xanadu import " + outDir + " " +
-                xanaduDir + " " + run.getRunName());
+                xanaduDir + " " + run.getRunId());
 
         try {
             CommandHandle handle = cmds.execute(xanadu);

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Run.java,v 1.4 2006/10/24 05:24:21 akara Exp $
+ * $Id: Run.java,v 1.5 2006/10/25 23:04:42 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -38,17 +38,17 @@ public class Run implements Serializable {
     private BenchmarkDescription benchDesc;
     private String outdir;		// output directory name for this run
     private String runqdir;		// Runq directory name for this run
-    private String runID;
-    private String runName;
+    private String runSeq;
+    private String runId;
     private boolean inRunQ;
 
-    public Run(String runID, BenchmarkDescription benchDesc) {
+    public Run(String runSeq, BenchmarkDescription benchDesc) {
         this.benchDesc = benchDesc;
-        runName = benchDesc.shortName + "." + runID;
-        this.runID = runID;
+        runId = benchDesc.shortName + "." + runSeq;
+        this.runSeq = runSeq;
 
-        runqdir = Config.RUNQ_DIR + runName + File.separator;
-        outdir = Config.OUT_DIR + runName + File.separator;
+        runqdir = Config.RUNQ_DIR + runId + File.separator;
+        outdir = Config.OUT_DIR + runId + File.separator;
 
         // Check if run is in RunQ
         if((new File(runqdir)).exists())
@@ -61,16 +61,16 @@ public class Run implements Serializable {
      * Get the id of the run.
      *
      */
-    public String getRunID() {
-        return runID;
+    public String getRunSeq() {
+        return runSeq;
     }
 
     /**
      * Get the name of this run. 
      *
      */
-    public String getRunName() {
-        return runName;
+    public String getRunId() {
+        return runId;
     }
 
     /**

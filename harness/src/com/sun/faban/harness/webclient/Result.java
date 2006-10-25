@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Result.java,v 1.8 2006/10/25 04:20:21 akara Exp $
+ * $Id: Result.java,v 1.9 2006/10/25 23:04:43 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -27,6 +27,7 @@ import com.sun.faban.harness.ParamRepository;
 import com.sun.faban.harness.security.AccessController;
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
+import com.sun.faban.harness.common.RunId;
 import com.sun.faban.harness.util.XMLReader;
 
 import javax.security.auth.Subject;
@@ -91,8 +92,7 @@ public class Result {
                 String runId = list[i].getName();
                 if (!AccessController.isViewAllowed(user, runId))
                     continue;
-                runId = runId.substring(runId.lastIndexOf('.') + 1);
-                dirMap.put(runId, list[i]);
+                dirMap.put(new RunId(runId).getRunSeq(), list[i]);
             }
 
             // First entry in the list is the header.
@@ -123,8 +123,7 @@ public class Result {
                 result.runId = resultDir.getName();
 
                 // First, check whether the results contain meta info.
-                String shortName = result.runId.substring(0,
-                                    result.runId.lastIndexOf('.'));
+                String shortName = new RunId(result.runId).getBenchName();
                 BenchmarkDescription desc = BenchmarkDescription.
                         readDescription(shortName, resultDir.getAbsolutePath());
                 if (desc == null) {
@@ -321,7 +320,7 @@ public class Result {
 
     /**
      * Obtains the current status of a run.
-     * @param runId The runId of the run in question
+     * @param runId The id of the run in question
      * @return The current status string or "UNKNOWN" in error cases
      */
     public static String getStatus(String runId) {

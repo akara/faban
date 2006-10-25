@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultnavigator.jsp,v 1.5 2006/08/15 23:40:27 akara Exp $
+ * $Id: resultnavigator.jsp,v 1.6 2006/10/25 23:04:44 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -30,10 +30,11 @@
                                  java.io.File,
                                  com.sun.faban.harness.common.BenchmarkDescription,
                                  java.io.IOException,
-                                 com.sun.faban.harness.webclient.Result"%>
+                                 com.sun.faban.harness.webclient.Result,
+                                 com.sun.faban.harness.common.RunId"%>
 <%
     String runId = request.getParameter("runId");
-    String benchmark = runId.substring(0, runId.lastIndexOf('.'));
+    String benchmark = new RunId(runId).getBenchName();
 
     // First, we try to get the meta info from the results.
     BenchmarkDescription desc = BenchmarkDescription.

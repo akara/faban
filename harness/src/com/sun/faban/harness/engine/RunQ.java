@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunQ.java,v 1.14 2006/10/09 09:57:43 akara Exp $
+ * $Id: RunQ.java,v 1.15 2006/10/25 23:04:43 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -27,6 +27,7 @@ import com.sun.faban.harness.ParamRepository;
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.Run;
+import com.sun.faban.harness.common.RunId;
 import com.sun.faban.harness.util.FileHelper;
 import com.sun.faban.harness.util.NameValuePair;
 
@@ -57,7 +58,7 @@ public class RunQ {
     static final int GENERATED = 1;
     static final int BENCH = 2;
 
-    public static final int RUNID = 0;
+    public static final int RUNSEQ = 0;
     public static final int BENCHNAME = 1;
     public static final int DESCRIPTION = 2;
 
@@ -100,9 +101,9 @@ public class RunQ {
             // Gets the lock for the runq directory.
             runqLock.grabLock();
 
-            String runID = getRunID(desc.shortName);
+            String runId = getRunId(desc.shortName);
 
-            String runDir = Config.RUNQ_DIR + runID;
+            String runDir = Config.RUNQ_DIR + runId;
             // create Run Directory
             File dir = new File(runDir);
             if(dir.mkdirs())
@@ -172,10 +173,10 @@ public class RunQ {
                     paramRepFileName);
             FileHelper.copyFile(paramSourceFileName, paramRepFileName, false);
 
-            generateNextID(runID);
+            generateNextSeq(runId);
             runqLock.signal();  // Signal a new run is submitted.
 
-            return runID;
+            return runId;
         } finally {
             runqLock.releaseLock();
         }
@@ -183,68 +184,69 @@ public class RunQ {
 
     // Gets the ID for this run from the sequence file. Creates a new
     // sequence file if it does not already exist.
-    String getRunID(String benchName) {
+    String getRunId(String benchName) {
 
-        String runID = null;
-        String runIDChar, runIDIntChar;
+        String runId = null;
+        String runSeq = null;
+        String runSeqChar, runSeqIntChar;
         File seqFile = new File(Config.SEQUENCE_FILE);
 
         if (seqFile.exists()) {
             try {
-                runID = FileHelper.readStringFromFile(seqFile);
-                if (runID.endsWith("\n"))
-                    runID = runID.substring(0, runID.length() - 1);
+                runSeq = FileHelper.readStringFromFile(seqFile);
+                if (runSeq.endsWith("\n"))
+                    runSeq = runSeq.substring(0, runSeq.length() - 1);
             } catch (IOException e) {
                 logger.log(Level.SEVERE, "Cannot read sequence file!", e);
             }
             int colonPos = -1;
-            if((runID != null) && ((colonPos = runID.indexOf(":")) != -1)) {
-                runIDChar = runID.substring(colonPos + 1);
-                runIDIntChar = runID.substring(0, colonPos);
-                runID = benchName + "." + runIDIntChar + runIDChar;
+            if((runSeq != null) && ((colonPos = runSeq.indexOf(":")) != -1)) {
+                runSeqChar = runSeq.substring(colonPos + 1);
+                runSeqIntChar = runSeq.substring(0, colonPos);
+                runId = benchName + "." + runSeqIntChar + runSeqChar;
             }
             else {
-                logger.warning("RunQ getRunID: Invalid runID in sequence file");
+                logger.warning("RunQ getRunId: Invalid runSeq in sequence file");
                 seqFile.delete();
-                runID = null;
+                runId = null;
             }
         }
         
-        // Could not find a valid runID 
-        if(runID == null) {
+        // Could not find a valid runSeq
+        if(runSeq == null) {
             try {
                 seqFile.createNewFile();
             }
             catch (IOException ie) {
                 logger.severe("Could not create the sequence File");
             }
-            runID = benchName + ".1A";
+            runId = benchName + ".1A";
         }
-        return runID;
+        return runId;
     }
 
     // Generate the sequence number for the next run and write it to
     // sequence file.
-    void generateNextID(String runID) throws IOException {
+    void generateNextSeq(String currentSeq) throws IOException {
 
         File seqFile = new File(Config.SEQUENCE_FILE);
-        int index = runID.lastIndexOf(".");
-        int length = runID.length();
+        int index = currentSeq.lastIndexOf(".");
+        int length = currentSeq.length();
 
-        char runIDChar = runID.charAt(length - 1);
-        String runIDIntStr = runID.substring(index + 1, length - 1);
-        int runIDInt = Integer.parseInt(runIDIntStr);
-        if (runIDChar == 'z') {
-            runIDInt++;
-            runIDChar = 'A';
+        char seqChar = currentSeq.charAt(length - 1);
+        String seqIntStr = currentSeq.substring(index + 1, length - 1);
+        int seqInt = Integer.parseInt(seqIntStr);
+        if (seqChar == 'z') {
+            seqInt++;
+            seqChar = 'A';
         }
         else {
-            runIDChar = (runIDChar == 'Z') ? 'a' :
-                    ((char)((int) runIDChar + 1));
+            seqChar = (seqChar == 'Z') ? 'a' :
+                    ((char)((int) seqChar + 1));
         }
 
         StringBuffer sb = new StringBuffer();
-        sb.append(runIDInt).append(':').append(runIDChar);
+        sb.append(seqInt).append(':').append(seqChar);
 
         try {
             FileHelper.writeStringToFile(sb.toString(), seqFile);
@@ -256,28 +258,28 @@ public class RunQ {
     }
 
     /**
-      * Deletes the run with the specified runID from the runq. Does not take
+      * Deletes the run with the specified runId from the runq. Does not take
       * any action if such a run is not found or is already being executed
       * by the runDaemon thread
       *
-      * @param runID the runID of the run to be deleted
+      * @param runId the runId of the run to be deleted
       *
       */
-    public boolean deleteRun(String runID)
+    public boolean deleteRun(String runId)
     {
         try {
             //   File runqDirPath = new File(Config.RUNQ_DIR);
-            logger.warning("Removing run directory " + runID);
+            logger.warning("Removing run directory " + runId);
             runqLock.grabLock();
             boolean retVal = FileHelper.recursiveDelete(
-                    new File(Config.RUNQ_DIR), runID);
+                    new File(Config.RUNQ_DIR), runId);
             runqLock.releaseLock();
             return retVal;
         }
         catch (Exception e)
         {
             logger.log(Level.WARNING, "Could not delete the run directory "+
-                    runID + '.', e);
+                    runId + '.', e);
         }
         return false;
     }
@@ -305,14 +307,14 @@ public class RunQ {
                 Map<String, BenchmarkDescription> benchMap =
                         BenchmarkDescription.getBenchDirMap(false);
                 for (int i = 0; i < list.length; i++) {
-                    int dotPos = list[i].lastIndexOf(".");
-                    String tmpBenchName = list[i].substring(0, dotPos);
-                    String tmpRunID = list[i].substring(dotPos + 1);
-                    data[i][RUNID] = tmpRunID;
-                    data[i][BENCHNAME] = tmpBenchName;
+                    RunId runId = new RunId(list[i]);
+                    String benchName = runId.getBenchName();
+                    String runSeq = runId.getRunSeq();
+                    data[i][RUNSEQ] = runSeq;
+                    data[i][BENCHNAME] = benchName;
                     String paramFile = Config.RUNQ_DIR + list[i]
                             + File.separator + ((BenchmarkDescription)
-                            benchMap.get(tmpBenchName)).configFileName;
+                            benchMap.get(benchName)).configFileName;
                     ParamRepository par = new ParamRepository(paramFile);
                     String desc = par.getParameter("runConfig/description");
                     if((desc == null) || (desc.length() == 0))
@@ -376,7 +378,7 @@ public class RunQ {
     /**
      * method to stop the current benchamark run
      * @param runId The run id to kill - this is for safety
-     * @return current run id.
+     * @return current run name.
      */
     public String killCurrentRun(String runId, String user) {
         return runDaemon.killCurrentRun(runId, user);
@@ -387,16 +389,16 @@ public class RunQ {
      * function is normally done by the run daemon with the exception
      * of a submission proxy where the run daemon is not run. The RunRetriever
      * servlet will call to fetch this run to run on a remote system instead.
-     * If the given run name does not match the name of the next run, some
-     * consistencies have happened. The method returns null in this case.
-     * @param runName The name of the run in question.
+     * If the given run id does not match the id of the next run, some
+     * inconsistencies have happened. The method returns null in this case.
+     * @param runId The id of the run in question.
      * @return The run object representing this run
      * @throws RunEntryException There is an error in the run queue entry
      */
-    public Run fetchNextRun(String runName) throws RunEntryException {
-        if (runName == null)
+    public Run fetchNextRun(String runId) throws RunEntryException {
+        if (runId == null)
             throw new NullPointerException("Run name cannot be null!");
-        return runDaemon.fetchNextRun(runName);
+        return runDaemon.fetchNextRun(runId);
     }
 
     /**
@@ -438,9 +440,9 @@ public class RunQ {
                 logger.severe("RunQ getValidPrevRun: the sequence file does not exist");
                 logger.log(Level.FINE, "Exception", fe);
             }
-            String runIDIntChar = null;
+            String runSeqIntChar = null;
             try {
-                runIDIntChar = bufIn.readLine();
+                runSeqIntChar = bufIn.readLine();
                 bufIn.close();
             }
             catch (IOException ie) {
@@ -448,38 +450,38 @@ public class RunQ {
                         "could not read/close the sequence file", ie);
             }
             int colonPos = -1;
-            if((runIDIntChar != null) && ((colonPos = runIDIntChar.indexOf(":")) != -1)) {            
-                String runIDChar = runIDIntChar.substring(colonPos + 1);
-                int runIDInt =
-                    Integer.parseInt(runIDIntChar.substring(0, colonPos));
+            if((runSeqIntChar != null) && ((colonPos = runSeqIntChar.indexOf(":")) != -1)) {
+                String runSeqChar = runSeqIntChar.substring(colonPos + 1);
+                int runSeqInt =
+                    Integer.parseInt(runSeqIntChar.substring(0, colonPos));
             
-                if ((runIDChar.charAt(0) == 'A') && (runIDInt == 1))
+                if ((runSeqChar.charAt(0) == 'A') && (runSeqInt == 1))
                     return null;
                     
-                char runIDCharZero = runIDChar.charAt(0);
-                if (runIDCharZero == 'A') {
-                    runIDInt--;
-                    runIDChar = String.valueOf('z');
+                char runSeqCharZero = runSeqChar.charAt(0);
+                if (runSeqCharZero == 'A') {
+                    runSeqInt--;
+                    runSeqChar = String.valueOf('z');
                 }
                 else {
-                    if (runIDCharZero == 'a') {
-                        runIDChar = String.valueOf('Z');
+                    if (runSeqCharZero == 'a') {
+                        runSeqChar = String.valueOf('Z');
                     }
                     else {
-                        runIDChar = String.valueOf((char)((int) runIDCharZero - 1));
+                        runSeqChar = String.valueOf((char)((int) runSeqCharZero - 1));
                     }   
                 }
-                String runID = benchName + "." + String.valueOf(runIDInt) + runIDChar;
+                String runId = benchName + "." + String.valueOf(runSeqInt) + runSeqChar;
                 BenchmarkDescription desc = BenchmarkDescription.getDescription(benchName);
                 File checkIfExists =
-                     new File(Config.RUNQ_DIR + runID + File.separator + desc.configFileName);
+                     new File(Config.RUNQ_DIR + runId + File.separator + desc.configFileName);
                 if (checkIfExists.exists())
-                    return runID;
+                    return runId;
                 
                 checkIfExists = new File(Config.OUT_DIR +
-                    runID + File.separator + desc.configFileName);
+                    runId + File.separator + desc.configFileName);
                 if (checkIfExists.exists())
-                    return runID;
+                    return runId;
             }
         }
         return null;
@@ -487,19 +489,15 @@ public class RunQ {
 
     /**
       * This class serves as the comparator to sort runs in the runq and pick
-      * the run with the smallest runid.
+      * the run with the smallest run sequence.
       *
       */
     private class ComparatorImpl implements Comparator {
 
         public int compare(Object o1, Object o2) {
-
-            String s1 = (String) o1;
-            String s2 = (String) o2;
-            String sub1 = s1.substring(s1.lastIndexOf(".") + 1);
-            String sub2 = s2.substring(s2.lastIndexOf(".") + 1);
-            return (sub1.compareTo(sub2));
-
+            RunId r1 = new RunId((String) o1);
+            RunId r2 = new RunId((String) o2);
+            return r1.getRunSeq().compareTo(r2.getRunSeq());
         }
     }
 }

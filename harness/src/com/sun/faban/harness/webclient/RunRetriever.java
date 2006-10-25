@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunRetriever.java,v 1.9 2006/10/10 02:04:55 akara Exp $
+ * $Id: RunRetriever.java,v 1.10 2006/10/25 23:04:43 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -95,7 +95,7 @@ public class RunRetriever extends HttpServlet {
             nextRunAge(Long.parseLong(v), response);
             return;
         }
-        v = request.getParameter("runname");
+        v = request.getParameter("runid");
         if (v != null) {
             fetchNextRun(v, response);
             return;
@@ -145,19 +145,19 @@ public class RunRetriever extends HttpServlet {
         out.close();
     }
 
-    private void fetchNextRun(String runName, HttpServletResponse response)
+    private void fetchNextRun(String runId, HttpServletResponse response)
             throws IOException {
 
         Run nextRun = null;
         for (;;)
             try {
-                nextRun = RunQ.getHandle().fetchNextRun(runName);
+                nextRun = RunQ.getHandle().fetchNextRun(runId);
                 break;
             } catch (RunEntryException e) {
             }
 
         if (nextRun == null) { // Queue empty
-            logger.warning("Fetching run " + runName + ": No longer available!");
+            logger.warning("Fetching run " + runId + ": No longer available!");
             response.setStatus(HttpServletResponse.SC_NO_CONTENT);
             return;
         }
@@ -198,14 +198,14 @@ public class RunRetriever extends HttpServlet {
      */
     public static File jar(Run run) throws IOException {
 
-        logger.info("Preparing run " + run.getRunName() + " for download.");
+        logger.info("Preparing run " + run.getRunId() + " for download.");
 
-        String runName = run.getRunName();
+        String runId = run.getRunId();
 
-        String jarName = runName + ".jar";
+        String jarName = runId + ".jar";
         File jar = new File(Config.TMP_DIR, jarName);
 
-        String[] files = new File(Config.OUT_DIR, runName).list();
+        String[] files = new File(Config.OUT_DIR, runId).list();
 
         StringBuilder fileList = new StringBuilder();
         for (String file : files)
@@ -219,7 +219,7 @@ public class RunRetriever extends HttpServlet {
         if (jar.exists())
             jar.delete();
 
-        FileHelper.jar(Config.OUT_DIR + runName, fileList.toString(),
+        FileHelper.jar(Config.OUT_DIR + runId, fileList.toString(),
                        jar.getAbsolutePath());
         return jar;
     }
@@ -311,7 +311,7 @@ public class RunRetriever extends HttpServlet {
         if (responseCode == HttpServletResponse.SC_OK) {
             InputStream is = c.getInputStream();
 
-            // The input is a one liner in the form runName\tAge
+            // The input is a one liner in the form runId\tAge
             byte[] buffer = new byte[256]; // Very little cost for this new/GC.
             int size = is.read(buffer);
 
@@ -350,7 +350,7 @@ public class RunRetriever extends HttpServlet {
             c.setDoInput(true);
             PrintWriter out = new PrintWriter(c.getOutputStream());
             out.write("host=" + Config.FABAN_HOST + "&key=" + host.key +
-                      "&runname=" + run.name);
+                      "&runid=" + run.name);
             out.flush();
             out.close();
         } catch (SocketTimeoutException e) {

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunName.java,v 1.1 2006/10/24 05:24:21 akara Exp $
+ * $Id: RunId.java,v 1.1 2006/10/25 23:04:43 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -26,65 +26,65 @@ package com.sun.faban.harness.common;
 
 
 /**
- * The RunName class represents a run name and provides standard facilities
- * to decode the run name. The RunName class is immutable.
+ * The RunId class represents a run name and provides standard facilities
+ * to decode the run name. The RunId class is immutable.
  *
  * @author Akara Sucharitakul
  */
-public class RunName {
+public class RunId {
 
     private String host;
     private String benchName;
+    private String runSeq;
     private String runId;
-    private String runName;
 
 
     /**
-     * Constructs a run name based on the benchmark name and the run id.
+     * Constructs a run name based on the benchmark name and the run sequence.
      * @param benchName The benchmark name
-     * @param runId The run id
+     * @param runSeq The run id
      */
-    public RunName(String benchName, String runId) {
-        this(null, benchName, runId);
+    public RunId(String benchName, String runSeq) {
+        this(null, benchName, runSeq);
     }
 
     /**
      * Constructs a run name based on the host name, the benchmark name,
-     * and the run id.
+     * and the run sequence.
      * @param host The host name
      * @param benchName The benchmark name
-     * @param runId The run id
+     * @param runSeq The run sequence
      */
-    public RunName(String host, String benchName, String runId) {
+    public RunId(String host, String benchName, String runSeq) {
         this.host = host;
         this.benchName = benchName;
-        this.runId = runId;
-        StringBuilder runNameBuffer = new StringBuilder();
+        this.runSeq = runSeq;
+        StringBuilder runIdBuffer = new StringBuilder();
         if (host != null)
-            runNameBuffer.append(host).append('.');
-        runNameBuffer.append(benchName).append('.').append(runId);
-        this.runName = runNameBuffer.toString();
+            runIdBuffer.append(host).append('.');
+        runIdBuffer.append(benchName).append('.').append(runSeq);
+        this.runId = runIdBuffer.toString();
     }
 
     /**
-     * Parses a string representation of a run name into the RunName object.
-     * @param runName The full run name.
+     * Parses a string representation of a runId into the RunId object.
+     * @param runId The run id.
      */
-    public RunName(String runName) {
-        int dotIdx = runName.lastIndexOf('.');
+    public RunId(String runId) {
+        int dotIdx = runId.lastIndexOf('.');
         if (dotIdx == -1)
-            throw new IndexOutOfBoundsException("Run name " + runName +
-                    "not conforming to spec <host.>benchName.runId!");
-        runId = runName.substring(dotIdx + 1);
-        int dotIdx2 = runName.lastIndexOf('.', dotIdx - 1);
-        benchName = runName.substring(dotIdx2 + 1, dotIdx);
+            throw new IndexOutOfBoundsException("Run id " + runId +
+                    "not conforming to spec <host.>benchName.runSeq!");
+        runSeq = runId.substring(dotIdx + 1);
+        int dotIdx2 = runId.lastIndexOf('.', dotIdx - 1);
+        benchName = runId.substring(dotIdx2 + 1, dotIdx);
         if (dotIdx2 != -1) // host part
-            host = runName.substring(0, dotIdx2);
-        this.runName = runName;
+            host = runId.substring(0, dotIdx2);
+        this.runId = runId;
     }
 
     /**
-     * Returns the host portion of the run name.
+     * Returns the host portion of the run id.
      * @return The host name
      */
     public String getHostName() {
@@ -94,7 +94,7 @@ public class RunName {
     }
 
     /**
-     * Returns the benchmark name portion of the run name.
+     * Returns the benchmark name portion of the run id.
      * @return The benchmark name
      */
     public String getBenchName() {
@@ -102,18 +102,18 @@ public class RunName {
     }
 
     /**
-     * Returns the id portion of the run name.
-     * @return THe run id
+     * Returns the sequence portion of the run id.
+     * @return The run sequence
      */
-    public String getRunId() {
-        return runId;
+    public String getRunSeq() {
+        return runSeq;
     }
 
     /**
-     * Returns the string representation of RunName in the form <host.>bench.id.
+     * Returns the string representation of RunId in the form <host.>bench.seq.
      * @return A string representation of the object.
      */
     public String toString() {
-        return runName;
+        return runId;
     }
 }
