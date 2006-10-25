@@ -183,6 +183,7 @@
                             </xsl:for-each>
                         </tbody>
                     </table><br></br>
+                    <xsl:if test="delayTimes">
                     <h3>Cycle/Think Times</h3>
                     <table border="1" cellpadding="2" cellspacing="0"
                         style="text-align: center; width: 100%;">
@@ -217,6 +218,7 @@
                             </xsl:for-each>
                         </tbody>
                     </table><br></br>
+                    </xsl:if>
                     <xsl:if test="miscStats">
                     <h3>Miscellaneous Statistics</h3>
                     <table border="1" cellpadding="2" cellspacing="0"
