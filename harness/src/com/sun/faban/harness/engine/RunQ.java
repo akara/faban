@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunQ.java,v 1.15 2006/10/25 23:04:43 akara Exp $
+ * $Id: RunQ.java,v 1.16 2006/10/26 00:38:36 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -101,7 +101,7 @@ public class RunQ {
             // Gets the lock for the runq directory.
             runqLock.grabLock();
 
-            String runId = getRunId(desc.shortName);
+            String runId = desc.shortName + '.' + getRunSeq();
 
             String runDir = Config.RUNQ_DIR + runId;
             // create Run Directory
@@ -182,11 +182,10 @@ public class RunQ {
         }
     }
 
-    // Gets the ID for this run from the sequence file. Creates a new
+    // Gets the sequence for this run from the sequence file. Creates a new
     // sequence file if it does not already exist.
-    String getRunId(String benchName) {
+    String getRunSeq() {
 
-        String runId = null;
         String runSeq = null;
         String runSeqChar, runSeqIntChar;
         File seqFile = new File(Config.SEQUENCE_FILE);
@@ -203,12 +202,11 @@ public class RunQ {
             if((runSeq != null) && ((colonPos = runSeq.indexOf(":")) != -1)) {
                 runSeqChar = runSeq.substring(colonPos + 1);
                 runSeqIntChar = runSeq.substring(0, colonPos);
-                runId = benchName + "." + runSeqIntChar + runSeqChar;
-            }
-            else {
+                runSeq = runSeqIntChar + runSeqChar;
+            } else {
                 logger.warning("RunQ getRunId: Invalid runSeq in sequence file");
                 seqFile.delete();
-                runId = null;
+                runSeq = null;
             }
         }
         
@@ -216,25 +214,24 @@ public class RunQ {
         if(runSeq == null) {
             try {
                 seqFile.createNewFile();
-            }
-            catch (IOException ie) {
+            } catch (IOException ie) {
                 logger.severe("Could not create the sequence File");
             }
-            runId = benchName + ".1A";
+            runSeq = "1A";
         }
-        return runId;
+        return runSeq;
     }
 
     // Generate the sequence number for the next run and write it to
     // sequence file.
-    void generateNextSeq(String currentSeq) throws IOException {
+    void generateNextSeq(String currentRunId) throws IOException {
 
         File seqFile = new File(Config.SEQUENCE_FILE);
-        int index = currentSeq.lastIndexOf(".");
-        int length = currentSeq.length();
+        int index = currentRunId.lastIndexOf(".");
+        int length = currentRunId.length();
 
-        char seqChar = currentSeq.charAt(length - 1);
-        String seqIntStr = currentSeq.substring(index + 1, length - 1);
+        char seqChar = currentRunId.charAt(length - 1);
+        String seqIntStr = currentRunId.substring(index + 1, length - 1);
         int seqInt = Integer.parseInt(seqIntStr);
         if (seqChar == 'z') {
             seqInt++;

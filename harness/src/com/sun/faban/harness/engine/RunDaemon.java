@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunDaemon.java,v 1.19 2006/10/26 00:07:50 akara Exp $
+ * $Id: RunDaemon.java,v 1.20 2006/10/26 00:38:36 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -329,8 +329,8 @@ public class RunDaemon implements Runnable {
 
         // We ignore the remote run id at this time.
         String benchName = runId0.getBenchName();
-        String runId = RunQ.getHandle().getRunId(benchName);
-        String runSeq = new RunId(runId).getRunSeq();
+        String runSeq = RunQ.getHandle().getRunSeq();
+        String runId = benchName + '.' + runSeq;
 
         File runDir = new File(Config.OUT_DIR, runId);
 
