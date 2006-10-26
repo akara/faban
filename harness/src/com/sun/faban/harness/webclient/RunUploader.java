@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunUploader.java,v 1.7 2006/10/25 23:04:43 akara Exp $
+ * $Id: RunUploader.java,v 1.8 2006/10/26 00:07:51 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -26,6 +26,7 @@ package com.sun.faban.harness.webclient;
 import static com.sun.faban.harness.util.FileHelper.*;
 
 import com.sun.faban.harness.common.Config;
+import com.sun.faban.harness.common.RunId;
 import org.apache.commons.fileupload.DiskFileUpload;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
@@ -177,28 +178,17 @@ public class RunUploader extends HttpServlet {
                     break;
                 }
 
-                String originSpec = readStringFromFile(originFile);
-                int idx = originSpec.lastIndexOf('.');
-                if (idx == -1) { // This is wrong, we do not accept this.
-                    logger.warning("Origin upload requested. Origin file " +
-                                   "corrupted!");
-                    response.sendError(
-                            HttpServletResponse.SC_NOT_ACCEPTABLE,
-                            "Origin file error!");
-                    break;
-                }
-                idx = originSpec.lastIndexOf('.', idx - 1);
-                if (idx == -1) {
-                    logger.warning("Origin upload requested. Origin file" +
-                                   "corrupted!");
-                    response.sendError(
-                            HttpServletResponse.SC_NOT_ACCEPTABLE,
-                            "Origin file error!");
+                RunId origRun;
+                try {
+                    origRun = new RunId(readStringFromFile(originFile).trim());
+                } catch (IndexOutOfBoundsException e) {
+                    response.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE,
+                            "Origin file error. " + e.getMessage());
                     break;
                 }
 
-                runId = originSpec.substring(idx + 1);
-                String localHost = originSpec.substring(0, idx);
+                runId = origRun.getBenchName() + '.' + origRun.getRunSeq();
+                String localHost = origRun.getHostName();
                 if (!localHost.equals(Config.FABAN_HOST)) {
                     logger.warning("Origin upload requested. Origin host " +
                                    localHost + " does not match this host " +

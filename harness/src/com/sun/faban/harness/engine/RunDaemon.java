@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunDaemon.java,v 1.18 2006/10/25 23:04:43 akara Exp $
+ * $Id: RunDaemon.java,v 1.19 2006/10/26 00:07:50 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -522,11 +522,9 @@ public class RunDaemon implements Runnable {
     private class ComparatorImpl implements Comparator {
 
         public int compare(Object o1, Object o2) {
-            String s1 = (String) o1;
-            String s2 = (String) o2;
-            String sub1 = s1.substring(s1.lastIndexOf(".") + 1);
-            String sub2 = s2.substring(s2.lastIndexOf(".") + 1);
-            return (sub1.compareTo(sub2));
+            RunId r1 = new RunId((String) o1);
+            RunId r2 = new RunId((String) o2);
+            return (r1.getRunSeq().compareTo(r2.getRunSeq()));
         }
     }
 }

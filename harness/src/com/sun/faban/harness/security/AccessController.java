@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AccessController.java,v 1.5 2006/08/22 22:19:14 akara Exp $
+ * $Id: AccessController.java,v 1.6 2006/10/26 00:07:50 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,6 +25,7 @@ package com.sun.faban.harness.security;
 
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
+import com.sun.faban.harness.common.RunId;
 
 import javax.security.auth.Subject;
 import java.io.File;
@@ -246,7 +247,7 @@ public class AccessController {
 
         // The resource is the run id. But we need to check benchmark permissions.
         // So split get the benchmark name.
-        String benchName = resource.substring(0, resource.lastIndexOf('.'));
+        String benchName = new RunId(resource).getBenchName();
         return isManageAllowed(user, benchName);
     }
 }
