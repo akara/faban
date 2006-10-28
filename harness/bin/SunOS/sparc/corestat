@@ -93,16 +93,16 @@ while ($line = <fd_in>) {
     $pic0 = $list[4] ;
     $pic1 = $list[5] ;
 
-    # Detect mode for which data is collected
+    # Detect type for which data is collected
 
     if ($list[7] =~ m/nouser,sys/i) {
-      $mode = 1 ; # system mode
+      $type = 1 ; # system type
       $sys_mode = 1 ;
     }elsif ($list[7] =~ m/sys/i) {
-      $mode = 2 ; # Total time
+      $type = 2 ; # Total time
       $tot_mode = 1 ; 
     }else {
-      $mode = 0 ; # User mode
+      $type = 0 ; # User type
       $usr_mode = 1 ;
     }
 
@@ -112,18 +112,18 @@ while ($line = <fd_in>) {
     } else {
       $instr_ctr = $pic0 ;
     }
-    if ($cpu_stat_pic1[$cpu_id][$mode] == 0) {
-      $cpu_stat_pic1[$cpu_id][$mode] = $instr_ctr ;
+    if ($cpu_stat_pic1[$cpu_id][$type] == 0) {
+      $cpu_stat_pic1[$cpu_id][$type] = $instr_ctr ;
       $unique_events ++ ;
     } else { # Save minsamples
       $minsamples = $unique_events * ($interval-($interval%($usr_mode+$sys_mode+$tot_mode))) / ($usr_mode+$sys_mode+$tot_mode) ;
       if ($nsamples == $minsamples) {
         &print_stats () ;
         &clear_stats () ;
-        $cpu_stat_pic1[$cpu_id][$mode] = $instr_ctr ; # Save the current sample
+        $cpu_stat_pic1[$cpu_id][$type] = $instr_ctr ; # Save the current sample
         $unique_events++ ;
       } else {
-         $cpu_stat_pic1[$cpu_id][$mode] = ($cpu_stat_pic1[$cpu_id][$mode] + $instr_ctr)/2 ;
+         $cpu_stat_pic1[$cpu_id][$type] = ($cpu_stat_pic1[$cpu_id][$type] + $instr_ctr)/2 ;
       }
     }
     $nsamples++ ;

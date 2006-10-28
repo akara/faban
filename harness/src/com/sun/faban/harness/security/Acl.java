@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Acl.java,v 1.3 2006/08/22 22:19:15 akara Exp $
+ * $Id: Acl.java,v 1.4 2006/10/28 02:34:49 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,18 +25,14 @@ package com.sun.faban.harness.security;
 
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
+import com.sun.faban.harness.common.RunId;
+import com.sun.faban.harness.util.FileHelper;
 
 import javax.security.auth.Subject;
 import java.util.logging.Logger;
 import java.util.logging.Level;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.ArrayList;
-import java.util.Set;
-import java.io.File;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.util.*;
+import java.io.*;
 import java.security.Principal;
 
 /**
@@ -113,14 +109,25 @@ public class Acl {
 
             case VIEW   :
             case WRITE  : // These are result permissions
-                pathName = Config.OUT_DIR + resource;
-                if (!new File(pathName).isDirectory()) {
-                    logger.severe("Requesting " + perm + " ACL for run " +
-                                resource + ": No such run!");
-                    remove = true;
+                try {
+                    RunId runId = new RunId(resource);
+                    pathName = Config.OUT_DIR + resource;
+                    if (!new File(pathName).isDirectory()) {
+                        logger.severe("Requesting " + perm + " ACL for run " +
+                                    runId + ": No such run!");
+                        remove = true;
+                    }
+                } catch (IndexOutOfBoundsException e) {
+                    // Not a runId, perhaps it is an analysis.
+                    pathName = Config.ANALYSIS_DIR + resource;
+                    if (!new File(pathName).isDirectory()) {
+                        logger.severe("Requesting " + perm + " ACL for " +
+                                    "analysis " + resource + ": No such run!");
+                        remove = true;
+                    }
                 }
-                pathName += File.separator + "META-INF" + File.separator + perm
-                            + ".acl";
+                pathName += File.separator + "META-INF" + File.separator +
+                            perm + ".acl";
                 break;
         }
         Acl acl;
@@ -201,5 +208,117 @@ public class Acl {
                 return true;
         }
         return false;
+    }
+
+    private void save() throws IOException {
+        File parentDir = aclFile.getParentFile();
+        if (!parentDir.exists())
+            parentDir.mkdirs();
+        StringBuilder b = new StringBuilder();
+        for (String entry : entries)
+            b.append(entry).append('\n');
+        FileWriter writer = null;
+        try {
+            writer = new FileWriter(aclFile);
+            writer.append(b);
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Error saving acl at " +
+                    aclFile.getAbsolutePath(), e);
+        } finally {
+            if (writer != null)
+                writer.close();
+        }
+    }
+
+    private static Acl merge(Permission perm, ArrayList<Acl> aclList,
+                             String targetResource) {
+        Acl acl0 = aclList.get(0);
+        if (aclList.size() == 1) {
+            FileHelper.copyFile(acl0.aclFile.getAbsolutePath(),
+                    Config.ANALYSIS_DIR + targetResource + File.separator +
+                    "META-INF" + File.separator + perm + ".acl", false);
+        } else {
+            for (int i = 1; i < aclList.size(); i++) {
+                acl0 = acl0.merge(aclList.get(i), targetResource, perm);
+            }
+        }
+        return acl0;
+    }
+
+    private Acl merge(Acl acl2, String resource, Permission perm) {
+        HashSet<String> newEntries;
+        // Entries of size 0 means allow world
+        // So we need to use entries from the other ACL.
+        if (entries.size() == 0) {
+            newEntries = new HashSet<String>(acl2.entries);
+        } else if (acl2.entries.size() == 0) {
+            newEntries = new HashSet<String>(entries);
+        } else { // If none are 0 entries, we intersect them.
+            newEntries = new HashSet<String>();
+            for (String entry : entries)
+                if (acl2.entries.contains(entry)) {
+                    newEntries.add(entry);
+                }
+        }
+        String path = Config.ANALYSIS_DIR + resource +
+                File.separator + "META-INF" + File.separator +
+                perm + ".acl";
+
+        Acl newAcl = new Acl(path, resource);
+        newAcl.entries = newEntries;
+        return newAcl;
+    }
+
+    /**
+     * Merge analysis ACLs from source ACLs
+     * @param resources The resources, usually runs
+     * @param targetResource The resource for the analysis
+     */
+    public static void merge(String[] resources,
+                             String targetResource) {
+
+        // We only deal with view and write permissions for these.
+        HashMap<Permission, ArrayList<Acl>> permMap =
+                                    new HashMap<Permission, ArrayList<Acl>>();
+
+        for (String resource : resources) {
+            File base = new File(Config.OUT_DIR + resource, "META-INF");
+            if (!base.isDirectory())
+                continue;
+            File[] aclFiles = base.listFiles();
+            for (File aclFile : aclFiles) {
+                String fileName = aclFile.getName();
+                if (!fileName.endsWith(".acl"))
+                    continue;
+                String permString  = fileName.substring(0,
+                                    fileName.length() - 4);
+                Permission perm = Permission.valueOf(permString.toUpperCase());
+                Acl acl = getInstance(perm, resource);
+                ArrayList<Acl> aclList = permMap.get(perm);
+                if (aclList == null) {
+                    aclList = new ArrayList<Acl>();
+                    permMap.put(perm, aclList);
+                }
+                aclList.add(acl);
+            }
+        }
+
+        for (Map.Entry<Permission, ArrayList<Acl>> entry : permMap.entrySet()) {
+            Permission perm = entry.getKey();
+            ArrayList<Acl> aclList = entry.getValue();
+            Acl targetAcl = merge(perm, aclList, targetResource);
+            File aclFile = targetAcl.aclFile;
+            String path = aclFile.getAbsolutePath();
+            try {
+                targetAcl.save();
+                targetAcl.lastModified = aclFile.lastModified();
+                synchronized (aclMap) {
+                    aclMap.put(path, targetAcl);
+                }
+            } catch (IOException e) {
+                logger.log(Level.SEVERE, "Error saving acl at " +
+                        path, e);
+            }
+        }
     }
 }

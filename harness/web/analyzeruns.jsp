@@ -19,18 +19,15 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: analyzeruns.jsp,v 1.3 2006/10/25 23:04:43 akara Exp $
+ * $Id: analyzeruns.jsp,v 1.4 2006/10/28 02:34:49 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 -->
-<%@ page language="java" import="java.io.File,
-                                 java.util.HashSet,
-                                 java.util.logging.Logger,
-                                 com.sun.faban.common.Command,
-                                 com.sun.faban.harness.common.Config,
-                                 com.sun.faban.harness.common.RunId,
-                                 com.sun.faban.harness.webclient.Result"%>
+<%@ page language="java" import="java.util.logging.Logger,
+                                 com.sun.faban.harness.webclient.RunAnalyzer,
+                                 java.io.IOException,
+                                 java.util.logging.Level"%>
 <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
 
 <html>
@@ -42,27 +39,24 @@
         <link rel="icon" type="image/gif" href="img/faban.gif">
     <%
         Logger logger = Logger.getLogger(this.getClass().getName());
-        final int COMPARE = 0;
-        final int AVERAGE = 1;
-        final String[] modes = { "compare", "average" };
 
         String processString = request.getParameter("process");
-        int mode;
+        RunAnalyzer.Type type;
         if ("Compare".equals(processString)) {
-            mode = COMPARE;
+            type = RunAnalyzer.Type.COMPARE;
         } else if ("Average".equals(processString)) {
-            mode = AVERAGE;
+            type = RunAnalyzer.Type.AVERAGE;
         } else {
-            String msg = "Mode " + processString + " not supported.";
+            String msg = "Type " + processString + " not supported.";
             out.println(msg);
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, msg);
             return;
         }        
         
-        String[] runIdStrings = request.getParameterValues("select");
-        if (runIdStrings.length < 2) {
+        String[] runIds = request.getParameterValues("select");
+        if (runIds.length < 2) {
             String msg;
-            if (mode == COMPARE)
+            if (type == RunAnalyzer.Type.COMPARE)
                 msg = "Select 2 runs to compare.";
             else
                 msg = "Select at least 2 runs to average.";
@@ -71,9 +65,9 @@
             return;
         }
         
-        if (mode == COMPARE & runIdStrings.length > 2) {
+        if (type == RunAnalyzer.Type.COMPARE & runIds.length > 2) {
             String msg = "Compare no more than two runs. " +
-                         runIdStrings.length + " runs requested.";
+                         runIds.length + " runs requested.";
             out.println(msg);
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, msg);
             return;
@@ -82,53 +76,12 @@
         String output = request.getParameter("output");
         if (output == null) {
             StringBuilder runList = new StringBuilder();
-            StringBuilder suggestion = new StringBuilder();
-            HashSet<String> benchNameSet = new HashSet<String>();
-            HashSet<String> hostNameSet = new HashSet<String>();
-            suggestion.append(modes[mode]);
 
-            RunId[] runIds = new RunId[runIdStrings.length];
-            String benchName = null;
-            String hostName = null;
-            for (int i = 0; i < runIdStrings.length; i++) {
-                RunId runId = new RunId(runIdStrings[i]);
-                runList.append(runId).append(", ");
-                benchName = runId.getBenchName();
-                hostName = runId.getHostName();
-                benchNameSet.add(benchName);
-                hostNameSet.add(hostName);
-                runIds[i] = runId;
-            }
+            for (int i = 0; i < runIds.length; i++)
+                runList.append(runIds[i]).append(", ");
+
             runList.setLength(runList.length() - 2); //Strip off the last comma
-
-            /*
-             * The run name can come in the form of bench.id or
-             * host.bench.id. We try to keep the suggested name
-             * as short as possible. We have three formats:
-             * 1. Generic format: mode_runId1_runId2...
-             * 2. Same benchmark: mode_bench_<host.>runId1_<host>.runId2...
-             * 3. Same host, same benchmark: mode_bench_host_runId1_runId2...
-             */
-            if (benchNameSet.size() == 1) {
-                suggestion.append('-').append(benchName);
-                if (hostNameSet.size() == 1) {
-                    if (hostName.length() > 0)
-                        suggestion.append('-').append(hostName);
-                    for (RunId runId : runIds)
-                        suggestion.append('_').append(runId.getRunSeq());
-                } else {
-                    for (RunId runId : runIds) {
-                        suggestion.append('_');
-                        hostName = runId.getHostName();
-                        if (hostName.length() > 0)
-                            suggestion.append(hostName).append('.');
-                        suggestion.append(runId.getRunSeq());
-                    }
-                }
-            } else {
-                for (RunId runId : runIds)
-                    suggestion.append('_').append(runId);
-            }
+            String suggestion = RunAnalyzer.suggestRun(type, runIds);
     %>
     </head>
     <body>
@@ -151,9 +104,9 @@
       </tbody>
     </table><br>
     <%
-            for (int i = 0; i < runIdStrings.length; i++) {
+            for (int i = 0; i < runIds.length; i++) {
     %>
-    <input type="hidden" name="select" value="<%= runIdStrings[i] %>">
+    <input type="hidden" name="select" value="<%= runIds[i] %>">
     <%
             }
     %>
@@ -162,33 +115,14 @@
     </form>
     <%
         } else {
-            File analysisDir = new File(Config.ANALYSIS_DIR + output);
-            if (!analysisDir.mkdirs()) {
-                String msg = "Failed creating directory " + analysisDir +'!';
-                out.println(msg);
-                response.sendError(HttpServletResponse.SC_CONFLICT, msg);
-                return;
-            }
-            StringBuilder cmd = new StringBuilder(256);
-            cmd.append(Config.BIN_DIR.trim()).append("xanadu ").
-                append(modes[mode]);
-            for (String runId : runIdStrings)
-                cmd.append(' ').append(Config.OUT_DIR).append(runId).
-                        append(File.separator).append(Config.XML_STATS_DIR);
-            
-            cmd.append(' ').append(Config.ANALYSIS_DIR).append(output);
 
-            logger.info("Executing: " + cmd.toString());
-            Command c = new Command(cmd.toString());
-            c.execute();
-            File outIdx = new File(analysisDir, "index.html");
-            if (!outIdx.exists()) {
-                String msg = "Failed creating analysis.";
-                analysisDir.delete();
+            try {
+                RunAnalyzer.analyze(type, runIds, output, usrEnv.getUser());
+            } catch (IOException e) {
+                String msg = e.getMessage();
                 out.println(msg);
-                response.sendError(HttpServletResponse.SC_EXPECTATION_FAILED,
-                                   msg);
-                return;
+                logger.log(Level.SEVERE, msg, e);
+                response.sendError(HttpServletResponse.SC_CONFLICT, msg);
             }
     %>
             <meta HTTP-EQUIV=REFRESH CONTENT="0;URL=analysis/<%= output %>/index.html">
