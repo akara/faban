@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunInfo.java,v 1.3 2006/09/21 18:32:38 rahulbiswas Exp $
+ * $Id: RunInfo.java,v 1.4 2006/10/31 20:33:58 rahulbiswas Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -29,6 +29,7 @@ import com.sun.faban.driver.util.Random;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.CDATASection;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -389,19 +390,20 @@ public class RunInfo implements Serializable {
             StringBuilder operations = new StringBuilder();
             
             Element operationNode = null;
-            boolean isPost = false;
             int i=1;
             
             while( (operationNode=(Element)xp.evaluate(
                     ("driverConfig/operation["+ i +"]"), 
                     runConfigNode, XPathConstants.NODE)) != null){
+
+                boolean isPost = false;
                 
                 String requestLagTimeOverride = getRequestLagTime(operationNode);
                 String operationName = xp.evaluate("name", operationNode);
                 String url = xp.evaluate("url", operationNode);
                 String max90th = xp.evaluate("max90th", operationNode);
 
-                String requestString;
+                String requestString="";
                 Element requestNode = (Element)xp.evaluate("get",
                     operationNode, XPathConstants.NODE);
                 
@@ -418,7 +420,11 @@ public class RunInfo implements Serializable {
                     }
                     //Can't have both post & get either, but if there, will assume you meant GET.
                 }
-                requestString = requestNode.getNodeValue();
+                CDATASection cDataNode = (CDATASection)requestNode.getFirstChild();
+                
+                if(cDataNode!=null){
+                    requestString = cDataNode.getNodeValue();
+                }
                 
                 if(requestLagTimeOverride==null) 
                     requestLagTimeOverride="";
@@ -428,11 +434,6 @@ public class RunInfo implements Serializable {
                 if(url==null) 
                     throw new ConfigurationException(
                             "<operation> must have a <url>");
-                
-                if(requestString==null || "".equals(requestString.trim())) {
-                    requestString=xp.evaluate("post", operationNode);
-                    isPost=true;
-                }
                 
                     
                 requestString = generateRandomData(requestString);
