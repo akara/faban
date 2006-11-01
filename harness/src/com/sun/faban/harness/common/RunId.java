@@ -17,12 +17,13 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunId.java,v 1.1 2006/10/25 23:04:43 akara Exp $
+ * $Id: RunId.java,v 1.2 2006/11/01 18:42:14 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.common;
 
+import java.io.File;
 
 
 /**
@@ -107,6 +108,14 @@ public class RunId {
      */
     public String getRunSeq() {
         return runSeq;
+    }
+
+    /**
+     * Return the result directory associated with this run.
+     * @return The result directory for this run
+     */
+    public File getResultDir() {
+        return new File(Config.OUT_DIR, runId);
     }
 
     /**

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Result.java,v 1.9 2006/10/25 23:04:43 akara Exp $
+ * $Id: Result.java,v 1.10 2006/11/01 18:42:15 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -29,6 +29,7 @@ import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.RunId;
 import com.sun.faban.harness.util.XMLReader;
+import com.sun.faban.harness.util.FileHelper;
 
 import javax.security.auth.Subject;
 import java.io.File;
@@ -37,6 +38,9 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Result class scans through the output directory and compiles a list of run
@@ -44,7 +48,19 @@ import java.util.*;
  */
 public class Result {
 
-    public String runId;
+    private static Logger logger = Logger.getLogger(Result.class.getName());
+    private static ConcurrentHashMap<String, Result> resultCache =
+            new ConcurrentHashMap<String, Result>(1024);
+
+    // The output format
+    private SimpleDateFormat dateFormat = new SimpleDateFormat(
+                              "EEE'&nbsp;'MM/dd/yy HH:mm:ss'&nbsp;'z");
+    // The format in the result file
+    private SimpleDateFormat parseFormat = new SimpleDateFormat(
+                              "EEE MMM dd HH:mm:ss z yyyy");
+
+    private long modTime = 0;
+    public RunId runId;
     public String description;
     public String result;
     private String scaleName;
@@ -53,7 +69,161 @@ public class Result {
     public String metric;
     private String metricUnit;
     public String status;
-    public String time;
+    private long date;
+    public String dateTime;
+    public String submitter;
+
+    public static Result getInstance(RunId runId) {
+        Result result = new Result(runId);
+        Result oldResult = resultCache.putIfAbsent(runId.toString(), result);
+        if (oldResult != null)
+            result = oldResult;
+        result.refresh();
+        return result;
+    }
+
+    private Result() {
+    }
+
+    private Result(File resultDir) throws IOException {
+        refresh(resultDir);
+    }
+
+    private Result(RunId runId) {
+        this.runId = runId;
+    }
+
+    private void refresh(File resultDir) throws IOException {
+        long modTime = resultDir.lastModified();
+        if (modTime <= this.modTime) // older than what we have in ram
+            return;                  // use the cached version.
+
+        this.modTime = modTime;
+
+        try {
+            this.runId = new RunId(resultDir.getName());
+        } catch (IndexOutOfBoundsException e) {
+            throw new IOException("Invalid result directory " + this.runId);
+        }
+        refresh();
+    }
+
+    private synchronized void refresh() {
+
+        String shortName = runId.getBenchName();
+        File resultDir = runId.getResultDir();
+        BenchmarkDescription desc = BenchmarkDescription.
+                readDescription(shortName, resultDir.getAbsolutePath());
+        if (desc == null) {
+            Map<String, BenchmarkDescription> benchMap =
+                    BenchmarkDescription.getBenchDirMap();
+            desc = (BenchmarkDescription) benchMap.get(shortName);
+        }
+        String href = null;
+
+        // run result and HREF to the summary or log file.
+        File resultFile = new File(resultDir, "summary.xml");
+        if (resultFile.exists() && resultFile.length() > 0) {
+            result = "PASSED";
+            href = "<a href=\"resultframe.jsp?runId=" +
+                    this.runId + "&result=" +
+                    desc.resultFilePath + "\">";
+
+            //Use the XMLReader and locate the <passed> elements
+            XMLReader reader = new XMLReader(resultFile.
+                    getAbsolutePath());
+
+            // Obtain the metric before we break pass/fail.
+            metric = reader.getValue("benchSummary/metric");
+            try {
+                Date runTime = parseFormat.parse(
+                        reader.getValue("benchSummary/endTime"));
+                dateTime = dateFormat.format(runTime);
+                date = runTime.getTime();
+            } catch (ParseException e) {
+                // Do nothing. result.dateTime will be null and
+                // later we'll use the param file's mod dateTime
+                // for this field instead.
+            }
+
+            List passedList = reader.getValues("passed");
+            for(Object passed : passedList) {
+                if(((String) passed).toUpperCase().indexOf("FALSE") != -1) {
+                    result = "FAILED";
+                    break;
+                }
+            }
+        }
+
+        // Put the hyperlink to the results
+        if(href != null)
+            result = href + result + "</a>";
+
+        StringBuilder b = new StringBuilder(
+            "<a href=\"resultframe.jsp?runId=");
+        b.append(this.runId);
+        b.append("&result=");
+        b.append(desc.resultFilePath);
+        b.append("&show=logs\">");
+        b.append(getStatus(runId.toString()));
+        b.append("</a>");
+        status = b.toString();
+
+        String paramFileName = resultDir.getAbsolutePath() +
+                File.separator + desc.configFileName;
+        File paramFile = new File(paramFileName);
+        if (paramFile.isFile()) {
+            if (dateTime == null)
+                dateTime = dateFormat.format(new Date(
+                                          paramFile.lastModified()));
+            ParamRepository par = new ParamRepository(paramFileName);
+            description = par.getParameter("runConfig/description");
+            scale = par.getParameter("runConfig/scale");
+
+            if (desc.scaleName == null)
+                desc.scaleName = "";
+            if (desc.scaleUnit == null)
+                desc.scaleUnit = "";
+            if (desc.metric == null)
+                desc.metric = "";
+            scaleName = desc.scaleName;
+            scaleUnit = desc.scaleUnit;
+            metricUnit = desc.metric;
+            // Now we need to fix up all the nulls.
+
+            // First, if we're dealing with totally blank results or just
+            // a directory, we just ignore this directory altogether.
+            if (result == null && status == null && dateTime == null)
+                return;
+
+            // Then if individual pieces are missing
+            if (result == null)
+                result = "N/A";
+
+            if (status == null)
+                status = "N/A";
+
+            if (dateTime == null)
+                dateTime = "N/A";
+
+            if (description == null ||
+                description.length() == 0)
+                description = "UNAVAILABLE";
+        }
+
+        File submitterFile = new File(resultDir, "META-INF" + File.separator +
+                                      "submitter");
+        if (submitterFile.exists())
+            try {
+                submitter = FileHelper.readStringFromFile(submitterFile).trim();
+            } catch (IOException e) {
+                logger.log(Level.WARNING, "Error reading submitter file for " +
+                        "run " + runId, e);
+            }
+
+        if (submitter == null)
+            submitter = "N/A";
+    }
 
     public static Result[] getResults(Subject user) {
 
@@ -79,14 +249,7 @@ public class Result {
                 }
             };
 
-            // The output format
-            SimpleDateFormat dateFormat = new SimpleDateFormat(
-                                      "EEE'&nbsp;'MM/dd/yy HH:mm:ss'&nbsp;'z");
-            // The format in the result file
-            SimpleDateFormat parseFormat = new SimpleDateFormat(
-                                      "EEE MMM dd HH:mm:ss z yyyy");
-
-            // Sort the result list by time, descending. Newest run first.
+            // Sort the result list by dateTime, descending. Newest run first.
             TreeMap<String, File> dirMap = new TreeMap<String, File>(descend);
             for (int i = 0; i < list.length; i++) {
                 String runId = list[i].getName();
@@ -97,151 +260,25 @@ public class Result {
 
             // First entry in the list is the header.
             header = new Result();
-            header.runId = "Run ID";
+            header.runId = new RunId("Run","ID");
             header.description = "Description";
             header.scale = "Scale";
             header.metric = "Metric";
             header.result = "Result";
             header.status = "Status";
-            header.time = "Date/Time";
+            header.dateTime = "Date/Time";
             resultList.add(header);
-
-
-            // Benchmark descriptions
-            Map<String, BenchmarkDescription> benchMap = null;
 
             // Now iterate through the sorted map.
             for (Map.Entry<String, File> entry : dirMap.entrySet()) {
-                File resultDir = entry.getValue();
-                // If we're not dealing with a dir, it's not a run result.
-                File[] files = resultDir.listFiles();
-                if (files == null)
-                    continue;
-
-                // run id
-                Result result = new Result();
-                result.runId = resultDir.getName();
-
-                // First, check whether the results contain meta info.
-                String shortName = new RunId(result.runId).getBenchName();
-                BenchmarkDescription desc = BenchmarkDescription.
-                        readDescription(shortName, resultDir.getAbsolutePath());
-                if (desc == null) {
-
-                    // If not, we fetch it from the benchmark meta info.
-                    if (benchMap == null)
-                        benchMap = BenchmarkDescription.getBenchDirMap();
-
-                    desc = (BenchmarkDescription) benchMap.get(shortName);
-                }
-
-
-                String href = null;
-
-                // run result and HREF to the summary or log file.
-                for(int j = 0; j < files.length; j++) {
-                    // assuming the result file name will be "summary.xml"
-                    if(files[j].getName().equalsIgnoreCase("summary.xml") &&
-                            files[j].length() > 0) {
-                        result.result = "PASSED";
-                        href = "<a href=\"resultframe.jsp?runId=" +
-                                result.runId + "&result=" +
-                                desc.resultFilePath + "\">";
-
-                        //Use the XMLReader and locate the <passed> elements
-                        XMLReader reader = new XMLReader(files[j].
-                                           getAbsolutePath());
-
-                        // Obtain the metric before we break pass/fail.
-                        result.metric = reader.getValue("benchSummary/metric");
-                        try {
-                            Date runTime = parseFormat.parse(
-                                    reader.getValue("benchSummary/endTime"));
-                            result.time = dateFormat.format(runTime);
-                        } catch (ParseException e) {
-                            // Do nothing. result.time will be null and
-                            // later we'll use the param file's mod time
-                            // for this field instead.
-                        }
-
-                        List v = reader.getValues("passed");
-                        for(int k = 0; k < v.size(); k++) {
-                            if(((String)v.get(k)).toUpperCase().
-                                    indexOf("FALSE") != -1) {
-                                result.result = "FAILED";
-                                break;
-                            }
-                        }
-
-                        // if any "result" with a 'false' in <passed> element,
-                        // flags the final result.
-                        if("FAILED".equals(result.result))
-                            break;
-
-                    }
-                }
-
-                if(href != null)
-                    result.result = href + result.result + "</a>";
-
-                StringBuilder b = new StringBuilder(
-					"<a href=\"resultframe.jsp?runId=");
-                b.append(result.runId);
-                b.append("&result=");
-                b.append(desc.resultFilePath);
-                b.append("&show=logs\">");
-                b.append(getStatus(result.runId));
-                b.append("</a>");
-                result.status = b.toString();
-
-                String paramFileName = resultDir.getAbsolutePath() +
-                        File.separator + desc.configFileName;
-                File paramFile = new File(paramFileName);
-                if (paramFile.isFile()) {
-                    if (result.time == null)
-                        result.time = dateFormat.format(new Date(
-                                                  paramFile.lastModified()));
-                    ParamRepository par = new ParamRepository(paramFileName);
-                    result.description = par.getParameter("runConfig/description");
-                    result.scale = par.getParameter("runConfig/scale");
-
-                    if (desc.scaleName == null)
-                        desc.scaleName = "";
-                    if (desc.scaleUnit == null)
-                        desc.scaleUnit = "";
-                    if (desc.metric == null)
-                        desc.metric = "";
-                    result.scaleName = desc.scaleName;
-                    result.scaleUnit = desc.scaleUnit;
-                    result.metricUnit = desc.metric;
+                try {
+                    Result result = new Result(entry.getValue());
                     scaleNames.add(result.scaleName);
                     scaleUnits.add(result.scaleUnit);
                     metricUnits.add(result.metricUnit);
+                    resultList.add(result);
+                } catch (IOException e) {
                 }
-
-                // Now we need to fix up all the nulls.
-
-                // First, if we're dealing with totally blank results or just
-                // a directory, we just ignore this directory altogether.
-                if (result.result == null && result.status == null &&
-                        result.time == null)
-                    continue;
-
-                // Then if individual pieces are missing
-                if (result.result == null)
-                    result.result = "N/A";
-
-                if (result.status == null)
-                    result.status = "N/A";
-
-                if (result.time == null)
-                    result.time = "N/A";
-
-                if (result.description == null ||
-                    result.description.length() == 0)
-                    result.description = "UNAVAILABLE";
-
-                resultList.add(result);
             }
 
             // Now check whether the results are using single metric unit,
@@ -343,5 +380,25 @@ public class Result {
             status = new String(cBuf, 0, length);
 
         return status.trim();
+    }
+
+    public static Result[] getResults(int offset, int records,
+                                      String sortColumn, boolean ascending,
+                                      Subject subject) {
+        // TODO: Implement the getResults with condition, including result caching.
+        TreeMap<Long, Result> sortMap = new TreeMap<Long, Result>();
+        String dirs[] = new File(Config.OUT_DIR).list();
+        for (String runId : dirs) {
+            try {
+                Result result = getInstance(new RunId(runId));
+                sortMap.put(result.date, result);
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Cannot read result dir " + runId);
+            }
+        }
+        Collection<Result> resultCol = sortMap.values();
+        Result[] results = new Result[resultCol.size()];
+        results = resultCol.toArray(results);
+        return results;
     }
 }

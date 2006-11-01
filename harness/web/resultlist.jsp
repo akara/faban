@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultlist.jsp,v 1.4 2006/10/20 22:39:08 akara Exp $
+ * $Id: resultlist.jsp,v 1.5 2006/11/01 18:42:15 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -55,7 +55,7 @@
                   <th><%= results[0].scale %></th>
                   <th><%= results[0].metric %></th>
                   <th><%= results[0].status %></th>
-                  <th><%= results[0].time %></th>
+                  <th><%= results[0].dateTime %></th>
               <tr>
     <%
             for(int i = 1; i < results.length; i++) {
@@ -69,7 +69,7 @@
                 <td><%= result.scale %></td>
                 <td><%= result.metric %></td>
                 <td><%= result.status %></td>
-                <td><%= result.time %></td>
+                <td><%= result.dateTime %></td>
             <tr>
         <%
                 }
