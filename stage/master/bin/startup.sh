@@ -2,7 +2,7 @@
 # -----------------------------------------------------------------------------
 # Start Script for the CATALINA Server
 #
-# $Id: startup.sh,v 1.4 2006/10/19 21:20:59 akara Exp $
+# $Id: startup.sh,v 1.5 2006/11/03 09:43:43 akara Exp $
 # -----------------------------------------------------------------------------
 
 # Allow JAVA_HOME env setting before starting...
@@ -55,19 +55,11 @@ echo "Starting Faban Server"
 # Since Faban uses root context, make sure it is unjarred before startup
 cd "$PRGDIR"/../webapps
 
-# I know, -nt is a better way to check the date,
-# but this one is OK on all shells.
-NEWWAR=`ls -td faban* | head -1`
-
-if [ "${NEWWAR}" = faban.war ] ; then
-    rm -rf faban xanadu
-fi
-
-if [ ! -d faban ] ; then
-    mkdir faban
-    cd faban
-    $JAVA_HOME/bin/jar xf ../faban.war
-fi
+# Avoid version conflicts - re-unjar faban.war before each start.
+rm -rf faban xanadu
+mkdir faban
+cd faban
+$JAVA_HOME/bin/jar xf ../faban.war
 
 cd "$PRGDIR"/../logs
 
