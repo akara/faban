@@ -17,19 +17,19 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Result.java,v 1.10 2006/11/01 18:42:15 akara Exp $
+ * $Id: Result.java,v 1.11 2006/11/03 09:45:46 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.webclient;
 
 import com.sun.faban.harness.ParamRepository;
-import com.sun.faban.harness.security.AccessController;
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.RunId;
-import com.sun.faban.harness.util.XMLReader;
+import com.sun.faban.harness.security.AccessController;
 import com.sun.faban.harness.util.FileHelper;
+import com.sun.faban.harness.util.XMLReader;
 
 import javax.security.auth.Subject;
 import java.io.File;
@@ -38,9 +38,9 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Result class scans through the output directory and compiles a list of run
@@ -69,8 +69,7 @@ public class Result {
     public String metric;
     private String metricUnit;
     public String status;
-    private long date;
-    public String dateTime;
+    public ResultField<Long> dateTime;
     public String submitter;
 
     public static Result getInstance(RunId runId) {
@@ -138,8 +137,9 @@ public class Result {
             try {
                 Date runTime = parseFormat.parse(
                         reader.getValue("benchSummary/endTime"));
-                dateTime = dateFormat.format(runTime);
-                date = runTime.getTime();
+                dateTime = new ResultField<Long>();
+                dateTime.text = dateFormat.format(runTime);
+                dateTime.value = runTime.getTime();
             } catch (ParseException e) {
                 // Do nothing. result.dateTime will be null and
                 // later we'll use the param file's mod dateTime
@@ -173,9 +173,12 @@ public class Result {
                 File.separator + desc.configFileName;
         File paramFile = new File(paramFileName);
         if (paramFile.isFile()) {
-            if (dateTime == null)
-                dateTime = dateFormat.format(new Date(
-                                          paramFile.lastModified()));
+            if (dateTime == null) {
+                dateTime = new ResultField<Long>();
+                dateTime.value = paramFile.lastModified();
+                dateTime.text = dateFormat.format(
+                        new Date(dateTime.value.longValue()));
+            }
             ParamRepository par = new ParamRepository(paramFileName);
             description = par.getParameter("runConfig/description");
             scale = par.getParameter("runConfig/scale");
@@ -203,8 +206,11 @@ public class Result {
             if (status == null)
                 status = "N/A";
 
-            if (dateTime == null)
-                dateTime = "N/A";
+            if (dateTime == null) {
+                dateTime = new ResultField<Long>();
+                dateTime.text = "N/A";
+                dateTime.value = 0l;
+            }
 
             if (description == null ||
                 description.length() == 0)
@@ -266,7 +272,9 @@ public class Result {
             header.metric = "Metric";
             header.result = "Result";
             header.status = "Status";
-            header.dateTime = "Date/Time";
+            header.dateTime = new ResultField<Long>();
+            header.dateTime.text = "Date/Time";
+            header.dateTime.value = 0l;
             resultList.add(header);
 
             // Now iterate through the sorted map.
@@ -382,23 +390,135 @@ public class Result {
         return status.trim();
     }
 
-    public static Result[] getResults(int offset, int records,
-                                      String sortColumn, boolean ascending,
-                                      Subject subject) {
-        // TODO: Implement the getResults with condition, including result caching.
-        TreeMap<Long, Result> sortMap = new TreeMap<Long, Result>();
+    public static TableModel getResultTable(Subject user) {
+
         String dirs[] = new File(Config.OUT_DIR).list();
-        for (String runId : dirs) {
+        ArrayList<Result> resultList = new ArrayList<Result>(dirs.length);
+        HashSet<String> scaleNames = new HashSet<String>();
+        HashSet<String> scaleUnits = new HashSet<String>();
+        HashSet<String> metricUnits = new HashSet<String>();
+
+        Result result0 = null;
+        for (String runIdS : dirs)
             try {
-                Result result = getInstance(new RunId(runId));
-                sortMap.put(result.date, result);
+                RunId runId = new RunId(runIdS);
+                if (!AccessController.isViewAllowed(user, runIdS))
+                    continue;
+                result0 = getInstance(runId);
+                scaleNames.add(result0.scaleName);
+                scaleUnits.add(result0.scaleUnit);
+                metricUnits.add(result0.metricUnit);
+                resultList.add(result0);
             } catch (Exception e) {
-                logger.log(Level.WARNING, "Cannot read result dir " + runId);
+                logger.log(Level.WARNING, "Cannot read result dir " + runIdS);
             }
+
+        TableModel table = new TableModel(8);
+        table.setHeader(0, "RunID");
+        table.setHeader(1, "Description");
+        table.setHeader(2, "Result");
+
+        boolean singleScale = false;
+        if (scaleNames.size() == 1 && scaleUnits.size() == 1) {
+            singleScale = true;
+            if (result0.scaleName.length() > 0 &&
+                    result0.scaleUnit.length() > 0)
+                table.setHeader(3, result0.scaleName + " (" +
+                        result0.scaleUnit + ')');
+            else if (result0.scaleName.length() > 0)
+                table.setHeader(3, result0.scaleName);
+            else if (result0.scaleUnit.length() > 0)
+                table.setHeader(3, result0.scaleUnit);
+            else
+                table.setHeader(3, "Scale");
+
+        } else {
+            table.setHeader(3, "Scale");
         }
-        Collection<Result> resultCol = sortMap.values();
-        Result[] results = new Result[resultCol.size()];
-        results = resultCol.toArray(results);
-        return results;
+
+        boolean singleMetric = false;
+        if (metricUnits.size() == 1) {
+            singleMetric = true;
+            if (result0.metricUnit.length() > 0)
+                table.setHeader(4, result0.metricUnit);
+            else
+                table.setHeader(4, "Metric");
+        } else {
+            table.setHeader(4, "Metric");
+        }
+
+        table.setHeader(5, "Status");
+        table.setHeader(6, "Date/Time");
+        table.setHeader(7, "Submitter");
+
+        StringBuilder b = new StringBuilder();
+
+        for (Result result : resultList) {
+            int idx = table.addRow();
+            Comparable[] row = table.getRow(idx);
+            row[0] = result.runId;
+            row[1] = result.description;
+            row[2] = result.result;
+            ResultField<Integer> scale = new ResultField<Integer>();
+            row[3] = scale;
+            if (result.scale == null) {
+                scale.text = "N/A";
+                scale.value = Integer.MIN_VALUE;
+            } else if (singleScale) {
+                scale.text = result.scale;
+                scale.value = new Integer(result.scale);
+            } else {
+                if (result.scaleName.length() > 0)
+                    b.append(result.scaleName).append(' ');
+                b.append(result.scale);
+                if (result.scaleUnit.length() > 0)
+                    b.append(' ').append(result.scaleUnit);
+                scale.text = b.toString();
+                scale.value = new Integer(result0.scale);
+                b.setLength(0);
+            }
+
+            ResultField<Double> metric = new ResultField<Double>();
+            row[4] = metric;
+            if (result.metric == null) {
+                metric.text = "N/A";
+                metric.value = Double.MIN_VALUE;
+            } else if (singleMetric) {
+                metric.text = result.metric;
+                metric.value = new Double(result.metric);
+            } else {
+                b.append(result.metric);
+                if (result.metricUnit.length() > 0)
+                    b.append(' ').append(result.metricUnit);
+                metric.text = b.toString();
+                metric.value = new Double(result0.metric);
+                b.setLength(0);
+            }
+            row[5] = result.status;
+            row[6] = result.dateTime;
+            if (result.submitter != null)
+                row[7] = result.submitter;
+            else
+                row[7] = "";
+        }
+
+        table.sort(6, SortDirection.DESCENDING);
+        return table;
+    }
+
+    public static class ResultField<T extends Comparable>
+            implements Comparable {
+
+        String text;
+        T value;
+
+        public int compareTo(Object o) {
+            ResultField other = (ResultField) o;
+            return value.compareTo(other.value);
+        }
+
+        public String toString() {
+            return text;
+        }
     }
 }

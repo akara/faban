@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunAnalyzer.java,v 1.1 2006/10/28 02:34:49 akara Exp $
+ * $Id: RunAnalyzer.java,v 1.2 2006/11/03 09:45:46 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -53,7 +53,7 @@ public class RunAnalyzer {
 
         /**
          * Returns the string representation of the analysis type.
-         * @return
+         * @return The string representation of the enum elements in lower case
          */
         public String toString() {
             return name().toLowerCase();
