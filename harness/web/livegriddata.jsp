@@ -1,11 +1,6 @@
-<%@ page language="java" import="com.sun.faban.harness.webclient.Result,
-                                 com.sun.faban.harness.webclient.TableModel,
-                                 com.sun.faban.harness.webclient.SortDirection"%>
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<ajax-response>
-    <response type="object" id=’data_grid_updater'>
-        <rows update_ui=’true’ >
-
+<%@ page language="java" import="com.sun.faban.harness.webclient.TableModel,
+                                 com.sun.faban.harness.webclient.SortDirection"%>
 <%
     String id = request.getParameter("id");
 
@@ -34,7 +29,12 @@
     int rows = table.rows();
     if (offset + records > rows)
         records = rows - offset;
+%>
+<ajax-response>
+    <response type="object" id="<%= id %>_updater">
+        <rows update_ui="true" >
 
+<%
     for (int i = offset; i < records; i++) {
         Comparable[] row = table.getRow(i);
 %>

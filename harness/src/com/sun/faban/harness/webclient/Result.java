@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Result.java,v 1.11 2006/11/03 09:45:46 akara Exp $
+ * $Id: Result.java,v 1.12 2006/11/05 07:17:00 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -54,7 +54,7 @@ public class Result {
 
     // The output format
     private SimpleDateFormat dateFormat = new SimpleDateFormat(
-                              "EEE'&nbsp;'MM/dd/yy HH:mm:ss'&nbsp;'z");
+                              "EEE'&#160;'MM/dd/yy HH:mm:ss'&#160;'z");
     // The format in the result file
     private SimpleDateFormat parseFormat = new SimpleDateFormat(
                               "EEE MMM dd HH:mm:ss z yyyy");
@@ -125,7 +125,7 @@ public class Result {
         if (resultFile.exists() && resultFile.length() > 0) {
             result = "PASSED";
             href = "<a href=\"resultframe.jsp?runId=" +
-                    this.runId + "&result=" +
+                    this.runId + "&amp;result=" +
                     desc.resultFilePath + "\">";
 
             //Use the XMLReader and locate the <passed> elements
@@ -162,9 +162,9 @@ public class Result {
         StringBuilder b = new StringBuilder(
             "<a href=\"resultframe.jsp?runId=");
         b.append(this.runId);
-        b.append("&result=");
+        b.append("&amp;result=");
         b.append(desc.resultFilePath);
-        b.append("&show=logs\">");
+        b.append("&amp;show=logs\">");
         b.append(getStatus(runId.toString()));
         b.append("</a>");
         status = b.toString();
@@ -496,10 +496,7 @@ public class Result {
             }
             row[5] = result.status;
             row[6] = result.dateTime;
-            if (result.submitter != null)
-                row[7] = result.submitter;
-            else
-                row[7] = "";
+            row[7] = result.submitter;
         }
 
         table.sort(6, SortDirection.DESCENDING);
