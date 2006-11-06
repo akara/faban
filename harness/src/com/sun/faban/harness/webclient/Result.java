@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Result.java,v 1.12 2006/11/05 07:17:00 akara Exp $
+ * $Id: Result.java,v 1.13 2006/11/06 07:25:54 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -62,13 +62,13 @@ public class Result {
     private long modTime = 0;
     public RunId runId;
     public String description;
-    public String result;
+    public ResultField<String> result = new ResultField<String>();
     private String scaleName;
     public String scale;
     private String scaleUnit;
-    public String metric;
+    public ResultField<Double> metric = new ResultField<Double>();
     private String metricUnit;
-    public String status;
+    public ResultField<String> status = new ResultField<String>();
     public ResultField<Long> dateTime;
     public String submitter;
 
@@ -123,7 +123,7 @@ public class Result {
         // run result and HREF to the summary or log file.
         File resultFile = new File(resultDir, "summary.xml");
         if (resultFile.exists() && resultFile.length() > 0) {
-            result = "PASSED";
+            result.value = "PASSED";
             href = "<a href=\"resultframe.jsp?runId=" +
                     this.runId + "&amp;result=" +
                     desc.resultFilePath + "\">";
@@ -133,7 +133,9 @@ public class Result {
                     getAbsolutePath());
 
             // Obtain the metric before we break pass/fail.
-            metric = reader.getValue("benchSummary/metric");
+            metric.text = reader.getValue("benchSummary/metric");
+            if (metric.text != null && metric.text.length() > 0)
+                metric.value = new Double(metric.text);
             try {
                 Date runTime = parseFormat.parse(
                         reader.getValue("benchSummary/endTime"));
@@ -149,7 +151,7 @@ public class Result {
             List passedList = reader.getValues("passed");
             for(Object passed : passedList) {
                 if(((String) passed).toUpperCase().indexOf("FALSE") != -1) {
-                    result = "FAILED";
+                    result.value = "FAILED";
                     break;
                 }
             }
@@ -157,17 +159,18 @@ public class Result {
 
         // Put the hyperlink to the results
         if(href != null)
-            result = href + result + "</a>";
+            result.text = href + result.value + "</a>";
 
+        status.value = getStatus(runId.toString());
         StringBuilder b = new StringBuilder(
             "<a href=\"resultframe.jsp?runId=");
         b.append(this.runId);
         b.append("&amp;result=");
         b.append(desc.resultFilePath);
         b.append("&amp;show=logs\">");
-        b.append(getStatus(runId.toString()));
+        b.append(status.value);
         b.append("</a>");
-        status = b.toString();
+        status.text = b.toString();
 
         String paramFileName = resultDir.getAbsolutePath() +
                 File.separator + desc.configFileName;
@@ -196,15 +199,25 @@ public class Result {
 
             // First, if we're dealing with totally blank results or just
             // a directory, we just ignore this directory altogether.
-            if (result == null && status == null && dateTime == null)
+            if (result.value == null && status.value == null &&
+                    dateTime.value == null)
                 return;
 
             // Then if individual pieces are missing
-            if (result == null)
-                result = "N/A";
+            if (result.value == null) {
+                result.value = "zzzzzz";
+                result.text = "N/A";
+            }
 
-            if (status == null)
-                status = "N/A";
+            if (metric.text == null) {
+                metric.value = -1d;
+                metric.text = "N/A";
+            }
+
+            if (status.value == null) {
+                status.value = "zzzzzz";
+                status.text = "N/A";
+            }
 
             if (dateTime == null) {
                 dateTime = new ResultField<Long>();
@@ -269,9 +282,12 @@ public class Result {
             header.runId = new RunId("Run","ID");
             header.description = "Description";
             header.scale = "Scale";
-            header.metric = "Metric";
-            header.result = "Result";
-            header.status = "Status";
+            header.metric.text = "Metric";
+            header.metric.value = 0d;
+            header.result.text = "Result";
+            header.result.value = "result";
+            header.status.text = "Status";
+            header.status.value = "status";
             header.dateTime = new ResultField<Long>();
             header.dateTime.text = "Date/Time";
             header.dateTime.value = 0l;
@@ -330,27 +346,30 @@ public class Result {
             if (metricUnits.size() == 1) {
                 Result result = resultList.get(1);
                 if (result.metricUnit.length() > 0)
-                    header.metric = result.metricUnit;
+                    header.metric.text = result.metricUnit;
                 for (int i = 1; i < resultList.size(); i++) {
                     result = resultList.get(i);
-                    if (result.metric == null)
-                        result.metric = "N/A";
+                    if (result.metric.text == null) {
+                        result.metric.text = "N/A";
+                        result.metric.value = -1d;
+                    }
                     result.metricUnit = null;
                 }
             } else {
                 StringBuilder b = new StringBuilder();
                 for (int i = 1; i < resultList.size(); i++) {
                     Result result = resultList.get(i);
-                    if (result.metric == null) {
-                        result.metric = "N/A";
+                    if (result.metric.text == null) {
+                        result.metric.text = "N/A";
+                        result.metric.value = -1d;
                         continue;
                     }
-                    b.append(result.metric);
+                    b.append(result.metric.text);
                     if (result.metricUnit.length() > 0) {
                         b.append(' ');
                         b.append(result.metricUnit);
                     }
-                    result.metric = b.toString();
+                    result.metric.text = b.toString();
                     result.metricUnit = null;
                     b.setLength(0);
                 }
@@ -480,18 +499,18 @@ public class Result {
 
             ResultField<Double> metric = new ResultField<Double>();
             row[4] = metric;
-            if (result.metric == null) {
+            if (result.metric.text == null) {
                 metric.text = "N/A";
-                metric.value = Double.MIN_VALUE;
+                metric.value = -1d;
             } else if (singleMetric) {
-                metric.text = result.metric;
-                metric.value = new Double(result.metric);
+                metric.text = result.metric.text;
+                metric.value = result.metric.value;
             } else {
                 b.append(result.metric);
                 if (result.metricUnit.length() > 0)
                     b.append(' ').append(result.metricUnit);
                 metric.text = b.toString();
-                metric.value = new Double(result0.metric);
+                metric.value = result.metric.value;
                 b.setLength(0);
             }
             row[5] = result.status;

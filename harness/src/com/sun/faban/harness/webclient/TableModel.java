@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TableModel.java,v 1.1 2006/11/03 09:45:46 akara Exp $
+ * $Id: TableModel.java,v 1.2 2006/11/06 07:25:54 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -40,8 +40,8 @@ public class TableModel {
     ArrayList<Comparable[]> rowList;
     int sortColumn = -1;
     SortDirection direction = SortDirection.ASCENDING;
-    TreeMap<Comparable, Comparable[]> ascMap;
-    TreeMap<Comparable, Comparable[]> descMap;
+    TreeMap<Comparable, ArrayList<Comparable[]>> ascMap;
+    TreeMap<Comparable, ArrayList<Comparable[]>> descMap;
 
     /**
      * Constructs a TableModel.
@@ -146,7 +146,7 @@ public class TableModel {
     public void sort(String columnName, SortDirection direction) {
         int idx;
         for (idx = 0; idx < headers.length; idx++)
-            if (columnName.equals(headers[idx]))
+            if (columnName.equalsIgnoreCase(headers[idx]))
                 break;
 
         if (idx >= headers.length)
@@ -177,16 +177,16 @@ public class TableModel {
         } else {
             // We use TreeMaps to do the sort here. If this turns out to be
             // a bottleneck, we can always switch to some other sort algorithms.
-            TreeMap<Comparable, Comparable[]> sorterMap;
+            TreeMap<Comparable, ArrayList<Comparable[]>> sorterMap;
             if (direction == SortDirection.ASCENDING) {
                 if (ascMap == null)
-                    ascMap = new TreeMap<Comparable, Comparable[]>();
+                    ascMap = new TreeMap<Comparable, ArrayList<Comparable[]>>();
                 else
                     ascMap.clear();
                 sorterMap = ascMap;
             } else {
                 if (descMap == null)
-                    descMap = new TreeMap<Comparable, Comparable[]>(
+                    descMap = new TreeMap<Comparable, ArrayList<Comparable[]>>(
                             new Comparator<Comparable>() {
                                 public int compare(Comparable c, Comparable d) {
                                     return d.compareTo(c);
@@ -198,10 +198,22 @@ public class TableModel {
                 sorterMap = descMap;
             }
 
-            for (Comparable[] fields : rowList)
-                sorterMap.put(fields[column], fields);
+            // Each sort key is allowed to have multiple occurences. So we
+            // need the chain for all other instances. The order of the rows
+            // in the chain conform to the order of the previous sort, if any,
+            // or the order the rows are previously in the table.
+            for (Comparable[] fields : rowList) {
+                ArrayList<Comparable[]> chain = sorterMap.get(fields[column]);
+                if (chain == null) {
+                    chain = new ArrayList<Comparable[]>();
+                    sorterMap.put(fields[column], chain);
+                }
+                chain.add(fields);
+            }
             rowList.clear();
-            rowList.addAll(sorterMap.values());
+            for (ArrayList<Comparable[]> chain : sorterMap.values())
+                rowList.addAll(chain);
+
             sortColumn = column;
             this.direction = direction;
         }

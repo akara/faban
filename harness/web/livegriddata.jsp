@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <%@ page language="java" import="com.sun.faban.harness.webclient.TableModel,
-                                 com.sun.faban.harness.webclient.SortDirection"%>
+                                 com.sun.faban.harness.webclient.SortDirection,
+                                 java.util.logging.Logger"%>
 <%
+    // TODO: Remove this log statement or reduce log level.
+    Logger logger = Logger.getLogger(this.getClass().getName());
+    logger.info(request.getQueryString());
+
     String id = request.getParameter("id");
 
     String v = request.getParameter("page_size");
