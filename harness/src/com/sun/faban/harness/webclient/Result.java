@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Result.java,v 1.13 2006/11/06 07:25:54 akara Exp $
+ * $Id: Result.java,v 1.14 2006/11/07 22:28:58 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -207,11 +207,6 @@ public class Result {
             if (result.value == null) {
                 result.value = "zzzzzz";
                 result.text = "N/A";
-            }
-
-            if (metric.text == null) {
-                metric.value = -1d;
-                metric.text = "N/A";
             }
 
             if (status.value == null) {

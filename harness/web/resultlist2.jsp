@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultlist2.jsp,v 1.1 2006/11/06 07:25:55 akara Exp $
+ * $Id: resultlist2.jsp,v 1.2 2006/11/07 22:28:58 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -86,6 +86,13 @@ td.cell {
    border-right     : 1px solid #b8b8b8;
    background-color : #cedebd;
 }
+
+.listBox {
+   padding-top      : 5px;
+   padding-bottom   : 5px;
+   background-color : #ffffff;
+   border           : 1px solid #8b8b8b;
+}
 </style>
 <script>
    tu = null;
@@ -142,7 +149,7 @@ td.cell {
             if (i < rows) {
                 Comparable[] row = resultTable.getRow(i);
 %>
-	        <td class="cell" style="width:50px"><%= row[0] %></td>
+	        <td id="runId<%= i %>" class="cell" style="width:50px"><%= row[0] %></td>
 	        <td class="cell" style="width:280px"><%= row[1] %></td>
 	        <td class="cell" style="width:60px"><%= row[2] %></td>
 	        <td class="cell" style="width:60px"><%= row[3] %></td>
@@ -151,7 +158,7 @@ td.cell {
 	        <td class="cell" style="width:80px"><%= row[6] %></td>
 	        <td class="cell" style="width:60px"><%= row[7] %></td>
 <%          } else { %>
-	        <td class="cell" style="width:50px">&nbsp;</td>
+	        <td id="runId<%= i %>class="cell" style="width:50px">&nbsp;</td>
 	        <td class="cell" style="width:280px">&nbsp;</td>
 	        <td class="cell" style="width:60px">&nbsp;</td>
 	        <td class="cell" style="width:60px">&nbsp;</td>
@@ -165,6 +172,17 @@ td.cell {
 	</table>
   </div>
 </div>
+<span>ABC&nbsp;&nbsp;</span>
+<span>DEF&nbsp;<br/></span>
+<span>GHI&nbsp;<br/></span>
+<span>LMN&nbsp;<br/></span>
+<div id="dropBox" style="margin-left:8px;margin-bottom:8px;float:left">
+   <span class="catHeader">dropped name-list</span>
+
+   <div class="listBox" id="dropZone" style="width:250px;height:140px;overflow:auto;">
+   </div>
+</div>
+
 <%  } else { %>
     </head>
     <body>
