@@ -17,23 +17,21 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: LogServer.java,v 1.3 2006/10/08 08:36:56 akara Exp $
+ * $Id: LogServer.java,v 1.4 2006/11/13 18:24:55 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.logging;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.util.logging.Logger;
-import java.util.logging.Level;
+import java.nio.channels.SocketChannel;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Startup class for LogServer.
@@ -45,9 +43,9 @@ public class LogServer extends Thread {
     public LogConfig config;
 
     private Logger logger;
-    private ServerSocket serverSocket;
     private Selector selector;
     private Listener[] listeners;
+    private Acceptor acceptor;
 
     static boolean isShutdown = false;
     /**
@@ -62,51 +60,42 @@ public class LogServer extends Thread {
         this.logger = Logger.getLogger(this.getClass().getName());
         int numListeners = config.listenerThreads - 1;
 
-        selector = getSelector(config.port);
+        ConcurrentLinkedQueue<SocketChannel> acceptQueue =
+                new ConcurrentLinkedQueue<SocketChannel>();
+
+        selector = Selector.open();
         logger.finer("Selector created");
 
         if (numListeners > 0) {
             listeners = new Listener[numListeners];
 
             for (int i = 0; i < listeners.length; i++) {
-                listeners[i] = new Listener(selector, config);
+                listeners[i] = new Listener(selector, config, acceptQueue);
                 Thread t = new Thread(listeners[i]);
                 listeners[i].listenerThread = t;
                 t.setName("Listener-" + i);
                 t.setDaemon(true);
+                t.start();
             }
         }
 
-        config.primaryListener = new PrimaryListener(selector, config);
+        config.primaryListener = new PrimaryListener(selector, config,
+                                                     acceptQueue);
         logger.finer("Listeners created.");
 
         config.threadPool = new ThreadPoolExecutor(config.coreServiceThreads,
                 config.maxServiceThreads, config.serviceThreadTimeout,
                 TimeUnit.SECONDS, new LinkedBlockingQueue());
         logger.finer("Service thread pool created.");
+
+        acceptor = new Acceptor(conf, acceptQueue, selector);
+        Thread t = new Thread(acceptor);
+        t.setName("Acceptor");
+        t.setDaemon(true);
+        t.start();
+        logger.finer("Acceptor created on port " + config.port + ".");
+
         logger.info("Log Server Started Successfully");
-    }
-
-    /**
-     * Configures a selector to listen to the configured port.
-     * @param port The port to listen to
-     * @return The selector
-     * @exception IOException The selector cannot bind the socket
-     */
-    private Selector getSelector(int port) throws IOException {
-        logger.info("Opening port " + port + " for logger");
-
-        ServerSocketChannel serverChannel = ServerSocketChannel.open();
-        Selector selector = Selector.open();
-        serverSocket = serverChannel.socket();
-        if (config.listenQSize == -1)
-            serverSocket.bind(new InetSocketAddress(port));
-        else
-            serverSocket.bind(new InetSocketAddress(port),
-                    config.listenQSize);
-        serverChannel.configureBlocking(false);
-        serverChannel.register(selector, SelectionKey.OP_ACCEPT);
-        return selector;
     }
 
     /**
@@ -135,17 +124,16 @@ public class LogServer extends Thread {
 
     public void shutdown() {
         isShutdown = true;
-
-        config.primaryListener.shutdown();
-        logger.fine("Primary Listener Shutdown.");
-        if (listeners != null) {
-            for (int i = 0; i < listeners.length; i++)
-                listeners[i].shutdown();
-            logger.fine("Listener Threads Shutdown.");
-        }
         try {
+            acceptor.shutdown();
+            config.primaryListener.shutdown();
+            logger.fine("Primary Listener Shutdown.");
+            if (listeners != null) {
+                for (int i = 0; i < listeners.length; i++)
+                    listeners[i].shutdown();
+                logger.fine("Listener Threads Shutdown.");
+            }            
             selector.close();
-            serverSocket.close();
             logger.fine("Socket Shutdown.");
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Exception shutting down socket.", e);

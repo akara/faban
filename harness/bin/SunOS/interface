@@ -40,6 +40,7 @@ if [ -z "${FOUND}" ] ; then
     echo "Host ${TARGET} is too far, cannot determine route" >&2
     exit 1
 else
-    LASTLINE="${LASTLINE%\)\,}"
-    echo "${LASTLINE#\(}"
+    LASTLINE="${LASTLINE%\,}" # Strip off the trailing comma
+    LASTLINE="${LASTLINE%\)}" # Strip off the trailing ')'
+    echo "${LASTLINE#\(}"     # Strip off the leading '('
 fi

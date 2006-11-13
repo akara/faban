@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Listener.java,v 1.2 2006/06/29 19:38:42 akara Exp $
+ * $Id: Listener.java,v 1.3 2006/11/13 18:24:55 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -28,6 +28,7 @@ import java.nio.channels.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.Queue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -46,6 +47,7 @@ public class Listener implements Runnable {
 
     private Logger logger;
     private String className;
+    Queue<SocketChannel> acceptQueue;
     private ArrayList taskList = new ArrayList();
     private boolean isShutdown = false;
 
@@ -54,9 +56,11 @@ public class Listener implements Runnable {
      * between multiple listener threads.
      * @param selector The selector
      */
-    public Listener(Selector selector, LogConfig config) {
+    public Listener(Selector selector, LogConfig config,
+                    Queue<SocketChannel> acceptQueue) {
         this.selector = selector;
         this.config = config;
+        this.acceptQueue = acceptQueue;
         className = this.getClass().getName();
         logger = Logger.getLogger(className);
     }
@@ -92,34 +96,42 @@ public class Listener implements Runnable {
 
         Iterator it = keySet.iterator();
         while (it.hasNext()) {
-            try {
+            // try {
                 key = (SelectionKey) it.next();
                 if (key.isValid()) {
-                    if (key.isAcceptable()) {
-                        acceptNewClient(key);
-                    } else if (key.isReadable()) {
+                    if (key.isReadable()) {
                         RequestProxy proxy = (RequestProxy) key.attachment();
                         if (!proxy.channelReady()) {
                             taskList.add(proxy);
                         }
                     } else if (key.isWritable()) {
                         ((RequestProxy) key.attachment()).channelReady();
+                    // } else if (key.isAcceptable()) {
+                    //    acceptNewClient(key);
                     }
                 }
                 it.remove();
-            } catch (ClosedChannelException e) {
-                key.cancel();
-            } catch (IOException e) {
-                key.cancel();
-                logger.severe(e.getMessage());
-                logger.throwing(className, "handleKeys", e);
-            }
+            // } catch (ClosedChannelException e) {
+            //     key.cancel();
+            // } catch (IOException e) {
+            //     key.cancel();
+            //     logger.log(Level.WARNING, "Error handling keys", e);
+            // }
         }
         if (taskList.size() > 0) {
             for (int i = 0; i < taskList.size(); i++)
                 config.threadPool.execute((Runnable) taskList.get(i));
             taskList.clear();
         }
+
+        // Accepting clients.
+        SocketChannel channel;
+        while ((channel = acceptQueue.poll()) != null)
+            try {
+                acceptNewClient(channel);
+            } catch (IOException e) {
+                logger.log(Level.WARNING, "Error accepting new client", e);
+            }
     }
 
     /**
@@ -131,9 +143,12 @@ public class Listener implements Runnable {
      * @throws java.nio.channels.ClosedChannelException Client has already disconnected
      */
     public void acceptNewClient(SelectionKey key)
-            throws IOException, ClosedChannelException {
+            throws IOException {
         ServerSocketChannel server = (ServerSocketChannel) key.channel();
-        SocketChannel channel = server.accept();
+        acceptNewClient(server.accept());
+    }
+
+    void acceptNewClient(SocketChannel channel) throws IOException {
         channel.configureBlocking(false);
         SelectionKey readKey = channel.register(selector, SelectionKey.OP_READ);
         RequestProxy proxy = new RequestProxy(config, readKey);

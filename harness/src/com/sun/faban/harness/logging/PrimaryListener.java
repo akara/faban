@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: PrimaryListener.java,v 1.2 2006/06/29 19:38:42 akara Exp $
+ * $Id: PrimaryListener.java,v 1.3 2006/11/13 18:24:55 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,7 +25,9 @@ package com.sun.faban.harness.logging;
 
 import java.nio.channels.Selector;
 import java.nio.channels.SelectableChannel;
+import java.nio.channels.SocketChannel;
 import java.io.IOException;
+import java.util.Queue;
 
 /**
  * The primary selector is the single entry point another thread may use
@@ -44,8 +46,9 @@ public class PrimaryListener extends Listener {
      * Constructs the primary listener with this selector.
      * @param selector The selector
      */
-    public PrimaryListener(Selector selector, LogConfig config) {
-        super(selector, config);
+    public PrimaryListener(Selector selector, LogConfig config,
+                           Queue<SocketChannel> acceptQueue) {
+        super(selector, config, acceptQueue);
     }
 
     /**
