@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MasterImpl.java,v 1.4 2006/10/19 18:48:19 akara Exp $
+ * $Id: MasterImpl.java,v 1.5 2006/11/14 06:12:06 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -283,7 +283,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
      * @param increment Whether the file shall be incremented or not
      */
     public String getRunID(boolean increment) throws IOException{
-        int runID;
+        int runID = -1;
 
         String seqFileName = homeDir + fs +
                 benchDef.name.toLowerCase() + ".seq";
@@ -309,14 +309,16 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
                         "file " + seqFileName + '.', e);
                 throw e;
             }
-            // Strip off the newlines
-            if (buffer[length - 1] == '\n')
-                --length;
-            if (buffer[length - 1] == '\r')
-                --length;
-            runID = Integer.parseInt(new String(buffer, 0, length));
+            if (length > 0) {
+                // Strip off the newlines
+                if (buffer[length - 1] == '\n')
+                    --length;
+                if (buffer[length - 1] == '\r')
+                    --length;
+                runID = Integer.parseInt(new String(buffer, 0, length));
+            }
         }
-        else {
+        if (runID == -1) {
             if (increment) // Only create file in case we increment it
                 try {
                     seqFile.createNewFile();
