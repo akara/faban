@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TimeThread.java,v 1.2 2006/06/29 19:38:37 akara Exp $
+ * $Id: TimeThread.java,v 1.3 2006/11/15 06:46:46 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -196,7 +196,8 @@ public class TimeThread extends AgentThread {
      * not. Updates the inRamp parameter accordingly.
      */
     void checkRamp() {
-        inRamp = !_isSteadyState();
+        inRamp = !isSteadyState(driverContext.timingInfo.invokeTime,
+                                driverContext.timingInfo.respondTime);
     }
 
     /**
@@ -211,16 +212,20 @@ public class TimeThread extends AgentThread {
                     "time capture. Cannot determine tx in steady state or " +
                     "not. This is a bug in the driver code.");
 
-        return _isSteadyState();
+        return isSteadyState(driverContext.timingInfo.invokeTime,
+                                driverContext.timingInfo.respondTime);
     }
 
     /**
-     * Internally checks the steady state.
-     * @return Whether or not the last operation is in steady state
+     * Tests whether the time between start and end is in steady state or not.
+     * For non time-based steady state, this will depend on the current cycle
+     * count. Otherwise time is used.
+     *
+     * @param start The start of a time span
+     * @param end   The end of a time span
+     * @return true if this time span is in steady state, false otherwise.
      */
-    private boolean _isSteadyState() {
-        return startTimeSet &&
-                driverContext.timingInfo.invokeTime >= endRampUp &&
-                driverContext.timingInfo.respondTime < endStdyState;
+    boolean isSteadyState(int start, int end) {
+        return startTimeSet && start >= endRampUp && end < endStdyState;
     }
 }

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentThread.java,v 1.2 2006/06/29 19:38:37 akara Exp $
+ * $Id: AgentThread.java,v 1.3 2006/11/15 06:46:46 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -321,6 +321,16 @@ public abstract class AgentThread extends Thread {
      * @return True if the last operation is in steady state, false otherwise.
      */
     abstract boolean isSteadyState();
+
+    /**
+     * Tests whether the time between start and end is in steady state or not.
+     * For non time-based steady state, this will depend on the current cycle
+     * count. Otherwise time is used.
+     * @param start The start of a time span
+     * @param end The end of a time span
+     * @return true if this time span is in steady state, false otherwise.
+     */
+    abstract boolean isSteadyState(int start, int end);
 
     /**
      * Return results of this thread.

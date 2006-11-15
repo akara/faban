@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.4 2006/09/29 00:35:34 akara Exp $
+ * $Id: Metrics.java,v 1.5 2006/11/15 06:46:46 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -317,55 +317,63 @@ public class Metrics implements Serializable, Cloneable {
      */
     public void recordDelayTime() {
 
-        if (!thread.inRamp) { // Only record in ramp.
+        int txType = thread.currentOperation;
+        DriverContext.TimingInfo timingInfo =
+                thread.driverContext.timingInfo;
 
-            int txType = thread.currentOperation;
-            DriverContext.TimingInfo timingInfo =
-                    thread.driverContext.timingInfo;
+        int actualDelayTime = -1;
+        int actualCycleTime = -1;
 
-            int actualDelayTime = -1;
-            int actualCycleTime = timingInfo.invokeTime - 
-                    thread.startTime[thread.mixId];
+        if (thread.isSteadyState(thread.startTime[thread.mixId],
+                                 timingInfo.invokeTime))
+            actualCycleTime = timingInfo.invokeTime -
+                              thread.startTime[thread.mixId];
 
-            CycleType cycleType = RunInfo.getInstance().driverConfig.
-                    operations[thread.currentOperation].cycle.cycleType;
-            switch (cycleType) {
-                case CYCLETIME :
-                    actualDelayTime = actualCycleTime; break;
-                case THINKTIME :
-                    if (thread.endTime[thread.mixId] >= 0) // Normal
+        CycleType cycleType = RunInfo.getInstance().driverConfig.
+                operations[thread.currentOperation].cycle.cycleType;
+        switch (cycleType) {
+            case CYCLETIME :
+                actualDelayTime = actualCycleTime; break;
+            case THINKTIME :
+                if (thread.endTime[thread.mixId] >= 0) {// Normal
+                    if (thread.isSteadyState(thread.endTime[thread.mixId],
+                                             timingInfo.invokeTime))
                         actualDelayTime = timingInfo.invokeTime -
                                 thread.endTime[thread.mixId];
-                    else // Exceptions occurred, no respond time available
-                        actualDelayTime = timingInfo.invokeTime -
-                                thread.startTime[thread.mixId];
-            }
-
-            ++delayCntStdy[txType];
-            delaySum[txType] += actualDelayTime;
-            targetedDelaySum[txType] += thread.delayTime[thread.mixId];
-            
-            if (thread.mixId == 0) // cycleSum is for little's law verification.
-                // We do not count background cycles to the cycleSum or the
-                // verification will be totally off.
-                cycleSum += actualCycleTime;
-
-            if (actualDelayTime > delayMax[txType])
-                delayMax[txType] = actualDelayTime;
-            if (actualDelayTime < delayMin[txType])
-                delayMin[txType] = actualDelayTime;
-
-            if ((actualDelayTime / delayBucketSize) >= DELAYBUCKETS)
-                delayHist[txType][DELAYBUCKETS - 1]++;
-            else
-                delayHist[txType][actualDelayTime / delayBucketSize]++;
-            if ((thread.delayTime[thread.mixId] / delayBucketSize) >= 
-                    DELAYBUCKETS)
-                targetedDelayHist[txType][DELAYBUCKETS - 1]++;
-            else
-                targetedDelayHist[txType]
-                        [thread.delayTime[thread.mixId] / delayBucketSize]++;
+                } else { // Exceptions occurred, no respond time available
+                    actualDelayTime = actualCycleTime;
+                }
         }
+
+        if (thread.mixId == 0 && actualCycleTime >= 0)
+        // cycleSum is for little's law verification.
+        // We do not count background cycles to the cycleSum or the
+        // verification will be totally off.
+            cycleSum += actualCycleTime;
+
+        if (actualDelayTime < 0) // The delay is not in steady state
+            return;
+
+        ++delayCntStdy[txType];
+        delaySum[txType] += actualDelayTime;
+        targetedDelaySum[txType] += thread.delayTime[thread.mixId];
+
+
+        if (actualDelayTime > delayMax[txType])
+            delayMax[txType] = actualDelayTime;
+        if (actualDelayTime < delayMin[txType])
+            delayMin[txType] = actualDelayTime;
+
+        if ((actualDelayTime / delayBucketSize) >= DELAYBUCKETS)
+            delayHist[txType][DELAYBUCKETS - 1]++;
+        else
+            delayHist[txType][actualDelayTime / delayBucketSize]++;
+        if ((thread.delayTime[thread.mixId] / delayBucketSize) >=
+                DELAYBUCKETS)
+            targetedDelayHist[txType][DELAYBUCKETS - 1]++;
+        else
+            targetedDelayHist[txType]
+                    [thread.delayTime[thread.mixId] / delayBucketSize]++;
     }
 
     /**
