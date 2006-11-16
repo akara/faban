@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DDGenerator.java,v 1.2 2006/06/29 19:38:39 akara Exp $
+ * $Id: DDGenerator.java,v 1.3 2006/11/16 01:02:09 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -44,7 +44,10 @@ public class DDGenerator {
      */
     public static void main(String[] args) {
         try {
-            BenchmarkDefinition.printFabanDD(RunInfo.getDefiningClassName());
+            String definingClassName = RunInfo.getDefiningClassName();
+            if (definingClassName != null &&
+                    definingClassName.trim().length() > 0)
+                BenchmarkDefinition.printFabanDD(definingClassName);
         } catch (Exception e) {
             Logger logger = Logger.getLogger(DDGenerator.class.getName());
             logger.severe(e.getMessage());

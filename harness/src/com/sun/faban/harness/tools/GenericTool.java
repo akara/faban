@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericTool.java,v 1.2 2006/06/29 19:38:43 akara Exp $
+ * $Id: GenericTool.java,v 1.3 2006/11/16 01:02:09 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -239,7 +239,7 @@ public class GenericTool implements Tool {
         try {
             byte[] buf = tool.fetchOutput(Command.STDOUT);
             logger.finer("Transferring log from " + logfile + " to " + outfile);
-            if(buf.length > 0) {
+            if(buf != null && buf.length > 0) {
                 // Use FileAgent on master machine to copy log
                 String s = Config.FILE_AGENT;
                 FileAgent fa = (FileAgent)CmdAgentImpl.getRegistry().getService(s);

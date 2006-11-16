@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultlist2.jsp,v 1.2 2006/11/07 22:28:58 akara Exp $
+ * $Id: resultlist2.jsp,v 1.3 2006/11/16 01:02:09 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -44,6 +44,7 @@
 %>
         <script src="scripts/prototype.js" type="text/javascript"></script>
         <script src="scripts/rico.js" type="text/javascript"></script>
+        <script src="scripts/ricoDragAndDropCustomDraggable.js" type="text/javascript"></script>
     </head>
 <body onload="javascript:bodyOnLoad()">
 	<script>
@@ -158,7 +159,7 @@ td.cell {
 	        <td class="cell" style="width:80px"><%= row[6] %></td>
 	        <td class="cell" style="width:60px"><%= row[7] %></td>
 <%          } else { %>
-	        <td id="runId<%= i %>class="cell" style="width:50px">&nbsp;</td>
+	        <td id="runId<%= i %> class="cell" style="width:50px">&nbsp;</td>
 	        <td class="cell" style="width:280px">&nbsp;</td>
 	        <td class="cell" style="width:60px">&nbsp;</td>
 	        <td class="cell" style="width:60px">&nbsp;</td>

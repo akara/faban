@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultnavigator.jsp,v 1.6 2006/10/25 23:04:44 akara Exp $
+ * $Id: resultnavigator.jsp,v 1.7 2006/11/16 01:02:09 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -45,11 +45,8 @@
     desc = BenchmarkDescription.getDescription(benchmark);
     String status = Result.getStatus(runId);
     boolean finished = true;
-    boolean completed = false;
     if ("STARTED".equals(status))
         finished = false;
-    else if ("COMPLETED".equals(status))
-        completed = true;
     String scale = "";
     if (desc != null) {
         ParamRepository par = new ParamRepository(Config.OUT_DIR + runId +
@@ -66,29 +63,33 @@
         <% } %>
     </head>
     <body>
-        <% if (completed) {  %>
+        <%
+           String outputRef = null;
+           File summaryFile = new File(Config.OUT_DIR + runId, desc.resultFilePath);
+           if (summaryFile.exists()) {
+        %>
                <a href="output/<%= runId %>/<%= desc.resultFilePath %>" target="display">Summary&nbsp;Result</a>&nbsp;
-        <%     String outputRef = null;
-               String[] detailFiles = { "detail.html", "detail.xan.html", "detail.xml.html" };
-               for (int i = 0; i < detailFiles.length; i++) {
-                   File detailOutput = new File (Config.OUT_DIR + runId, detailFiles[i]);
-                   if (detailOutput.exists()) {
-                       outputRef = "output/" + runId + '/' + detailFiles[i];
-                       break;
-                   }
+        <% } else { %>
+               <span style="color: rgb(102, 102, 102);">Summary&nbsp;Result</span>&nbsp;
+        <%
+           }
+           outputRef = null;
+           String[] detailFiles = { "detail.html", "detail.xan.html", "detail.xml.html" };
+           for (int i = 0; i < detailFiles.length; i++) {
+               File detailOutput = new File (Config.OUT_DIR + runId, detailFiles[i]);
+               if (detailOutput.exists()) {
+                   outputRef = "output/" + runId + '/' + detailFiles[i];
+                   break;
                }
-               if (outputRef == null) {
+           }
+           if (outputRef == null) {
         %>
                    <span style="color: rgb(102, 102, 102);">Detailed&nbsp;Results</span>&nbsp;
         <%     } else {    %>
                    <a href="<%= outputRef %>" target="display">Detailed&nbsp;Results</a>&nbsp;
         <%
                }
-           } else { %>
-            <span style="color: rgb(102, 102, 102);">Summary&nbsp;Result&nbsp;
-            Detailed&nbsp;Results</span>&nbsp;
-        <% } %>
-        <% if (desc != null) { %>
+           if (desc != null) { %>
             <a href="output/<%= runId %>/<%= desc.configFileName %>" target="display">
                 Run&nbsp;Configuration</a>&nbsp;
         <% } else { %>

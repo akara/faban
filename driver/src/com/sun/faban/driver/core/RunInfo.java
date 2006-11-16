@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunInfo.java,v 1.4 2006/10/31 20:33:58 rahulbiswas Exp $
+ * $Id: RunInfo.java,v 1.5 2006/11/16 01:02:08 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -284,7 +284,6 @@ public class RunInfo implements Serializable {
             if(definingClassName==null || "".equals(definingClassName.trim())){
                 definingClassName = createDefinition(runConfigNode);
             }
-            
         }
         
         private String getRequestLagTime(Object node) throws Exception{
@@ -341,9 +340,15 @@ public class RunInfo implements Serializable {
             return sb.toString(); 
            
         }
-        private String  createDefinition(Object runConfigNode) throws Exception {
-            
-            String definingClassName= xp.evaluate("driverConfig/@name", 
+        private String createDefinition(Object runConfigNode) throws Exception {
+
+            Element benchDefNode = (Element) xp.evaluate(
+                    "benchmarkDefinition", runConfigNode, XPathConstants.NODE);
+
+            if (benchDefNode == null)
+                return null;
+
+            String definingClassName= xp.evaluate("driverConfig/@name",
                     runConfigNode);
             
             //Get the cycleTime annotation
@@ -480,7 +485,7 @@ public class RunInfo implements Serializable {
                 i++;
             }
             
-            String benchmarkDef = getBenchmarkDefinition(runConfigNode);
+            String benchmarkDef = getBenchmarkDefinition(benchDefNode);
             
             //replace tokens in template
             template = template.replaceFirst("#operation(.*\\n*)*operation#",
@@ -533,8 +538,9 @@ public class RunInfo implements Serializable {
             return definingClassName;
             
         }
-        private String generateRandomData(String inputString) 
-        throws ConfigurationException{
+
+        private String generateRandomData(String inputString)
+                throws ConfigurationException{
             StringBuilder output = new StringBuilder();
             
             String[] strArr = inputString.split("@@");
@@ -578,19 +584,14 @@ public class RunInfo implements Serializable {
 
             return output.toString();
         }
-        private String getBenchmarkDefinition(Object runConfigNode)
-        throws Exception{
+        private String getBenchmarkDefinition(Object benchDefNode)
+                throws Exception{
             //to do error checking -- name is required?
-            String defName      = xp.evaluate("benchmarkDefinition/name",
-                    runConfigNode);
-            String version      = xp.evaluate("benchmarkDefinition/version",
-                    runConfigNode);
-            String metric       = xp.evaluate("benchmarkDefinition/metric",
-                    runConfigNode);
-            String scaleName    = xp.evaluate("benchmarkDefinition/scaleName",
-                    runConfigNode);
-            String scaleUnit    = xp.evaluate("benchmarkDefinition/scaleUnit",
-                    runConfigNode);
+            String defName      = xp.evaluate("name", benchDefNode);
+            String version      = xp.evaluate("version", benchDefNode);
+            String metric       = xp.evaluate("metric", benchDefNode);
+            String scaleName    = xp.evaluate("scaleName", benchDefNode);
+            String scaleUnit    = xp.evaluate("scaleUnit", benchDefNode);
             
             
             StringBuilder sb = new StringBuilder("@BenchmarkDefinition (");
