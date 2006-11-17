@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Result.java,v 1.15 2006/11/17 00:05:41 akara Exp $
+ * $Id: Result.java,v 1.16 2006/11/17 01:55:16 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -81,9 +81,6 @@ public class Result {
         return result;
     }
 
-    private Result() {
-    }
-
     private Result(RunId runId) {
         this.runId = runId;
     }
@@ -95,10 +92,10 @@ public class Result {
 
         long modTime = resultDir.lastModified();
         if (modTime <= this.modTime) {
-            logger.info("Run " + runId + "already cached.");
+            logger.finer("Run " + runId + " already cached.");
             return;
         }
-        logger.info("Fetching run " + runId + " from disk.");
+        logger.finer("Fetching run " + runId + " from disk.");
         this.modTime = modTime;
 
         BenchmarkDescription desc = BenchmarkDescription.
@@ -227,147 +224,6 @@ public class Result {
 
         if (submitter == null)
             submitter = "N/A";
-    }
-
-    public static Result[] getResults(Subject user) {
-
-        ArrayList<Result> resultList = null;
-        Result header = null;
-        HashSet<String> scaleNames = null;
-        HashSet<String> scaleUnits = null;
-        HashSet<String> metricUnits = null;
-        File[] list = (new File(Config.OUT_DIR)).listFiles();
-        if((list != null) && (list.length > 0)) {
-
-            // Allocate supporting structures.
-            resultList = new ArrayList<Result>(list.length);
-            scaleNames = new HashSet<String>();
-            scaleUnits = new HashSet<String>();
-            metricUnits = new HashSet<String>();
-
-            // Create a comparator that orders Strings in descending order.
-            Comparator<String> descend = new Comparator<String>() {
-
-                public int compare(String s1, String s2) {
-                    return s2.compareTo(s1);
-                }
-            };
-
-            // Sort the result list by dateTime, descending. Newest run first.
-            TreeMap<String, File> dirMap = new TreeMap<String, File>(descend);
-            for (int i = 0; i < list.length; i++) {
-                String runId = list[i].getName();
-                if (!AccessController.isViewAllowed(user, runId))
-                    continue;
-                dirMap.put(new RunId(runId).getRunSeq(), list[i]);
-            }
-
-            // First entry in the list is the header.
-            header = new Result();
-            header.runId = new RunId("Run","ID");
-            header.description = "Description";
-            header.scale = "Scale";
-            header.metric.text = "Metric";
-            header.metric.value = 0d;
-            header.result.text = "Result";
-            header.result.value = "result";
-            header.status.text = "Status";
-            header.status.value = "status";
-            header.dateTime = new ResultField<Long>();
-            header.dateTime.text = "Date/Time";
-            header.dateTime.value = 0l;
-            resultList.add(header);
-
-            // Now iterate through the sorted map.
-            for (Map.Entry<String, File> entry : dirMap.entrySet()) {
-                try {
-                    RunId runId = new RunId(entry.getValue().getName());
-                    Result result = getInstance(runId);
-                    scaleNames.add(result.scaleName);
-                    scaleUnits.add(result.scaleUnit);
-                    metricUnits.add(result.metricUnit);
-                    resultList.add(result);
-                } catch (Exception e) {
-                    logger.log(Level.WARNING, "Exception fetching run " +
-                            entry.getValue().getName(), e);
-                }
-            }
-
-            // Now check whether the results are using single metric unit,
-            // scale name, or scale unit. In that case, just put it into the
-            // header instead of in all records.
-            if (scaleNames.size() == 1 && scaleUnits.size() == 1) {
-                Result result = resultList.get(1);
-                if (result.scaleName.length() > 0 &&
-                    result.scaleUnit.length() > 0)
-                    header.scale = result.scaleName + " (" +
-                                   result.scaleUnit + ')';
-                else if (result.scaleName.length() > 0)
-                    header.scale = result.scaleName;
-                else if (result.scaleUnit.length() > 0)
-                    header.scale = result.scaleUnit;
-                for (int i = 1; i < resultList.size(); i++) {
-                    result = resultList.get(i);
-                    result.scaleName = "";
-                    result.scaleUnit = "";
-                }
-            } else {
-                // Construct scale field.
-                StringBuilder b = new StringBuilder();
-                for (int i = 1; i < resultList.size(); i++) {
-                    Result result = resultList.get(i);
-                    if (result.scaleName.length() > 0) {
-                        b.append(result.scaleName);
-                        b.append(' ');
-                    }
-                    b.append(result.scale);
-                    if (result.scaleUnit.length() > 0) {
-                        b.append(' ');
-                        b.append(result.scaleUnit);
-                    }
-                    result.scale = b.toString();
-                    b.setLength(0);
-                }
-            }
-
-            // Do the same for the metric
-            if (metricUnits.size() == 1) {
-                Result result = resultList.get(1);
-                if (result.metricUnit.length() > 0)
-                    header.metric.text = result.metricUnit;
-                for (int i = 1; i < resultList.size(); i++) {
-                    result = resultList.get(i);
-                    if (result.metric.text == null) {
-                        result.metric.text = "N/A";
-                        result.metric.value = -1d;
-                    }
-                    result.metricUnit = "";
-                }
-            } else {
-                StringBuilder b = new StringBuilder();
-                for (int i = 1; i < resultList.size(); i++) {
-                    Result result = resultList.get(i);
-                    if (result.metric.text == null) {
-                        result.metric.text = "N/A";
-                        result.metric.value = -1d;
-                        continue;
-                    }
-                    b.append(result.metric.text);
-                    if (result.metricUnit.length() > 0) {
-                        b.append(' ');
-                        b.append(result.metricUnit);
-                    }
-                    result.metric.text = b.toString();
-                    result.metricUnit = "";
-                    b.setLength(0);
-                }
-            }
-
-            // Finally, convert it to an array.
-            Result[] results = new Result[resultList.size()];
-            return resultList.toArray(results);
-        }
-        return null;
     }
 
     /**

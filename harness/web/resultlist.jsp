@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultlist.jsp,v 1.5 2006/11/01 18:42:15 akara Exp $
+ * $Id: resultlist.jsp,v 1.6 2006/11/17 01:55:17 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -33,10 +33,12 @@
         <link rel="icon" type="image/gif" href="img/faban.gif">
     </head>
     <body>
-    <%@ page language="java" import="com.sun.faban.harness.webclient.Result"%>
+    <%@ page language="java" import="com.sun.faban.harness.webclient.Result,
+                                     com.sun.faban.harness.webclient.TableModel"%>
     <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
-    <% Result[] results = Result.getResults(usrEnv.getSubject());
-        if(results != null && results.length > 0) {
+    <%  TableModel resultTable = Result.getResultTable(usrEnv.getSubject());
+        int rows = resultTable.rows();
+        if(resultTable != null && rows > 0) {
     %>
             <form name="analyze" method="post" action="analyzeruns.jsp">
               <center>
@@ -49,31 +51,21 @@
               <tbody>
               <tr>
                   <th>&nbsp;</th>
-                  <th><%= results[0].runId %></th>
-                  <th><%= results[0].description %></th>
-                  <th><%= results[0].result %></th>
-                  <th><%= results[0].scale %></th>
-                  <th><%= results[0].metric %></th>
-                  <th><%= results[0].status %></th>
-                  <th><%= results[0].dateTime %></th>
+    <%      for (int i = 0; i < resultTable.columns(); i++) { %>
+                  <th><%= resultTable.getHeader(i) %></th>
+    <%      } %>
               <tr>
     <%
-            for(int i = 1; i < results.length; i++) {
-                Result result = results[i];
+            for(int i = 0; i < rows; i++) {
+                Comparable[] row = resultTable.getRow(i);
     %>
             <tr>
-                <td><input type="checkbox" name="select" value="<%= result.runId %>"></input></td>
-                <td><%= result.runId %></td>
-                <td><%= result.description %></td>
-                <td><%= result.result %></td>
-                <td><%= result.scale %></td>
-                <td><%= result.metric %></td>
-                <td><%= result.status %></td>
-                <td><%= result.dateTime %></td>
+                <td><input type="checkbox" name="select" value="<%= row[0] %>"></input></td>
+    <%          for (int j = 0; j < row.length; j++) { %>
+                <td><%= row[j] %></td>
+    <%          } %>
             <tr>
-        <%
-                }
-        %>
+    <%      } %>
      </tbody>
      </table>
      <br/>
