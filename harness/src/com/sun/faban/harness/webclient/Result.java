@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Result.java,v 1.14 2006/11/07 22:28:58 akara Exp $
+ * $Id: Result.java,v 1.15 2006/11/17 00:05:41 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -84,33 +84,23 @@ public class Result {
     private Result() {
     }
 
-    private Result(File resultDir) throws IOException {
-        refresh(resultDir);
-    }
-
     private Result(RunId runId) {
         this.runId = runId;
-    }
-
-    private void refresh(File resultDir) throws IOException {
-        long modTime = resultDir.lastModified();
-        if (modTime <= this.modTime) // older than what we have in ram
-            return;                  // use the cached version.
-
-        this.modTime = modTime;
-
-        try {
-            this.runId = new RunId(resultDir.getName());
-        } catch (IndexOutOfBoundsException e) {
-            throw new IOException("Invalid result directory " + this.runId);
-        }
-        refresh();
     }
 
     private synchronized void refresh() {
 
         String shortName = runId.getBenchName();
         File resultDir = runId.getResultDir();
+
+        long modTime = resultDir.lastModified();
+        if (modTime <= this.modTime) {
+            logger.info("Run " + runId + "already cached.");
+            return;
+        }
+        logger.info("Fetching run " + runId + " from disk.");
+        this.modTime = modTime;
+
         BenchmarkDescription desc = BenchmarkDescription.
                 readDescription(shortName, resultDir.getAbsolutePath());
         if (desc == null) {
@@ -291,12 +281,15 @@ public class Result {
             // Now iterate through the sorted map.
             for (Map.Entry<String, File> entry : dirMap.entrySet()) {
                 try {
-                    Result result = new Result(entry.getValue());
+                    RunId runId = new RunId(entry.getValue().getName());
+                    Result result = getInstance(runId);
                     scaleNames.add(result.scaleName);
                     scaleUnits.add(result.scaleUnit);
                     metricUnits.add(result.metricUnit);
                     resultList.add(result);
-                } catch (IOException e) {
+                } catch (Exception e) {
+                    logger.log(Level.WARNING, "Exception fetching run " +
+                            entry.getValue().getName(), e);
                 }
             }
 
@@ -315,8 +308,8 @@ public class Result {
                     header.scale = result.scaleUnit;
                 for (int i = 1; i < resultList.size(); i++) {
                     result = resultList.get(i);
-                    result.scaleName = null;
-                    result.scaleUnit = null;
+                    result.scaleName = "";
+                    result.scaleUnit = "";
                 }
             } else {
                 // Construct scale field.
@@ -348,7 +341,7 @@ public class Result {
                         result.metric.text = "N/A";
                         result.metric.value = -1d;
                     }
-                    result.metricUnit = null;
+                    result.metricUnit = "";
                 }
             } else {
                 StringBuilder b = new StringBuilder();
@@ -365,7 +358,7 @@ public class Result {
                         b.append(result.metricUnit);
                     }
                     result.metric.text = b.toString();
-                    result.metricUnit = null;
+                    result.metricUnit = "";
                     b.setLength(0);
                 }
             }

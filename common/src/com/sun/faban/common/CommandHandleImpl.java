@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CommandHandleImpl.java,v 1.3 2006/11/16 01:02:08 akara Exp $
+ * $Id: CommandHandleImpl.java,v 1.4 2006/11/17 00:05:40 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -237,6 +237,7 @@ public class CommandHandleImpl implements CommandHandle {
             while (command != null) {
                 if (command.daemon)
                     return;
+                logger.info("Waiting for command " + command.command);
                 wait(1000);
             }
         }

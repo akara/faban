@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Acceptor.java,v 1.1 2006/11/13 18:24:55 akara Exp $
+ * $Id: Acceptor.java,v 1.2 2006/11/17 00:05:40 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -29,6 +29,7 @@ import java.net.ServerSocket;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.Selector;
+import java.nio.channels.AsynchronousCloseException;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import java.util.Queue;
@@ -70,6 +71,9 @@ public class Acceptor implements Runnable {
                 SocketChannel channel = acceptChannel.accept();
                 acceptQueue.add(channel);
                 selector.wakeup();
+            } catch (AsynchronousCloseException e) {
+                // This happens if another thread calls shutdown.
+                // Do nothing - the accept loop will terminate.
             } catch (IOException e) {
                 logger.log(Level.WARNING, "Error accepting connections!", e);
             }
