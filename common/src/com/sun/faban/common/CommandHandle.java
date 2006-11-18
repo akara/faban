@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CommandHandle.java,v 1.2 2006/06/29 19:38:35 akara Exp $
+ * $Id: CommandHandle.java,v 1.3 2006/11/18 05:21:05 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -46,6 +46,14 @@ public interface CommandHandle extends Remote {
      * @throws RemoteException A network error occurred
      */
     public void waitFor() throws InterruptedException, RemoteException;
+
+     /**
+     * Waits for the command to terminate, with a given timeout.
+     * @param timeout The time out
+     * @throws InterruptedException The waiting thread got interrupted.
+     */
+    public void waitFor(int timeout) 
+             throws InterruptedException, RemoteException ;
 
     /**
      * Obtains the exit value of the command.

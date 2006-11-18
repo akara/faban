@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Command.java,v 1.3 2006/07/28 07:30:20 akara Exp $
+ * $Id: Command.java,v 1.4 2006/11/18 05:21:05 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -77,6 +77,7 @@ public class Command implements Serializable {
     Process process;
     boolean synchronous = true;
     boolean remote = false;
+    boolean killed = false;
     Level[] level = { Level.INFO, Level.WARNING };
     int[] streamHandling = { BULK_LOG, BULK_LOG };
     String[] streamMatch = new String[2];

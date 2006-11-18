@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CommandHandleImpl.java,v 1.4 2006/11/17 00:05:40 akara Exp $
+ * $Id: CommandHandleImpl.java,v 1.5 2006/11/18 05:21:05 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -73,6 +73,7 @@ public class CommandHandleImpl implements CommandHandle {
      * Forfully terminates the command.
      */
     public void destroy() {
+        command.killed = true;
         command.process.destroy();
     }
 
@@ -88,6 +89,25 @@ public class CommandHandleImpl implements CommandHandle {
 
         command.process.waitFor();
     }
+
+    /**
+     * Waits for the command to terminate, with a given timeout.
+     * @param timeout The time out
+     * @throws InterruptedException The waiting thread got interrupted.
+     */
+    public void waitFor(int timeout) throws InterruptedException {
+        long t = System.currentTimeMillis();
+        long dt = 0l;
+        if (!command.daemon) {
+            for (int i = 0; i < readers.length; i++) {
+                readers[i].waitFor((int) (timeout - dt));
+                dt = System.currentTimeMillis() - t;
+                if (timeout <= dt)
+                    break;
+            }
+        }
+    }
+
 
     static byte[] readFile(String fileName) throws IOException {
         FileChannel channel = (new FileInputStream(fileName)).getChannel();
@@ -206,8 +226,18 @@ public class CommandHandleImpl implements CommandHandle {
                             }
                         }
                     } catch (IOException e) {
+                        Level level;
+                        if (command.killed)
+                            level = Level.FINER;
+                        else
+                            level = Level.WARNING;
+
+                        logger.log(level, "Error reading from log stream " +
+                                "from command " + command.command + '.', e);
+                    } catch (Exception e) {
                         logger.log(Level.WARNING,
-                                "There is an error reading the log stream.", e);
+                                "There is an error reading the log stream " +
+                                "from command " + command.command + '.', e);
                     } finally {
                         synchronized(this) {
                             command = null;
@@ -237,9 +267,26 @@ public class CommandHandleImpl implements CommandHandle {
             while (command != null) {
                 if (command.daemon)
                     return;
-                logger.info("Waiting for command " + command.command);
-                wait(1000);
+                wait(10000);
             }
+        }
+
+        /**
+         * Waits for the reader to timeout.
+         * @param timeOut The given timeout
+         * @throws InterruptedException
+         */
+        synchronized void waitFor(int timeOut) throws InterruptedException {
+            long dt = 0l;
+            long t = System.currentTimeMillis();
+            while (command != null && timeOut > dt) {
+                if (command.daemon)
+                    return ;
+                wait(timeOut - dt);
+                dt = System.currentTimeMillis() - t;
+            }
+            if (command != null)
+                logger.warning("Timed out waiting for command " + command.command);
         }
 
         private void capture() throws IOException {
