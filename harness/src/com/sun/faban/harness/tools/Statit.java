@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Statit.java,v 1.2 2006/06/29 19:38:43 akara Exp $
+ * $Id: Statit.java,v 1.3 2006/11/18 05:23:09 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -54,7 +54,7 @@ public class Statit extends GenericTool {
                         cmdAgent);
     }
 
-    public void stop() {
+    public void stop(boolean warn) {
 
         logger.fine("Stopping statit");
         if (toolStarted) {
@@ -68,19 +68,19 @@ public class Statit extends GenericTool {
                 toolStarted = false;
                 // xfer log file to master machine, log any errors
                 xferLog();
+                logger.fine(toolName + " Stopped ");
             } catch (IOException e) {
                 logger.log(Level.SEVERE, "Error executing command statit -y", e);
             } catch (InterruptedException e) {
                 logger.log(Level.SEVERE,
                            "Interrupted waiting for command statit -y", e);
             }
-        } else
+        } else if (warn)
             logger.warning("Stop called without start");
 
         // If the Thread start was called
         if((toolThread != null) && (toolThread.isAlive()))
             toolThread.interrupt();
 
-        logger.fine(toolName + " Stopped ");
     }
 }

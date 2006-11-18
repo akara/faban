@@ -17,13 +17,11 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Awr.java,v 1.2 2006/06/29 19:38:43 akara Exp $
+ * $Id: Awr.java,v 1.3 2006/11/18 05:23:09 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.tools;
-
-import com.sun.faban.harness.common.Config;
 
 /**
  * Runs Oracle's awr tool.

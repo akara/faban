@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericTool.java,v 1.3 2006/11/16 01:02:09 akara Exp $
+ * $Id: GenericTool.java,v 1.4 2006/11/18 05:23:09 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -122,7 +122,7 @@ public class GenericTool implements Tool {
      */
     public void kill() {
         // For most tools, we try to collect the output no matter what.
-        stop();
+        stop(false);
     }
 
     /**
@@ -206,17 +206,27 @@ public class GenericTool implements Tool {
     /**
      * This method is responsible for stopping the tool utility.
      */
-    public void stop () {
+    public void stop() {
+        stop(true);
+    }
+
+    /**
+     * This method is responsible for stopping the tool utility.
+     * @param warn Whether to warn if the tool already ended.
+     *
+     */
+    protected void stop(boolean warn) {
 
         logger.fine("Stopping tool " + this.cmd);
         if (toolStarted)
             try {
                 tool.destroy();
-                tool.waitFor();
+                tool.waitFor(10000);
                 // saveToolLogs(tool.getInputStream(), tool.getErrorStream());
                 toolStarted = false;
                 // xfer log file to master machine, log any errors
                 xferLog();
+                logger.fine(toolName + " Stopped ");
             } catch (RemoteException e) {
                 logger.log(Level.SEVERE, "RemoteException stopping tool: " +
                            toolName, e);
@@ -224,14 +234,14 @@ public class GenericTool implements Tool {
                 logger.log(Level.SEVERE, "Interrupted waiting for stop: " +
                            toolName, e);
             }
-        else
-            logger.warning("Stop called without start");
+        else if (warn)
+            logger.warning("Tool not started or already stopped for " +
+                           this.cmd);
 
         // If the Thread start was called
         if((toolThread != null) && (toolThread.isAlive()))
             toolThread.interrupt();
 
-        logger.fine(toolName + " Stopped ");
     }
 
 

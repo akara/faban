@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Result.java,v 1.16 2006/11/17 01:55:16 akara Exp $
+ * $Id: Result.java,v 1.17 2006/11/18 05:23:09 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -87,7 +87,6 @@ public class Result {
 
     private synchronized void refresh() {
 
-        String shortName = runId.getBenchName();
         File resultDir = runId.getResultDir();
 
         long modTime = resultDir.lastModified();
@@ -97,6 +96,8 @@ public class Result {
         }
         logger.finer("Fetching run " + runId + " from disk.");
         this.modTime = modTime;
+
+        String shortName = runId.getBenchName();        
 
         BenchmarkDescription desc = BenchmarkDescription.
                 readDescription(shortName, resultDir.getAbsolutePath());

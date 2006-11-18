@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: OracleTool.java,v 1.2 2006/06/29 19:38:43 akara Exp $
+ * $Id: OracleTool.java,v 1.3 2006/11/18 05:23:09 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -143,10 +143,12 @@ public abstract class OracleTool implements Tool {
      */
     protected abstract String getSnapCommand();
 
+
     /**
-     * Parses the snapshot output for the snap id.
-     * @param output The output from sqlplus doing a snapshot
-     * @return The snapshot id string
+     * The parseSnapId method parses the sqlplus stdout and finds the
+     * snapshot just taken.
+     * @param output The stdout from sqlplus where a snapshot has been taken
+     * @return The snapshot id pertaining to the snapshot just taken.
      */
     protected String parseSnapId(byte[] output) {
         String snapId = null;
@@ -188,7 +190,7 @@ public abstract class OracleTool implements Tool {
     public void kill() {
         // If feasible, we'll try to collect the end snapshot and transfer
         // back the output. So we still have some stats even for a bad run.
-        stop();
+        stop(false);
     }
 
     /**
@@ -264,17 +266,18 @@ public abstract class OracleTool implements Tool {
     }
 
     /**
-     * The parseSnapId method parses the sqlplus stdout and finds the
-     * snapshot just taken.
-     * @param output The stdout from sqlplus where a snapshot has been taken
-     * @return The snapshot id pertaining to the snapshot just taken.
+     * This method is responsible for stopping the tool
      */
+    public void stop() {
+        stop(true);
+    }
 
 
     /**
      * This method is responsible for stopping the tool utility.
+     * @param warn Whether to warn if tool is not running.
      */
-    public void stop () {
+    protected void stop(boolean warn) {
 
         if (toolStarted)
             try {
@@ -291,19 +294,18 @@ public abstract class OracleTool implements Tool {
                 toolStarted = false;
                 // xfer log file to master machine, log any errors
                 xferLog();
+                logger.fine(toolName + " Stopped ");
             } catch (IOException e) {
                 logger.log(Level.SEVERE, "Error executing sqlplus", e);
             } catch (InterruptedException e) {
                 logger.log(Level.SEVERE, "Interrupted executing sqlplus", e);
             }
-        else
-            logger.warning("Stop called without start");
+        else if (warn)
+            logger.warning("Stop called without start for tool " + toolName);
 
         // If the Thread start was called
         if((toolThread != null) && (toolThread.isAlive()))
             toolThread.interrupt();
-
-        logger.fine(toolName + " Stopped ");
     }
 
     /**
