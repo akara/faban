@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericTool.java,v 1.4 2006/11/18 05:23:09 akara Exp $
+ * $Id: GenericTool.java,v 1.5 2006/11/20 06:52:36 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -52,9 +52,14 @@ import java.util.logging.Logger;
  * @see com.sun.faban.harness.tools.Tool
  */
 public class GenericTool implements Tool {
+
+    static final int NOT_STARTED = 0;
+    static final int STARTED = 1;
+    static final int STOPPED = 2;
+
     String cmd;
     CommandHandle tool;
-    boolean toolStarted = false;
+    int toolStatus = NOT_STARTED;
     String logfile, outfile;	// Name of stdout,stderr from tool
     String toolName;
     String path = null; // The path to the tool.
@@ -199,7 +204,7 @@ public class GenericTool implements Tool {
             logger.log(Level.SEVERE, "Tool start interrupted: " + toolName, e);
             return;
         }
-        toolStarted = true;
+        toolStatus = STARTED;
         logger.fine(toolName + " Started with Cmd = " + this.cmd);
     }
 
@@ -218,12 +223,12 @@ public class GenericTool implements Tool {
     protected void stop(boolean warn) {
 
         logger.fine("Stopping tool " + this.cmd);
-        if (toolStarted)
+        if (toolStatus == STARTED)
             try {
                 tool.destroy();
                 tool.waitFor(10000);
                 // saveToolLogs(tool.getInputStream(), tool.getErrorStream());
-                toolStarted = false;
+                toolStatus = STOPPED;
                 // xfer log file to master machine, log any errors
                 xferLog();
                 logger.fine(toolName + " Stopped ");
@@ -234,9 +239,8 @@ public class GenericTool implements Tool {
                 logger.log(Level.SEVERE, "Interrupted waiting for stop: " +
                            toolName, e);
             }
-        else if (warn)
-            logger.warning("Tool not started or already stopped for " +
-                           this.cmd);
+        else if (warn && toolStatus == NOT_STARTED)
+            logger.warning("Tool not started but stop called for " + this.cmd);
 
         // If the Thread start was called
         if((toolThread != null) && (toolThread.isAlive()))

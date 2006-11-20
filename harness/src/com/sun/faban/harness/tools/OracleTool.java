@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: OracleTool.java,v 1.3 2006/11/18 05:23:09 akara Exp $
+ * $Id: OracleTool.java,v 1.4 2006/11/20 06:52:36 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -47,10 +47,15 @@ import java.util.logging.Logger;
  * @see Tool
  */
 public abstract class OracleTool implements Tool {
+
+    static final int NOT_STARTED = 0;
+    static final int STARTED = 1;
+    static final int STOPPED = 2;
+
     String cmd;
     Command sqlplus;
     CommandHandle tool;
-    boolean toolStarted = false;
+    int toolStatus = NOT_STARTED;
     String logfile, outfile;	// Name of stdout,stderr from tool
     String toolName;
     String path = null; // The path to the tool.
@@ -257,7 +262,7 @@ public abstract class OracleTool implements Tool {
             tool = cmdAgent.execute(sqlplus);
             snapId = parseSnapId(tool.fetchOutput(Command.STDOUT));
             logger.finer("snapId: " + snapId);
-            toolStarted = true;
+            toolStatus = STARTED;
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Error executing sqlplus", e);
         } catch (InterruptedException e) {
@@ -279,7 +284,7 @@ public abstract class OracleTool implements Tool {
      */
     protected void stop(boolean warn) {
 
-        if (toolStarted)
+        if (toolStatus == STARTED)
             try {
                 tool = cmdAgent.execute(sqlplus);
                 String snapId1 = parseSnapId(tool.fetchOutput(Command.STDOUT));
@@ -291,7 +296,7 @@ public abstract class OracleTool implements Tool {
                 sqlplus.setInput(stdin.getBytes());
                 sqlplus.setLogLevel(Command.STDOUT, Level.FINER);
                 tool = cmdAgent.execute(sqlplus);
-                toolStarted = false;
+                toolStatus = STOPPED;
                 // xfer log file to master machine, log any errors
                 xferLog();
                 logger.fine(toolName + " Stopped ");
@@ -300,8 +305,8 @@ public abstract class OracleTool implements Tool {
             } catch (InterruptedException e) {
                 logger.log(Level.SEVERE, "Interrupted executing sqlplus", e);
             }
-        else if (warn)
-            logger.warning("Stop called without start for tool " + toolName);
+        else if (warn && toolStatus == NOT_STARTED)
+            logger.warning("Tool not started but stop called for " + toolName);
 
         // If the Thread start was called
         if((toolThread != null) && (toolThread.isAlive()))

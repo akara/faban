@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Statit.java,v 1.3 2006/11/18 05:23:09 akara Exp $
+ * $Id: Statit.java,v 1.4 2006/11/20 06:52:36 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -57,7 +57,7 @@ public class Statit extends GenericTool {
     public void stop(boolean warn) {
 
         logger.fine("Stopping statit");
-        if (toolStarted) {
+        if (toolStatus == STARTED) {
             Command c = new Command("statit -y");
             c.setStreamHandling(Command.STDOUT, Command.CAPTURE);
             c.setOutputFile(Command.STDOUT, logfile);
@@ -65,7 +65,7 @@ public class Statit extends GenericTool {
                 // Replace tool so that super.stop gets the output from -y instead.
                 tool = cmdAgent.execute(c);
                 // saveToolLogs(tool.getInputStream(), tool.getErrorStream());
-                toolStarted = false;
+                toolStatus = STOPPED;
                 // xfer log file to master machine, log any errors
                 xferLog();
                 logger.fine(toolName + " Stopped ");
@@ -75,8 +75,8 @@ public class Statit extends GenericTool {
                 logger.log(Level.SEVERE,
                            "Interrupted waiting for command statit -y", e);
             }
-        } else if (warn)
-            logger.warning("Stop called without start");
+        } else if (warn && toolStatus == NOT_STARTED)
+            logger.warning("Tool not started but stop called for " + this.cmd);
 
         // If the Thread start was called
         if((toolThread != null) && (toolThread.isAlive()))
