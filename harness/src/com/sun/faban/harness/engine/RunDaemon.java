@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunDaemon.java,v 1.21 2006/11/22 07:07:20 akara Exp $
+ * $Id: RunDaemon.java,v 1.22 2006/11/22 20:14:08 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -524,23 +524,7 @@ public class RunDaemon implements Runnable {
         public int compare(Object o1, Object o2) {
             RunId r1 = new RunId((String) o1);
             RunId r2 = new RunId((String) o2);
-            String seq1 = r1.getRunSeq();
-            String seq2 = r2.getRunSeq();
-
-            // Now, split the run sequence into the number and trailing char
-            int postIdx = seq1.length() - 1;
-            String pre1 = seq1.substring(0, postIdx);
-            char post1 = seq1.charAt(postIdx);
-
-            postIdx = seq2.length() - 1;
-            String pre2 = seq2.substring(0, postIdx);
-            char post2 = seq2.charAt(postIdx);
-
-            int compare = Integer.parseInt(pre1) - Integer.parseInt(pre2);
-            if (compare == 0)
-                compare = post1 - post2;
-
-            return compare;
+            return r1.compareSeq(r2);
         }
     }
 }

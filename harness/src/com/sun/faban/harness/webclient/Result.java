@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Result.java,v 1.17 2006/11/18 05:23:09 akara Exp $
+ * $Id: Result.java,v 1.18 2006/11/22 20:14:08 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -325,7 +325,7 @@ public class Result {
             row[2] = result.result;
             ResultField<Integer> scale = new ResultField<Integer>();
             row[3] = scale;
-            if (result.scale == null) {
+            if (result.scale == null || result.scale.length() < 1) {
                 scale.text = "N/A";
                 scale.value = Integer.MIN_VALUE;
             } else if (singleScale) {

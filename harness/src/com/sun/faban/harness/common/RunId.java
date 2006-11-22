@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunId.java,v 1.3 2006/11/03 09:45:46 akara Exp $
+ * $Id: RunId.java,v 1.4 2006/11/22 20:14:07 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -129,33 +129,7 @@ public class RunId implements Comparable {
     /**
      * Compares this object with the specified object for order.  Returns a
      * negative integer, zero, or a positive integer as this object is less
-     * than, equal to, or greater than the specified object.<p>
-     * <p/>
-     * In the foregoing description, the notation
-     * <tt>sgn(</tt><i>expression</i><tt>)</tt> designates the mathematical
-     * <i>signum</i> function, which is defined to return one of <tt>-1</tt>,
-     * <tt>0</tt>, or <tt>1</tt> according to whether the value of <i>expression</i>
-     * is negative, zero or positive.
-     * <p/>
-     * The implementor must ensure <tt>sgn(x.compareTo(y)) ==
-     * -sgn(y.compareTo(x))</tt> for all <tt>x</tt> and <tt>y</tt>.  (This
-     * implies that <tt>x.compareTo(y)</tt> must throw an exception iff
-     * <tt>y.compareTo(x)</tt> throws an exception.)<p>
-     * <p/>
-     * The implementor must also ensure that the relation is transitive:
-     * <tt>(x.compareTo(y)&gt;0 &amp;&amp; y.compareTo(z)&gt;0)</tt> implies
-     * <tt>x.compareTo(z)&gt;0</tt>.<p>
-     * <p/>
-     * Finally, the implementer must ensure that <tt>x.compareTo(y)==0</tt>
-     * implies that <tt>sgn(x.compareTo(z)) == sgn(y.compareTo(z))</tt>, for
-     * all <tt>z</tt>.<p>
-     * <p/>
-     * It is strongly recommended, but <i>not</i> strictly required that
-     * <tt>(x.compareTo(y)==0) == (x.equals(y))</tt>.  Generally speaking, any
-     * class that implements the <tt>Comparable</tt> interface and violates
-     * this condition should clearly indicate this fact.  The recommended
-     * language is "Note: this class has a natural ordering that is
-     * inconsistent with equals."
+     * than, equal to, or greater than the specified object.
      *
      * @param o the Object to be compared.
      * @return a negative integer, zero, or a positive integer as this object
@@ -165,6 +139,37 @@ public class RunId implements Comparable {
      */
     public int compareTo(Object o) {
         RunId other = (RunId) o;
-        return runId.compareTo(other.runId);
+        int compare = host.compareTo(other.host);
+        if (compare == 0)
+            compare = benchName.compareTo(other.benchName);
+        if (compare == 0)
+            compare = compareSeq(other);
+        return compare;
+    }
+
+    /**
+     * Compares the run sequence between one and the other run id. Returns a
+     * negative integer, zero, or a positive integer as this sequence is less
+     * than, equal to, or greater than the specified run id's sequence.
+     * @param o The other run id.
+     * @return a negative integer, zero, or a positive integer as this run id
+     *         is less than, equal to, or greater than the specified run id.
+     */
+    public int compareSeq(RunId o) {
+        // Split the run sequence into the number and trailing char
+        int postIdx = runSeq.length() - 1;
+        String pre = runSeq.substring(0, postIdx);
+        char post = runSeq.charAt(postIdx);
+
+        String seq = o.runSeq;
+        postIdx = seq.length() - 1;
+        String pre1 = seq.substring(0, postIdx);
+        char post1 = seq.charAt(postIdx);
+
+        int compare = Integer.parseInt(pre) - Integer.parseInt(pre1);
+        if (compare == 0)
+            compare = post - post1;
+
+        return compare;
     }
 }
