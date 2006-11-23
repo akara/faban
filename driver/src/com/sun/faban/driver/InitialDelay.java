@@ -4,20 +4,20 @@
  * compliance with the License.
  *
  * You can obtain a copy of the License at
- * http://www.sun.com/cddl/cddl.html or
- * install_dir/legal/LICENSE
+ * https://faban.dev.java.net/public/CDDLv1.0.html or
+ * install_dir/license.txt
  * See the License for the specific language governing
  * permission and limitations under the License.
  *
  * When distributing Covered Code, include this CDDL
  * Header Notice in each file and include the License file
- * at install_dir/legal/LICENSE.
+ * at faban/src/legal/CDDLv1.0.txt.
  * If applicable, add the following below the CDDL Header,
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FixedTime.java,v 1.3 2006/11/23 00:27:59 akara Exp $
+ * $Id: InitialDelay.java,v 1.1 2006/11/23 00:27:59 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -29,19 +29,24 @@ import java.lang.annotation.Target;
 import java.lang.annotation.ElementType;
 
 /**
- * The FixedTime annotation defines a fixed cycle or think time.
- * The attributes of this annotation defines the type, time, and
- * allowed deviation from the given time.
+ * InitialDelay tells the driver to wait for a random amount of time up to
+ * the specified max before launching the first operation. This is most useful
+ * in fixed-cycle drivers (all operations use @FixedTime) to distribute the
+ * arrival of the operations across time. Otherwise we will see a
+ * thundering-herd effect for each operation which renders the simulation far
+ * less useful and realistic. The random time is selected from a uniform
+ * distribution.
+ *
+ * @author Akara Sucharitakul
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE, ElementType.METHOD, ElementType.ANNOTATION_TYPE})
-public @interface FixedTime {
-    /** The type of cycle to be used */
-    CycleType cycleType() default CycleType.CYCLETIME;
+@Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
+public @interface InitialDelay {
 
-    /** The cycle or think time in milliseconds */
-    int cycleTime() default 1000;
-
-    /** The allowed deviation from the targeted time, in % */
-    double cycleDeviation();
+    /**
+     * The maximum initial delay for any thread, in milliseconds.
+     * The actual delay is selected from a uniform distribution between 0
+     * and the specified max.
+     */
+    int max() default 0;
 }

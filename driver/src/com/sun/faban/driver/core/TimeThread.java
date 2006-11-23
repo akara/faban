@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TimeThread.java,v 1.3 2006/11/15 06:46:46 akara Exp $
+ * $Id: TimeThread.java,v 1.4 2006/11/23 00:28:00 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -45,6 +45,7 @@ public class TimeThread extends AgentThread {
         delayTime = new int[1];
         startTime = new int[1];
         endTime = new int[1];
+        previousOperation = new int[1];
 
         // This is the start and end time of the previous operation used to
         // calculate the start of the next operation. We set it to the current
@@ -52,6 +53,7 @@ public class TimeThread extends AgentThread {
         // any reference point is OK.
         startTime[0] = timer.getTime();
         endTime[0] = startTime[0];
+        previousOperation[0] = -1;
     }
 
     /**
@@ -109,16 +111,24 @@ public class TimeThread extends AgentThread {
                 endRampDown = endStdyState + runInfo.rampDown * 1000;
             }
 
+            // Save the previous operation
+            previousOperation[mixId] = currentOperation;
+            BenchmarkDefinition.Operation previousOp = null;
+            if (previousOperation[mixId] >= 0)
+                previousOp = driverConfig.operations[currentOperation];
+
             // Select the operation
             currentOperation = selector[0].select();
             BenchmarkDefinition.Operation op =
                     driverConfig.operations[currentOperation];
 
+            // The invoke time is based on the delay after the previous op.
+            // so we need to use the previous op for calculating and recording.
+            int invokeTime = getInvokeTime(previousOp, mixId);
+
             // endRampDown is only valid if start time is set.
             // If the start time of next tx is beyond the end
             // of the ramp down, just stop right here.
-            int invokeTime = getInvokeTime(op, mixId);
-
             if (startTimeSet && invokeTime >= endRampDown)
                 break driverLoop;
 

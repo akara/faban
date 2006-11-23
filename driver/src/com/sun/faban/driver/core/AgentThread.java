@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentThread.java,v 1.3 2006/11/15 06:46:46 akara Exp $
+ * $Id: AgentThread.java,v 1.4 2006/11/23 00:28:00 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -45,7 +45,8 @@ public abstract class AgentThread extends Thread {
     String type;
     String name;
     int id;
-    int currentOperation; // Global index into driver operations
+    int currentOperation = -1; // Global index into the current operation.
+    int[] previousOperation; // Index into the previous operation.
     int mixId = 0; // 0 for foreground and 1 for background
     Mix.Selector[] selector; // The selector array, size 1 if no bg, 2 if bg
 
@@ -220,7 +221,12 @@ public abstract class AgentThread extends Thread {
      */
     int getInvokeTime(BenchmarkDefinition.Operation op, int mixId) {
         // Set the start time based on the operation selected
-        delayTime[mixId] = op.cycle.getDelay(random);
+        if (op == null)
+            delayTime[mixId] = runInfo.driverConfig.
+                    initialDelay[mixId].getDelay(random);
+        else
+            delayTime[mixId] = op.cycle.getDelay(random);
+
         int invokeTime = -1;
 
         switch (op.cycle.cycleType) {

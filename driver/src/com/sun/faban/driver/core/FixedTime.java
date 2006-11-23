@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FixedTime.java,v 1.2 2006/06/29 19:38:37 akara Exp $
+ * $Id: FixedTime.java,v 1.3 2006/11/23 00:28:00 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -26,8 +26,6 @@ package com.sun.faban.driver.core;
 import com.sun.faban.driver.util.Random;
 import com.sun.faban.driver.DefinitionException;
 import com.sun.faban.driver.CycleType;
-import com.sun.faban.driver.FatalException;
-
 import java.lang.annotation.Annotation;
 import java.io.IOException;
 
@@ -38,14 +36,7 @@ import java.io.IOException;
  */
 public class FixedTime extends Cycle {
 
-    /**
-     * InitialCycle for a thread to call, tested against null whether this
-     * is actually the first call. If not null, this is not the first call.
-     */
-    private transient ThreadLocal initialCycle = new ThreadLocal();
-
     int cycleTime;
-    boolean randomStart;
 
     /**
      * Initializes this cycle according to the annotation.
@@ -58,7 +49,6 @@ public class FixedTime extends Cycle {
         cycleType = cycleDef.cycleType();
         cycleDeviation = cycleDef.cycleDeviation();
         cycleTime = cycleDef.cycleTime();
-        randomStart = cycleDef.randomStart();
 
         // Now check parameters for validity.
         if (cycleTime == 0 && cycleType == CycleType.CYCLETIME)
@@ -77,8 +67,6 @@ public class FixedTime extends Cycle {
      * @return The delay time
      */
     public int getDelay(Random random) {
-        if (randomStart && isInitialCycle())
-            return random.random(0, cycleTime);
         return cycleTime;
     }
 
@@ -97,6 +85,7 @@ public class FixedTime extends Cycle {
         return 2d;
     }
 
+    /* TODO: Remove this block.
     private boolean isInitialCycle() {
         if (initialCycle.get() == null) {
             initialCycle.set(Boolean.FALSE);
@@ -114,12 +103,11 @@ public class FixedTime extends Cycle {
         }
         return false;
     }
+    */
 
     // How to load myself from a stream
     private void readObject(java.io.ObjectInputStream in)
-        throws IOException, ClassNotFoundException {
+            throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        if (initialCycle == null)
-            initialCycle = new ThreadLocal();
     }
 }

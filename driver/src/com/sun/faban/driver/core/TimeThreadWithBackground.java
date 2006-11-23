@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TimeThreadWithBackground.java,v 1.2 2006/06/29 19:38:37 akara Exp $
+ * $Id: TimeThreadWithBackground.java,v 1.3 2006/11/23 00:28:00 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -47,6 +47,7 @@ public class TimeThreadWithBackground extends TimeThread {
         delayTime = new int[2];
         startTime = new int[2];
         endTime = new int[2];
+        previousOperation = new int[2];
 
         // This is the start and end time of the previous operation used to
         // calculate the start of the next operation. We set it to the current
@@ -55,6 +56,10 @@ public class TimeThreadWithBackground extends TimeThread {
         startTime[0] = timer.getTime();
         endTime[0] = startTime[0];
         endTime[1] = startTime[1] = startTime[0];
+        previousOperation[0] = -1;
+        previousOperation[1] = -1;
+        mixOperation[0] = -1;
+        mixOperation[1] = -1;
     }
 
     /**
@@ -124,15 +129,25 @@ public class TimeThreadWithBackground extends TimeThread {
 
             // Select the operations and invoke times
             if (mixId != 1) {
+                previousOperation[0] = mixOperation[0];
+                BenchmarkDefinition.Operation previousOp = null;
+                if (previousOperation[0] >= 0)
+                    previousOp = driverConfig.operations[currentOperation];
+
                 mixOperation[0] = selector[0].select();
                 op[0] = driverConfig.mix[0].operations[mixOperation[0]];
-                invokeTime[0] = getInvokeTime(op[0], 0);
+                invokeTime[0] = getInvokeTime(previousOp, 0);
             }
 
             if (mixId != 0) {
+                previousOperation[1] = mixOperation[1];
+                BenchmarkDefinition.Operation previousOp = null;
+                if (previousOperation[1] >= 0)
+                    previousOp = driverConfig.operations[currentOperation];
+
                 mixOperation[1] = selector[1].select();
                 op[1] = driverConfig.mix[1].operations[mixOperation[1]];
-                invokeTime[1] = getInvokeTime(op[1], 1);
+                invokeTime[1] = getInvokeTime(previousOp, 1);
             }
 
             // Now get the new mixId, note that foreground has preference

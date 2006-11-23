@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: BenchmarkDriver.java,v 1.2 2006/06/29 19:38:36 akara Exp $
+ * $Id: BenchmarkDriver.java,v 1.3 2006/11/23 00:27:59 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -49,19 +49,4 @@ public @interface BenchmarkDriver {
      * benchmark scale.
      */
     int threadPerScale()    default 1;
-
-    /**
-     * The maximum run time of the benchmark, in hours. Inherits/overrides
-     * the values defined in the @BenchmarkDefinition annotation.
-     * Defaults to 6 hrs. This is only used if runControl is CYCLES.
-     * Otherwise the benchmark configuration is a better indicator.
-     */
-    int maxRunTime()        default -1;
-
-    /**
-     * Frequency of throughput statistics collection, in seconds.
-     * Inherits/overrides the values defined in the @BenchmarkDefition
-     * annotation. Defaults to 30 seconds.
-     */
-    int thruputFrequency()  default -1;
 }

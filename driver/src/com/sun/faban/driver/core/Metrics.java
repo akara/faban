@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.5 2006/11/15 06:46:46 akara Exp $
+ * $Id: Metrics.java,v 1.6 2006/11/23 00:28:00 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -317,7 +317,10 @@ public class Metrics implements Serializable, Cloneable {
      */
     public void recordDelayTime() {
 
-        int txType = thread.currentOperation;
+        int txType = thread.previousOperation[thread.mixId];
+        if (txType < 0) // First cycle, previous op is not there. Don't record.
+            return;
+        
         DriverContext.TimingInfo timingInfo =
                 thread.driverContext.timingInfo;
 

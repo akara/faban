@@ -4,20 +4,20 @@
  * compliance with the License.
  *
  * You can obtain a copy of the License at
- * http://www.sun.com/cddl/cddl.html or
- * install_dir/legal/LICENSE
+ * https://faban.dev.java.net/public/CDDLv1.0.html or
+ * install_dir/license.txt
  * See the License for the specific language governing
  * permission and limitations under the License.
  *
  * When distributing Covered Code, include this CDDL
  * Header Notice in each file and include the License file
- * at install_dir/legal/LICENSE.
+ * at faban/src/legal/CDDLv1.0.txt.
  * If applicable, add the following below the CDDL Header,
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FixedTime.java,v 1.3 2006/11/23 00:27:59 akara Exp $
+ * $Id: OnceAfter.java,v 1.1 2006/11/23 00:27:59 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -29,19 +29,19 @@ import java.lang.annotation.Target;
 import java.lang.annotation.ElementType;
 
 /**
- * The FixedTime annotation defines a fixed cycle or think time.
- * The attributes of this annotation defines the type, time, and
- * allowed deviation from the given time.
+ * Designates a method to be called only once, just after the end of the
+ * benchmark run. It is always called from global thread 0 for the given driver.
+ * The driver will wait for all threads to terminate before calling the
+ * OnceAfter method. Note that only one method is allowed for the OnceAfter
+ * designation. If Faban finds more than one method with the OnceBefore
+ * annotation, it will throw a DefinitionException at startup.<p/>
+ * The OnceBefore and OnceAfter annotations are used mainly for auditing
+ * the state of the SUT before and after the benchmark run. A CustomMetrics
+ * shall be used to report the audit results.
+ *
+ * @author Akara Sucharitakul
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE, ElementType.METHOD, ElementType.ANNOTATION_TYPE})
-public @interface FixedTime {
-    /** The type of cycle to be used */
-    CycleType cycleType() default CycleType.CYCLETIME;
-
-    /** The cycle or think time in milliseconds */
-    int cycleTime() default 1000;
-
-    /** The allowed deviation from the targeted time, in % */
-    double cycleDeviation();
+@Target(ElementType.METHOD)
+public @interface OnceAfter {
 }

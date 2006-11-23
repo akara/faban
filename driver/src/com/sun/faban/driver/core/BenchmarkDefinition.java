@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: BenchmarkDefinition.java,v 1.3 2006/09/21 18:26:16 rahulbiswas Exp $
+ * $Id: BenchmarkDefinition.java,v 1.4 2006/11/23 00:28:00 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -155,8 +155,9 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
             def.drivers[i].opsUnit = benchDriver.opsUnit();
             def.drivers[i].threadPerScale = benchDriver.threadPerScale();
             def.drivers[i].className = driverClasses[i].getName();
-            def.drivers[i].mix[1] = getBackground(driverClasses[i]);
+            getBackground(driverClasses[i], def.drivers[i]);
             def.drivers[i].mix[0] = Mix.getMix(driverClasses[i]);
+            def.drivers[i].initialDelay[0] = getInitialDelay(driverClasses[i]);
             int totalOps = def.drivers[i].mix[0].operations.length;
             if (def.drivers[i].mix[1] != null)
                 totalOps += def.drivers[i].mix[1].operations.length;
@@ -234,18 +235,21 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
         }
     }
 
-    private static Mix getBackground(Class<?> driver)
+    private static void getBackground(Class<?> driverClass, Driver driver)
             throws DefinitionException {
-        if (!driver.isAnnotationPresent(Background.class))
-            return null;
-        Background background = driver.getAnnotation(Background.class);
+        if (!driverClass.isAnnotationPresent(Background.class)) {
+            driver.mix[1] = null;
+            driver.initialDelay[1] = null;
+            return;
+        }
+        Background background = driverClass.getAnnotation(Background.class);
         String[] ops = background.operations();
         FixedSequence mix = new FixedSequence();
         mix.deviation = 2d;
-        mix.operations = getOperationsNoCycles(driver, ops);
+        mix.operations = getOperationsNoCycles(driverClass, ops);
         com.sun.faban.driver.FixedTime[] timings = background.timings();
         if (timings.length == 0) { // No bg timing, use driver or method timing
-            Cycle.setCycles(mix.operations, driver);
+            Cycle.setCycles(mix.operations, driverClass);
         } else if (timings.length == 1) { // Apply to all the background ops
             FixedTime fixedTime = new FixedTime();
             fixedTime.init(timings[0]);
@@ -264,7 +268,37 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
                 mix.operations[i].cycle.init(timings[i]);
             }
         }
-        return mix;
+        driver.mix[1] = mix;
+        driver.initialDelay[1] =
+                getInitialDelay(background.initialDelay().max());
+    }
+
+    private static Cycle getInitialDelay(Class<?> driverClass) {
+        InitialDelay initDelay = driverClass.getAnnotation(
+                InitialDelay.class);
+        int max;
+        if (initDelay == null)
+            max = 0;
+        else
+            max = initDelay.max();
+        return getInitialDelay(max);
+    }
+
+    private static Cycle getInitialDelay(int max) {
+        Cycle delay;
+        if (max <= 0) {
+            FixedTime fixed = new FixedTime();
+            fixed.cycleTime = 0;
+            delay = fixed;
+        } else {
+            Uniform uniform = new Uniform();
+            uniform.cycleMin = 0;
+            uniform.cycleMax = max;
+            delay = uniform;
+        }
+        delay.cycleType = CycleType.CYCLETIME;
+        delay.cycleDeviation = 0d;
+        return delay;
     }
 
     private BenchmarkDefinition() {
@@ -443,6 +477,7 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
         String opsUnit;
         int threadPerScale;
         Mix[] mix = new Mix[2]; // Foreground (0) and background (1) mix.
+        Cycle[] initialDelay = new Cycle[2]; // Foreground and background
         BenchmarkDefinition.Operation[] operations;
         String className;
 
@@ -516,6 +551,10 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
             clone.mix[0] = (Mix) mix[0].clone();
             if (mix[1] != null)
                 clone.mix[1] = (Mix) mix[1].clone();
+
+            clone.initialDelay[0] = (Uniform) initialDelay[0].clone();
+            if (initialDelay[1] != null)
+                clone.initialDelay[1] = (Uniform) initialDelay[1].clone();
 
             // Copy operation references into a flat array.
             int totalOps = operations.length;

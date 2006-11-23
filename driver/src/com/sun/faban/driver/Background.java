@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Background.java,v 1.2 2006/06/29 19:38:36 akara Exp $
+ * $Id: Background.java,v 1.3 2006/11/23 00:27:59 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -65,5 +65,8 @@ public @interface Background {
      */
     FixedTime[] timings() default {};
 
-    StartPolicy initial() default StartPolicy.RANDOM;
+    /**
+     * Defines the initial delay maximum of the background.
+     */
+    InitialDelay initialDelay() default @InitialDelay(max=0);
 }
