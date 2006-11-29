@@ -10,6 +10,21 @@ export PATH
 
 HOSTNAME=`uname -n`
 
+echo "        <h3>System parameters on server ${HOSTNAME}</h3>"
+echo "        <pre>"
+cat /etc/sysctl.conf
+echo "        <pre>"
+
+echo "        <h3>Processor info for server ${HOSTNAME}</h3>"
+echo "        <pre>"
+ cat /proc/cpuinfo |egrep 'processor|cpu|cache|model'
+echo "        <pre>"
+
+echo "        <h3>Memory info for server ${HOSTNAME}</h3>"
+echo "        <pre>"
+ cat /proc/meminfo |egrep 'Mem|Swap'
+echo "        <pre>"
+
 echo "        <h3>Kernel on server ${HOSTNAME}</h3>"
 echo "        <pre>"
 uname -srvm

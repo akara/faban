@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunId.java,v 1.4 2006/11/22 20:14:07 akara Exp $
+ * $Id: RunId.java,v 1.5 2006/11/29 21:11:52 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -139,7 +139,18 @@ public class RunId implements Comparable {
      */
     public int compareTo(Object o) {
         RunId other = (RunId) o;
-        int compare = host.compareTo(other.host);
+        int compare = 0;
+
+        // Host field may be null
+        if (host != null) {
+            if (other.host != null)
+                compare = host.compareTo(other.host);
+            else
+                compare = host.compareTo("");
+        } else if (other.host != null) {
+            compare = "".compareTo(other.host);
+        }
+        
         if (compare == 0)
             compare = benchName.compareTo(other.benchName);
         if (compare == 0)

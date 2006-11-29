@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunInfo.java,v 1.5 2006/11/16 01:02:08 akara Exp $
+ * $Id: RunInfo.java,v 1.6 2006/11/29 21:11:52 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -226,7 +226,12 @@ public class RunInfo implements Serializable {
             if (driverDef.mix[1] != null)
                 mix[1] = (Mix) driverDef.mix[1].clone();
             mix[0] = (Mix) driverDef.mix[0].clone();
-                        // Copy operation references into a flat array.
+
+            if (driverDef.initialDelay[1] != null)
+                initialDelay[1] = (Cycle) driverDef.initialDelay[1].clone();
+            initialDelay[0] = (Cycle) driverDef.initialDelay[0].clone();
+
+            // Copy operation references into a flat array.
             int totalOps = driverDef.operations.length;
             operations = new BenchmarkDefinition.Operation[totalOps];
             for (int j = 0; j < mix[0].operations.length; j++)

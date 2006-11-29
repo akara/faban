@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentThread.java,v 1.4 2006/11/23 00:28:00 akara Exp $
+ * $Id: AgentThread.java,v 1.5 2006/11/29 21:11:52 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,6 +25,7 @@ package com.sun.faban.driver.core;
 
 import com.sun.faban.driver.Timing;
 import com.sun.faban.driver.FatalException;
+import com.sun.faban.driver.CycleType;
 import com.sun.faban.driver.util.Random;
 import com.sun.faban.driver.util.Timer;
 
@@ -221,15 +222,18 @@ public abstract class AgentThread extends Thread {
      */
     int getInvokeTime(BenchmarkDefinition.Operation op, int mixId) {
         // Set the start time based on the operation selected
-        if (op == null)
+        CycleType cycleType;
+        if (op == null) {
+            cycleType = runInfo.driverConfig.initialDelay[mixId].cycleType;
             delayTime[mixId] = runInfo.driverConfig.
                     initialDelay[mixId].getDelay(random);
-        else
+        } else {
+            cycleType = op.cycle.cycleType;
             delayTime[mixId] = op.cycle.getDelay(random);
-
+        }
         int invokeTime = -1;
 
-        switch (op.cycle.cycleType) {
+        switch (cycleType) {
             case CYCLETIME :
                 invokeTime = startTime[mixId] + delayTime[mixId];
                 break;

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Cycle.java,v 1.2 2006/06/29 19:38:37 akara Exp $
+ * $Id: Cycle.java,v 1.3 2006/11/29 21:11:52 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -89,15 +89,17 @@ public abstract class Cycle implements Serializable, Cloneable {
      * exception at run time.
      *
      * @return a clone of this instance.
-     * @throws CloneNotSupportedException if the object's class does not
-     *                                    support the <code>Cloneable</code> interface. Subclasses
-     *                                    that override the <code>clone</code> method can also
-     *                                    throw this exception to indicate that an instance cannot
-     *                                    be cloned.
      * @see Cloneable
      */
-    public Object clone() throws CloneNotSupportedException {
-        return super.clone();
+    public Object clone() {
+        Object clone = null;
+        try {
+            clone = super.clone();
+        } catch (CloneNotSupportedException e) {
+            // we implement cloneable and just swallow this exception.
+            // It should never happen.
+        }
+        return clone;
     }
     
     static void setCycles(BenchmarkDefinition.Operation[] operations,
