@@ -17,15 +17,14 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentThread.java,v 1.5 2006/11/29 21:11:52 akara Exp $
+ * $Id: AgentThread.java,v 1.6 2006/11/30 17:53:53 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver.core;
 
-import com.sun.faban.driver.Timing;
 import com.sun.faban.driver.FatalException;
-import com.sun.faban.driver.CycleType;
+import com.sun.faban.driver.Timing;
 import com.sun.faban.driver.util.Random;
 import com.sun.faban.driver.util.Timer;
 
@@ -221,19 +220,18 @@ public abstract class AgentThread extends Thread {
      * @return The targeted invoke time.
      */
     int getInvokeTime(BenchmarkDefinition.Operation op, int mixId) {
-        // Set the start time based on the operation selected
-        CycleType cycleType;
-        if (op == null) {
-            cycleType = runInfo.driverConfig.initialDelay[mixId].cycleType;
-            delayTime[mixId] = runInfo.driverConfig.
-                    initialDelay[mixId].getDelay(random);
-        } else {
-            cycleType = op.cycle.cycleType;
-            delayTime[mixId] = op.cycle.getDelay(random);
-        }
-        int invokeTime = -1;
+        Cycle cycle;
+        if (op == null)
+            // No op, this is the initial cycle, use initialDelay
+            cycle = runInfo.driverConfig.initialDelay[mixId];
+        else
+            // Set the start time based on the operation selected
+            cycle = op.cycle;
 
-        switch (cycleType) {
+        int invokeTime = -1;
+        delayTime[mixId] = cycle.getDelay(random);
+
+        switch (cycle.cycleType) {
             case CYCLETIME :
                 invokeTime = startTime[mixId] + delayTime[mixId];
                 break;
