@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: BenchmarkDefinition.java,v 1.4 2006/11/23 00:28:00 akara Exp $
+ * $Id: BenchmarkDefinition.java,v 1.5 2006/11/30 23:58:38 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -585,13 +585,15 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
         }
     }
 
-    static class Operation implements Serializable, Cloneable {
+    static class DriverMethod implements Serializable, Cloneable {
         String name;
+        transient Method m;
+    }
+
+    static class Operation extends DriverMethod {
         double max90th;
         Timing timing;
         Cycle cycle;
-
-        transient Method m;
 
         /**
          * Creates and returns a copy of this object.  The precise meaning
