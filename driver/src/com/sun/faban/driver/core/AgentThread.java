@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentThread.java,v 1.7 2006/12/08 05:15:54 akara Exp $
+ * $Id: AgentThread.java,v 1.8 2006/12/08 22:17:07 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -271,6 +271,7 @@ public abstract class AgentThread extends Thread {
         // Thread 0 needs to do the preRun
         if (id == 0 && driverConfig.preRun != null) {
             setThreadState(PRE_RUN);
+            logger.fine(name + ": Invoking preRun @OnceBefore");
             try {
                 invokePrePost(driverConfig.preRun.m);
             } catch (InterruptedIOException e) {
@@ -297,6 +298,7 @@ public abstract class AgentThread extends Thread {
             // This may happen if terminate gets called while thread is
             // switching to POST_RUN state.
             boolean interrupted = false;
+            logger.fine(name + ": Invoking postRun @OnceAfter");
             do {
                 try {
                     invokePrePost(driverConfig.postRun.m);

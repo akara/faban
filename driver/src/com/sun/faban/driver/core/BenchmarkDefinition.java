@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: BenchmarkDefinition.java,v 1.6 2006/12/08 05:15:54 akara Exp $
+ * $Id: BenchmarkDefinition.java,v 1.7 2006/12/08 22:17:07 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -438,7 +438,7 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
      * @param method      The DriverMethod instance
      */
     static void refillMethod(Class<?> driverClass, DriverMethod method) {
-        if (method.m == null) {
+        if (method != null && method.m == null) {
             Method[] methods = driverClass.getMethods();
             for (Method m : methods)
                 if (method.genericName.equals(m.toGenericString())) {

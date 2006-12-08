@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentImpl.java,v 1.4 2006/12/08 05:15:54 akara Exp $
+ * $Id: AgentImpl.java,v 1.5 2006/12/08 22:17:07 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -212,6 +212,17 @@ public class AgentImpl extends UnicastRemoteObject
                         runInfo.driverConfig.driverClass, timer, this);
                 agentThreads[count].start();
 
+                // Ensure the preRun is done before proceeding.
+                if (globalThreadId == 0 &&
+                        runInfo.driverConfig.preRun != null) {
+                    preRunLatch.await();
+
+                    // Adjust baseTime if the preRun takes long.
+                    int currentTime = timer.getTime();
+                    if (currentTime - baseTime > runInfo.msBetweenThreadStart)
+                        baseTime = currentTime - runInfo.msBetweenThreadStart;                    
+                }
+
                 // We ensure we catch up with the configured thread starting
                 // rate. If we fall short, we sleep less until we caught up.
                 int sleepTime = runInfo.msBetweenThreadStart * (count + 1) +
@@ -228,9 +239,6 @@ public class AgentImpl extends UnicastRemoteObject
                         Thread.sleep(sleepTime);
                     } catch (InterruptedException ie) {
                     }
-                if (globalThreadId == 0 &&  // Make sure preRun is done
-                        runInfo.driverConfig.preRun != null)
-                    preRunLatch.await();
             }
             if (runAborted)
                 logger.warning(displayName + ": Run aborted before starting " +
