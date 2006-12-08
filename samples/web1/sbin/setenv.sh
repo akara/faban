@@ -1,6 +1,7 @@
 #!/bin/sh
 #
-# setenv.sh Script to be execed from all launch scripts to setup the 
+# setenv.sh Script to be execed from all launch scripts to setup the
+# execution environment. 
 #
 
 

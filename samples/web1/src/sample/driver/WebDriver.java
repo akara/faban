@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: WebDriver.java,v 1.2 2006/06/29 19:38:45 akara Exp $
+ * $Id: WebDriver.java,v 1.3 2006/12/08 22:23:25 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -45,7 +45,6 @@ import java.util.logging.Logger;
             @Row({ 50, 50,  0 }) },
     deviation = 2
 )
-
 @NegativeExponential (
     cycleType = CycleType.CYCLETIME,
     cycleMean = 5000,
@@ -73,6 +72,22 @@ public class WebDriver {
         url1 = "http://" + host + ':' + port + '/' + path1;
         url2 = "http://" + host + ':' + port + '/' + path2;
         url3 = "http://" + host + ':' + port + '/' + path3;
+    }
+
+    @OnceBefore public void testPreRun() {
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+        }
+        logger.info("Tested pre-run (sleep 5) done");
+    }
+
+    @OnceAfter public void testPostRun() {
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+        }
+        logger.info("Tested post-run (sleep 5) done");
     }
 
     @BenchmarkOperation (
