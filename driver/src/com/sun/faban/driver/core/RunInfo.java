@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunInfo.java,v 1.6 2006/11/29 21:11:52 akara Exp $
+ * $Id: RunInfo.java,v 1.7 2006/12/08 05:15:54 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,31 +25,19 @@ package com.sun.faban.driver.core;
 
 import com.sun.faban.driver.ConfigurationException;
 import com.sun.faban.driver.RunControl;
-import com.sun.faban.driver.util.Random;
-
+import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.CDATASection;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
-import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.BufferedWriter;
-import java.io.PrintWriter;
-import java.io.FileWriter;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.*;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.net.MalformedURLException;
 import java.util.logging.Handler;
 
 
@@ -186,7 +174,11 @@ public class RunInfo implements Serializable {
                 }
             }
         }
-        
+        BenchmarkDefinition.refillMethod(driverConfig.driverClass,
+                                         driverConfig.preRun);
+        BenchmarkDefinition.refillMethod(driverConfig.driverClass,
+                                         driverConfig.postRun);
+
         BenchmarkDefinition.refillOperations(
                 driverConfig.driverClass, driverConfig.mix[0].operations);
         if (driverConfig.mix[1] != null)
@@ -223,6 +215,12 @@ public class RunInfo implements Serializable {
             metric = driverDef.metric;
             opsUnit = driverDef.opsUnit;
             threadPerScale = driverDef.threadPerScale;
+            if (driverDef.preRun != null)
+                preRun = (BenchmarkDefinition.DriverMethod)
+                        driverDef.preRun.clone();
+            if (driverDef.postRun != null)
+                postRun = (BenchmarkDefinition.DriverMethod)
+                        driverDef.postRun.clone();
             if (driverDef.mix[1] != null)
                 mix[1] = (Mix) driverDef.mix[1].clone();
             mix[0] = (Mix) driverDef.mix[0].clone();
@@ -514,7 +512,8 @@ public class RunInfo implements Serializable {
                 tmpDir = tmpDir+File.separator;
             }
                 
-            String className = new StringBuilder(tmpDir).append(definingClassName).append(".java").toString();
+            String className = new StringBuilder(tmpDir).
+                    append(definingClassName).append(".java").toString();
             
             try{
                 //convert class name to filename?
@@ -530,8 +529,7 @@ public class RunInfo implements Serializable {
             String classpath = System.getProperty("java.class.path");
             
             String arg[] = new String[] { "-classpath", classpath, className };
-            com.sun.tools.javac.Main javac =  new com.sun.tools.javac.Main();
-            int errorCode = javac.compile(arg);
+            int errorCode = com.sun.tools.javac.Main.compile(arg);
             
             if(errorCode != 0){
                 throw new ConfigurationException(

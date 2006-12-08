@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentImpl.java,v 1.3 2006/10/19 18:48:19 akara Exp $
+ * $Id: AgentImpl.java,v 1.4 2006/12/08 05:15:54 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -65,6 +65,8 @@ public class AgentImpl extends UnicastRemoteObject
     private String className;
     CountDownLatch threadStartLatch;
     CountDownLatch timeSetLatch;
+    CountDownLatch preRunLatch;
+    CountDownLatch postRunLatch;
     private boolean runAborted = false;
 
     /**
@@ -116,7 +118,12 @@ public class AgentImpl extends UnicastRemoteObject
         this.timer = timer;
         threadStartLatch = new CountDownLatch(runInfo.agentInfo.threads);
         timeSetLatch = new CountDownLatch(1);
-
+        if (runInfo.agentInfo.startThreadNumber == 0) { // first agent
+            if (runInfo.driverConfig.preRun != null)
+                preRunLatch = new CountDownLatch(1);
+            if (runInfo.driverConfig.postRun != null)
+                postRunLatch = new CountDownLatch(1);
+        }
         try {
             runInfo.postDeserialize();
         } catch (ClassNotFoundException e) {
@@ -131,12 +138,20 @@ public class AgentImpl extends UnicastRemoteObject
 
         // Agents will Start the threads in parallel if
         // parallelThreadStart is set.
-        if (runInfo.parallelAgentThreadStart)
+        if (runInfo.parallelAgentThreadStart) {
             // start thread and return
             new Thread(this).start();
-        else
+            if (runInfo.agentInfo.startThreadNumber == 0 &&
+                    runInfo.driverConfig.preRun != null)
+                try {
+                    preRunLatch.await();
+                } catch (InterruptedException e) {
+                    // Do nothing.
+                }
+        } else {
             // block until done and return
             this.run();
+        }
     }
 
     /**
@@ -192,7 +207,7 @@ public class AgentImpl extends UnicastRemoteObject
             for (; count < numThreads && !runAborted; count++) {
                 int globalThreadId = runInfo.agentInfo.startThreadNumber +
                         count;
-                agentThreads[count] = AgentThread.getInstance(agentType, 
+                agentThreads[count] = AgentThread.getInstance(agentType,
                         agentId, globalThreadId,
                         runInfo.driverConfig.driverClass, timer, this);
                 agentThreads[count].start();
@@ -213,6 +228,9 @@ public class AgentImpl extends UnicastRemoteObject
                         Thread.sleep(sleepTime);
                     } catch (InterruptedException ie) {
                     }
+                if (globalThreadId == 0 &&  // Make sure preRun is done
+                        runInfo.driverConfig.preRun != null)
+                    preRunLatch.await();
             }
             if (runAborted)
                 logger.warning(displayName + ": Run aborted before starting " +
@@ -301,7 +319,7 @@ public class AgentImpl extends UnicastRemoteObject
         boolean terminationLogged = false;
         int terminationCount = 0;
         Throwable t = null;
-        for (int i = 0; i < numThreads; i++)
+        for (int i = numThreads - 1; i > 0; i--)
             if (agentThreads[i] != null && agentThreads[i].isAlive())
                 try {
                     if (!terminationLogged) { // Log this only once.
@@ -315,12 +333,58 @@ public class AgentImpl extends UnicastRemoteObject
                     logger.log(Level.FINE, agentThreads[i].name +
                             ": Thread not Terminated. " +
                             "Dumping stack and force termination.", t);
-                    ++ terminationCount;
+                    ++terminationCount;
                     agentThreads[i].stopExecution();
                 } catch (Throwable e) {
                     logger.log(Level.SEVERE, agentThreads[i].name +
                             ": Error killing thread.", e);
                 }
+
+        if (runInfo.agentInfo.startThreadNumber == 0 &&
+                runInfo.driverConfig.postRun != null &&
+                agentThreads[0] != null) {
+            if (agentThreads[0].getThreadState() == AgentThread.RUNNING) {
+                try {
+                    if (!terminationLogged) { // Log this only once.
+                        logger.warning(displayName +
+                                ": Forcefully terminating benchmark run");
+                        terminationLogged = true;
+                    }
+                    t = new Throwable(
+                            "Stack of non-terminating thread.");
+                    t.setStackTrace(agentThreads[0].getStackTrace());
+                    logger.log(Level.FINE, agentThreads[0].name +
+                            ": Thread not Terminated. " +
+                            "Dumping stack and force termination.", t);
+                    ++terminationCount;
+                    agentThreads[0].stopExecution();
+                } catch (Throwable e) {
+                    logger.log(Level.SEVERE, agentThreads[0].name +
+                            ": Error killing thread.", e);
+                }
+            }
+            postRunLatch.countDown();
+            agentThreads[0].waitThreadState(AgentThread.ENDED);
+        } else if (agentThreads[0] != null && agentThreads[0].isAlive()) {
+            try { // Just terminate it like any other thread.
+                if (!terminationLogged) { // Log this only once.
+                    logger.warning(displayName +
+                            ": Forcefully terminating benchmark run");
+                    terminationLogged = true;
+                }
+                t = new Throwable(
+                        "Stack of non-terminating thread.");
+                t.setStackTrace(agentThreads[0].getStackTrace());
+                logger.log(Level.FINE, agentThreads[0].name +
+                        ": Thread not Terminated. " +
+                        "Dumping stack and force termination.", t);
+                ++terminationCount;
+                agentThreads[0].stopExecution();
+            } catch (Throwable e) {
+                logger.log(Level.SEVERE, agentThreads[0].name +
+                        ": Error killing thread.", e);
+            }
+        }
         if (terminationCount > 0)
             logger.log(Level.WARNING, displayName + ": " + terminationCount +
                            " threads forcefully terminated.", t);
@@ -347,12 +411,26 @@ public class AgentImpl extends UnicastRemoteObject
      * Waits for all the threads to terminate.
      */
     public void join() {
-        for (int i = 0; i < agentThreads.length; i++)
+        for (int i = agentThreads.length - 1; i > 0; i--)
             while(agentThreads[i] != null && agentThreads[i].isAlive())
                 try {
                     agentThreads[i].join();
                 } catch (InterruptedException e) {
                 }
+        if (runInfo.agentInfo.startThreadNumber == 0 &&
+                runInfo.driverConfig.postRun != null &&
+                agentThreads[0] != null) {// first agent, preRun
+            postRunLatch.countDown();
+            try {
+                agentThreads[0].join();
+            } catch (InterruptedException e) {
+            }            
+        } else if (agentThreads[0] != null && agentThreads[0].isAlive()) {
+            try {
+                agentThreads[0].join();
+            } catch (InterruptedException e) {
+            }
+        }
         master = null;
     }
 

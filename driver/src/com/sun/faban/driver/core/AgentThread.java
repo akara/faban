@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentThread.java,v 1.6 2006/11/30 17:53:53 akara Exp $
+ * $Id: AgentThread.java,v 1.7 2006/12/08 05:15:54 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -28,8 +28,11 @@ import com.sun.faban.driver.Timing;
 import com.sun.faban.driver.util.Random;
 import com.sun.faban.driver.util.Timer;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.io.InterruptedIOException;
 
 
 /**
@@ -41,6 +44,13 @@ import java.util.logging.Logger;
  * @author Akara Sucharitakul
  */
 public abstract class AgentThread extends Thread {
+
+    public static final int NOT_STARTED = 0;
+    public static final int INITIALIZING = 1;
+    public static final int PRE_RUN = 2;
+    public static final int RUNNING = 3;
+    public static final int POST_RUN = 4;
+    public static final int ENDED = 5;
 
     String type;
     String name;
@@ -62,6 +72,8 @@ public abstract class AgentThread extends Thread {
     int[] delayTime;  // recently calculated cycle times
     int[] startTime; // start times for previous tx
     int[] endTime; // end time for the recent tx ended
+
+    private int threadState = NOT_STARTED;
 
     Logger logger;
     String className;
@@ -144,6 +156,7 @@ public abstract class AgentThread extends Thread {
      */
     public final void run() {
         try {
+            setThreadState(INITIALIZING);
             doRun();
         } catch (FatalException e) {
             // A fatal exception thrown by the driver is already caught
@@ -162,6 +175,8 @@ public abstract class AgentThread extends Thread {
         } catch (Throwable t) {
             logger.log(Level.SEVERE, name + ": " + t.getMessage(), t);
             agent.abortRun();
+        } finally {
+            postRun();
         }
     }
 
@@ -211,6 +226,104 @@ public abstract class AgentThread extends Thread {
                     "\nEither transaction start or end time is not " +
                     "within steady state.";
         logger.log(Level.WARNING, message, e);
+    }
+
+    private synchronized void setThreadState(int state) {
+        threadState = state;
+        notifyAll();
+    }
+
+    private synchronized boolean compareAndSetThreadState(int orig, int state) {
+        boolean set = threadState == orig;
+        if (set) {
+            threadState = state;
+            notifyAll();
+        }
+        return set;
+    }
+
+
+    /**
+     * Obtains the state of the current thread.
+     * @return The state of the current thread.
+     */
+    public synchronized int getThreadState() {
+        return threadState;
+    }
+
+    /**
+     * Waits for a given state of the thread to arrive.
+     * @param state The state to wait for.
+     */
+    public synchronized void waitThreadState(int state) {
+        while (threadState < state) {
+            try {
+                wait(10000);
+            } catch (InterruptedException e) {
+            }
+        }
+    }
+
+    /**
+     * Executes the method market with @OnceBefore in thread 0
+     */
+    void preRun() {
+        // Thread 0 needs to do the preRun
+        if (id == 0 && driverConfig.preRun != null) {
+            setThreadState(PRE_RUN);
+            try {
+                invokePrePost(driverConfig.preRun.m);
+            } catch (InterruptedIOException e) {
+                // Should not happen unless run is cancelled. And if so,
+                // we don't really care to redo this.
+            }
+            agent.preRunLatch.countDown();
+        }
+        setThreadState(RUNNING);
+    }
+
+    /**
+     * Executes the method market with @OnceAfter in thread 0
+     */
+    void postRun() {
+        if (id == 0 && driverConfig.postRun != null &&
+                compareAndSetThreadState(RUNNING, POST_RUN)) {
+            while (agent.postRunLatch.getCount() > 0l)
+                try {
+                    agent.postRunLatch.await();
+                } catch (InterruptedException e) {
+                }
+            // We need to make sure this method is re-run if I/O is interrupted.
+            // This may happen if terminate gets called while thread is
+            // switching to POST_RUN state.
+            boolean interrupted = false;
+            do {
+                try {
+                    invokePrePost(driverConfig.postRun.m);
+                } catch (InterruptedIOException e) {
+                    interrupted = true;
+                }
+            } while (interrupted);
+        }
+        setThreadState(ENDED);
+    }
+
+    private void invokePrePost(Method m) throws InterruptedIOException {
+        try {
+            m.invoke(driver);
+        } catch (InvocationTargetException e) {
+            Throwable cause = e.getCause();
+            if (cause == null)
+                cause = e;
+            logger.log(Level.WARNING, name + "." + m.getName() + ": " +
+                    e.getMessage(), e);
+            if (cause instanceof InterruptedIOException)
+                throw (InterruptedIOException) cause;
+        } catch (IllegalAccessException e) {
+            logger.log(Level.SEVERE, name + "." + m.getName() + ": " +
+                    e.getMessage(), e);
+        }
+
     }
 
     /**

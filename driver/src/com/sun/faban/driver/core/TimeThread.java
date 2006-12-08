@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TimeThread.java,v 1.4 2006/11/23 00:28:00 akara Exp $
+ * $Id: TimeThread.java,v 1.5 2006/12/08 05:15:54 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -77,6 +77,9 @@ public class TimeThread extends AgentThread {
             agent.abortRun();
             return; // Terminate this thread immediately
         }
+
+        // Call the preRun.
+        preRun();
 
         // Notify the agent that we have started successfully.
         agent.threadStartLatch.countDown();

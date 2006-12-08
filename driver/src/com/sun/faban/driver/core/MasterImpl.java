@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MasterImpl.java,v 1.5 2006/11/14 06:12:06 akara Exp $
+ * $Id: MasterImpl.java,v 1.6 2006/12/08 05:15:54 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -226,7 +226,6 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         agentRefs = new Agent[benchDef.drivers.length][];
         agentThreads = new int[benchDef.drivers.length];
         remainderThreads = new int[benchDef.drivers.length];
-        preRun();
 
         scheduler = new java.util.Timer("Scheduler", false);
         try {
@@ -253,23 +252,6 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         }
         changeState(MasterState.STARTING);
         executeRun();
-        postRun();
-    }
-
-    /**
-     * Hook for subclass to define what needs to be done pre-run.
-     * This implementation is a noop.
-     * @exception Exception Signalling errors in the preRun
-     */
-    protected void preRun() throws Exception {
-    }
-
-    /**
-     * Hook for subclass to define what needs to be done post-run.
-     * This implementation is a noop.
-     * @exception Exception Signalling errors in the postRun
-     */
-    protected void postRun() throws Exception {
     }
 
     /**
@@ -617,8 +599,9 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
                         public void run() {
                             for (int i = 0; i < agentRefs.length; i++)
                                 if (agentRefs[i] != null)
-                                    for (int j = 0; j < agentRefs[i].length;
-                                         j++)
+                                    // Ensure we terminate the first agent last
+                                    for (int j = agentRefs[i].length - 1;
+                                         j >= 0; j--)
                                         try {
                                             agentRefs[i][j].terminate();
                                         } catch (RemoteException e) {
@@ -643,7 +626,8 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
              driverType++) {
             if (runInfo.driverConfigs[driverType].numAgents > 0) {
                 Remote refs[] = agentRefs[driverType];
-                for (int i = 0; i < refs.length; i++)
+                // Make sure we join the first agent last
+                for (int i = refs.length - 1; i >= 0; i--)
                     try {
                         ((Agent) refs[i]).join();
                     } catch (RemoteException e) {

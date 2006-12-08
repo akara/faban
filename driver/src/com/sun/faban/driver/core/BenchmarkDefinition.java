@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: BenchmarkDefinition.java,v 1.5 2006/11/30 23:58:38 akara Exp $
+ * $Id: BenchmarkDefinition.java,v 1.6 2006/12/08 05:15:54 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -155,6 +155,7 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
             def.drivers[i].opsUnit = benchDriver.opsUnit();
             def.drivers[i].threadPerScale = benchDriver.threadPerScale();
             def.drivers[i].className = driverClasses[i].getName();
+            populatePrePost(driverClasses[i], def.drivers[i]);
             getBackground(driverClasses[i], def.drivers[i]);
             def.drivers[i].mix[0] = Mix.getMix(driverClasses[i]);
             def.drivers[i].initialDelay[0] = getInitialDelay(driverClasses[i]);
@@ -364,9 +365,38 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
         return ops;
     }
 
+    static void populatePrePost(Class<?> driverClass, Driver driver)
+            throws DefinitionException {
+        Method[] methods = driverClass.getMethods();
+        for (Method m : methods)
+            if (m.isAnnotationPresent(OnceBefore.class)) {
+                if (driver.preRun == null) {
+                    driver.preRun = new DriverMethod();
+                    driver.preRun.m = m;
+                    driver.preRun.genericName = m.toGenericString();
+                } else {
+                    throw new DefinitionException("Found more than one " +
+                            "@OnceBefore method, " + driver.preRun.genericName +
+                            " and " + m.toGenericString() + ".");
+                }
+            } else if (m.isAnnotationPresent(OnceAfter.class)) {
+                if (driver.postRun == null) {
+                    driver.postRun = new DriverMethod();
+                    driver.postRun.m = m;
+                    driver.postRun.genericName = m.toGenericString();
+                } else {
+                    throw new DefinitionException("Found more than one " +
+                            "@OnceAfter method, " + driver.postRun.genericName +
+                            " and " + m.toGenericString() + ".");
+                }
+            }
+    }
+
     /**
-     * The refullOperations method re-establishes the non-serializable
+     * The refillOperations method re-establishes the non-serializable
      * parts of the operations array.
+     * @param driverClass The driver class
+     * @param operations  The operation array
      */
     static void refillOperations(Class<?> driverClass, Operation[] operations) {
 
@@ -399,6 +429,23 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
         for (Operation o : operations)
             if (o.m == null)
                 o.m = methodMap.get(o.name);
+    }
+
+    /**
+     * The refillMethod method re-establishes the non-serializable parts of
+     * a DriverMethod object.
+     * @param driverClass The driver class
+     * @param method      The DriverMethod instance
+     */
+    static void refillMethod(Class<?> driverClass, DriverMethod method) {
+        if (method.m == null) {
+            Method[] methods = driverClass.getMethods();
+            for (Method m : methods)
+                if (method.genericName.equals(m.toGenericString())) {
+                    method.m = m;
+                    break;
+                }
+        }
     }
 
     /**
@@ -478,7 +525,9 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
         int threadPerScale;
         Mix[] mix = new Mix[2]; // Foreground (0) and background (1) mix.
         Cycle[] initialDelay = new Cycle[2]; // Foreground and background
-        BenchmarkDefinition.Operation[] operations;
+        Operation[] operations;
+        DriverMethod preRun;
+        DriverMethod postRun;
         String className;
 
         // We try to send the whole driver class over to the agents so that all
@@ -548,6 +597,10 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
          */
         public Object clone() throws CloneNotSupportedException {
             Driver clone = (Driver) super.clone();
+            if (preRun != null)
+                clone.preRun = (DriverMethod) preRun.clone();
+            if (postRun != null)
+                clone.postRun = (DriverMethod) postRun.clone();
             clone.mix[0] = (Mix) mix[0].clone();
             if (mix[1] != null)
                 clone.mix[1] = (Mix) mix[1].clone();
@@ -586,65 +639,35 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
     }
 
     static class DriverMethod implements Serializable, Cloneable {
-        String name;
+        String genericName;
         transient Method m;
+
+        /**
+         * Creates s shallow clone of this object.
+         * @return a clone of this instance.
+         * @see Cloneable
+         */
+        public Object clone() {
+            Object clone = null;
+            try {
+                clone = super.clone();
+            } catch (CloneNotSupportedException e) {
+                Logger logger = Logger.getLogger(this.getClass().getName());
+                logger.log(Level.SEVERE, "Unexpected exception!", e);
+            }
+            return clone;
+        }
     }
 
-    static class Operation extends DriverMethod {
+    static class Operation implements Serializable, Cloneable {
+        String name;
         double max90th;
         Timing timing;
         Cycle cycle;
+        transient Method m;
 
         /**
-         * Creates and returns a copy of this object.  The precise meaning
-         * of "copy" may depend on the class of the object. The general
-         * intent is that, for any object <tt>x</tt>, the expression:
-         * <blockquote>
-         * <pre>
-         * x.clone() != x</pre></blockquote>
-         * will be true, and that the expression:
-         * <blockquote>
-         * <pre>
-         * x.clone().getClass() == x.getClass()</pre></blockquote>
-         * will be <tt>true</tt>, but these are not absolute requirements.
-         * While it is typically the case that:
-         * <blockquote>
-         * <pre>
-         * x.clone().equals(x)</pre></blockquote>
-         * will be <tt>true</tt>, this is not an absolute requirement.
-         * <p/>
-         * By convention, the returned object should be obtained by calling
-         * <tt>super.clone</tt>.  If a class and all of its superclasses (except
-         * <tt>Object</tt>) obey this convention, it will be the case that
-         * <tt>x.clone().getClass() == x.getClass()</tt>.
-         * <p/>
-         * By convention, the object returned by this method should be independent
-         * of this object (which is being cloned).  To achieve this independence,
-         * it may be necessary to modify one or more fields of the object returned
-         * by <tt>super.clone</tt> before returning it.  Typically, this means
-         * copying any mutable objects that comprise the internal "deep structure"
-         * of the object being cloned and replacing the references to these
-         * objects with references to the copies.  If a class contains only
-         * primitive fields or references to immutable objects, then it is usually
-         * the case that no fields in the object returned by <tt>super.clone</tt>
-         * need to be modified.
-         * <p/>
-         * The method <tt>clone</tt> for class <tt>Object</tt> performs a
-         * specific cloning operation. First, if the class of this object does
-         * not implement the interface <tt>Cloneable</tt>, then a
-         * <tt>CloneNotSupportedException</tt> is thrown. Note that all arrays
-         * are considered to implement the interface <tt>Cloneable</tt>.
-         * Otherwise, this method creates a new instance of the class of this
-         * object and initializes all its fields with exactly the contents of
-         * the corresponding fields of this object, as if by assignment; the
-         * contents of the fields are not themselves cloned. Thus, this method
-         * performs a "shallow copy" of this object, not a "deep copy" operation.
-         * <p/>
-         * The class <tt>Object</tt> does not itself implement the interface
-         * <tt>Cloneable</tt>, so calling the <tt>clone</tt> method on an object
-         * whose class is <tt>Object</tt> will result in throwing an
-         * exception at run time.
-         *
+         * Creates an exact deep clone of this object.
          * @return a clone of this instance.
          * @throws CloneNotSupportedException if the object's class does not
          *                                    support the <code>Cloneable</code> interface. Subclasses
