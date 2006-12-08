@@ -20,8 +20,20 @@ export PATH
 start=$1
 end=$2
 
+# For this trick, we need nawk or gawk.
+# Plain old awk usually does not work.
+# But we still fall back to it if
+# everything else falls apart.
+AWK=/usr/bin/awk
+if [ -x "/usr/bin/nawk" ] ; then
+    AWK=/usr/bin/nawk
+elif [ -x "/usr/bin/gawk" ] ; then
+    AWK=/usr/bin/gawk
+fi
+
+
 (echo "$start\n$end";
-cat /var/log/messages ) | gawk '{
+cat /var/log/messages ) | $AWK '{
 	if (NR == 1) {
 		mon=$1; day=$2; split($3,arr,":")
 		smon=$1; sday=$2; stime=$3
