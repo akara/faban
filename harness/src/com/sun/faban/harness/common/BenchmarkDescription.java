@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: BenchmarkDescription.java,v 1.6 2006/10/09 09:57:42 akara Exp $
+ * $Id: BenchmarkDescription.java,v 1.7 2006/12/12 23:26:30 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -273,8 +273,7 @@ public class BenchmarkDescription implements Serializable {
                 if (value != null && value.length() > 0)
                     desc.scaleName = value;
                 if (desc.scaleName == null)
-                    throw new IOException("Element <scaleName> empty or " +
-                            "missing in " + benchmarkXml.getAbsolutePath());
+                    desc.scaleName = "";
 
                 value = xPath.evaluate("scaleUnit", root);
                 if (value != null && value.length() > 0)
@@ -282,6 +281,11 @@ public class BenchmarkDescription implements Serializable {
                 if (desc.scaleUnit == null)
                     desc.scaleUnit = "";
 
+                if (desc.scaleName.length() == 0 &&
+                    desc.scaleUnit.length() == 0)
+                    throw new IOException("Both element <scaleName> and " +
+                            "<scaleUnit> empty or missing in " +
+                            benchmarkXml.getAbsolutePath());
             } catch (Exception e) {
                 desc = null;
                 logger.log(Level.WARNING, "Error reading benchmark " +
