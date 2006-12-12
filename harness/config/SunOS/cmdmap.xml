@@ -6,6 +6,10 @@
  -->
 <commands>
     <command>
+        <name>rsh</name>
+        <path>/usr/bin/rsh -n</path>
+    </command>
+    <command>
         <name>cpustat</name>
         <prefix sequence="1">fastsu</prefix>
         <prefix sequence="2">priocntl -e -c RT</prefix>

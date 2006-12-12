@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.8 2006/09/21 22:49:16 akara Exp $
+ * $Id: CmdService.java,v 1.9 2006/12/12 22:40:44 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -30,6 +30,7 @@ import com.sun.faban.common.RegistryLocator;
 import com.sun.faban.harness.agent.*;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.util.FileHelper;
+import com.sun.faban.harness.util.CmdMap;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -37,6 +38,7 @@ import java.net.UnknownHostException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Properties;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -87,6 +89,8 @@ final public class CmdService { 	// The final keyword prevents clones
     private CommandHandle rmi;
     private String javaHome;
     private String jvmOptions;
+    private HashMap<String, String> binMap = new HashMap<String, String>();
+    private String rsh;
 
 
     private CmdService() {
@@ -260,6 +264,18 @@ final public class CmdService { 	// The final keyword prevents clones
                 }
         }
 
+        // Next we use the command map to get the right
+        // rsh command based on the undelying OS.
+        try {
+            binMap.clear();
+            CmdMap.addTo(binMap);
+            rsh = binMap.get("rsh");
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Failed to obtain command map.",e);
+        }
+
+        if (rsh == null)
+            rsh = "rsh";
 
         //only case in which interfaceAddress is not an address but
         //the hostname of the master machine.  used in CmdAgentImpl
@@ -414,7 +430,7 @@ final public class CmdService { 	// The final keyword prevents clones
                     benchName + ' ' + jvmOptions;
         } else { // if the machine is not the master machine, we need to
                  // do an rsh and pass download instructions
-            cmdarray = "rsh -n " + mach + Config.CMD_SCRIPT + mach + ' ' +
+            cmdarray = rsh + ' ' + mach + Config.CMD_SCRIPT + mach + ' ' +
                     interfaceAddress + ' ' + masterAddress + ' ' + javaHome +
                     " faban.benchmarkName=" + benchName + " faban.download=" +
                     Config.FABAN_URL + ' ' + jvmOptions;
