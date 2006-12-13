@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MatrixMix.java,v 1.2 2006/06/29 19:38:36 akara Exp $
+ * $Id: MatrixMix.java,v 1.3 2006/12/13 18:36:13 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -29,10 +29,20 @@ import java.lang.annotation.Target;
 import java.lang.annotation.ElementType;
 
 /**
+ * The MatrixMix allows describing the transition probabilities of a finite
+ * Markov chain as a right stochastic matrix (or just "stochastic matrix").
+ * This must be a square matrix. Each row represents a probability vector for
+ * transitioning from an operation (row operations index) to an operation
+ * (column operations index). Members must be non-negative numbers.
+ * To avoid human errors, Faban does not require each specified row to sum up
+ * to 1 but will automatically normalize each row to 1 (or 100%) prior to
+ * starting the load generation.<p>
+ *
  * The MatrixMix  annotation interface describes the parameters
  * required when defining a matrix mix. The MatrixMix annotation
  * will need to be used in conjunction with the BenchmarkDriver
  * annotation. Otherwise this annotation will be ignored.<p>
+ * 
  * Note that the mix in the BenchmarkOperation annotation is ignored
  * when a benchmark is specified to use MatrixMix.
  */
