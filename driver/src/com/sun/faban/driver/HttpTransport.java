@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: HttpTransport.java,v 1.3 2006/09/27 05:26:48 akara Exp $
+ * $Id: HttpTransport.java,v 1.4 2007/01/16 22:28:22 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -141,16 +141,43 @@ public class HttpTransport {
      * total read. This is useful for ensuring receival of binary or text
      * data that do not need further analysis.
      * @param url The URL to read from
+     * @param headers The request headers
+     * @return The number of bytes read
+     * @throws IOException
+     */
+    public int readURL(URL url,
+                       Map<String, String> headers) throws IOException {
+        HttpURLConnection huc = getConnection(url);
+        setHeaders(huc, headers);
+        responseCode = huc.getResponseCode();
+        responseHeader = huc.getHeaderFields();
+        return readResponse(huc);
+    }
+
+    /**
+     * Reads data from the URL and discards it, keeping just the size of the
+     * total read. This is useful for ensuring receival of binary or text
+     * data that do not need further analysis.
+     * @param url The URL to read from
      * @return The number of bytes read
      * @throws IOException
      */
     public int readURL(URL url) throws IOException {
-        HttpURLConnection huc = (HttpURLConnection) url.openConnection();
-        huc.setInstanceFollowRedirects(followRedirects);
-        huc.setRequestProperty("Accept-Language", "en-us,en;q=0.5");
-        responseCode = huc.getResponseCode();
-        responseHeader = huc.getHeaderFields();
-        return readResponse(huc);
+        return readURL(url, (Map<String, String>) null);
+    }
+
+    /**
+     * Reads data from the URL and discards it, keeping just the size of the
+     * total read. This is useful for ensuring receival of binary or text
+     * data that do not need further analysis.
+     * @param url The URL to read from
+     * @param headers The request headers
+     * @return The number of bytes read
+     * @throws IOException
+     */
+    public int readURL(String url, Map<String, String> headers)
+            throws IOException {
+        return readURL(new URL(url), headers);
     }
 
     /**
@@ -175,14 +202,53 @@ public class HttpTransport {
      * @throws IOException
      */
     public int readURL(URL url, String postRequest) throws IOException {
-        HttpURLConnection c = (HttpURLConnection) url.openConnection();
-        c.setInstanceFollowRedirects(followRedirects);
-        c.setRequestProperty("Accept-Language", "en-us,en;q=0.5");
+        return readURL(url, postRequest, null);
+    }
+
+    /**
+     * Makes a POST request to the URL. Reads data back and discards the data,
+     * keeping just the size of the total read. This is useful for ensuring
+     * receival of binary or text data that do not need further analysis.
+     * @param url The URL to read from
+     * @param postRequest The post request string
+     * @param headers The request headers
+     * @return The number of bytes read
+     * @throws IOException
+     */
+    public int readURL(URL url, String postRequest, Map<String, String> headers)
+            throws IOException {
+        HttpURLConnection c = getConnection(url);
         postRequest(c, postRequest);
+        setHeaders(c, headers);
         responseCode = c.getResponseCode();
         responseHeader = c.getHeaderFields();
         return readResponse(c);
     }
+
+    private HttpURLConnection getConnection(URL url) throws IOException {
+        HttpURLConnection c = (HttpURLConnection) url.openConnection();
+        c.setInstanceFollowRedirects(followRedirects);
+        return c;
+    }
+
+    /**
+     * Sets the request header. If there are multiple values for this header,
+     * use a comma-separated list for the values.
+     * @param c The connection
+     * @param headers The request headers
+     */
+    private void setHeaders(URLConnection c, Map<String, String> headers) {
+        if (headers == null) {
+            c.setRequestProperty("Accept-Language", "en-us,en;q=0.5");
+            return;
+        } else if (!headers.containsKey("Accept-Language")) {
+            headers.put("Accept-Language", "en-us,en;q=0.5");
+        }
+        for (Map.Entry<String, String> entry : headers.entrySet())
+            c.setRequestProperty(entry.getKey(), entry.getValue());
+    }
+
+
 
     /**
      * Makes a post request to the connection.
@@ -216,6 +282,39 @@ public class HttpTransport {
     }
 
     /**
+     * Makes a POST request to the URL. Reads data back and discards the data,
+     * keeping just the size of the total read. This is useful for ensuring
+     * receival of binary or text data that do not need further analysis.
+     *
+     * @param url The URL to read from
+     * @param postRequest The post request string
+     * @param headers The request headers
+     * @return The number of bytes read
+     * @throws IOException
+     */
+    public int readURL(String url, String postRequest,
+                       Map<String, String> headers) throws IOException {
+        return readURL(new URL(url), postRequest, headers);
+    }
+
+    /**
+     * Reads data from the URL and returns the data read. Note that this
+     * method only works correctly with text data as it does the byte-to-char
+     * conversion. This will provide incorrect binary data.
+     *
+     * @param url The URL to read from
+     * @param headers The request headers
+     * @return The StringBuilder buffer containing the resulting document
+     * @throws IOException
+     */
+    public StringBuilder fetchURL(URL url, Map<String, String> headers)
+            throws IOException {
+        HttpURLConnection huc = getConnection(url);
+        setHeaders(huc, headers);
+        return fetchResponse(huc);
+    }
+
+    /**
      * Reads data from the URL and returns the data read. Note that this
      * method only works correctly with text data as it does the byte-to-char
      * conversion. This will provide incorrect binary data.
@@ -224,12 +323,24 @@ public class HttpTransport {
      * @return The StringBuilder buffer containing the resulting document
      * @throws IOException
      */
-    public StringBuilder fetchURL(URL url) throws IOException {
-        HttpURLConnection huc = (HttpURLConnection) url.openConnection();
-        huc.setInstanceFollowRedirects(followRedirects);
-        huc.setRequestProperty("Accept-Language", "en-us,en;q=0.5");
-        // cookieHandler.addRequestCookies(huc);
-        return fetchResponse(huc);
+    public StringBuilder fetchURL(URL url)
+            throws IOException {
+        return fetchURL(url, (Map<String, String>) null);
+    }
+
+    /**
+     * Reads data from the URL and returns the data read. Note that this
+     * method only works correctly with text data as it does the byte-to-char
+     * conversion. This will provide incorrect binary data.
+     *
+     * @param url The URL to read from
+     * @param headers The request headers
+     * @return The StringBuilder buffer containing the resulting document
+     * @throws IOException
+     */
+    public StringBuilder fetchURL(String url, Map<String, String> headers)
+            throws IOException {
+        return fetchURL(new URL(url), headers);
     }
 
     /**
@@ -269,17 +380,51 @@ public class HttpTransport {
      *
      * @param url The URL to read from
      * @param postRequest The post request string
+     * @param headers The request headers
+     * @return The StringBuilder buffer containing the resulting document
+     * @throws IOException
+     */
+    public StringBuilder fetchURL(String url, String postRequest,
+                                  Map<String, String> headers)
+            throws IOException {
+        return fetchURL(new URL(url), postRequest, headers);
+    }
+
+    /**
+     * Makes a POST request to the URL. Reads data back and returns the data
+     * read. Note that this method only works correctly with text data as it
+     * does the byte-to-char conversion. This will provide incorrect
+     * binary data.
+     *
+     * @param url The URL to read from
+     * @param postRequest The post request string
+     * @param headers The request headers
+     * @return The StringBuilder buffer containing the resulting document
+     * @throws IOException
+     */
+    public StringBuilder fetchURL(URL url, String postRequest,
+                                  Map<String, String> headers)
+            throws IOException {
+        HttpURLConnection c = getConnection(url);
+        setHeaders(c, headers);
+        postRequest(c, postRequest);
+        return fetchResponse(c);
+    }
+
+    /**
+     * Makes a POST request to the URL. Reads data back and returns the data
+     * read. Note that this method only works correctly with text data as it
+     * does the byte-to-char conversion. This will provide incorrect
+     * binary data.
+     *
+     * @param url The URL to read from
+     * @param postRequest The post request string
      * @return The StringBuilder buffer containing the resulting document
      * @throws IOException
      */
     public StringBuilder fetchURL(URL url, String postRequest)
             throws IOException {
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setInstanceFollowRedirects(followRedirects);
-        // cookieHandler.addRequestCookies(connection);
-        connection.setRequestProperty("Accept-Language", "en-us,en;q=0.5");
-        postRequest(connection, postRequest);
-        return fetchResponse(connection);
+        return fetchURL(url, postRequest, null);
     }
 
     public StringBuilder fetchPage(URL page, URL[] images) throws IOException {
@@ -431,12 +576,14 @@ public class HttpTransport {
      * Matches the regular expression against the data read from the connection.
      * @param connection The source of the data
      * @param regex The regular expression to match
+     * @param headers The request headers
      * @return True if the match succeeds, false otherwise
      * @throws IOException
      */
-    public boolean matchResponse(URLConnection connection, String regex)
+    public boolean matchResponse(URLConnection connection, String regex,
+                                 Map<String, String> headers)
             throws IOException {
-        connection.setRequestProperty("Accept-Language", "en-us,en;q=0.5");
+        setHeaders(connection, headers);
         if (fetchResponse((HttpURLConnection) connection) != null)
             return matchResponse(regex);
         else
@@ -487,11 +634,41 @@ public class HttpTransport {
      * URL.
      * @param url The source of the data
      * @param regex The regular expression to match
+     * @param headers The request headers
+     * @return True if the match succeeds, false otherwise
+     * @throws IOException
+     */
+    public boolean matchURL(String url, String regex, Map<String, String> headers)
+            throws IOException {
+        fetchURL(url, headers);
+        return matchResponse(regex);
+    }
+
+    /**
+     * Matches the regular expression against the response fetched from the
+     * URL.
+     * @param url The source of the data
+     * @param regex The regular expression to match
      * @return True if the match succeeds, false otherwise
      * @throws IOException
      */
     public boolean matchURL(URL url, String regex) throws IOException {
         fetchURL(url);
+        return matchResponse(regex);
+    }
+
+    /**
+     * Matches the regular expression against the response fetched from the
+     * URL.
+     * @param url The source of the data
+     * @param regex The regular expression to match
+     * @param headers The request headers
+     * @return True if the match succeeds, false otherwise
+     * @throws IOException
+     */
+    public boolean matchURL(URL url, String regex, Map<String, String> headers)
+            throws IOException {
+        fetchURL(url, headers);
         return matchResponse(regex);
     }
 
@@ -504,8 +681,25 @@ public class HttpTransport {
      * @return True if the match succeeds, false otherwise
      * @throws IOException
      */
-    public boolean matchURL(URL url, String postRequest, String regex) throws IOException {
+    public boolean matchURL(URL url, String postRequest, String regex)
+            throws IOException {
         fetchURL(url, postRequest);
+        return matchResponse(regex);
+    }
+
+    /**
+     * Mathces the regular expression against the response fetched from the
+     * post request made to the URL.
+     * @param url The source of the data
+     * @param postRequest The post request string
+     * @param regex The regular expression to match
+     * @param headers The request headers
+     * @return True if the match succeeds, false otherwise
+     * @throws IOException
+     */
+    public boolean matchURL(URL url, String postRequest, String regex,
+                            Map<String, String> headers) throws IOException {
+        fetchURL(url, postRequest, headers);
         return matchResponse(regex);
     }
 
@@ -520,6 +714,22 @@ public class HttpTransport {
      */
     public boolean matchURL(String url, String postRequest, String regex) throws IOException {
         fetchURL(url, postRequest);
+        return matchResponse(regex);
+    }
+
+    /**
+     * Mathces the regular expression against the response fetched from the
+     * post request made to the URL.
+     * @param url The source of the data
+     * @param postRequest The post request string
+     * @param regex The regular expression to match
+     * @param headers The request headers
+     * @return True if the match succeeds, false otherwise
+     * @throws IOException
+     */
+    public boolean matchURL(String url, String postRequest, String regex,
+                            Map<String, String> headers) throws IOException {
+        fetchURL(url, postRequest, headers);
         return matchResponse(regex);
     }
 
