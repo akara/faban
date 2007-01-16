@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.19 2006/10/24 05:24:21 akara Exp $
+ * $Id: Config.java,v 1.20 2007/01/16 22:24:51 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -148,6 +148,7 @@ public class Config {
     public static String RUNQ_DIR;
     public static String OUT_DIR;
     public static String ANALYSIS_DIR;
+    public static String TAGDB_DIR;
     public static String SEQUENCE_FILE;
 
     // Constants used by UserEnv
@@ -183,9 +184,6 @@ public class Config {
     public static DaemonModes daemonMode;
     public static HostInfo[] pollHosts;
     public static URL[] replicationURLs = null;
-
-
-
 
     static {
         deriveConfig();
@@ -261,6 +259,7 @@ public class Config {
         LIB_DIR = FABAN_HOME + "lib" + File.separator;
         OUT_DIR = FABAN_HOME + "output" + File.separator;
         ANALYSIS_DIR = FABAN_HOME + "analysis" + File.separator;
+        TAGDB_DIR = FABAN_HOME + "tags" + File.separator;
         CONFIG_DIR = FABAN_HOME + "config" + File.separator;
         RUNQ_DIR = CONFIG_DIR  + "runq" + File.separator;
         SEQUENCE_FILE = CONFIG_DIR  + "sequence";
