@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Statspack.java,v 1.2 2006/06/29 19:38:43 akara Exp $
+ * $Id: Statspack.java,v 1.3 2007/01/24 02:35:03 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -34,8 +34,9 @@ public class Statspack extends OracleTool {
      */
     protected String getSnapCommand() {
         return "variable snapid number;\n" +
+               "define top_n_segstat = 10;\n" +
                "begin\n" +
-               "    :snapid := statspack.snap;\n" +
+               "    :snapid := statspack.snap(i_snap_level=>7);\n" +
                "end;\n" +
                "/\n" +
                "print :snapid";

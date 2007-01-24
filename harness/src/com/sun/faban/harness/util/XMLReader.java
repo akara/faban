@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: XMLReader.java,v 1.2 2006/06/29 19:38:43 akara Exp $
+ * $Id: XMLReader.java,v 1.3 2007/01/24 02:35:03 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -76,7 +76,7 @@ public class XMLReader {
         }
     }
 
-    public List getValues(String xpath) {
+    public List<String> getValues(String xpath) {
         // If no absolute xpath is not given use //xpath to find the parameter
         if(xpath.charAt(0) != '/')
             xpath = "//" + xpath;
@@ -87,7 +87,7 @@ public class XMLReader {
             NodeList nodeList = (NodeList) xPath.evaluate(
                                 xpath, doc, XPathConstants.NODESET);
             int length = nodeList.getLength();
-            ArrayList vList = new ArrayList();
+            ArrayList<String> vList = new ArrayList<String>();
             for (int i = 0; i < length; i++) {
                 Node node = nodeList.item(i);
                 String value = null;
@@ -114,7 +114,7 @@ public class XMLReader {
         }
     }
 
-    public List getAttributeValues(String xpath, String attribute) {
+    public List<String> getAttributeValues(String xpath, String attribute) {
         if(xpath.charAt(0) != '/')
             xpath = "//" + xpath;
         else    //the JXPathContext expects 'params' (which is the variable name returned by XMLFile
@@ -124,7 +124,7 @@ public class XMLReader {
             NodeList nodeList = (NodeList) xPath.evaluate(xpath + "[@" + attribute + "]",
                                 doc, XPathConstants.NODESET);
             int length = nodeList.getLength();
-            ArrayList vList = new ArrayList();
+            ArrayList<String> vList = new ArrayList<String>();
             for (int i = 0; i < length; i++) {
                 Node node = nodeList.item(i);
                 String value = null;

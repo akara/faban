@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ParamRepository.java,v 1.2 2006/08/01 05:55:17 akara Exp $
+ * $Id: ParamRepository.java,v 1.3 2007/01/24 02:35:03 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -80,7 +80,7 @@ public class ParamRepository {
      * @param xpath
      * @return list containing all paramters with the xpath
      */
-    public List getParameters(String xpath) {
+    public List<String> getParameters(String xpath) {
         return reader.getValues(xpath);
     }
 
@@ -91,7 +91,7 @@ public class ParamRepository {
      * @param attributeName The name of the attribute
      * @return A list of attribute values
      */
-    public List getAttributeValues(String elementPath, String attributeName) {
+    public List<String> getAttributeValues(String elementPath, String attributeName) {
         return reader.getAttributeValues(elementPath, attributeName);
     }
 
@@ -101,8 +101,8 @@ public class ParamRepository {
      * @param xpath The xpath to the parameters
      * @return List of tokenized values
      */
-    public List getTokenizedParameters(String xpath) {
-        ArrayList params = new ArrayList();
+    public List<String[]> getTokenizedParameters(String xpath) {
+        ArrayList<String[]> params = new ArrayList<String[]>();
         List l = reader.getValues(xpath);
         for(int i = 0; i < l.size(); i++) {
             StringTokenizer st = new StringTokenizer((String)l.get(i));
@@ -137,17 +137,18 @@ public class ParamRepository {
      * @param xpath XPath expression to get  ',' and SPACE seperated 
      * values from a single parameter. For Example sutConfig/instances
      * The values are seperated by ',' and then by SPACE
-     * @return an array of hostnames.
+     * @return List of arrays of hostnames.
      */
-    public List getTokenizedList(String xpath) {
+    public List<String[]> getTokenizedList(String xpath) {
         // Each value should be passed as , and SPACE seperated strings
-        ArrayList list = new ArrayList();
+        ArrayList<String[]> list = new ArrayList<String[]>();
         StringTokenizer st = new StringTokenizer(reader.getValue(xpath));
         while (st.hasMoreTokens()) {
-            ArrayList l = new ArrayList();
+            ArrayList<String> l = new ArrayList<String>();
             StringTokenizer st2 = new  StringTokenizer(st.nextToken(), ",");
             while (st2.hasMoreTokens())
                 l.add(st2.nextToken());
+
             list.add(l.toArray(new String[1]));
         }
         return list;
