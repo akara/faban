@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunInfo.java,v 1.8 2007/01/16 22:23:30 akara Exp $
+ * $Id: RunInfo.java,v 1.9 2007/01/24 02:32:06 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -39,6 +39,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.logging.Handler;
+import java.util.StringTokenizer;
 
 
 /**
@@ -750,13 +751,35 @@ public class RunInfo implements Serializable {
                             "&quot;&gt; not found.");
 
                 v = xp.evaluate("agents", driverConfigNode);
-                if (v != null && v.length() > 0)
-                    try {
-                        driverConfig.numAgents = Integer.parseInt(v);
-                    } catch (NumberFormatException e) {
-                        throw new ConfigurationException(
-                                "&lt;agents&gt; must be an integer.");
+
+                // Note that the agents field has two valid formats:
+                // 1. A single integer
+                // 2. One or more host:count fields
+                // The harness is interested in the host/count. What we need
+                // is a simple count. Just add'em up.
+                if (v != null && v.length() > 0) {
+                    StringTokenizer t = new StringTokenizer(v, " ,");
+                    driverConfig.numAgents = 0;
+                    while (t.hasMoreTokens()) {
+                        v = t.nextToken().trim();
+                        if (v.length() == 0)
+                            continue;
+                        int idx = v.indexOf(':');
+                        if (++idx > 0)
+                            v = v.substring(idx);
+                        if (v.length() == 0)
+                            continue;
+                        try {
+                            driverConfig.numAgents += Integer.parseInt(v);
+                        } catch (NumberFormatException e) {
+
+                            throw new ConfigurationException("&lt;agents&gt; " +
+                                    "must be an integer or in the format " +
+                                    "host:agents where agents is an integer. " +
+                                    "Found: " + v);
+                        }
                     }
+                }
 
                 v = xp.evaluate("threads", driverConfigNode);
                 if (v != null && v.length() > 0)

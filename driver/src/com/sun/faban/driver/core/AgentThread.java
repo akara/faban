@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentThread.java,v 1.8 2006/12/08 22:17:07 akara Exp $
+ * $Id: AgentThread.java,v 1.9 2007/01/24 02:32:06 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,6 +25,7 @@ package com.sun.faban.driver.core;
 
 import com.sun.faban.driver.FatalException;
 import com.sun.faban.driver.Timing;
+import com.sun.faban.driver.ExpectedException;
 import com.sun.faban.driver.util.Random;
 import com.sun.faban.driver.util.Timer;
 
@@ -225,7 +226,12 @@ public abstract class AgentThread extends Thread {
             message += "\nNote: Error not counted in result." +
                     "\nEither transaction start or end time is not " +
                     "within steady state.";
-        logger.log(Level.WARNING, message, e);
+        Level level;
+        if (e instanceof ExpectedException)
+            level = Level.FINER;
+        else
+            level = Level.WARNING;
+        logger.log(level, message, e);
     }
 
     private synchronized void setThreadState(int state) {
