@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<!-- $Id: config.xhtml,v 1.2 2006/07/25 19:51:18 akara Exp $ -->
+<!-- $Id: config.xhtml,v 1.3 2007/01/25 06:13:22 akara Exp $ -->
 <html xmlns:chiba="http://chiba.sourceforge.net/2003/08/xforms"
     xmlns:xforms="http://www.w3.org/2002/xforms"
     chiba:stylesheet="faban.xsl">
@@ -31,7 +31,7 @@
                         <xforms:bind id="bind-parallel" xforms:nodeset="parallel"/>
                     </xforms:bind>
                     <xforms:bind id="bind-webDriver" xforms:nodeset="driverConfig[@name='WebDriver']">
-                        <xforms:bind id="bind-driver-agents" xforms:nodeset="agents" xforms:type="positiveInteger"/>
+                        <xforms:bind id="bind-driver-agents" xforms:nodeset="agents"/>
                         <xforms:bind id="bind-driver-statsInterval" xforms:nodeset="stats/interval" xforms:type="positiveInteger"/>
                         <xforms:bind id="bind-driver-properties" xforms:nodeset="properties">
                             <!-- The property bindings below show the way to bind to properties of different
@@ -164,7 +164,6 @@
                             <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/agents"/>
                             <xforms:hint>The number of agents to run for this driver</xforms:hint>
                             <xforms:help>Enter the number of agents for this driver</xforms:help>
-                            <xforms:alert>Not a valid number</xforms:alert>
                         </xforms:input>
                         <xforms:input id="input-driver-statsInterval" xforms:bind="bind-driver-statsInterval">
                             <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/statsInterval"/>
