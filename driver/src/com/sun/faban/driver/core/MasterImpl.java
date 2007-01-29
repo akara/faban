@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MasterImpl.java,v 1.6 2006/12/08 05:15:54 akara Exp $
+ * $Id: MasterImpl.java,v 1.7 2007/01/29 23:21:44 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -136,7 +136,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
     protected RunInfo runInfo;
 
     protected Timer timer; // The time recorder.
-    protected static String homeDir = System.getProperty("user.home");
+
     protected static String fs = System.getProperty("file.separator");
 
     private boolean runAborted = false;
@@ -267,7 +267,11 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
     public String getRunID(boolean increment) throws IOException{
         int runID = -1;
 
-        String seqFileName = homeDir + fs +
+        String seqDir = System.getProperty("faban.sequence.path");
+        if (seqDir == null)
+            seqDir = System.getProperty("user.home");
+
+        String seqFileName = seqDir + fs +
                 benchDef.name.toLowerCase() + ".seq";
         File seqFile = new File(seqFileName);
         if (seqFile.exists()) {
