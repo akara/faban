@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunContext.java,v 1.5 2006/10/25 23:04:42 akara Exp $
+ * $Id: RunContext.java,v 1.6 2007/02/08 17:55:54 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -27,8 +27,10 @@ import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
 import com.sun.faban.harness.engine.CmdService;
 import com.sun.faban.harness.engine.RunFacade;
+import com.sun.faban.harness.agent.FileService;
 
 import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  * The RunContext provides callbacks into the harness and the run environment.
@@ -194,7 +196,46 @@ public class RunContext {
      * @param destFile The destination file name
      * @return true if successful, false otherwise
      */
-    public static boolean pushFile(String fileName, String destHost, String destFile) {
+    public static boolean pushFile(String fileName, String destHost,
+                                   String destFile) {
         return CmdService.getHandle().push(fileName, destHost, destFile);
+    }
+
+    /**
+     * Deletes a file on a remote host.
+     * @param hostName The remote host name
+     * @param fileName The file name
+     * @return true if successful, false otherwise
+     */
+    public static boolean deleteFile(String hostName, String fileName) {
+        return CmdService.getHandle().delete(hostName, fileName);
+    }
+
+    /**
+     * Gets/copies a file from a remote host.
+     * @param hostName The remote host name
+     * @param fileName The file name on the remote host
+     * @param localFileName The target file name on the local host
+     * @return true if successful, false otherwise
+     */
+    public static boolean getFile(String hostName, String fileName,
+                                  String localFileName) {
+        CmdService cs = CmdService.getHandle();
+        return cs.copy(hostName, cs.getMaster(), fileName, localFileName,
+                       false);
+    }
+
+    /**
+     * Reads a file from a remote host and writes the contents to a
+     * given output stream. This method is useful for filtering the content
+     * of a remote file through a filtering stream.
+     * @param hostName The remote host name
+     * @param fileName The file name on the remote host
+     * @param stream The stream to output the data to
+     * @return true if successful, false otherwise
+     */
+    public static boolean writeFileToStream(String hostName, String fileName,
+                                            OutputStream stream) {
+        return CmdService.getHandle().copyToStream(hostName, fileName, stream);
     }
 }
