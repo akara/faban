@@ -1,0 +1,230 @@
+RUNTIME=600
+
+if [ -n "${1}" ] ; then
+  RUNTIME=${1}
+fi
+
+/usr/sbin/cpustat  \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0x45,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=0,sys1,\
+pic2=0x46,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=0,sys2,\
+pic3=0x6f,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=64,sys3 \
+-c \
+pic0=0x42,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=2,sys0,\
+pic1=0x42,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=4,sys1,\
+pic2=0x42,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=8,sys2,\
+pic3=0x42,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=16,sys3 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=FP_dispatched_fpu_ops,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=1,sys1,\
+pic2=FP_dispatched_fpu_ops,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=2,sys2,\
+pic3=FP_dispatched_fpu_ops,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=4,sys3 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,nouser0,sys0,\
+pic1=0x76,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=0,nouser1,sys1,\
+pic2=0xc0,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=0,\
+pic3=0x76,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=0 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0x40,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=0,sys1,\
+pic2=0x43,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=30,sys2,\
+pic3=0x42,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=30,sys3 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0xec,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=1,sys1,\
+pic2=0xec,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=2,sys2,\
+pic3=0xec,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=4,sys3 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0x68,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=9,sys1,\
+pic2=0x69,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=9,sys2,\
+pic3=0xd8,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=0,sys3 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0xec,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=8,sys1,\
+pic2=0xed,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=1,sys2,\
+pic3=0xed,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=2,sys3 \
+-c \
+pic0=0xf2,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=119,sys0,\
+pic1=0xf2,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=8,sys1 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0x6c,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=1,sys1,\
+pic2=0x6c,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=2,sys2,\
+pic3=0x6c,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=4,sys3 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0x69,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=7,sys1,\
+pic2=0x68,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=8,sys2,\
+pic3=0x69,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=8,sys3 \
+-c \
+pic0=0xf8,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=1,sys0,\
+pic1=0xf8,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=2,sys1,\
+pic2=0xf8,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=4,sys2,\
+pic3=0xf8,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=8,sys3 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0x84,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=0,sys1,\
+pic2=0x85,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=0,sys2,\
+pic3=0x47,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=0,sys3 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0xcb,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=2,sys1,\
+pic2=0xcb,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=4,sys2,\
+pic3=0xcb,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=8,sys3 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0xd5,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=0,sys1,\
+pic2=0xd6,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=0,sys2,\
+pic3=0xd7,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=0,sys3 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0x24,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=6,sys1,\
+pic2=0x4c,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=1,sys2,\
+pic3=0x4c,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=2,sys3 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0xe3,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=2,sys1,\
+pic2=0xe3,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=4,sys2,\
+pic3=0xe3,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=1,sys3 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0x6c,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=8,sys1,\
+pic2=0x6d,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=1,sys2,\
+pic3=0x6d,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=2,sys3 \
+-c \
+pic0=0xf7,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=1,sys0,\
+pic1=0xf7,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=2,sys1,\
+pic2=0xf7,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=4,sys2,\
+pic3=0xf7,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=8,sys3 \
+-c \
+pic0=0xc1,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0xc1,edge1=0,pc1=0,inv1=0,cmask1=1,umask1=0,sys1,\
+pic2=0xc1,edge2=0,pc2=0,inv2=0,cmask2=2,umask2=0,sys2,\
+pic3=0xc1,edge3=0,pc3=0,inv3=0,cmask3=3,umask3=0,sys3 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0x67,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=2,sys1,\
+pic2=0x67,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=1,sys2,\
+pic3=0x24,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=1,sys3 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0xd0,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=0,sys1,\
+pic2=0xd1,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=0,sys2,\
+pic3=0xd2,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=0,sys3 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0xe9,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=162,sys1,\
+pic2=0xe9,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=146,sys2,\
+pic3=0xe9,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=98,sys3 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0x80,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=0,sys1,\
+pic2=0x83,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=0,sys2,\
+pic3=0x82,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=0,sys3 \
+-c \
+pic0=0xf6,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=1,sys0,\
+pic1=0xf6,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=2,sys1,\
+pic2=0xf6,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=4,sys2,\
+pic3=0xf6,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=8,sys3 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0x68,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=0,sys1,\
+pic2=0x69,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=0,sys2,\
+pic3=0x68,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=1,sys3 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0xe0,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=1,sys1,\
+pic2=0xe0,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=2,sys2,\
+pic3=0xe0,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=4,sys3 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0x68,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=6,sys1,\
+pic2=0x69,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=6,sys2,\
+pic3=0x68,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=7,sys3 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0x7f,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=1,sys1,\
+pic2=0x20,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=127,sys2 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0x7d,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=4,sys1,\
+pic2=0x7e,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=4,sys2,\
+pic3=0x75,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=1,sys3 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0xc0,edge1=0,pc1=0,inv1=0,cmask1=1,umask1=0,sys1,\
+pic2=0xc0,edge2=0,pc2=0,inv2=0,cmask2=2,umask2=0,sys2,\
+pic3=0xc0,edge3=0,pc3=0,inv3=0,cmask3=3,umask3=0,sys3 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0xe5,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=1,sys1,\
+pic2=0xe5,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=2,sys2 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0x69,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=4,sys1,\
+pic2=0x68,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=5,sys2,\
+pic3=0x69,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=5,sys3 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0xc8,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=0,sys1,\
+pic2=0x88,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=0,sys2,\
+pic3=0xcf,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=0,sys3 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0xe9,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=168,sys1,\
+pic2=0xe9,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=152,sys2,\
+pic3=0xe9,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=104,sys3 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0x6d,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=4,sys1,\
+pic2=0x6d,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=8,sys2,\
+pic3=0xc1,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=0,sys3 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0x65,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=128,sys1,\
+pic2=0x65,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=2,sys2,\
+pic3=0x65,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=1,sys3 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0x68,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=3,sys1,\
+pic2=0x69,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=3,sys2,\
+pic3=0x68,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=4,sys3 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0xdb,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=15,sys1,\
+pic2=0xcb,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=1,sys2,\
+pic3=0x4b,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=7,sys3 \
+-c \
+pic0=0xf0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=119,sys0,\
+pic1=0xf0,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=8,sys1,\
+pic2=0xf1,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=119,sys2,\
+pic3=0xf1,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=8,sys3 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0x69,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=1,sys1,\
+pic2=0x68,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=2,sys2,\
+pic3=0x69,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=2,sys3 \
+-c \
+pic0=0x43,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=2,sys0,\
+pic1=0x43,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=4,sys1,\
+pic2=0x43,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=8,sys2,\
+pic3=0x43,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=16,sys3 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0xc2,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=0,sys1,\
+pic2=0xc4,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=0,sys2,\
+pic3=0xc3,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=0,sys3 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0xc8,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=0,sys1,\
+pic2=0xc9,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=0,sys2,\
+pic3=0xca,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=0,sys3 \
+-c \
+pic0=0xc0,edge0=0,pc0=0,inv0=0,cmask0=0,umask0=0,sys0,\
+pic1=0xe6,edge1=0,pc1=0,inv1=0,cmask1=0,umask1=0,sys1,\
+pic2=0xf9,edge2=0,pc2=0,inv2=0,cmask2=0,umask2=1,sys2,\
+pic3=0xf9,edge3=0,pc3=0,inv3=0,cmask3=0,umask3=2,sys3 \
+-t \
+1.0 ${RUNTIME} 
