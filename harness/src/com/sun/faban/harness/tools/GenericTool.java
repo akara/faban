@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericTool.java,v 1.5 2006/11/20 06:52:36 akara Exp $
+ * $Id: GenericTool.java,v 1.6 2007/02/22 02:40:04 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -261,10 +261,11 @@ public class GenericTool implements Tool {
                 outfp.writeBytes(buf, 0, buf.length);
                 outfp.close();
             }
-        } catch (FileServiceException fe) {
-                logger.severe("Error in creating file " + outfile);
-        } catch (IOException ie) {
-                logger.severe("Error in reading file " + logfile);
+        } catch (FileServiceException e) {
+                logger.log(Level.SEVERE, "Error in creating file " +
+                                         outfile, e);
+        } catch (IOException e) {
+                logger.log(Level.SEVERE, "Error in reading file " + logfile, e);
         }
     }
 }

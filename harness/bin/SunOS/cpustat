@@ -3,82 +3,31 @@
 
 BINDIR=`dirname $0`
 
-collect() {
-    # Determine the cpustat interface - CPU type dependent
-    STATIF0=`/usr/sbin/cpustat -h | grep "CPU performance counter interface:" \
-            | nawk -v FS=":" '{ print $2 }' | nawk -v FS="\&" '{ print $1 }'`
+# Determine the cpustat interface - CPU type dependent
+STATIF0=`/usr/sbin/cpustat -h | grep "CPU performance counter interface:" \
+        | nawk -v FS=":" '{ print $2 }' | nawk -v FS="\&" '{ print $1 }'`
 
-    # Now, this will still have spaces, not good for file name extensions.
-    # Replace the spaces with a dash
-    STATIF=""
-    for i in $STATIF0
-    do
-       if [ -z "${STATIF}" ] ; then
-           STATIF="${i}"
-       else
-           STATIF="${STATIF}-${i}"
-       fi
-    done
+# Now, this will still have spaces, not good for file name extensions.
+# Replace the spaces with a dash
+STATIF=""
+for i in $STATIF0
+do
+   if [ -z "${STATIF}" ] ; then
+       STATIF="${i}"
+   else
+       STATIF="${STATIF}-${i}"
+   fi
+done
 
-    # Check for the right cpustat script for this interface.
-    if [ ! -f "${BINDIR}/.cpustat/cpustat.${STATIF}" ] ; then
-        echo "Interface: ${STATIF}" >&2
-        echo "No cpustat script available for interface ${STATIF}" >&2
-        exit 1
-    fi
-
-    # Prepend the output with the header showing which interface it came from.
-    echo "Interface: ${STATIF}"
-
-    # Then execute the right cpustat script.
-    exec sh ${BINDIR}/.cpustat/cpustat.${STATIF}
-}
-
-postprocess() {
-
-    INPUTFILE="$1"
-
-    CPUSTAT_POST=""
-
-    # Cpustat postprocessing scripts are maintained by Xanadu
-    # to match with Xanadu input format.
-    if [ -n "$BINDIR" ] ; then
-        CPUSTAT_POST=`cd $BINDIR/../../master/webapps/xanadu/txt2xml/cpustat-post> /dev/null 2>&1 && pwd`
-    fi
-
-    # Obtain cpustat interface from file header.
-    STATIF=`head -1 ${INPUTFILE} | nawk -v FS=": " '{ print $2 }'`
-
-    # Check for the right cpustat postprocessing script for this interface.
-    if [ ! -f "${CPUSTAT_POST}/cpustat.post.${STATIF}" ] ; then
-        echo "Interface: ${STATIF}" >&2
-        echo "No cpustat postprocessing script available for interface ${STATIF}" >&2
-        exit 1
-    fi
-
-    # Then execute the right cpustat script.
-    tail +2 ${INPUTFILE} > ${INPUTFILE}.stripheader
-    perl ${CPUSTAT_POST}/cpustat.post.${STATIF} -uk -cpu -ac -i \
-         ${INPUTFILE}.stripheader
-    rm ${INPUTFILE}.stripheader
-}
-
-usage() {
-    echo "${0} [seconds]" >&2
-    echo "${0} -p inputfile" >&2
-}
-# Here we need to decide whether to collect or postprocess.
-
-if [ "$#" -eq 0 ] ; then
-    collect
-elif [ "$#" -eq 1 ] ; then
-    collect "$1"
-elif [ "$#" -eq 2 ] ; then
-    if [ "$1" = "-p" ] ; then
-        postprocess "$2"
-    else
-        usage
-    fi
-else
-    usage
+# Check for the right cpustat script for this interface.
+if [ ! -f "${BINDIR}/.cpustat/cpustat.${STATIF}" ] ; then
+    echo "Interface: ${STATIF}" >&2
+    echo "No cpustat script available for interface ${STATIF}" >&2
+    exit 1
 fi
+
+# Prepend the output with the header showing which interface it came from.
+echo "Interface: ${STATIF}"
+
+# Then execute the right cpustat script.
+exec sh ${BINDIR}/.cpustat/cpustat.${STATIF} $*

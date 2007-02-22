@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Cpustat.java,v 1.3 2006/07/27 21:18:02 akara Exp $
+ * $Id: Cpustat.java,v 1.4 2007/02/22 02:40:04 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -30,6 +30,7 @@ import com.sun.faban.harness.common.Config;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.logging.Level;
 
 /**
  * Cpustat starts the cpustat tool. Unlike GenericTool, cpustat needs some
@@ -57,19 +58,21 @@ public class Cpustat extends GenericTool {
 
         super.xferLog();
 
+        // Do the post-processing after the transfer.
+        String cs = "cpustat-post " + outfile;
         try {
 
             // Run postprocessor on master
-            Command c = new Command("cpustat -p " + outfile);
+            Command c = new Command(cs);
             c.setOutputFile(Command.STDOUT, postFile);
             CmdAgent masterAgent = (CmdAgent) CmdAgentImpl.getRegistry().
                                    getService(Config.CMD_AGENT);
             masterAgent.execute(c);
 
-        } catch (IOException ie) {
-            logger.severe("Error in reading file " + logfile);
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Error executing " + cs, e);
         } catch (InterruptedException e) {
-            logger.severe("cpustat postprocessor interrupted.");
+            logger.log(Level.SEVERE, "cpustat postprocessor interrupted.", e);
         }
     }
 }

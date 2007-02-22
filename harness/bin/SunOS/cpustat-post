@@ -1,0 +1,45 @@
+#!/bin/sh
+############################
+
+BINDIR=`dirname $0`
+
+postprocess() {
+
+    INPUTFILE="$1"
+
+    CPUSTAT_POST=""
+
+    # Cpustat postprocessing scripts are maintained by Xanadu
+    # to match with Xanadu input format.
+    if [ -n "$BINDIR" ] ; then
+        CPUSTAT_POST=`cd $BINDIR/../../master/webapps/xanadu/txt2xml/cpustat-post> /dev/null 2>&1 && pwd`
+    fi
+
+    # Obtain cpustat interface from file header.
+    STATIF=`head -1 ${INPUTFILE} | nawk -v FS=": " '{ print $2 }'`
+
+    # Check for the right cpustat postprocessing script for this interface.
+    if [ ! -f "${CPUSTAT_POST}/cpustat.post.${STATIF}" ] ; then
+        echo "Interface: ${STATIF}" >&2
+        echo "No cpustat postprocessing script available for interface ${STATIF}" >&2
+        exit 1
+    fi
+
+    # Then execute the right cpustat postprocessing script.
+    tail +2 ${INPUTFILE} > ${INPUTFILE}.stripheader
+    perl ${CPUSTAT_POST}/cpustat.post.${STATIF} -uk -cpu -ac -i \
+         ${INPUTFILE}.stripheader
+    rm ${INPUTFILE}.stripheader
+}
+
+# Check that we have something to postprocess
+if [ "$#" -lt 1 ] ; then
+    echo "${0} inputfile" >&2
+    exit 1
+fi
+
+# Then postprocess each and every input file
+for i in $*
+do
+    postprocess "$i"
+done
