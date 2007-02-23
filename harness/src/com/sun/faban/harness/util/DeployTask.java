@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DeployTask.java,v 1.5 2006/09/28 04:57:09 akara Exp $
+ * $Id: DeployTask.java,v 1.6 2007/02/23 06:50:46 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -114,6 +114,10 @@ public class DeployTask extends Task {
                 throw new BuildException("Benchmark to deploy is currently " +
                         "run or queued to be run. Please clear run queue " +
                         "of this benchmark before deployment");
+            else if (status == HttpStatus.SC_NOT_ACCEPTABLE)
+                throw new BuildException("Benchmark deploy name or deploy " +
+                        "file name invalid. Name must have no '.' and file " +
+                        "must have the '.jar' extensions");
             else if (status != HttpStatus.SC_CREATED)
                 throw new BuildException("Faban responded with status code " +
                         status + ". Status code 201 (SC_CREATED) expected.");

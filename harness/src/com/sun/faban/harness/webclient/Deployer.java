@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Deployer.java,v 1.8 2006/10/06 23:24:20 akara Exp $
+ * $Id: Deployer.java,v 1.9 2007/02/23 06:50:47 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -108,6 +108,7 @@ public class Deployer extends HttpServlet {
         try {
             List<String> deployNames = new ArrayList<String>();
             List<String> cantDeployNames = new ArrayList<String>();
+            List<String> invalidNames = new ArrayList<String>();
 
             String user = null;
             String password = null;
@@ -184,12 +185,20 @@ public class Deployer extends HttpServlet {
                 }
 
                 // Ignore all non-jarfiles.
-                if (!fileName.toLowerCase().endsWith(".jar"))
+                if (!fileName.toLowerCase().endsWith(".jar")) {
+                    invalidNames.add(fileName);
                     continue;
+                }
+
+                String benchName = fileName.substring(0, fileName.length() - 4);
+
+                if (benchName.indexOf('.') >= 0) {
+                    invalidNames.add(benchName);
+                    continue;
+                }
 
                 // Check whether we can deploy or not. If running or queued,
                 // we won't deploy.
-                String benchName = fileName.substring(0, fileName.length() - 4);
                 if (!DeployUtil.canDeploy(benchName)) {
                     cantDeployNames.add(benchName);
                     continue;
@@ -223,6 +232,8 @@ public class Deployer extends HttpServlet {
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             else if (cantDeployNames.size() > 0)
                 response.setStatus(HttpServletResponse.SC_CONFLICT);
+            else if (invalidNames.size() > 0)
+                response.setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
             else if (deployNames.size() > 0)
                 response.setStatus(HttpServletResponse.SC_CREATED);
             else
