@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Result.java,v 1.2 2006/06/29 19:38:37 akara Exp $
+ * $Id: Result.java,v 1.3 2007/02/23 06:47:12 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -38,10 +38,6 @@ public class Result extends com.sun.faban.driver.Result {
     }
 
     static void init(Metrics m) { // Only called by Metrics
-        if (instance != null) {
-            throw new IllegalStateException(
-                    "Result already exists, duplicate instantiation.");
-        }
         instance = new Result(m);
     }
 

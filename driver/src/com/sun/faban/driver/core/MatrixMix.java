@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MatrixMix.java,v 1.2 2006/06/29 19:38:37 akara Exp $
+ * $Id: MatrixMix.java,v 1.3 2007/02/23 06:47:12 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -321,8 +321,10 @@ public class MatrixMix extends Mix {
                     iResults[0][i][j] += mix[i][k] * mix[k][j];
 
         // We just don't think it has converged yet, start power 3 without check
+        int power = 3;
+
         incrementPower:
-        for (int power = 3;; power++) {
+        for (; power < 10000; power++) { // Limit to 9999 iters
             int srcIdx = (power - 1) & 1;
             int resIdx = power & 1; // Just need to know the idx 0 or 1
 
@@ -363,8 +365,14 @@ public class MatrixMix extends Mix {
                 // comparator which is rounded to <precision> digits
                 results[j] = comparator * threshold;
             }
-            getLogger().finer("Obtained stable mix at matrix power " + power + '.');
+            getLogger().finer("Obtained stable mix at matrix power " + power +
+                              '.');
             break;
+        }
+        if (power == 10000) {
+            throw new ArithmeticException("Mix probability did not converge " +
+                    "after 9999 iterations, please check mix for validity." +
+                    " Aborting.");
         }
         FlatMix flatMix = new FlatMix();
         flatMix.operations = operations;
