@@ -2,7 +2,7 @@
 # -----------------------------------------------------------------------------
 # Start Script for the CATALINA Server
 #
-# $Id: startup.sh,v 1.5 2006/11/03 09:43:43 akara Exp $
+# $Id: startup.sh,v 1.6 2007/03/15 23:29:18 akara Exp $
 # -----------------------------------------------------------------------------
 
 # Allow JAVA_HOME env setting before starting...
@@ -21,6 +21,8 @@ JAVA_VERSION=`${JAVA_HOME}/bin/java -version 2>&1 | \
 
 case $JAVA_VERSION in
     1.5*);;
+    1.6*);;
+    1.7*);;
     *) echo "Java version is ${JAVA_VERSION}. Faban needs 1.5 or later." >&2
        echo "Please install the appropriate JDK and set JAVA_HOME accordingly." >&2
        exit 1;;
