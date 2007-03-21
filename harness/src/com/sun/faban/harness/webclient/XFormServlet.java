@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: XFormServlet.java,v 1.3 2006/09/20 23:25:12 akara Exp $
+ * $Id: XFormServlet.java,v 1.4 2007/03/21 06:57:19 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -141,6 +141,7 @@ public class XFormServlet extends HttpServlet {
                 buffer.append(request.getParameter("form"));
                 formURI = buffer.toString();
             }
+
             if (formURI == null) {
                 throw new IOException("Resource not found: " + formURI);
             }
@@ -150,10 +151,19 @@ public class XFormServlet extends HttpServlet {
             String actionURL = response.encodeURL(request.getRequestURI());
             logger.finer("actionURL: " + actionURL);
 
+            // Find the base URL used by Faban. We do not use Config.FABAN_URL
+            // because this base URL can vary by the interface name the Faban
+            // master is accessed in this session. Otherwise it is identical.
+            StringBuffer baseURL = request.getRequestURL();
+            int uriLength = baseURL.length() - requestURI.length() +
+                            contextPath.length();
+            baseURL.setLength(++uriLength); // Add the ending slash
+
             adapter = new Adapter();
             if (configFile != null && configFile.length() > 0)
                 adapter.setConfigPath(configFile);
 
+            adapter.baseURI = baseURL.toString();
             adapter.formURI = formURI;
             adapter.xslPath = xsltDir;
             adapter.actionURL = actionURL;
@@ -326,6 +336,7 @@ public class XFormServlet extends HttpServlet {
         private UIGenerator generator = null;
 
         private String xslPath = null;
+        private String baseURI = null;
         private String formURI = null;
         private String actionURL = null;
         private String CSSFile = null;
@@ -367,8 +378,7 @@ public class XFormServlet extends HttpServlet {
                     throw new XFormsException("File " + formURI +
                             " not found.", e);
                 }
-                chibaBean.setBaseURI(
-                                 com.sun.faban.harness.common.Config.FABAN_URL);
+                chibaBean.setBaseURI(baseURI);
             }
 
             if (logger.isLoggable(Level.FINER)) {

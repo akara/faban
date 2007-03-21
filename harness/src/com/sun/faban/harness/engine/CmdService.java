@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.9 2006/12/12 22:40:44 akara Exp $
+ * $Id: CmdService.java,v 1.10 2007/03/21 06:57:18 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -35,6 +35,7 @@ import com.sun.faban.harness.util.CmdMap;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Properties;
@@ -420,23 +421,33 @@ final public class CmdService { 	// The final keyword prevents clones
     * We use a script 'cmd' which will setup the CLASSPATH before
     * invoking CmdAgent
     */
-    private boolean startCmdAgent(String benchName, String mach, String interfaceAddress) {
+    private boolean startCmdAgent(String benchName, String mach,
+                                  String interfaceAddress) {
 
         hostInterfaces.setProperty(mach, interfaceAddress);
         String cmdarray;
-        if (mach.equals(master)) {
-            cmdarray = Config.CMD_SCRIPT + mach + ' ' + interfaceAddress + ' ' +
-                    masterAddress + ' ' + javaHome + " faban.benchmarkName=" +
-                    benchName + ' ' + jvmOptions;
-        } else { // if the machine is not the master machine, we need to
-                 // do an rsh and pass download instructions
-            cmdarray = rsh + ' ' + mach + Config.CMD_SCRIPT + mach + ' ' +
-                    interfaceAddress + ' ' + masterAddress + ' ' + javaHome +
-                    " faban.benchmarkName=" + benchName + " faban.download=" +
-                    Config.FABAN_URL + ' ' + jvmOptions;
-        }
-
         try {
+            if (mach.equals(master)) {
+                cmdarray = Config.CMD_SCRIPT + mach + ' ' + interfaceAddress +
+                        ' ' + masterAddress + ' ' + javaHome +
+                        " faban.benchmarkName=" + benchName + ' ' + jvmOptions;
+            } else { // if the machine is not the master machine, we need to
+                // do an rsh and pass download instructions
+                // Many times, the FABAN_URL cannot be reached by the benchmark
+                // downloader. So it is better to change the URL to access
+                // the master via the best interface, by ip address instead of
+                // host name.
+                URL fabanURL = new URL(Config.FABAN_URL);
+                URL downloadURL = new URL(fabanURL.getProtocol(),
+                        interfaceAddress, fabanURL.getPort(),
+                        fabanURL.getFile());
+                cmdarray = rsh + ' ' + mach + Config.CMD_SCRIPT + mach + ' ' +
+                        interfaceAddress + ' ' + masterAddress + ' ' +
+                        javaHome + " faban.benchmarkName=" + benchName +
+                        " faban.download=" + downloadURL.toString() + ' ' +
+                        jvmOptions;
+            }
+
             logger.fine("CmdService: Executing " + cmdarray);
 
             Process p = Runtime.getRuntime().exec(cmdarray);
