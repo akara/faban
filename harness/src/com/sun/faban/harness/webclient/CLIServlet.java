@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CLIServlet.java,v 1.1 2007/04/19 05:32:59 akara Exp $
+ * $Id: CLIServlet.java,v 1.2 2007/04/19 06:56:22 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -100,26 +100,38 @@ public class CLIServlet extends HttpServlet {
                                             "Missing RunId.");
                 return;
             }
+            String status = null;
             RunId runId = new RunId(reqC[1]);
             Result result = Result.getInstance(runId);
             if (result == null) {
-                response.sendError(HttpServletResponse.SC_NOT_FOUND,
+                // Perhaps the runId is still in the pending queue.
+                String[] pending = listPending();
+                for (String run : pending)
+                    if (run.equals(runId.toString())) {
+                        status = "QUEUED";
+                        break;
+                    }
+                if (status == null) {
+                    response.sendError(HttpServletResponse.SC_NOT_FOUND,
                                             "No such runId: " + runId);
-                return;
-            }                
+                    return;
+                }
+            } else {
+                status = result.status.value;
+            }
             Writer w = response.getWriter();
-            w.write(result.status.value + '\n');
+            w.write(status + '\n');
             w.flush();
             w.close();
         } else if ("/pending".equals(reqC[0])) {
-            String[][] pending = RunQ.getHandle().listRunQ();
+            String[] pending = listPending();
             if (pending == null) {
                 response.sendError(HttpServletResponse.SC_NO_CONTENT,
                         "No pending runs");
             } else {
                 Writer w = response.getWriter();
                 for (int i = 0; i < pending.length; i++)
-                    w.write(pending[i][0] + '\n');
+                    w.write(pending[i] + '\n');
                 w.flush();
                 w.close();
             }
@@ -127,6 +139,17 @@ public class CLIServlet extends HttpServlet {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST,
                     "Request string " + reqC[0] + " not understood!");
         }
+    }
+
+    private String[] listPending() {
+        String[][] pendingA = RunQ.getHandle().listRunQ();
+        String[]  pendingL = null;
+        if (pendingA != null) {
+            pendingL = new String[pendingA.length];
+            for (int i = 0; i < pendingA.length; i++)
+                pendingL[i] = pendingA[i][1] + '.' + pendingA[i][0];
+        }
+        return pendingL;
     }
 
     /**
