@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericTool.java,v 1.6 2007/02/22 02:40:04 akara Exp $
+ * $Id: GenericTool.java,v 1.7 2007/04/19 05:32:58 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -148,8 +148,8 @@ public class GenericTool implements Tool {
                         Thread.sleep(toolObj.delay*1000 + toolObj.duration*1000);
                     }
                     catch(Exception e) {
-                        logger.severe("Cannot start Tool Stop thread " + e);
-                        logger.log(Level.FINE,  "Exception", e);
+                        logger.log(Level.SEVERE,
+                                "Cannot start Tool Stop thread.", e);
                     }
                     toolObj.stop();
                 }

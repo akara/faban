@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.20 2007/01/16 22:24:51 akara Exp $
+ * $Id: Config.java,v 1.21 2007/04/19 05:32:57 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -42,6 +42,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
@@ -169,6 +170,7 @@ public class Config {
 
     public static String DEFAULT_LOG_FILE;
 
+    public static ExecutorService THREADPOOL;  // Generic thread pool.
 
     // Configuration from the file
     public static boolean SECURITY_ENABLED = false;
@@ -180,6 +182,8 @@ public class Config {
     public static Set<String> PRINCIPALS;
     public static String DEPLOY_USER;
     public static String DEPLOY_PASSWORD;
+    public static String CLI_SUBMITTER;
+    public static String SUBMIT_PASSWORD;
 
     public static DaemonModes daemonMode;
     public static HostInfo[] pollHosts;
@@ -351,7 +355,11 @@ public class Config {
                         }
                     }
                     DEPLOY_USER = xPath.evaluate("security/deployUser", root);
-                    DEPLOY_PASSWORD = xPath.evaluate("security/deployPassword", 
+                    DEPLOY_PASSWORD = xPath.evaluate("security/deployPassword",
+                                                     root);
+                    CLI_SUBMITTER = xPath.evaluate("security/cliSubmitter",
+                                                   root);
+                    SUBMIT_PASSWORD = xPath.evaluate("security/submitPassword",
                                                      root);
                 }
 

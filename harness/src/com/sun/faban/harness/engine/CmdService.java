@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.10 2007/03/21 06:57:18 akara Exp $
+ * $Id: CmdService.java,v 1.11 2007/04/19 05:32:57 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -31,15 +31,15 @@ import com.sun.faban.harness.agent.*;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.util.FileHelper;
 import com.sun.faban.harness.util.CmdMap;
+import com.sun.faban.harness.util.InterfaceProbe;
 
 import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.net.URL;
+import java.net.SocketException;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.Properties;
-import java.util.HashMap;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -242,6 +242,10 @@ final public class CmdService { 	// The final keyword prevents clones
         // incarnation of the master's name. If they are, switch the master to
         // use these names instead.
 
+        // Also, we use the same loop to create a non-duplicate set of remote
+        // machines. This is used later to find the interfaces to the remote
+        // machine.
+
         InetAddress[] masterIps = null;
         try {
             masterIps = InetAddress.getAllByName(master);
@@ -249,6 +253,10 @@ final public class CmdService { 	// The final keyword prevents clones
             logger.log(Level.SEVERE, "Strange! Master is unknown.", e);
             return false;
         }
+
+        HashSet<String> remoteMachines = new HashSet<String>();
+        boolean isMasterSet = false;
+
         outer:
         for (int j = 0; j < hosts.length; j++) {
             String[] machines = hosts[j];
@@ -257,8 +265,15 @@ final public class CmdService { 	// The final keyword prevents clones
                     InetAddress[] machineIps =
                             InetAddress.getAllByName(machines[i]);
                     if (sameHost(masterIps, machineIps)) {
-                        master = machines[i];
-                        break outer;
+                        if (!isMasterSet) { // Set the master to the first
+                                            // found master name in the list.
+                            master = machines[i];
+                            isMasterSet = true;
+                        } else { // Set all subsequent masters to the same.
+                            machines[i] = master;
+                        }
+                    } else {     // All remote machines go into a set.
+                        remoteMachines.add(machines[i]);
                     }
                 } catch (UnknownHostException e) {
                     logger.log(Level.WARNING, machines[i] + " is unknown.", e);
@@ -288,87 +303,70 @@ final public class CmdService { 	// The final keyword prevents clones
             machinesList.add(master);
         }
 
+        // this is necessary in case you are on a private network
+        // where the machine's private ip address is not the same as it's
+        // public ip address
+
+        // Fist check specific scripts for the arch
+        String osName = System.getProperty("os.name");
+        String scriptPath = Config.BIN_DIR + osName +
+                File.separator + System.getProperty("os.arch") +
+                File.separator + "interface";
+        File ifScript = new File(scriptPath.trim());
+
+        // Then check script for the OS. If it exists, use it.
+        // It is usually more reliable than the interface probe.
+        if (!ifScript.exists()) {
+            logger.finer("Could not find interface script at " +
+                    ifScript.getAbsolutePath());
+            scriptPath = Config.BIN_DIR + osName +
+                    File.separator + "interface";
+            ifScript = new File(scriptPath.trim());
+        }
+
+        Map<String, String> ifMap = null;
+        if (ifScript.exists()) {
+            ifMap = getIfMap(remoteMachines, ifScript);
+        } else {
+            logger.finer("Could not find interface script at " +
+                    ifScript.getAbsolutePath());
+            ifScript = null;
+
+            // If we have no interface script, we'll resort to the probe.
+            // Most reliable when run as root, but buggy in parallel mode.
+            // Also the interface probe needs JDK1.6 or later.
+            if ("1.6".compareTo(System.getProperty("java.version")) > 0) {
+                logger.severe("Could not find a way to check the interface!");
+                return false;
+            }
+
+            InterfaceProbe iProbe = null;
+            try {
+                iProbe = new InterfaceProbe(Config.THREADPOOL);
+                ifMap = iProbe.getIfMap(remoteMachines);
+            } catch (SocketException e) {
+                logger.log(Level.SEVERE,
+                            "Could not find a way to check the interface!", e);
+            }
+        }
+
         // cycles through benchmark machines starting up agents and
         // configuring them
         for (int j = 0; j < hosts.length; j++) {
             String[] machines = hosts[j];
             for(int i = 0; i < machines.length; i++) {
                 // Do not start duplicate Cmd agent
-                if(machinesList.contains(machines[i])) {
+                if(machinesList.contains(machines[i]))
                     continue;
-                }
 
-                String interfaceAddress = null;
+                String interfaceAddress = ifMap.get(machines[i]);
 
-                // this is necessary in case you are on a private network
-                // where the machine's private ip address is not the same as it's
-                // public ip address
-
-                // Fist check specific scripts for the arch
-                String osName = System.getProperty("os.name");
-                String scriptPath = Config.BIN_DIR + osName +
-                        File.separator + System.getProperty("os.arch") +
-                        File.separator + "interface";
-                File ifScript = new File(scriptPath.trim());
-
-                // Then check script for the OS.
-                if (!ifScript.exists()) {
-                    logger.finer("Could not find interface script at " +
-                            ifScript.getAbsolutePath());
-                    scriptPath = Config.BIN_DIR + osName +
-                            File.separator + "interface";
-                    ifScript = new File(scriptPath.trim());
-                }
-
-                if (!ifScript.exists()) {
-                    logger.severe("Could not find interface script at " +
-                            ifScript.getAbsolutePath());
+                if (interfaceAddress == null || interfaceAddress.length() == 0)
                     return false;
-                }
 
-                String ifCommand = ifScript.getAbsolutePath() + ' ' + machines[i];
-
-                logger.fine("Detecting interface: " + ifCommand);
-                try {
-                    Process p = Runtime.getRuntime().exec(ifCommand);
-                    BufferedReader bufR = new BufferedReader(
-                            new InputStreamReader(p.getInputStream()));
-
-                    interfaceAddress = bufR.readLine();
-                    if (interfaceAddress != null)
-                        interfaceAddress = interfaceAddress.trim();
-
-                    int exitValue = -1;
-
-                    if (interfaceAddress != null &&
-                        interfaceAddress.length() > 0) { //Read something...
-
-                        exitValue = p.waitFor();
-                        if (exitValue != 0) {
-                            logger.severe("interface: Cannot reach system " +
-                                          machines[i]);
-                            return false;
-                        }
-                    } else { // Nothing read, check stderr
-                        bufR = new BufferedReader(
-                                new InputStreamReader(p.getErrorStream()));
-                        logger.severe(bufR.readLine());
-                        return false;
-                    }
-                }
-                catch (Exception e) {
-                    logger.log(Level.SEVERE,
-                            "Error in executing the interface program: " +
-                            ifCommand, e);
+                if (!startCmdAgent(benchName, machines[i], interfaceAddress))
                     return false;
-                }
 
-                logger.config("Interface Address = " + interfaceAddress);
-                logger.config("InetAddress local Host = " + masterAddress);
-
-                if (!startCmdAgent(benchName, machines[i], interfaceAddress)) {
-                    return false;
-                }
                 // By adding the mach to the list we prevent multiple
                 // agents being started on the same server
                 machinesList.add(machines[i]);
@@ -382,6 +380,59 @@ final public class CmdService { 	// The final keyword prevents clones
             if (!getCmdAgent((String) machinesList.get(i)))
                 return false;
         return true;
+    }
+
+    private Map<String, String> getIfMap(Collection<String> hosts,
+                                         File ifScript) {
+
+        HashMap<String, String> ifMap = new HashMap<String, String>();
+
+        for (String host: hosts) {
+            String interfaceAddress = null;
+
+            String ifCommand = ifScript.getAbsolutePath() + ' ' + host;
+
+            logger.fine("Detecting interface: " + ifCommand);
+            try {
+                Process p = Runtime.getRuntime().exec(ifCommand);
+                BufferedReader bufR = new BufferedReader(
+                        new InputStreamReader(p.getInputStream()));
+
+                interfaceAddress = bufR.readLine();
+                if (interfaceAddress != null) {
+                    interfaceAddress = interfaceAddress.trim();
+                    ifMap.put(host, interfaceAddress);
+                }
+
+                int exitValue = -1;
+
+                if (interfaceAddress != null &&
+                        interfaceAddress.length() > 0) { //Read something...
+
+                    exitValue = p.waitFor();
+                    if (exitValue != 0) {
+                        logger.warning("interface: Cannot reach system " +
+                                host);
+                        continue;
+                    }
+                } else { // Nothing read, check stderr
+                    bufR = new BufferedReader(
+                            new InputStreamReader(p.getErrorStream()));
+                    logger.severe(bufR.readLine());
+                    continue;
+                }
+            }
+            catch (Exception e) {
+                logger.log(Level.SEVERE,
+                        "Error in executing the interface program: " +
+                        ifCommand, e);
+                break;
+            }
+
+            logger.config("Interface Address = " + interfaceAddress);
+            logger.config("InetAddress local Host = " + masterAddress);
+        }
+        return ifMap;
     }
 
     private boolean getCmdAgent(String mach) {

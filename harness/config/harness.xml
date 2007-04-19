@@ -41,6 +41,8 @@
         </managePrincipals>
         <deployUser>deployer</deployUser>
         <deployPassword>adminadmin</deployPassword>
+        <cliSubmitter>CLI</cliSubmitter>
+        <submitPassword>canSubmit</submitPassword>
     </security>
     <runDaemon mode="poller">     <!-- poller/pollee/local/disbled -->
         <host enabled="false">      

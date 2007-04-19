@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Result.java,v 1.18 2006/11/22 20:14:08 akara Exp $
+ * $Id: Result.java,v 1.19 2007/04/19 05:32:59 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -72,13 +72,31 @@ public class Result {
     public ResultField<Long> dateTime;
     public String submitter;
 
-    public static Result getInstance(RunId runId) {
+    /**
+     * This getInstance0 assumes you've checked the run id is found. It will
+     * return an instance. If the run id is not there, the behavior is not
+     * defined. This is why it is a private interface.
+     * @param runId The run id of the run
+     * @return A result instance.
+     */
+    private static Result getInstance0(RunId runId) {
         Result result = new Result(runId);
         Result oldResult = resultCache.putIfAbsent(runId.toString(), result);
         if (oldResult != null)
             result = oldResult;
         result.refresh();
         return result;
+    }
+
+    /**
+     * Obtains the result of a certain run id.
+     * @param runId The run id to query
+     * @return An instance of the result, or null if such runId is not found
+     */
+    public static Result getInstance(RunId runId) {
+        if (runId.getResultDir().isDirectory())
+            return getInstance0(runId);
+        return null;
     }
 
     private Result(RunId runId) {
@@ -268,7 +286,7 @@ public class Result {
                 RunId runId = new RunId(runIdS);
                 if (!AccessController.isViewAllowed(user, runIdS))
                     continue;
-                result0 = getInstance(runId);
+                result0 = getInstance0(runId);
                 scaleNames.add(result0.scaleName);
                 scaleUnits.add(result0.scaleUnit);
                 metricUnits.add(result0.metricUnit);

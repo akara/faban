@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: LogConfig.java,v 1.5 2006/08/10 18:14:03 akara Exp $
+ * $Id: LogConfig.java,v 1.6 2007/04/19 05:32:58 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -50,7 +50,7 @@ public class LogConfig {
     public int maxServiceThreads = 10;
     public int serviceThreadTimeout = 300; // timeout after 5 minutes.
     public PrimaryListener primaryListener = null;
-    public ExecutorService threadPool = null;
+    public ExecutorService threadPool = Config.THREADPOOL;
     public int readBufferSize = 2048;
 
     public LogConfig() {

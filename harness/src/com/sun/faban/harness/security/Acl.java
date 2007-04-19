@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Acl.java,v 1.4 2006/10/28 02:34:49 akara Exp $
+ * $Id: Acl.java,v 1.5 2007/04/19 05:32:58 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -153,6 +153,8 @@ public class Acl {
 
     private synchronized void refresh() {
         long modified;
+        if (!aclFile.exists())
+            entries.clear();
         if (aclFile.isFile() &&
            (modified = aclFile.lastModified()) > lastModified) {
             try {

@@ -58,6 +58,11 @@
         <servlet-class>com.sun.faban.harness.webclient.RunUploader</servlet-class>
     </servlet>
 
+    <servlet>
+        <servlet-name>CLI</servlet-name>
+        <servlet-class>com.sun.faban.harness.webclient.CLIServlet</servlet-class>
+    </servlet>
+
     <servlet-mapping>
         <servlet-name>LogReader</servlet-name>
         <url-pattern>/LogReader</url-pattern>
@@ -96,6 +101,21 @@
     <servlet-mapping>
         <servlet-name>XFormServlet</servlet-name>
         <url-pattern>*.xhtml</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>CLI</servlet-name>
+        <url-pattern>/pending</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>CLI</servlet-name>
+        <url-pattern>/status/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>CLI</servlet-name>
+        <url-pattern>/submit/*</url-pattern>        
     </servlet-mapping>
 
     <session-config>

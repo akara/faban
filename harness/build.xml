@@ -19,7 +19,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: build.xml,v 1.4 2006/08/17 23:22:43 akara Exp $
+* $Id: build.xml,v 1.5 2007/04/19 05:32:59 akara Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 -->
@@ -58,6 +58,7 @@
         <mkdir dir="${compile.output}"/>
         <javac destdir="${compile.output}" debug="${compiler.debug}"
             nowarn="${compiler.generate.no.warnings}"
+            target="${compiler.target.version}"            
             memoryMaximumSize="${compiler.max.memory}" fork="true">
             <compilerarg line="${compiler.args}"/>
             <classpath refid="class.path"/>
@@ -68,6 +69,7 @@
     <target name="rmic" depends="compile"
         description="Create rmi stubs and skeletons">
         <rmic base="${compile.output}"
+            stubversion="${compiler.target.version}"
             includes="**/*Impl.class"
             excludes="**/*$*.class">
             <classpath refid="class.path"/>

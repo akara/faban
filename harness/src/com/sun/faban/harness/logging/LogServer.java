@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: LogServer.java,v 1.4 2006/11/13 18:24:55 akara Exp $
+ * $Id: LogServer.java,v 1.5 2007/04/19 05:32:58 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -83,10 +83,13 @@ public class LogServer extends Thread {
                                                      acceptQueue);
         logger.finer("Listeners created.");
 
-        config.threadPool = new ThreadPoolExecutor(config.coreServiceThreads,
-                config.maxServiceThreads, config.serviceThreadTimeout,
-                TimeUnit.SECONDS, new LinkedBlockingQueue());
+        if (config.threadPool == null) {
+            config.threadPool = new ThreadPoolExecutor(
+                    config.coreServiceThreads, config.maxServiceThreads,
+                    config.serviceThreadTimeout, TimeUnit.SECONDS,
+                    new LinkedBlockingQueue());
         logger.finer("Service thread pool created.");
+        }
 
         acceptor = new Acceptor(conf, acceptQueue, selector);
         Thread t = new Thread(acceptor);
