@@ -9,10 +9,11 @@
     <property name="faban.libs" value="${faban.home}/lib"/>
     <property name="faban.classes" value="${faban.home}/master/webapps/faban/WEB-INF/classes"/>
 
-    <path id="taskclasspath" location="${faban.home}/ant/lib">
+    <path id="taskclasspath">
         <fileset dir="${faban.home}/ant/lib" includes="*.jar"/>
+        <fileset dir="${faban.libs}" includes="*.jar"/>
     </path>
-    
+
     <path id="classpath" location="${faban.libs}" >
         <pathelement location="${classes.dir}"/>
         <fileset dir="${lib.dir}" includes="*.jar"/>
@@ -30,7 +31,7 @@
 
     <target name="compile" depends="init" description="Compiling all source files">
         <javac srcdir="${src.dir}"
-            deprecation="on" source="1.5" target="1.5"
+            deprecation="on" target="${compiler.target.version}"
             destdir="${classes.dir}" debug="on">
             <include name="**/*.java" />
             <classpath refid="classpath"/>
