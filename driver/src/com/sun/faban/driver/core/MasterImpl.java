@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MasterImpl.java,v 1.7 2007/01/29 23:21:44 akara Exp $
+ * $Id: MasterImpl.java,v 1.8 2007/04/19 05:27:24 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -156,8 +156,10 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 
         try {
             RegistryLocator.getRegistry().register("Master", this);
+        } catch (ConnectException e) {
+            // A ConnectException should be interpreted as no registry.
         } catch (NotBoundException e) {
-            // Do nothing. If we run in single process mode,
+            // Here too, do nothing. If we run in single process mode,
             // the registry is just not there.
         }
     }
