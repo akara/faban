@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CLI.java,v 1.1 2007/04/19 05:32:59 akara Exp $
+ * $Id: CLI.java,v 1.2 2007/04/19 06:54:37 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -143,7 +143,7 @@ public class CLI {
         String cmd = System.getProperty("faban.cli.command");
         if (cmd == null)
             cmd = CLI.class.getName();
-        cmd += " [-M master] [-U user [-P password]] ";
+        cmd += " [-M masterURL] [-U user [-P password]] ";
         System.err.println(cmd + "pending");
         System.err.println(cmd + "status runId");
         System.err.println(cmd + "submit benchmark profile configfile");
@@ -160,7 +160,6 @@ public class CLI {
                        ArrayList<String> argList) throws IOException {
         String url = master + argList.get(0) + '/' + argList.get(1) + '/' +
                      argList.get(2);
-        System.err.println(url);
         MultipartPostMethod post = new MultipartPostMethod(url);
         if (user != null)
             post.addParameter("sun", user);
