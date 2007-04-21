@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MasterImpl.java,v 1.8 2007/04/19 05:27:24 akara Exp $
+ * $Id: MasterImpl.java,v 1.9 2007/04/21 07:18:12 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -708,6 +708,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         String runOutputDir = runInfo.resultsDir + fs;
         FileWriter summary = new FileWriter(runOutputDir + "summary.xml");
         FileWriter detail = new FileWriter(runOutputDir + "detail.xml");
+        FileWriter detailXan = new FileWriter(runOutputDir + "detail.xan");
 
         // As all stats from each agentImpl are of the same type, we can
         // create a new instance from any instance.
@@ -715,9 +716,13 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         summary.append(createSummaryReport(results));
         summary.close();
 
-        logger.info("Summary finished. Now printing detail ...");
+        logger.info("Summary finished. Now printing detail xml ...");
         detail.append(createDetailReport(results));
         detail.close();
+
+        logger.info("Summary finished. Now printing detail ...");
+        detailXan.append(createDetailReportXan(results));
+        detailXan.close();
 
         logger.info("Detail finished. Results written to " +
                 runInfo.resultsDir + '.');
@@ -735,8 +740,8 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         double metric = 0d;
         boolean passed = true;
 
-        StringBuffer buffer = new StringBuffer(8192);
-        StringBuffer hdrBuffer = new StringBuffer(1024);
+        StringBuilder buffer = new StringBuilder(8192);
+        StringBuilder hdrBuffer = new StringBuilder(1024);
 
         for (int i = 0; i < results.length; i++) {
             if (results[i] == null) {
@@ -787,7 +792,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
      * @return The report as a char sequence
      */
     private CharSequence createDetailReport(Metrics[] results) {
-        StringBuffer buffer = new StringBuffer(8192);
+        StringBuilder buffer = new StringBuilder(8192);
         buffer.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
         buffer.append("<stat_doc name=\"").append(benchDef.name).
                 append(" Detailed Results\">\n");
@@ -799,6 +804,22 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
                 result.printDetail(buffer);
 
         buffer.append("</stat_doc>\n");
+        return buffer;
+    }
+
+    // TODO: Remove the old detail.xml generation.
+    private CharSequence createDetailReportXan(Metrics[] results) {
+        StringBuilder buffer = new StringBuilder(8192);
+        buffer.append("Title: ").append(benchDef.name).
+                append(" Detailed Results\n\n\n");
+        buffer.append("Section: Benchmark Information\n");
+        buffer.append("Name   Value\n");
+        buffer.append("-----  -------------\n");
+        buffer.append("RunId  ").append(runInfo.runId).append("\n\n\n");
+        for (Metrics result : results)
+            if (result != null)
+                result.printDetailXan(buffer);
+
         return buffer;
     }
 

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.6 2006/11/23 00:28:00 akara Exp $
+ * $Id: Metrics.java,v 1.7 2007/04/21 07:18:13 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -26,6 +26,7 @@ package com.sun.faban.driver.core;
 import com.sun.faban.driver.CustomMetrics;
 import com.sun.faban.driver.CycleType;
 import com.sun.faban.driver.RunControl;
+import com.sun.faban.common.TextTable;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -492,7 +493,7 @@ public class Metrics implements Serializable, Cloneable {
      * @return The string representing the statistics.
      */
     public String toString() {
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
 
         buffer.append("sumusers=" + threadCnt);
         buffer.append("\nruntime=" + stdyState);
@@ -539,7 +540,7 @@ public class Metrics implements Serializable, Cloneable {
      * @param benchDef The benchmark definition
      * @return true if this driver passed, false if not
      */
-    public boolean printSummary(StringBuffer buffer,
+    public boolean printSummary(StringBuilder buffer,
                                 BenchmarkDefinition benchDef) {
 
         int sumTxCnt = 0;
@@ -800,12 +801,12 @@ public class Metrics implements Serializable, Cloneable {
      *
      * @param b The buffer to write to
      */
-    public void printDetail(StringBuffer b) {
+    public void printDetail(StringBuilder b) {
         printGraph(b, "Throughput", graphBucketSize / 1000d,
-                "%.0f", thruputGraph, graphBucketSize / 1000d);
+                "%.0f", "%.2f", thruputGraph, graphBucketSize / 1000d);
 
         printGraph(b, "Response Times", graphBucketSize / 1000d,
-                "%.0f", respGraph, thruputGraph, 1000d);
+                "%.0f", "%.5f", respGraph, thruputGraph, 1000d);
 
         printHistogram(b, "Frequency Distribution of Response Times",
                 respBucketSize / 1000d, "%5.3f", respHist);
@@ -818,9 +819,9 @@ public class Metrics implements Serializable, Cloneable {
                 targetedDelayHist);
     }
 
-    private void printGraph(StringBuffer b, String label, double unit,
-                            String unitFormat, int[][] rawGraph,
-                            double divider) {
+    private void printGraph(StringBuilder b, String label, double unit,
+                            String unitFormat, String dataFormat,
+                            int[][] rawGraph, double divider) {
 
         int bucketLimit = rawGraph[0].length;
 
@@ -835,59 +836,15 @@ public class Metrics implements Serializable, Cloneable {
         b.append("<stat_group name=\"").append(driverName).append(' ').
                 append(label).append("\" display=\"Line\">\n");
         b.append("<cell_list>\n");
-
-        // The actual data
-        for (int i = 0; i < bucketLimit; i++)
-            for (int j = 0; j < txTypes; j++)
-                b.append("<cell>").append(rawGraph[j][i]/divider).
-                        append("</cell>\n");
-
-        b.append("</cell_list>\n");
-
-        b.append("<dim_list>\n");
-        b.append("<dim group=\"0\" level=\"0\">\n");
-
-        // The legends
-        for (int i = 0; i < txTypes; i++)
-            b.append("<dimval>").append(txNames[i]).append("</dimval>\n");
-
-        b.append("</dim>\n");
-
-        // The X Axis
-        b.append("<dim group=\"1\" level=\"1\" name=\"Time (s)\">\n");
 
         Formatter formatter = new Formatter(b);
-        for (int i = 0; i < bucketLimit; i++)
-            formatter.format("<dimval>" + unitFormat + "</dimval>\n", unit * i);
-
-        b.append("</dim>\n</dim_list>\n</stat_group>\n");
-    }
-
-    private void printGraph(StringBuffer b, String label, double unit,
-                            String unitFormat, int[][] rawGraph,
-                            int[][] divider, double divider2) {
-
-        int bucketLimit = rawGraph[0].length;
-
-        // Check the histogram and do not output unused buckets if needed.
-        // The graph buckets are sized according to the run time.
-        // So we'll scan only if the run is cycleControl.
-        if (RunInfo.getInstance().driverConfigs[driverType].
-                runControl == RunControl.CYCLES)
-            bucketLimit = getBucketLimit(rawGraph);
-
-        // Data header
-        b.append("<stat_group name=\"").append(driverName).append(' ').
-                append(label).append("\" display=\"Line\">\n");
-        b.append("<cell_list>\n");
 
         // The actual data
         for (int i = 0; i < bucketLimit; i++)
             for (int j = 0; j < txTypes; j++) {
-                double data = 0d;
-                if (divider[j][i] != 0)
-                    data = rawGraph[j][i] / (divider2 * divider[j][i]);
-                b.append("<cell>").append(data).append("</cell>\n");
+                b.append("<cell>");
+                formatter.format(dataFormat, rawGraph[j][i]/divider);
+                b.append("</cell>\n");
             }
 
         b.append("</cell_list>\n");
@@ -904,7 +861,57 @@ public class Metrics implements Serializable, Cloneable {
         // The X Axis
         b.append("<dim group=\"1\" level=\"1\" name=\"Time (s)\">\n");
 
+        for (int i = 0; i < bucketLimit; i++)
+            formatter.format("<dimval>" + unitFormat + "</dimval>\n", unit * i);
+
+        b.append("</dim>\n</dim_list>\n</stat_group>\n");
+    }
+
+    private void printGraph(StringBuilder b, String label, double unit,
+                            String unitFormat, String dataFormat,
+                            int[][] rawGraph, int[][] divider, double divider2){
+
+        int bucketLimit = rawGraph[0].length;
+
+        // Check the histogram and do not output unused buckets if needed.
+        // The graph buckets are sized according to the run time.
+        // So we'll scan only if the run is cycleControl.
+        if (RunInfo.getInstance().driverConfigs[driverType].
+                runControl == RunControl.CYCLES)
+            bucketLimit = getBucketLimit(rawGraph);
+
+        // Data header
+        b.append("<stat_group name=\"").append(driverName).append(' ').
+                append(label).append("\" display=\"Line\">\n");
+        b.append("<cell_list>\n");
+
         Formatter formatter = new Formatter(b);
+
+        // The actual data
+        for (int i = 0; i < bucketLimit; i++)
+            for (int j = 0; j < txTypes; j++) {
+                double data = 0d;
+                if (divider[j][i] != 0)
+                    data = rawGraph[j][i] / (divider2 * divider[j][i]);
+                b.append("<cell>");
+                formatter.format(dataFormat, data);
+                b.append("</cell>\n");
+            }
+
+        b.append("</cell_list>\n");
+
+        b.append("<dim_list>\n");
+        b.append("<dim group=\"0\" level=\"0\">\n");
+
+        // The legends
+        for (int i = 0; i < txTypes; i++)
+            b.append("<dimval>").append(txNames[i]).append("</dimval>\n");
+
+        b.append("</dim>\n");
+
+        // The X Axis
+        b.append("<dim group=\"1\" level=\"1\" name=\"Time (s)\">\n");
+
         for (int i = 0; i < bucketLimit; i++)
             formatter.format("<dimval>" + unitFormat + "</dimval>\n", unit * i);
 
@@ -924,11 +931,13 @@ public class Metrics implements Serializable, Cloneable {
             for (int i = 0; i < data.length; i++)
                 if (data[i][maxBucketId] != 0)
                     break bucketScanLoop;
-
-        return ++maxBucketId;
+        ++maxBucketId;
+        if (maxBucketId < data[0].length)
+            ++maxBucketId; // Include one row of zeros if not last row.
+        return maxBucketId;
     }
 
-    private void printHistogram(StringBuffer b, String label, double unit,
+    private void printHistogram(StringBuilder b, String label, double unit,
                                 String unitFormat, int[][] histogram) {
 
         // First, check the histogram and do not output unused buckets.
@@ -965,7 +974,143 @@ public class Metrics implements Serializable, Cloneable {
         b.append("</dim>\n</dim_list>\n</stat_group>\n");
     }
 
-    static StringBuffer space(int space, StringBuffer buffer) {
+    // TODO: Remove the old XML generation.
+    public void printDetailXan(StringBuilder b)  {
+        printGraphXan(b, "Throughput", graphBucketSize / 1000d,
+                "%.0f", "%.2f", thruputGraph, graphBucketSize / 1000d);
+
+        printGraphXan(b, "Response Times", graphBucketSize / 1000d,
+                "%.0f", "%.5f", respGraph, thruputGraph, 1000d);
+
+        printHistogramXan(b, "Frequency Distribution of Response Times",
+                respBucketSize / 1000d, "%5.3f", respHist);
+
+        printHistogramXan(b, "Frequency Distribution of Cycle/Think Times",
+                delayBucketSize / 1000d, "%5.3f", delayHist);
+
+        printHistogramXan(b, "Frequency Distribution of Targeted Cycle/Think " +
+                "Times", delayBucketSize / 1000d, "%5.3f",
+                targetedDelayHist);
+    }
+
+    private void printGraphXan(StringBuilder b, String label, double unit,
+                            String unitFormat, String dataFormat,
+                            int[][] rawGraph, double divider) {
+
+        int bucketLimit = rawGraph[0].length;
+
+        // Check the histogram and do not output unused buckets if needed.
+        // The graph buckets are sized according to the run time.
+        // So we'll scan only if the run is cycleControl.
+        if (RunInfo.getInstance().driverConfigs[driverType].
+                runControl == RunControl.CYCLES)
+            bucketLimit = getBucketLimit(rawGraph);
+
+        // Data header
+        b.append("Section: ").append(driverName).append(' ').append(label).
+                append('\n');
+        b.append("Display: Line\n");
+
+        TextTable table = new TextTable(bucketLimit, txTypes + 1);
+
+        // The X axis headers and column headers, or legends
+        table.setHeader(0, "Time (s)");
+        for (int j = 0; j < txTypes; j++)
+            table.setHeader(j + 1, txNames[j]);
+
+        // The X axis and the data
+        for (int i = 0; i < bucketLimit; i++) {
+            // The X axis
+            Formatter formatter = new Formatter(table.getField(i, 0));
+            formatter.format(unitFormat, unit * i);
+
+            // The data
+            for (int j = 0; j < txTypes; j++) {
+                formatter = new Formatter(table.getField(i, j + 1));
+                formatter.format(dataFormat, rawGraph[j][i]/divider);
+            }
+        }
+        table.format(b);
+        b.append('\n');
+    }
+
+    private void printGraphXan(StringBuilder b, String label, double unit,
+                            String unitFormat, String dataFormat,
+                            int[][] rawGraph, int[][] divider, double divider2){
+
+        int bucketLimit = rawGraph[0].length;
+
+        // Check the histogram and do not output unused buckets if needed.
+        // The graph buckets are sized according to the run time.
+        // So we'll scan only if the run is cycleControl.
+        if (RunInfo.getInstance().driverConfigs[driverType].
+                runControl == RunControl.CYCLES)
+            bucketLimit = getBucketLimit(rawGraph);
+
+        // Data header
+        b.append("Section: ").append(driverName).append(' ').append(label).
+                append('\n');
+        b.append("Display: Line\n");
+
+        TextTable table = new TextTable(bucketLimit, txTypes + 1);
+
+        // The X axis headers and column headers, or legends
+        table.setHeader(0, "Time (s)");
+        for (int j = 0; j < txTypes; j++)
+            table.setHeader(j + 1, txNames[j]);
+
+        // The X axis and the data
+        for (int i = 0; i < bucketLimit; i++) {
+            // The X axis
+            Formatter formatter = new Formatter(table.getField(i, 0));
+            formatter.format(unitFormat, unit * i);
+
+            // The data
+            for (int j = 0; j < txTypes; j++) {
+                double data = 0d;
+                if (divider[j][i] != 0)
+                    data = rawGraph[j][i] / (divider2 * divider[j][i]);
+                formatter = new Formatter(table.getField(i, j + 1));
+                formatter.format(dataFormat, data);
+            }
+        }
+        table.format(b);
+        b.append('\n');
+    }
+
+    private void printHistogramXan(StringBuilder b, String label, double unit,
+                                String unitFormat, int[][] histogram) {
+
+        // First, check the histogram and do not output unused buckets.
+        int bucketLimit = getBucketLimit(histogram);
+
+        // Data header
+        b.append("Section: ").append(driverName).append(' ').append(label).
+                append('\n');
+        b.append("Display: Line\n");
+
+        TextTable table = new TextTable(bucketLimit, txTypes + 1);
+
+        // The X axis headers and column headers, or legends
+        table.setHeader(0, "Time (s)");
+        for (int j = 0; j < txTypes; j++)
+            table.setHeader(j + 1, txNames[j]);
+
+        // The X axis and the data
+        for (int i = 0; i < bucketLimit; i++) {
+            // The X axis
+            Formatter formatter = new Formatter(table.getField(i, 0));
+            formatter.format(unitFormat, unit * i);
+
+            // The data
+            for (int j = 0; j < txTypes; j++)
+                table.getField(i, j + 1).append(histogram[j][i]);
+        }
+        table.format(b);
+        b.append('\n');
+    }
+
+    static StringBuilder space(int space, StringBuilder buffer) {
         for (int i = 0; i < space; i++)
             buffer.append(' ');
         return buffer;
