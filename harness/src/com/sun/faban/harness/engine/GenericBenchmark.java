@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.13 2006/10/25 23:04:43 akara Exp $
+ * $Id: GenericBenchmark.java,v 1.14 2007/04/21 07:18:59 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -27,6 +27,7 @@ import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
 import com.sun.faban.harness.Benchmark;
 import com.sun.faban.harness.ParamRepository;
+import com.sun.faban.harness.util.FileHelper;
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Run;
 import com.sun.faban.harness.common.Config;
@@ -397,12 +398,14 @@ public class GenericBenchmark {
             return false;
         }
 
+        // TODO: Once detail.xan is well tested, remove the detail.xml copy
         // Move detail file to xanadu directory for postprocessing
         File detailFile = new File(outDir, "detail.xml");
         File detailDest = new File(xanaduDir, "detail.xml");
         if (detailFile.exists())
-            if (!detailFile.renameTo(detailDest))
-                logger.warning("Cannot move detail file to Xanadu directory");
+            if (!FileHelper.copyFile(detailFile.getAbsolutePath(),
+                                     detailDest.getAbsolutePath(), false))
+                logger.warning("Cannot copy detail file to Xanadu directory");
 
         // xml => html + graphs
         xanadu = new Command("xanadu export " + xanaduDir + " " + outDir);
