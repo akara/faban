@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.7 2007/04/21 07:18:13 akara Exp $
+ * $Id: Metrics.java,v 1.8 2007/04/23 19:49:56 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -29,6 +29,7 @@ import com.sun.faban.driver.RunControl;
 import com.sun.faban.common.TextTable;
 
 import java.io.Serializable;
+import java.io.IOException;
 import java.util.Date;
 import java.util.Formatter;
 import java.util.logging.Logger;
@@ -1021,13 +1022,12 @@ public class Metrics implements Serializable, Cloneable {
         // The X axis and the data
         for (int i = 0; i < bucketLimit; i++) {
             // The X axis
-            Formatter formatter = new Formatter(table.getField(i, 0));
-            formatter.format(unitFormat, unit * i);
+            table.setField(i, 0, String.format(unitFormat, unit * i));
 
             // The data
             for (int j = 0; j < txTypes; j++) {
-                formatter = new Formatter(table.getField(i, j + 1));
-                formatter.format(dataFormat, rawGraph[j][i]/divider);
+                table.setField(i, j + 1,
+                        String.format(dataFormat, rawGraph[j][i]/divider));
             }
         }
         table.format(b);
@@ -1062,16 +1062,14 @@ public class Metrics implements Serializable, Cloneable {
         // The X axis and the data
         for (int i = 0; i < bucketLimit; i++) {
             // The X axis
-            Formatter formatter = new Formatter(table.getField(i, 0));
-            formatter.format(unitFormat, unit * i);
+            table.setField(i, 0, String.format(unitFormat, unit * i));
 
             // The data
             for (int j = 0; j < txTypes; j++) {
                 double data = 0d;
                 if (divider[j][i] != 0)
                     data = rawGraph[j][i] / (divider2 * divider[j][i]);
-                formatter = new Formatter(table.getField(i, j + 1));
-                formatter.format(dataFormat, data);
+                table.setField(i, j + 1, String.format(dataFormat, data));
             }
         }
         table.format(b);
@@ -1099,12 +1097,11 @@ public class Metrics implements Serializable, Cloneable {
         // The X axis and the data
         for (int i = 0; i < bucketLimit; i++) {
             // The X axis
-            Formatter formatter = new Formatter(table.getField(i, 0));
-            formatter.format(unitFormat, unit * i);
+            table.setField(i, 0, String.format(unitFormat, unit * i));
 
             // The data
             for (int j = 0; j < txTypes; j++)
-                table.getField(i, j + 1).append(histogram[j][i]);
+                table.setField(i, j + 1, String.valueOf(histogram[j][i]));
         }
         table.format(b);
         b.append('\n');
