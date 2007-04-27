@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunQ.java,v 1.16 2006/10/26 00:38:36 akara Exp $
+ * $Id: RunQ.java,v 1.17 2007/04/27 21:33:27 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -50,7 +50,7 @@ public class RunQ {
     String runqDir;
     RunDaemon runDaemon = null;
     RunQLock runqLock;
-    Logger logger;
+    static Logger logger = Logger.getLogger(RunQ.class.getName());
 
     private static RunQ runQ = null;
 
@@ -69,7 +69,6 @@ public class RunQ {
 
     private RunQ() {
         runqLock = new RunQLock();
-        logger = Logger.getLogger(this.getClass().getName());
         runDaemon = new RunDaemon(runqLock);
     }
 
@@ -97,11 +96,12 @@ public class RunQ {
     public String addRun(String user, String profile, BenchmarkDescription desc)
             throws IOException {
 
+        RunSequence seq = new RunSequence();
         try {
             // Gets the lock for the runq directory.
             runqLock.grabLock();
 
-            String runId = desc.shortName + '.' + getRunSeq();
+            String runId = desc.shortName + '.' + seq.get();
 
             String runDir = Config.RUNQ_DIR + runId;
             // create Run Directory
@@ -173,84 +173,13 @@ public class RunQ {
                     paramRepFileName);
             FileHelper.copyFile(paramSourceFileName, paramRepFileName, false);
 
-            generateNextSeq(runId);
+            seq.next();
             runqLock.signal();  // Signal a new run is submitted.
-
             return runId;
         } finally {
+            if (seq != null)
+                seq.cancel();
             runqLock.releaseLock();
-        }
-    }
-
-    // Gets the sequence for this run from the sequence file. Creates a new
-    // sequence file if it does not already exist.
-    String getRunSeq() {
-
-        String runSeq = null;
-        String runSeqChar, runSeqIntChar;
-        File seqFile = new File(Config.SEQUENCE_FILE);
-
-        if (seqFile.exists()) {
-            try {
-                runSeq = FileHelper.readStringFromFile(seqFile);
-                if (runSeq.endsWith("\n"))
-                    runSeq = runSeq.substring(0, runSeq.length() - 1);
-            } catch (IOException e) {
-                logger.log(Level.SEVERE, "Cannot read sequence file!", e);
-            }
-            int colonPos = -1;
-            if((runSeq != null) && ((colonPos = runSeq.indexOf(":")) != -1)) {
-                runSeqChar = runSeq.substring(colonPos + 1);
-                runSeqIntChar = runSeq.substring(0, colonPos);
-                runSeq = runSeqIntChar + runSeqChar;
-            } else {
-                logger.warning("RunQ getRunId: Invalid runSeq in sequence file");
-                seqFile.delete();
-                runSeq = null;
-            }
-        }
-        
-        // Could not find a valid runSeq
-        if(runSeq == null) {
-            try {
-                seqFile.createNewFile();
-            } catch (IOException ie) {
-                logger.severe("Could not create the sequence File");
-            }
-            runSeq = "1A";
-        }
-        return runSeq;
-    }
-
-    // Generate the sequence number for the next run and write it to
-    // sequence file.
-    void generateNextSeq(String currentRunId) throws IOException {
-
-        File seqFile = new File(Config.SEQUENCE_FILE);
-        int index = currentRunId.lastIndexOf(".");
-        int length = currentRunId.length();
-
-        char seqChar = currentRunId.charAt(length - 1);
-        String seqIntStr = currentRunId.substring(index + 1, length - 1);
-        int seqInt = Integer.parseInt(seqIntStr);
-        if (seqChar == 'z') {
-            seqInt++;
-            seqChar = 'A';
-        }
-        else {
-            seqChar = (seqChar == 'Z') ? 'a' :
-                    ((char)((int) seqChar + 1));
-        }
-
-        StringBuffer sb = new StringBuffer();
-        sb.append(seqInt).append(':').append(seqChar);
-
-        try {
-            FileHelper.writeStringToFile(sb.toString(), seqFile);
-        }
-        catch (IOException e) {
-            logger.log(Level.SEVERE, "Could not write to the sequence file", e);
-            throw e;
         }
     }
 
@@ -482,6 +411,113 @@ public class RunQ {
             }
         }
         return null;
+    }
+
+    /**
+     * The RunSequence class assists in generating the run sequence.
+     */
+    private static class RunSequence {
+
+        RandomAccessFile seqRFile;
+        String runSeq = null;
+
+        // Gets the sequence for this run from the sequence file. Creates a new
+        // sequence file if it does not already exist.
+        String get() {
+
+            String runSeqChar, runSeqIntChar;
+            File seqFile = new File(Config.SEQUENCE_FILE);
+
+            if (seqFile.exists()) {
+                try {
+                    seqRFile = new RandomAccessFile(seqFile, "rwd");
+                    long size = seqRFile.length();
+                    if (size > Integer.MAX_VALUE)
+                        throw new IOException(Config.SEQUENCE_FILE +
+                                " larger than 2GB not supported!");
+                    byte[] buffer = new byte[(int) size];
+                    seqRFile.readFully(buffer);
+                    if (buffer[buffer.length - 1] == '\n')
+                        --size;
+                    runSeq = new String(buffer, 0, (int) size);
+
+                    int colonPos = -1;
+                    if(runSeq != null &&
+                            (colonPos = runSeq.indexOf(":")) != -1) {
+                        runSeqChar = runSeq.substring(colonPos + 1);
+                        runSeqIntChar = runSeq.substring(0, colonPos);
+                        runSeq = runSeqIntChar + runSeqChar;
+                    } else {
+                        logger.warning("RunQ getRunId: " +
+                                "Invalid runSeq in sequence file");
+                        runSeq = null;
+                    }
+                } catch (IOException e) {
+                    logger.log(Level.WARNING, e.getMessage(), e);
+                }
+            }
+
+            // Could not find a valid runSeq
+            if(runSeq == null) {
+                runSeq = "1A";
+            }
+            return runSeq;
+        }
+
+        // Generate the sequence number for the next run and write it to
+        // sequence file.
+        void next() throws IOException {
+
+            int length = runSeq.length();
+
+            char seqChar = runSeq.charAt(length - 1);
+            String seqIntStr = runSeq.substring(0, length - 1);
+            int seqInt = Integer.parseInt(seqIntStr);
+            switch (seqChar) {
+                case 'z' : ++seqInt; seqChar = 'A'; break;
+                case 'Z' : seqChar = 'a'; break;
+                default  : ++seqChar;
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.append(seqInt).append(':').append(seqChar);
+
+            try {
+                if (seqRFile == null)
+                    seqRFile = new RandomAccessFile(Config.SEQUENCE_FILE,"rwd");
+                else
+                    seqRFile.seek(0);
+                byte[] buffer = sb.toString().getBytes();
+                seqRFile.write(buffer);
+                if (seqRFile.length() != buffer.length)
+                    seqRFile.setLength(buffer.length);
+                seqRFile.close();
+            } catch (IOException e) {
+                logger.log(Level.SEVERE,
+                        "Could not write to the sequence file", e);
+                throw e;
+            } finally {
+                if (seqRFile != null) {
+                    seqRFile.close();
+                    seqRFile = null;
+                }
+            }
+        }
+
+        /**
+         * Cancels any pending sequence operations.
+         */
+        public void cancel() {
+            if (seqRFile != null) {
+                try {
+                    seqRFile.close();
+                } catch (IOException e) {
+                    logger.log(Level.WARNING,
+                                        "Closing sequence file failed!", e);
+                }
+                seqRFile = null;
+            }
+        }
     }
 
     /**

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: SJSAS8AgentImpl.java,v 1.3 2006/10/25 23:04:42 akara Exp $
+ * $Id: SJSAS8AgentImpl.java,v 1.4 2007/04/27 21:33:26 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -50,7 +50,7 @@ public class SJSAS8AgentImpl extends UnicastRemoteObject implements SJSAS8Agent,
     private static final String[] SJSAS8_CONFIG_FILES = {"config/domain.xml"};
     private static final String SJSAS8_START = "bin/startserv";
     private static final String SJSAS8_STOP = "bin/stopserv";
-    private static final String SSL_PASSWD_FILE = "/tmp/sslPasswd";
+    private static final String SSL_PASSWD_FILE = Config.TMP_DIR + "sslPasswd";
 
 
     private String host;
@@ -127,9 +127,9 @@ public class SJSAS8AgentImpl extends UnicastRemoteObject implements SJSAS8Agent,
 
                     // Check if the -Xloggc is specified  then append it with a log file name
                     if(sunParams.getProperty(param).indexOf("Xloggc") != -1) {
-                        // The log file will be named /tmp/gc.log.<instance>
+                        // The log file will be named Config.TMP_DIR + gc.log.<instance>
                         logGC = true;
-                        String gcLogFile = "/tmp/gc.log." + new File(instances[i]).getName();
+                        String gcLogFile = Config.TMP_DIR + "gc.log." + new File(instances[i]).getName();
                         String value = sunParams.getProperty(param);
                         value = value.replaceAll("Xloggc", "Xloggc" + ":" + gcLogFile);
                         sunParams.setProperty(param, value);
@@ -158,7 +158,7 @@ public class SJSAS8AgentImpl extends UnicastRemoteObject implements SJSAS8Agent,
                     }
 
                 }
-                //if(editor.save("/tmp/server.xml.bak."+ runId)) {
+                //if(editor.save(Config.TMP_DIR + "server.xml.bak."+ runId)) {
                 // we are no longer need to backup the file
                 if(editor.save(null)) {
                     logger.config("Updated  " + configXML);
@@ -400,8 +400,8 @@ public class SJSAS8AgentImpl extends UnicastRemoteObject implements SJSAS8Agent,
         // If profile run jar up the profile data files and transfer it
         // we need to do this only once even if there are multiple instances running on the machine.
         if(this.profileRun) {
-            String jarFile = "/tmp/" + runId + ".profile.jar";
-            String cmd = "cd /tmp/" + runId +";/usr/java/bin/jar -cf " + jarFile + " *";
+            String jarFile = Config.TMP_DIR + runId + ".profile.jar";
+            String cmd = "cd " + Config.TMP_DIR + runId +";/usr/java/bin/jar -cf " + jarFile + " *";
             try {
                 if(!cmdAgent.start(cmd, Config.DEFAULT_PRIORITY))
                     logger.severe("Failed to create profile jar file ");
@@ -445,7 +445,7 @@ public class SJSAS8AgentImpl extends UnicastRemoteObject implements SJSAS8Agent,
 
             // if using Xloggc:<filename>
             if(logGC) {
-                String gcLogFile = "/tmp/gc.log." + instance;
+                String gcLogFile = Config.TMP_DIR + "gc.log." + instance;
                 sb = new StringBuffer(outDir);
                 sb.append("/gc.log.");
                 sb.append(instance);
@@ -459,7 +459,7 @@ public class SJSAS8AgentImpl extends UnicastRemoteObject implements SJSAS8Agent,
             // stopserv needs the instance dir/s
             if(profileRun) {
                 // Remove the profile directory created for this run
-                File file = new File("/tmp/"+ runId + "/" + instance );
+                File file = new File(Config.TMP_DIR + runId + "/" + instance );
                 String [] list = file.list();
                 for(int j = 0; j < list.length; j++)
                     FileHelper.recursiveDelete(file, list[j]);
@@ -506,8 +506,8 @@ public class SJSAS8AgentImpl extends UnicastRemoteObject implements SJSAS8Agent,
                     logger.log(Level.FINE, "Exception", e);
                 }
             }
-            // remove files with benchmark name or instance name from /tmp
-            list = new File("/tmp").listFiles();
+            // remove files with benchmark name or instance name from Config.TMP_DIR
+            list = new File(Config.TMP_DIR).listFiles();
             String instance = f.getParent();
             String bm = new RunId(runId).getBenchName();
             for (int j = 0; j < list.length; j ++) {

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: XFormServlet.java,v 1.4 2007/03/21 06:57:19 akara Exp $
+ * $Id: XFormServlet.java,v 1.5 2007/04/27 21:33:29 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -119,6 +119,11 @@ public class XFormServlet extends HttpServlet {
         HttpSession session = request.getSession(true);
         Adapter adapter = null;
 
+        String templateFile = (String)
+                                session.getAttribute("faban.submit.template");
+        String srcURL = "file://" + templateFile.replace('\\', '/');
+        session.removeAttribute("faban.submit.template");
+
         try {
             String requestURI = request.getRequestURI();
             String formURI = null;
@@ -168,6 +173,12 @@ public class XFormServlet extends HttpServlet {
             adapter.xslPath = xsltDir;
             adapter.actionURL = actionURL;
             adapter.beanCtx.put("chiba.web.uploadDir", uploadDir);
+            adapter.beanCtx.put("chiba.useragent", request.getHeader(
+                                 "User-Agent"));
+            adapter.beanCtx.put("chiba.web.request", request);
+            adapter.beanCtx.put("chiba.web.session", session);
+            adapter.beanCtx.put("benchmark.template", srcURL);
+
             adapter.stylesheet = "faban.xsl";
 
             if (css != null) {
@@ -179,10 +190,6 @@ public class XFormServlet extends HttpServlet {
             servletMap.put(ChibaAdapter.SESSION_ID, session.getId());
             adapter.beanCtx.put(ChibaAdapter.SUBMISSION_RESPONSE, servletMap);
 
-            adapter.beanCtx.put("chiba.useragent", request.getHeader(
-                                 "User-Agent"));
-            adapter.beanCtx.put("chiba.web.request", request);
-            adapter.beanCtx.put("chiba.web.session", session);
 
             Enumeration params = request.getParameterNames();
             while (params.hasMoreElements()) {
@@ -366,7 +373,10 @@ public class XFormServlet extends HttpServlet {
 
             if (formURI != null) {
                 try {
-                    if (formURI.charAt(0) == '/') {
+                    // A local file can be /... or c:\... but it is
+                    // certainly under the Faban directory.
+                    if (formURI.startsWith(
+                            com.sun.faban.harness.common.Config.FABAN_HOME)) {
                         FileInputStream stream = new FileInputStream(formURI);
                         setXForms(stream);
                     } else {

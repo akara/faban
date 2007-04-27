@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: UserEnv.java,v 1.5 2006/10/02 20:44:27 akara Exp $
+ * $Id: UserEnv.java,v 1.6 2007/04/27 21:33:29 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,7 +25,6 @@ package com.sun.faban.harness.webclient;
 
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
-import com.sun.faban.harness.util.FileHelper;
 
 import javax.security.auth.Subject;
 import java.io.File;
@@ -108,27 +107,6 @@ public class UserEnv {
     }
 
     /**
-     * Copies the config file for a certain/benchmark and profile to the
-     * current submission. If the profile does not exist or does not have
-     * a config file, copy the default config file deployed with the benchmark.
-     * @param profile The name of the profile
-     * @param desc The description of the benchmark
-     */
-    public void copyParamRepository(String profile, BenchmarkDescription desc) {
-        String srcFile = Config.PROFILES_DIR + profile + File.separator +
-                         desc.configFileName + "." + desc.shortName;
-        File f = new File(srcFile);
-
-        String dstFile = "/tmp/" + desc.configFileName;
-        if(!f.exists()) // Use the default config file
-            srcFile = Config.BENCHMARK_DIR + File.separator + desc.shortName +
-                      File.separator + "META-INF" + File.separator +
-                      desc.configFileName;
-
-        FileHelper.copyFile(srcFile, dstFile, false);
-    }
-
-    /**
      * Saves the config file to the given profile.
      * @param profile The profile to save to
      * @param desc The benchmark description
@@ -137,14 +115,9 @@ public class UserEnv {
     public void saveParamRepository(String profile, BenchmarkDescription desc,
                                     char[] buf) {
 
-        String srcFile = "/tmp/" + desc.configFileName;
+        String destFile = null;
 
-        // Save it into the /tmp/run.xml
         try {
-            FileWriter writer = new FileWriter(srcFile);
-            writer.write(buf);
-            writer.close();
-
 
             String usrDir = Config.PROFILES_DIR + profile;
             File dir = new File(usrDir);
@@ -169,9 +142,12 @@ public class UserEnv {
             String dstFile = Config.PROFILES_DIR + profile + File.separator +
                     desc.configFileName + "." + desc.shortName;
 
-            FileHelper.copyFile(srcFile, dstFile, false);
+            FileWriter writer = new FileWriter(dstFile);
+            writer.write(buf);
+            writer.close();
+
         } catch(Exception e) {
-            logger.log(Level.SEVERE, "Unable to write " + srcFile + '.', e);
+            logger.log(Level.SEVERE, "Unable to write " + destFile + '.', e);
         }
     }
 }

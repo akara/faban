@@ -17,11 +17,13 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: LogHandler.java,v 1.2 2006/06/29 19:38:42 akara Exp $
+ * $Id: LogHandler.java,v 1.3 2007/04/27 21:33:28 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.logging;
+
+import com.sun.faban.harness.common.Config;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -72,7 +74,8 @@ public class LogHandler implements ProtocolHandler {
             PrintWriter debug = null;
 
             try {
-                debug = new PrintWriter(new FileWriter("/tmp/debug.log", true));
+                debug = new PrintWriter(new FileWriter(Config.TMP_DIR +
+                                        "debug.log", true));
             } catch (IOException e) {
             }
             */
@@ -98,7 +101,7 @@ public class LogHandler implements ProtocolHandler {
                 //Open the log file and dump the record/s
                 String logFile = System.getProperty("faban.log.file");
                 if(logFile == null)
-                    logFile = "/tmp/log.xml";
+                    logFile = Config.TMP_DIR + "log.xml";
                 FileOutputStream logStream = new FileOutputStream(logFile, true);
                 logStream.write(writeBuffer, 0, writeSize);
                 logStream.flush();

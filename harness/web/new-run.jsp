@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: new-run.jsp,v 1.5 2006/08/19 03:06:12 akara Exp $
+ * $Id: new-run.jsp,v 1.6 2007/04/27 21:33:29 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -33,7 +33,9 @@
 <%@ page language="java" import="java.util.Map,
                                  com.sun.faban.harness.common.BenchmarkDescription,
                                  com.sun.faban.harness.security.AccessController,
-                                 com.sun.faban.harness.webclient.UserEnv"%>
+                                 com.sun.faban.harness.webclient.UserEnv,
+                                 com.sun.faban.harness.common.Config,
+                                 java.io.File"%>
 <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
 <%
     String profile = (String)session.getAttribute("faban.profile");
@@ -41,20 +43,33 @@
         profile = request.getParameter("profile");
         session.setAttribute("faban.profile", profile);
     }
-    BenchmarkDescription benchDesc = (BenchmarkDescription)session.getAttribute("faban.benchmark");
+    BenchmarkDescription desc = (BenchmarkDescription)
+                                        session.getAttribute("faban.benchmark");
     String benchmark = null;
-    if (benchDesc == null) {
+    if (desc == null) {
         Map<String, BenchmarkDescription> bms =
                 BenchmarkDescription.getBenchNameMap();
         benchmark = request.getParameter("benchmark");
-        benchDesc = bms.get(benchmark);
-        session.setAttribute("faban.benchmark", benchDesc);
+        desc = bms.get(benchmark);
+        session.setAttribute("faban.benchmark", desc);
     }
-    usrEnv.copyParamRepository(profile, benchDesc);
-    String url = "benchmarks/" + benchDesc.shortName + '/' + benchDesc.configForm;
 
-    if ((profile != null) && (benchDesc != null) &&
-           AccessController.isSubmitAllowed(usrEnv.getSubject(), benchDesc.shortName)) {
+    if ((profile != null) && (desc != null) && AccessController.
+            isSubmitAllowed(usrEnv.getSubject(), desc.shortName)) {
+
+        String templateFile = Config.PROFILES_DIR + profile + File.separator +
+                desc.configFileName + "." + desc.shortName;
+        File f = new File(templateFile);
+
+        // String dstFile = Config.TMP_DIR + desc.configFileName;
+        if(!f.exists()) // Use the default config file
+            templateFile = Config.BENCHMARK_DIR + File.separator +
+                    desc.shortName + File.separator + "META-INF" +
+                    File.separator + desc.configFileName;
+
+        session.setAttribute("faban.submit.template", templateFile);
+
+        String url = "benchmarks/" + desc.shortName + '/' + desc.configForm;
 %>
 
 <meta HTTP-EQUIV=REFRESH CONTENT="0;URL=<%=url%>">

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Engine.java,v 1.4 2006/08/11 00:05:51 akara Exp $
+ * $Id: Engine.java,v 1.5 2007/04/27 21:33:27 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -89,30 +89,6 @@ public class Engine {
         reqUrl.setLength(++uriLength);
         System.setProperty("faban.url", reqUrl.toString());
 
-        /* Note: moved logic to Config.java
-        // Read the real path back from the Config and make it
-        // faban.home/logs.
-        path = Config.FABAN_HOME + "logs";
-
-        // Redirect log to faban.log.xml
-        if(path == null)
-            path = "%t";
-
-        path = path + File.separator + "faban.log.xml";
-
-        StringBuffer sb = new StringBuffer();
-	    sb.append("\nhandlers = java.util.logging.FileHandler\n");
-        sb.append("java.util.logging.FileHandler.pattern = " + path + "\n");
-        sb.append("java.util.logging.FileHandler.append = true\n");
-        sb.append("java.util.logging.FileHandler.limit = 102400\n");
-        sb.append("java.util.logging.FileHandler.formatter = com.sun.faban.harness.logging.XMLFormatter\n");
-
-        try {
-            LogManager.getLogManager().readConfiguration(
-                    new ByteArrayInputStream(sb.toString().getBytes()));
-        } catch(IOException e) { }
-        */
-
         // Access config NOW, static initializers will config the logging
         // before we instatiate a logger.
         path = Config.DEFAULT_LOG_FILE;
@@ -131,81 +107,6 @@ public class Engine {
             logger.log(Level.SEVERE,  "Error starting log server", e);
         }
     }
-
-    /*
-     * This servlet's get call takes the parameters
-     * cmd=&lt;command&gt;. Commands are listed in the
-     * commands array.
-     * @param     request          the servlet request
-     * @param     response         the servlet response
-     * @exception ServletException if get request fails
-     *
-    public void doGet(HttpServletRequest request,
-                      HttpServletResponse response)
-        throws ServletException {
-
-        String okMsg = "200 OK\n";
-        String errorMsg = "400 Error\n";
-        String responseString = "";
-        boolean responded = false;
-        ServletOutputStream responseStream = null;
-
-        try {
-            responseStream = response.getOutputStream();
-        } catch (IOException e) {
-            getServletConfig().getServletContext().log(
-                               "Error getting response OutputStream", e);
-            throw new ServletException(e);
-        }
-
-        int paramCount = 0;
-
-        for (Enumeration paramNames = request.getParameterNames(); paramNames.hasMoreElements(); ) {
-            String paramName = (String) paramNames.nextElement();
-            ++paramCount;
-
-            String[] paramValues = request.getParameterValues(paramName);
-
-            for (int i = 0; i < paramValues.length; i++)
-                if ("cmd".equals(paramName)) {
-                }
-                else
-                    responseString = errorMsg + '\n' +
-                                     "Unrecognized get parameter: " +
-                                     paramName;
-        }
-
-        try {
-            if (paramCount == 0) {
-                response.setContentType("text/html");
-                responseStream.println("<html><head><title>Faban Engine Servlet " +
-                    "</title></head><body bgcolor=#ffffff><center>" +
-                    "<h2>Faban Engine Servlet</h2></center>" +
-                    "<h3>No command specified</h3>" +
-                    "To specify command, append '?cmd=&lt;command&gt;' " +
-                    "to the current URL in your browser<p>" +
-                    "Supported commands:<ul>");
-
-                for (int i = 0; i < commands.length; i++)
-                    responseStream.println("<li>" + commands[i]);
-
-                responseStream.println("</ul></pre></body></html>");
-            } else if (responseString.length() > 0) {
-                if (responded)
-                    responseStream.println("");
-                responseStream.print(responseString);
-            } else
-                if (!responded)
-                    responseStream.print(okMsg);
-
-                responseStream.close();
-        } catch (IOException e) {
-            logger.severe("Error " + e);
-            logger.log(Level.FINE, "Exception", e);
-        }
-    }
-
-    */
 
     private void terminate() {
          try {

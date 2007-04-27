@@ -17,11 +17,13 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileAgentImpl.java,v 1.2 2006/06/29 19:38:40 akara Exp $
+ * $Id: FileAgentImpl.java,v 1.3 2007/04/27 21:33:26 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.agent;
+
+import com.sun.faban.harness.common.Config;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -153,7 +155,7 @@ public class FileAgentImpl extends UnicastRemoteObject
 
         PrintWriter pr = null;
         try {
-            pr = new PrintWriter(new FileWriter("/tmp/fa.log"));
+            pr = new PrintWriter(new FileWriter(Config.TMP_DIR + "fa.log"));
         }
         catch (IOException ie) {
             return false;

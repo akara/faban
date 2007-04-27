@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileHelper.java,v 1.9 2006/10/09 09:57:43 akara Exp $
+ * $Id: FileHelper.java,v 1.10 2007/04/27 21:33:28 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -32,7 +32,6 @@ import com.sun.faban.harness.agent.FileServiceException;
 import com.sun.faban.harness.common.Config;
 
 import java.io.*;
-import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Enumeration;
 import java.util.Properties;
@@ -478,15 +477,28 @@ public class FileHelper {
      * @throws IOException If the file cannot be read.
      */
     public static byte[] getContent(String file) throws IOException {
-        FileChannel channel = (new FileInputStream(file)).getChannel();
-        long channelSize = channel.size();
-        if (channelSize >= Integer.MAX_VALUE)
-            throw new IOException("Cannot handle file size >= 2GB");
-        ByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY,
-                0, channelSize);
-        byte[] content = new byte[(int) channelSize];
-        buffer.get(content);
-        channel.close();
+        File fd = new File(file);
+        long size = fd.length();
+        if (size == 0)
+            throw new IOException("Cannot determine file size.");
+        if (size >= Integer.MAX_VALUE)
+            throw new IOException("Cannot handle file size >= 2GB.");
+        byte[] content = new byte[(int) size];
+        FileInputStream in = null;
+        try {
+            in = new FileInputStream(fd);
+            int readLength = 0;
+            while (readLength < size) {
+                int bytes = in.read(content, readLength,
+                            (int) size - readLength);
+                if (bytes == -1) // EOS
+                    break;
+                readLength += bytes;
+            }
+        } finally {
+            if (in != null)
+                in.close();
+        }
         return content;
     }
 
@@ -500,11 +512,15 @@ public class FileHelper {
         }
         Properties prop = new Properties();
         prop.setProperty(args[1], args[2]);
-        
+
         //FileHelper.editPropFile(args[0], prop, null);
         // FileHelper.tokenReplace(args[0], args[1], args[2], null);
-        //FileHelper.tokenReplace("/tmp/t", "\"$JAVA_HOME\"/bin/java", "profcmd= \n\\$profcmd \"\\$JAVA_HOME\"/bin/java", null);
-        FileHelper.tokenReplace("/tmp/t", "\"$JAVA_HOME\"/bin/java", "profcmd= \n$profcmd \"$JAVA_HOME\"/bin/java", null);
+        //FileHelper.tokenReplace(System.getProperty("java.io.tmpdir") +
+        //      "/t", "\"$JAVA_HOME\"/bin/java",
+        // "profcmd= \n\\$profcmd \"\\$JAVA_HOME\"/bin/java", null);
+        FileHelper.tokenReplace(System.getProperty("java.io.tmpdir") + "/t",
+                "\"$JAVA_HOME\"/bin/java",
+                "profcmd= \n$profcmd \"$JAVA_HOME\"/bin/java", null);
     }
 }
 /*
@@ -524,4 +540,4 @@ public class FileHelper {
                             line = sb.toString();
                         }
 
-*/                        
+*/

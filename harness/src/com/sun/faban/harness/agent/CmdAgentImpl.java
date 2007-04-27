@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgentImpl.java,v 1.5 2006/08/01 05:55:17 akara Exp $
+ * $Id: CmdAgentImpl.java,v 1.6 2007/04/27 21:33:26 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -677,7 +677,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
     {
         InputStream err = proc.getErrorStream();
         InputStream log = proc.getInputStream();
-        // Create a unique temporary log file in /tmp
+        // Create a unique temporary log file in tmp dir
         String errFile =
                 Config.TMP_DIR + "cmd" + proc.hashCode();
         String logFile = errFile + "-out";

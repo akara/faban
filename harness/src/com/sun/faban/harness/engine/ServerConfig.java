@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ServerConfig.java,v 1.3 2006/07/27 22:34:35 akara Exp $
+ * $Id: ServerConfig.java,v 1.4 2007/04/27 21:33:27 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -222,12 +222,13 @@ class ServerConfig {
                     logger.config("Turning on all cpus on " + machines[j]);
                     cmds.start(machines[j], buf, CmdService.SEQUENTIAL, Config.DEFAULT_PRIORITY);
 
-                    buf = "/usr/sbin/psrinfo > /tmp/sys.out";
+                    String tmpFile = Config.TMP_DIR + "sys.out";
+                    buf = "/usr/sbin/psrinfo > " + tmpFile;
                     logger.fine("Getting cpus");
                     cmds.start(machines[j], buf, CmdService.SEQUENTIAL, Config.DEFAULT_PRIORITY);
 
-                    if (cmds.copy(machines[j], master, "/tmp/sys.out", "/tmp/sys.out", false)) {
-                        BufferedReader in = new BufferedReader(new FileReader("/tmp/sys.out"));
+                    if (cmds.copy(machines[j], master, tmpFile, tmpFile, false)) {
+                        BufferedReader in = new BufferedReader(new FileReader(tmpFile));
 
                         ArrayList cpuList = new ArrayList();
                         boolean isMultiCore = false;

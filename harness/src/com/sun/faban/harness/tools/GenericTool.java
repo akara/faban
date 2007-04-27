@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericTool.java,v 1.7 2007/04/19 05:32:58 akara Exp $
+ * $Id: GenericTool.java,v 1.8 2007/04/27 21:33:28 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -95,7 +95,7 @@ public class GenericTool implements Tool {
 
         // Get output logfile name
         outfile = outDir + toolName + ".log." + host;
-        // Create a unique temporary out file in /tmp
+        // Create a unique temporary out file in tmp dir
         logfile = Config.TMP_DIR + toolName + ".out." + this.hashCode();
 
         buildCmd(argList);

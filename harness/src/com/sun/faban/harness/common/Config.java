@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.21 2007/04/19 05:32:57 akara Exp $
+ * $Id: Config.java,v 1.22 2007/04/27 21:33:27 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -273,6 +273,22 @@ public class Config {
         BENCHMARK_DIR = FABAN_HOME + "benchmarks" + File.separator;
         BENCH_FILE = CONFIG_DIR + "benchmarks.list";
         PROFILES_DIR = CONFIG_DIR + "profiles" + File.separator;
+
+        String[] emptyDirs = { BENCHMARK_DIR, OUT_DIR, RUNQ_DIR, PROFILES_DIR,
+                              FABAN_HOME + "logs",
+                              FABAN_HOME + "master" + File.separator + "logs" };
+        ensureDirs(emptyDirs);
+    }
+
+    private static void ensureDirs(String[] dirNames) {
+        File dir = null;
+        for (String dirName : dirNames) {
+            dir = new File(dirName);
+            if (!dir.exists() && !dir.mkdirs())
+                // We do not have a logger yet. Just dump it
+                // to the Tomcat logs directly
+                System.err.println("Cannot create directory " + dirName);
+        }
     }
 
     private static void configLogger() {
@@ -282,7 +298,14 @@ public class Config {
         if(path == null)
             path = "%t";
 
-        path = path + File.separator + "faban.log.xml";
+        path += File.separator + "faban.log.xml";
+        
+        // If it's windows, we need to make sure the format is
+        // C:/faban/logs/faban.log.xml
+        // instead of C:\faban\logs\faban.log.xml which doesn't work.
+        // The other option is C:\\faban\\logs\\faban.log.xml. But this
+        // is far harder to do.
+        path = path.replace('\\', '/');
 
         StringBuffer sb = new StringBuffer();
 	    sb.append("\nhandlers = java.util.logging.FileHandler\n");
