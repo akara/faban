@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: HttpTransport.java,v 1.4 2007/01/16 22:28:22 akara Exp $
+ * $Id: HttpTransport.java,v 1.5 2007/04/27 22:12:27 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -218,8 +218,8 @@ public class HttpTransport {
     public int readURL(URL url, String postRequest, Map<String, String> headers)
             throws IOException {
         HttpURLConnection c = getConnection(url);
-        postRequest(c, postRequest);
         setHeaders(c, headers);
+        postRequest(c, postRequest);
         responseCode = c.getResponseCode();
         responseHeader = c.getHeaderFields();
         return readResponse(c);
@@ -466,7 +466,8 @@ public class HttpTransport {
             throws IOException {
         responseCode = connection.getResponseCode();
         responseHeader = connection.getHeaderFields();
-        if (connection.getContentType().startsWith("text/")) {
+        String contentType = connection.getContentType();
+        if (contentType != null && contentType.startsWith("text/")) {
             InputStream is = connection.getInputStream();
             Reader reader = new InputStreamReader(is);
 
