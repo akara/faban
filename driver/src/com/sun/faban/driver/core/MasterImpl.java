@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MasterImpl.java,v 1.9 2007/04/21 07:18:12 akara Exp $
+ * $Id: MasterImpl.java,v 1.10 2007/04/28 01:59:55 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -1132,12 +1132,21 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 
     /**
      * The main method to start the master. No arguments
-     * are expected or passed. The only expectation is
-     * the benchmark.properties property pointing to the
-     * properties file.
+     * are required. The -noexit argument will cause the master
+     * to wait. The only actual expectation is the benchmark.properties
+     * property pointing to the properties file.
      * @param args The command line arguments are ignored.
      */
     public static void main(String[] args) {
+
+        // Check whether -noexit is set.
+        boolean normalExit = true;
+        for (String arg : args) {
+            if ("-noexit".equals(arg)) {
+                normalExit = false;
+                break;
+            }
+        }
         MasterImpl m = null;
         try {
             m = new MasterImpl();
@@ -1151,7 +1160,8 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         }
         try {
             m.runBenchmark();
-            System.exit(0);
+            if (normalExit)
+                System.exit(0);
         } catch (Throwable t) {
             m.logger.log(Level.SEVERE, "Master terminated with errors.", t);
             System.exit(1);
