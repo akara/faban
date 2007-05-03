@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<!-- $Id: config.xhtml,v 1.3 2007/01/25 06:13:22 akara Exp $ -->
+<!-- $Id: config.xhtml,v 1.4 2007/05/03 23:16:16 akara Exp $ -->
 <html xmlns:chiba="http://chiba.sourceforge.net/2003/08/xforms"
     xmlns:xforms="http://www.w3.org/2002/xforms"
     chiba:stylesheet="faban.xsl">
     <head>
         <xforms:model id="benchmark-model">
-            <xforms:instance id="benchmark-instance" src="file:///tmp/run.xml"/>
+            <xforms:instance id="benchmark-instance" src="{benchmark.template}"/>
             <xforms:submission xforms:action="schedule-run.jsp" xforms:replace="all" id="submission-debug" xforms:method="post"/>
             <xforms:bind id="bind-webBenchmark" xforms:nodeset="/webBenchmark">
                 <xforms:bind id="bind-jvmConfig" xforms:nodeset="jvmConfig">
