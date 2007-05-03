@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<benchmark>
+    <!-- Note: Most of these fields are not needed for a benchmark
+    implemented using the Faban driver framework.
+    <name>Sample Web Workload1</name>
+    <version>0.1</version -->
+    <config-form>config.xhtml</config-form>
+    <config-file-name>run.xml</config-file-name>
+    <!-- benchmark-class>sample.harness.WebBenchmark</benchmark-class -->
+</benchmark>
