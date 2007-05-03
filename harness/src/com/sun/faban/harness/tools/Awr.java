@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Awr.java,v 1.3 2006/11/18 05:23:09 akara Exp $
+ * $Id: Awr.java,v 1.4 2007/05/03 07:24:04 murlee Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -36,7 +36,7 @@ public class Awr extends OracleTool {
      * @return The output file name
      */
     protected String getOutputFile(String outDir, String host) {
-        return super.getOutputFile(outDir, host) + ".html";
+        return super.getOutputFile(outDir, host) + ".log";
     }
 
     /**
@@ -44,7 +44,7 @@ public class Awr extends OracleTool {
      * @return The log file name
      */
     protected String getLogFile() {
-        return super.getLogFile() + ".html";
+        return super.getLogFile() + ".log";
     }
 
     /**
@@ -70,7 +70,7 @@ public class Awr extends OracleTool {
     protected String getReportCommand(String snapId, String snapId1,
                                    String outputFile) {
         return "@?/rdbms/admin/awrrpt\n" +
-               "html\n" +
+               "text\n" +
                "\n" +
                snapId + "\n" +
                snapId1 + "\n" +

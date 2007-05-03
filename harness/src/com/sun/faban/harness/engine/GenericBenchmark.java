@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.14 2007/04/21 07:18:59 akara Exp $
+ * $Id: GenericBenchmark.java,v 1.15 2007/05/03 07:24:04 murlee Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -384,6 +384,19 @@ public class GenericBenchmark {
         if(!(new File(xanaduDir)).mkdirs())
             return false;
 
+		// Process the text using Xanadu3.
+		Command xanadu = new Command ("xanadu " + outDir + " " + outDir + " " + run.getRunId());
+		try {
+            CommandHandle handle = cmds.execute(xanadu);
+            if (handle.exitValue() != 0)
+                logger.severe("Xanadu process command " + xanadu + " Failed");
+        } catch(Exception e) {
+            logger.log(Level.SEVERE, "Xanadu process command " + xanadu +
+                    " failed.", e);
+            return false;
+        }
+
+/*	
         // Text => xml
         Command xanadu = new Command("xanadu import " + outDir + " " +
                 xanaduDir + " " + run.getRunId());
@@ -409,6 +422,7 @@ public class GenericBenchmark {
 
         // xml => html + graphs
         xanadu = new Command("xanadu export " + xanaduDir + " " + outDir);
+
         try {
             CommandHandle handle = cmds.execute(xanadu);
             if (handle.exitValue() != 0)
@@ -418,6 +432,7 @@ public class GenericBenchmark {
                     " failed.", e);
             return false;
         }
+*/
         return true;
     }
 }
