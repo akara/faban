@@ -17,13 +17,14 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdMap.java,v 1.3 2006/07/15 03:09:46 akara Exp $
+ * $Id: CmdMap.java,v 1.4 2007/05/03 23:13:18 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.util;
 
 import com.sun.faban.harness.common.Config;
+import com.sun.faban.common.Command;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -32,26 +33,125 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
- * Reads/parses the command mapping and modifies the exec map with the command
+ * Checks the binary paths and the command mapping file and creates the exec
  * map.
  *
  * @author Akara Sucharitakul
  */
 public class CmdMap {
 
+    static Logger logger = Logger.getLogger(CmdMap.class.getName());
+
+    /**
+     * Scans the bin directories and command map file and returns the command
+     * map.
+     * @param benchName The name of the benchmark,
+     *                  null if the map is not benchmark-specific
+     * @return The command map
+     * @throws Exception Something went wrong obtaining the command map.
+     */
+    public static HashMap<String, String> getCmdMap(String benchName)
+            throws Exception {
+        HashMap<String, String> binMap = new HashMap<String, String>();
+        // The platform-specific and benchmark-specific binaries
+        // take precedence, add last to map.
+        File binDir = new File(Config.FABAN_HOME + "bin"); // $FABAN_HOME/bin
+        addExecMap(binDir, binMap, null);
+        File sbinDir = new File(binDir, Config.OS_DIR); // $FABAN_HOME/bin/SunOS
+        addExecMap(sbinDir, binMap, null);
+        sbinDir = new File(binDir, Config.ARCH_DIR); // $FABAN_HOME/bin/SunOS/sparc
+        addExecMap(sbinDir, binMap, null);
+
+        if (benchName != null)
+            addBenchMap(binMap, benchName);
+
+        addCmdMapFile(binMap);
+
+        // Dump the binMap for debugging
+        if (logger.isLoggable(Level.FINER)) {
+            StringBuilder b = new StringBuilder("Executable map:\n");
+            for (Iterator it = binMap.entrySet().iterator(); it.hasNext();) {
+                Map.Entry entry = (Map.Entry) it.next();
+                b.append(entry.getKey());
+                b.append(" : ");
+                b.append(entry.getValue());
+                b.append('\n');
+            }
+            logger.finer(b.toString());
+        }
+       return binMap;
+    }
+
+    private static void addBenchMap(HashMap<String, String> binMap,
+                                    String benchName) {
+        // chmod is the way to make a file executable on Unix. Other platforms
+        // like Win32 does not have it and uses a different mechanism. So
+        // we'll run chmod only if it's there.
+        File chmodCmd = new File("/usr/bin/chmod");
+        StringBuilder chmod = null;
+        if (chmodCmd.exists()) {
+            chmod = new StringBuilder();
+            chmod.append("/usr/bin/chmod +x ");
+        }
+        File binDir = new File(Config.BENCHMARK_DIR + benchName + "/bin/");
+        boolean emptyList = addExecMap(binDir, binMap, chmod);
+        File sbinDir = new File(binDir, Config.OS_DIR);
+        emptyList = addExecMap(sbinDir, binMap, chmod) && emptyList;
+        sbinDir = new File(binDir, Config.ARCH_DIR);
+        emptyList = addExecMap(sbinDir, binMap, chmod) && emptyList;
+        if (!emptyList)
+            try {
+                logger.fine("Changing mode for bin: " + chmod);
+                Command cmd = new Command(chmod.toString());
+                cmd.execute();
+            } catch (IOException e) {
+                logger.log(Level.SEVERE, "Cannot change mode on bin files", e);
+            } catch (InterruptedException e) {
+                logger.log(Level.SEVERE,
+                           "Interrupted changing mode on bin files", e);
+            }
+    }
+
+
+    private static boolean addExecMap(File binDir,
+                                      HashMap<String, String> binMap,
+                                      StringBuilder chmod) {
+        boolean emptyList = true;
+        if (binDir.isDirectory()) {
+            File[] binFiles = binDir.listFiles();
+            for (int i = 0; i < binFiles.length; i++)
+                if (!binFiles[i].isDirectory()) {
+                    String name = binFiles[i].getName();
+                    String fullPath = binFiles[i].getAbsolutePath();
+                    binMap.put(name, fullPath);
+                    if (chmod != null) {
+                        chmod.append(fullPath);
+                        chmod.append(' ');
+                        emptyList = false;
+                    }
+                }
+        }
+        return emptyList;
+    }
+
+
     /**
      * Reads the command map file and adds/modifies the exec map accordingly.
      * @param binMap
      * @throws Exception
      */
-    public static void addTo(Map<String, String> binMap) throws Exception {
+    private static void addCmdMapFile(Map<String, String> binMap)
+            throws Exception {
         ArrayList<CmdDetail> cmdList = new ArrayList<CmdDetail>();
 
-        File cmdMap = new File(Config.CONFIG_DIR +
-                System.getProperty("os.name") + File.separator + "cmdmap.xml");
+        File cmdMap = new File(
+                            Config.CONFIG_DIR + Config.OS_DIR + "cmdmap.xml");
 
         if (cmdMap.exists()) {
 
@@ -63,8 +163,16 @@ public class CmdMap {
             for (Iterator<CmdDetail> iter = cmdList.iterator();
                  iter.hasNext();) {
                 CmdDetail c = iter.next();
-                if (c.path == null)
+                if (c.path == null) {
                     c.path = binMap.get(c.name);
+                } else {
+                    File f = new File(c.path); // The path can still be in
+                    if (!f.isAbsolute()) {     // the Faban path. May need
+                        String path = binMap.get(c.path); // another mapping.
+                        if (path != null)      // if not absolute path. Just
+                            c.path = path;     // ignore if not found in map.
+                    }                          // Should be in OS path instead.                        
+                }
                 if (c.path == null)
                     c.path = c.name;
                 for (int i = 0; i < c.prefix.length; i++) {

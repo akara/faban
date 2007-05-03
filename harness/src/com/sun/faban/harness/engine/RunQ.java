@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunQ.java,v 1.17 2007/04/27 21:33:27 akara Exp $
+ * $Id: RunQ.java,v 1.18 2007/05/03 23:13:18 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -241,8 +241,11 @@ public class RunQ {
                     String paramFile = Config.RUNQ_DIR + list[i]
                             + File.separator + ((BenchmarkDescription)
                             benchMap.get(benchName)).configFileName;
-                    ParamRepository par = new ParamRepository(paramFile);
-                    String desc = par.getParameter("runConfig/description");
+                    String desc = null;
+                    if (new File(paramFile).exists()) {
+                        ParamRepository par = new ParamRepository(paramFile);
+                        desc = par.getParameter("runConfig/description");
+                    }
                     if((desc == null) || (desc.length() == 0))
                         data[i][DESCRIPTION] = "UNAVAILABLE";
                     else
@@ -416,7 +419,7 @@ public class RunQ {
     /**
      * The RunSequence class assists in generating the run sequence.
      */
-    private static class RunSequence {
+    static class RunSequence {
 
         RandomAccessFile seqRFile;
         String runSeq = null;

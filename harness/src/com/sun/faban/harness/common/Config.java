@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.22 2007/04/27 21:33:27 akara Exp $
+ * $Id: Config.java,v 1.23 2007/05/03 23:13:17 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -42,6 +42,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.StringTokenizer;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
@@ -139,6 +140,9 @@ public class Config {
 
     public static final String XML_STATS_DIR = "xmlstats";
 
+    public static String ARCH_DIR;
+    public static String OS_DIR;
+
     public static String TMP_DIR;
     // File related
     public static String FABAN_HOST; // The host name.
@@ -163,7 +167,6 @@ public class Config {
     // space before and after string are required in next line
     // Constant used by engine.CmdService
     public static String BIN_DIR;
-    public static String CMD_SCRIPT;
     public static String LIB_DIR;
 
     public static String CONFIG_FILE;
@@ -256,10 +259,16 @@ public class Config {
             FABAN_HOST = "";
         }
 
+        // OS name is only the part before the space.
+        String osName = System.getProperty("os.name");
+        StringTokenizer st = new StringTokenizer(osName);
+        OS_DIR = st.nextToken() + File.separator;
+
+        ARCH_DIR = OS_DIR + System.getProperty("os.arch") + File.separator;
+
         // space before and after string are required in next line
         // Constant used by engine.CmdService
         BIN_DIR = " " + FABAN_HOME + "bin" + File.separator;
-        CMD_SCRIPT = BIN_DIR + "faban ";
         LIB_DIR = FABAN_HOME + "lib" + File.separator;
         OUT_DIR = FABAN_HOME + "output" + File.separator;
         ANALYSIS_DIR = FABAN_HOME + "analysis" + File.separator;

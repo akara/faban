@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: BenchmarkDescription.java,v 1.7 2006/12/12 23:26:30 akara Exp $
+ * $Id: BenchmarkDescription.java,v 1.8 2007/05/03 23:13:17 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -33,8 +33,7 @@ import javax.xml.xpath.XPathFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -83,20 +82,11 @@ public class BenchmarkDescription implements Serializable {
     static final Logger logger = Logger.getLogger(
             BenchmarkDescription.class.getName());
     static final XPath xPath = XPathFactory.newInstance().newXPath();
-    static final DocumentBuilder parser;
+    static final ParserPool parserPool = new ParserPool();
 
     static HashMap<String, BenchmarkDescription> benchNameMap;
     static HashMap<String, BenchmarkDescription> benchDirMap;
     static long mapTimeStamp = 0l;
-
-    static {
-        try {
-            parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-        } catch (ParserConfigurationException e) {
-            logger.log(Level.SEVERE, "Cannot create DOM DocumentBuilder", e);
-            throw new RuntimeException(e);
-        }
-    }
 
     /**
      * Obtains a map of benchmarks using the directory (or short name)
@@ -220,8 +210,14 @@ public class BenchmarkDescription implements Serializable {
         File benchmarkXml = new File(metaInf + "benchmark.xml");
         if (benchmarkXml.exists())
             try {
-                Node root = parser.parse(benchmarkXml).getDocumentElement();
                 desc = new BenchmarkDescription();
+
+                DocumentBuilder parser = parserPool.get();
+                Node root = parser.parse(benchmarkXml).getDocumentElement();
+                desc.benchmarkClass = xPath.evaluate("benchmark-class", root);
+                readFabanDescription(desc, metaInf, parser);
+                parserPool.release(parser);
+
                 desc.shortName = shortName ;
 
                 desc.configFileName = xPath.evaluate("config-file-name", root);
@@ -230,9 +226,6 @@ public class BenchmarkDescription implements Serializable {
                     throw new IOException("Element <config-file-name> empty " +
                             "or missing in " + benchmarkXml.getAbsolutePath());
 
-                desc.benchmarkClass = xPath.evaluate("benchmark-class", root);
-
-                readFabanDescription(desc, metaInf);
 
                 if (desc.benchmarkClass == null ||
                         desc.benchmarkClass.length() == 0)
@@ -295,7 +288,8 @@ public class BenchmarkDescription implements Serializable {
     }
 
     private static void readFabanDescription(BenchmarkDescription desc,
-                                             String metaInf) {
+                                             String metaInf,
+                                             DocumentBuilder parser) {
         File fabanXml = new File(metaInf + "faban.xml");
         if (fabanXml.exists())
             try {
@@ -318,5 +312,30 @@ public class BenchmarkDescription implements Serializable {
     }
 
     private BenchmarkDescription() {
+    }
+
+    /**
+     * Simple pool of DOM parsers.
+     */
+    private static class ParserPool {
+
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        ArrayList<DocumentBuilder> pool = new ArrayList<DocumentBuilder>();
+
+        synchronized DocumentBuilder get() throws ParserConfigurationException {
+            DocumentBuilder parser = null;
+            int size = pool.size();
+            if (size > 0) {
+                parser = pool.remove(size - 1);
+            } else {
+                parser = factory.newDocumentBuilder();
+            }
+            return parser;
+        }
+
+        synchronized void release(DocumentBuilder parser) {
+            pool.add(parser);
+        }
+
     }
 }

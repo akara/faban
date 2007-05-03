@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: pending-runs.jsp,v 1.5 2006/10/08 08:36:57 akara Exp $
+ * $Id: pending-runs.jsp,v 1.6 2007/05/03 23:13:19 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -68,7 +68,7 @@
                         <th>Run ID</th>
                         <th>Benchmark</th>
                         <th>Description</th>
-                    <tr>
+                    </tr>
         <%
                 for(int i=0; i < pending.length; i++) {
                     String runqDir = pending[i][1] + "." + pending[i][0];
@@ -79,14 +79,14 @@
         <%
                         if (killAllowed[i]) {
         %>
-                            <input type="checkbox" name="selected-runs" value=<%=runqDir %>>
+                            <input type="checkbox" name="selected-runs" value="<%=runqDir %>">
         <%
                         }
         %>
                             <%= pending[i][0] %></td>
                         <td><%= pending[i][1]%></td>
                         <td><%= pending[i][2]%></td>
-                    <tr>
+                    </tr>
          <%     } %>
                  </tbody>
                  </table>

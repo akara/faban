@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgentImpl.java,v 1.6 2007/04/27 21:33:26 akara Exp $
+ * $Id: CmdAgentImpl.java,v 1.7 2007/05/03 23:13:17 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -83,7 +83,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
     private List handleList = Collections.synchronizedList(new ArrayList());
 
     private String[] baseClassPath;
-    Map binMap;
+    Map<String, String> binMap;
 
     static class CmdProcess {
         String ident;
@@ -102,7 +102,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
 
 
     // This class must be created only through the main method.
-    private CmdAgentImpl() throws RemoteException {
+    private CmdAgentImpl(String benchName) throws RemoteException {
         super();
 
         try {
@@ -124,7 +124,9 @@ public class CmdAgentImpl extends UnicastRemoteObject
             }
             LogManager.getLogManager().readConfiguration(new FileInputStream(
                     Config.CONFIG_DIR + "logging.properties"));
-        } catch(IOException e) {
+            baseClassPath = getBaseClassPath(benchName);
+            binMap = CmdMap.getCmdMap(benchName);            
+        } catch(Exception e) {
             logger.log(Level.SEVERE, "Failed to initialize CmdAgent.", e);
         }
     }
@@ -828,75 +830,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
         return buf.toString();
     }
 
-    private void setBinMap(String benchName) throws Exception {
-        binMap = new HashMap();
-        String osName = System.getProperty("os.name");
-        String osArch = System.getProperty("os.arch");
-        // The platform-specific and benchmark-specific binaries
-        // take precedence, add last to map.
-        File binDir = new File(Config.FABAN_HOME + "bin"); // $FABAN_HOME/bin
-        addExecMap(binDir, null);
-        binDir = new File(binDir, osName); // $FABAN_HOME/bin/SunOS
-        addExecMap(binDir, null);
-        binDir = new File(binDir, osArch); // $FABAN_HOME/bin/SunOS/sparc
-        addExecMap(binDir, null);
-
-        StringBuilder chmod = new StringBuilder();
-        chmod.append("/usr/bin/chmod +x ");
-        binDir = new File(Config.BENCHMARK_DIR + benchName + "/bin/");
-        boolean emptyList = addExecMap(binDir, chmod);
-        binDir = new File(binDir, osName);
-        emptyList = addExecMap(binDir, chmod) && emptyList;
-        binDir = new File(binDir, osArch);
-        emptyList = addExecMap(binDir, chmod) && emptyList;
-        if (!emptyList)
-            try {
-                logger.fine("Changing mode for bin: " + chmod);
-                Command cmd = new Command(chmod.toString());
-                cmd.execute();
-            } catch (IOException e) {
-                logger.log(Level.SEVERE, "Cannot change mode on bin files", e);
-            } catch (InterruptedException e) {
-                logger.log(Level.SEVERE,
-                           "Interrupted changing mode on bin files", e);
-            }
-
-        CmdMap.addTo(binMap);
-
-        // Dump the binMap for debugging
-        if (!logger.isLoggable(Level.FINER))
-            return;
-        StringBuilder b = new StringBuilder("Executable map:\n");
-        for (Iterator iter = binMap.entrySet().iterator(); iter.hasNext();) {
-            Map.Entry entry = (Map.Entry) iter.next();
-            b.append(entry.getKey());
-            b.append(" : ");
-            b.append(entry.getValue());
-            b.append('\n');
-        }
-        logger.finer(b.toString());
-    }
-
-    private boolean addExecMap(File binDir, StringBuilder chmod) {
-        boolean emptyList = true;
-        if (binDir.isDirectory()) {
-            File[] binFiles = binDir.listFiles();
-            for (int i = 0; i < binFiles.length; i++)
-                if (!binFiles[i].isDirectory()) {
-                    String name = binFiles[i].getName();
-                    String fullPath = binFiles[i].getAbsolutePath();
-                    binMap.put(name, fullPath);
-                    if (chmod != null) {
-                        chmod.append(fullPath);
-                        chmod.append(' ');
-                        emptyList = false;
-                    }
-                }
-        }
-        return emptyList;
-    }
-
-    private void setBaseClassPath(String benchName) {
+    private static String[] getBaseClassPath(String benchName) {
         // The benchmark-specific libs take precedence, add first to list
         ArrayList libList = new ArrayList();
         File libDir = new File(Config.BENCHMARK_DIR + benchName + "/lib/");
@@ -913,8 +847,9 @@ public class CmdAgentImpl extends UnicastRemoteObject
                 if (libFiles[i].isFile())
                     libList.add(libFiles[i].getAbsolutePath());
         }
-        baseClassPath = new String[libList.size()];
+        String[] baseClassPath = new String[libList.size()];
         baseClassPath = (String[]) libList.toArray(baseClassPath);
+        return baseClassPath;
     }
 
     private boolean sameHost(String host1, String host2) {
@@ -1018,10 +953,8 @@ public class CmdAgentImpl extends UnicastRemoteObject
                 logger.fine("Succeeded re-registering " + Config.FILE_AGENT + "@" + hostname);
             }
             else {
-                CmdAgentImpl cmdImpl = new CmdAgentImpl();
                 new BenchmarkLoader().loadBenchmark(benchName, downloadURL);
-                cmdImpl.setBaseClassPath(benchName);
-                cmdImpl.setBinMap(benchName);
+                CmdAgentImpl cmdImpl = new CmdAgentImpl(benchName);
 
                 cmd = cmdImpl;
                 registry.register(ident, cmd);

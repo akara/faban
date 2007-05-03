@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.11 2007/04/19 05:32:57 akara Exp $
+ * $Id: CmdService.java,v 1.12 2007/05/03 23:13:18 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -91,7 +91,7 @@ final public class CmdService { 	// The final keyword prevents clones
     private String javaHome;
     private String jvmOptions;
     private HashMap<String, String> binMap = new HashMap<String, String>();
-    private String rsh;
+    private String rsh, faban;
 
 
     private CmdService() {
@@ -283,9 +283,9 @@ final public class CmdService { 	// The final keyword prevents clones
         // Next we use the command map to get the right
         // rsh command based on the undelying OS.
         try {
-            binMap.clear();
-            CmdMap.addTo(binMap);
+            binMap = CmdMap.getCmdMap(null);
             rsh = binMap.get("rsh");
+            faban = binMap.get("faban") + ' ';
         } catch (Exception e) {
             logger.log(Level.WARNING, "Failed to obtain command map.",e);
         }
@@ -308,10 +308,7 @@ final public class CmdService { 	// The final keyword prevents clones
         // public ip address
 
         // Fist check specific scripts for the arch
-        String osName = System.getProperty("os.name");
-        String scriptPath = Config.BIN_DIR + osName +
-                File.separator + System.getProperty("os.arch") +
-                File.separator + "interface";
+        String scriptPath = Config.BIN_DIR + Config.ARCH_DIR + "interface";
         File ifScript = new File(scriptPath.trim());
 
         // Then check script for the OS. If it exists, use it.
@@ -319,8 +316,7 @@ final public class CmdService { 	// The final keyword prevents clones
         if (!ifScript.exists()) {
             logger.finer("Could not find interface script at " +
                     ifScript.getAbsolutePath());
-            scriptPath = Config.BIN_DIR + osName +
-                    File.separator + "interface";
+            scriptPath = Config.BIN_DIR + Config.OS_DIR + "interface";
             ifScript = new File(scriptPath.trim());
         }
 
@@ -479,7 +475,7 @@ final public class CmdService { 	// The final keyword prevents clones
         String cmdarray;
         try {
             if (mach.equals(master)) {
-                cmdarray = Config.CMD_SCRIPT + mach + ' ' + interfaceAddress +
+                cmdarray = faban + mach + ' ' + interfaceAddress +
                         ' ' + masterAddress + ' ' + javaHome +
                         " faban.benchmarkName=" + benchName + ' ' + jvmOptions;
             } else { // if the machine is not the master machine, we need to
@@ -492,7 +488,7 @@ final public class CmdService { 	// The final keyword prevents clones
                 URL downloadURL = new URL(fabanURL.getProtocol(),
                         interfaceAddress, fabanURL.getPort(),
                         fabanURL.getFile());
-                cmdarray = rsh + ' ' + mach + Config.CMD_SCRIPT + mach + ' ' +
+                cmdarray = rsh + ' ' + mach + ' ' + faban + mach + ' ' +
                         interfaceAddress + ' ' + masterAddress + ' ' +
                         javaHome + " faban.benchmarkName=" + benchName +
                         " faban.download=" + downloadURL.toString() + ' ' +
@@ -541,13 +537,11 @@ final public class CmdService { 	// The final keyword prevents clones
                 return true;
             }
             // Else
-            logger.severe("Could not execute "
-                          + Config.CMD_SCRIPT + " on machine " + mach);
+            logger.severe("Could not execute " + faban + "on machine " + mach);
             return false;
         } catch(IOException e) {
-            logger.severe("Could not execute "
-                          + Config.CMD_SCRIPT + " on machine " + mach);
-            logger.log(Level.FINE, "Exception", e);
+            logger.log(Level.SEVERE, "Could not execute " + faban +
+                                                    "on machine " + mach, e);
             return false;
         }
     }

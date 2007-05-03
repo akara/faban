@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultlist.jsp,v 1.6 2006/11/17 01:55:17 akara Exp $
+ * $Id: resultlist.jsp,v 1.7 2007/05/03 23:13:19 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -54,7 +54,7 @@
     <%      for (int i = 0; i < resultTable.columns(); i++) { %>
                   <th><%= resultTable.getHeader(i) %></th>
     <%      } %>
-              <tr>
+              </tr>
     <%
             for(int i = 0; i < rows; i++) {
                 Comparable[] row = resultTable.getRow(i);
@@ -64,7 +64,7 @@
     <%          for (int j = 0; j < row.length; j++) { %>
                 <td><%= row[j] %></td>
     <%          } %>
-            <tr>
+            </tr>
     <%      } %>
      </tbody>
      </table>
