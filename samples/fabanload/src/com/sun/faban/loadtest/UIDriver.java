@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: UIDriver.java,v 1.1 2007/05/03 23:14:52 akara Exp $
+ * $Id: UIDriver.java,v 1.2 2007/05/04 04:17:47 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -120,12 +120,15 @@ public class UIDriver {
             http.fetchURL(resultList);
             StringBuilder response = http.getResponseBuffer();
             int tableIdx = response.indexOf("<table");
-            runIds = parseResultTable(response, tableIdx);
+            if (tableIdx != -1)
+                runIds = parseResultTable(response, tableIdx);
         } else { // RunIds won't change much over the run.
             http.readURL(resultList);
         }
-        int idx = random.random(0, runIds.length - 1);
-        runId = runIds[idx];
+        if (runIds != null) {
+            int idx = random.random(0, runIds.length - 1);
+            runId = runIds[idx];
+        }
     }
 
     @BenchmarkOperation (
@@ -134,6 +137,12 @@ public class UIDriver {
         timing  = Timing.AUTO
     )
     public void viewResult() throws IOException {
+        
+        if (runId == null) {
+            logger.warning("No results just yet. Try again next run.");
+            return;
+        }
+
         http.readURL(baseURL + "resultframe.jsp?runId=" + runId +
                 "&result=summary.xml&show=logs");
         http.readURL(baseURL + "LogReader?runId=" + runId);
@@ -189,9 +198,10 @@ public class UIDriver {
         http.readURL(submitRuns[2], "t_trigger-uiDriver=" +
                 "Harness%C2%A0UI%C2%A0Driver&d_input-description=" +
                 "Sample+benchmark+run&d_input-agent-host=sucharitakul&" +
-                "d_input-scale=150&d_input-agent-tools=NONE&" +
+                "d_input-scale=100&d_input-agent-tools=vmstat+10&" +
                 "d_input-rampUp=60&d_input-steadyState=300&" +
                 "d_input-rampDown=30");
+
         http.readURL(submitRuns[2], "d_input-driver-agents=1&" +
                 "d_input-driver-statsInterval=30&" +
                 "d_input-server-host=sucharitakul&d_input-server-port=9980&" +
