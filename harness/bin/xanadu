@@ -4,8 +4,9 @@ BINDIR=`dirname $0`
 
 if [ -n "$BINDIR" ] ; then
     FABAN_HOME=`cd $BINDIR/.. > /dev/null 2>&1 && pwd`
-    XANADU_HOME=`cd $FABAN_HOME/master/webapps/xanadu/scripts > /dev/null 2>&1 && pwd`
-    export FABAN_HOME XANADU_HOME
+    XANADU_HOME=`cd $FABAN_HOME/master/webapps/xanadu > /dev/null 2>&1 && pwd`
+    XANADU_SCRIPTS=$XANADU_HOME/scripts
+    export FABAN_HOME XANADU_HOME XANADU_SCRIPTS
 fi
 
 
@@ -52,19 +53,18 @@ if [ $1 = "import" ] ; then
     done
 fi
 
-# perl -w $XANADU_HOME/xanadu.pl $*
-# ksh -x $XANADU_HOME/process $*
+# perl -w $XANADU_SCRIPTS/xanadu.pl $*
+# ksh -x $XANADU_SCRIPTS/process $*
 
 #DIR=${0%/*}
 #PROG=${0##*/}
 
-PROG=$XANADU_HOME/process
-XANADU_HOME=$XANADU_HOME/..
+PROG=$XANADU_SCRIPTS/process
 
 chmod a+rx $XANADU_HOME/txt2db/*
 
-if [ $# -ne 2 ]; then
-        echo "usage: $PROG rawdir htmldir" 2>&1
+if [ $# -ne 3 ]; then
+        echo "usage: $PROG rawdir htmldir runID" 2>&1
         exit 2
 fi
 
@@ -93,5 +93,5 @@ java -mx756m \
         -Dxanadu.profile=default_profile \
         -Djava.awt.headless=true \
         -Dsun.java2d.pmoffscreen=false \
-        org.xanadu.cmd.ProcessRun "$@"
+        org.xanadu.cmd.process.ProcessRun "$@"
 

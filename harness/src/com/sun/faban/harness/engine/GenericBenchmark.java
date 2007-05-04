@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.15 2007/05/03 07:24:04 murlee Exp $
+ * $Id: GenericBenchmark.java,v 1.16 2007/05/04 04:17:18 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -27,10 +27,9 @@ import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
 import com.sun.faban.harness.Benchmark;
 import com.sun.faban.harness.ParamRepository;
-import com.sun.faban.harness.util.FileHelper;
 import com.sun.faban.harness.common.BenchmarkDescription;
-import com.sun.faban.harness.common.Run;
 import com.sun.faban.harness.common.Config;
+import com.sun.faban.harness.common.Run;
 
 import java.io.File;
 import java.io.IOException;
@@ -385,7 +384,8 @@ public class GenericBenchmark {
             return false;
 
 		// Process the text using Xanadu3.
-		Command xanadu = new Command ("xanadu " + outDir + " " + outDir + " " + run.getRunId());
+		Command xanadu = new Command ("xanadu " + outDir + " " + outDir + " " +
+                                                                run.getRunId());
 		try {
             CommandHandle handle = cmds.execute(xanadu);
             if (handle.exitValue() != 0)
