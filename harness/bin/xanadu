@@ -52,4 +52,46 @@ if [ $1 = "import" ] ; then
     done
 fi
 
-perl -w $XANADU_HOME/xanadu.pl $*
+# perl -w $XANADU_HOME/xanadu.pl $*
+# ksh -x $XANADU_HOME/process $*
+
+#DIR=${0%/*}
+#PROG=${0##*/}
+
+PROG=$XANADU_HOME/process
+XANADU_HOME=$XANADU_HOME/..
+
+chmod a+rx $XANADU_HOME/txt2db/*
+
+if [ $# -ne 2 ]; then
+        echo "usage: $PROG rawdir htmldir" 2>&1
+        exit 2
+fi
+
+#XANADU_HOME=${XANADU_HOME:-$DIR/..}
+
+PERL5LIB=$XANADU_HOME/txt2db
+
+CLASSPATH=\
+$XANADU_HOME/WEB-INF/lib/spark.jar:\
+$XANADU_HOME/WEB-INF/classes:\
+$XANADU_HOME/WEB-INF/lib/derby.jar:\
+$XANADU_HOME/WEB-INF/lib/jfreechart.jar:\
+$XANADU_HOME/WEB-INF/lib/jcommon.jar:\
+$XANADU_HOME/WEB-INF/lib/jruby.jar
+
+export PERL5LIB CLASSPATH
+
+rm -rf txt
+mkdir txt
+
+java -mx756m \
+        -Dderby.storage.pageReservedSpace=0 \
+        -Dderby.language.logQueryPlan=true \
+        -Dderby.storage.rowLocking=false \
+        -Dxanadu.basedir=$XANADU_HOME \
+        -Dxanadu.profile=default_profile \
+        -Djava.awt.headless=true \
+        -Dsun.java2d.pmoffscreen=false \
+        org.xanadu.cmd.ProcessRun "$@"
+
