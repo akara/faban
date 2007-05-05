@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MasterImpl.java,v 1.10 2007/04/28 01:59:55 akara Exp $
+ * $Id: MasterImpl.java,v 1.11 2007/05/05 01:40:49 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -1123,6 +1123,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
                                             "Error calling join on agent.", e);
                                 }
                 }
+                logger.severe("Run aborted. Master terminating!");
                 System.exit(1);
             }
         };
