@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DefaultFabanBenchmark.java,v 1.7 2007/01/24 02:35:03 akara Exp $
+ * $Id: DefaultFabanBenchmark.java,v 1.8 2007/05/05 01:41:43 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -328,8 +328,11 @@ public class DefaultFabanBenchmark implements Benchmark {
 
         // Wait for the master to complete the run.
         masterHandle.waitFor();
-        if (masterHandle.exitValue() != 0)
+        int exitValue = masterHandle.exitValue();
+        if (exitValue != 0) {
+            logger.severe("Master terminated with exit value " + exitValue);
             throw new Exception("Driver failed to complete benchmark run");
+        }
     }
 
     /**
