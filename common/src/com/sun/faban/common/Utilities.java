@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Utilities.java,v 1.1 2007/05/03 23:04:06 akara Exp $
+ * $Id: Utilities.java,v 1.2 2007/05/05 01:39:45 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -31,8 +31,8 @@ public class Utilities {
     /**
      * Parses a string escaped with \n, \t, \020, etc. Returns the
      * properly escaped string.
-     * @param s
-     * @return
+     * @param s The string with backslashes
+     * @return The string with control characters or unicode
      */
     public static String parseEscapedString(String s) {
         char[] cArray = s.toCharArray();
@@ -77,5 +77,4 @@ public class Utilities {
         }
         return buf.toString();
     }
-
 }
