@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<!-- $Id: config.xhtml,v 1.1 2007/05/03 23:14:51 akara Exp $ -->
+<!-- $Id: config.xhtml,v 1.2 2007/05/05 01:42:57 akara Exp $ -->
 <html xmlns:chiba="http://chiba.sourceforge.net/2003/08/xforms"
     xmlns:xforms="http://www.w3.org/2002/xforms"
     chiba:stylesheet="faban.xsl">
@@ -33,6 +33,9 @@
                     <xforms:bind id="bind-uiDriver" xforms:nodeset="driverConfig[@name='UIDriver']">
                         <xforms:bind id="bind-driver-agents" xforms:nodeset="agents"/>
                         <xforms:bind id="bind-driver-statsInterval" xforms:nodeset="stats/interval" xforms:type="positiveInteger"/>
+                        <xforms:bind id="bind-driver-properties" xforms:nodeset="properties">
+                            <xforms:bind id="bind-driver-realSubmit" xforms:nodeset="property[@name='realSubmit']"/>
+                        </xforms:bind>
                     </xforms:bind>
                 </xforms:bind>
                 <xforms:bind id="bind-serverConfig" xforms:nodeset="serverConfig">
@@ -71,6 +74,7 @@
                     <host>Host</host>
                     <port>Port</port>
                     <pathConfig>URL Path Configurations</pathConfig>
+                    <realSubmit>Really schedule runs?</realSubmit>
                     <tools>Tools</tools>
                     <ok>Ok</ok>
                     <cancel>Cancel</cancel>
@@ -161,6 +165,21 @@
                             <xforms:help>Enter the interval, in seconds, to collect detailed statistics</xforms:help>
                             <xforms:alert>Not a valid number</xforms:alert>
                         </xforms:input>
+                        <xforms:select1 id="select1-driver-realSubmit" xforms:bind="bind-driver-realSubmit">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/realSubmit"/>
+                            <xforms:choices>
+                                <xforms:item>
+                                    <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/yes"/>
+                                    <xforms:value>true</xforms:value>
+                                </xforms:item>
+                                <xforms:item>
+                                    <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/no"/>
+                                    <xforms:value>false</xforms:value>
+                                </xforms:item>
+                                <xforms:hint>Really submit runs? This will send the runIds of the test rig spinning!</xforms:hint>
+                                <xforms:help>Really submit runs? This will send the runIds of the test rig spinning!</xforms:help>
+                            </xforms:choices>
+                        </xforms:select1>
                     </xforms:group>
                     <xforms:group id="group-serverConfig">
                         <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/serverConfig"/>

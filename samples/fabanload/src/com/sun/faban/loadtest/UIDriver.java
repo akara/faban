@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: UIDriver.java,v 1.2 2007/05/04 04:17:47 akara Exp $
+ * $Id: UIDriver.java,v 1.3 2007/05/05 01:42:57 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -59,6 +59,7 @@ public class UIDriver {
     /** The driver context for this instance */
     private DriverContext ctx;
     private HttpTransport http;
+    boolean realSubmit;
     Logger logger;
     Random random;
     String baseURL;
@@ -77,6 +78,7 @@ public class UIDriver {
         random = ctx.getRandom();
         String host = ctx.getXPathValue("/fabanLoad/serverConfig/hostConfig/host");
         String port = ctx.getXPathValue("/fabanLoad/serverConfig/port");
+        realSubmit = Boolean.parseBoolean(ctx.getProperty("realSubmit"));
         baseURL = "http://" + host + ':' + port + '/';
         homePageGets = new String[4];
         homePageGets[0] = baseURL;
@@ -201,11 +203,13 @@ public class UIDriver {
                 "d_input-scale=100&d_input-agent-tools=vmstat+10&" +
                 "d_input-rampUp=60&d_input-steadyState=300&" +
                 "d_input-rampDown=30");
-
-        http.readURL(submitRuns[2], "d_input-driver-agents=1&" +
-                "d_input-driver-statsInterval=30&" +
-                "d_input-server-host=sucharitakul&d_input-server-port=9980&" +
-                "t_trigger-ok=Ok");
+        if (realSubmit)
+            http.readURL(submitRuns[2], "d_input-driver-agents=1&" +
+                    "d_input-driver-statsInterval=30&" +
+                    "d_select1-driver-realSubmit=false&" +
+                    "d_select1-driver-realSubmit=&" +
+                    "d_input-server-host=sucharitakul&" +
+                    "d_input-server-port=9980&t_trigger-ok=Ok");
     }
 
     @BenchmarkOperation (
