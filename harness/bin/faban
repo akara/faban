@@ -20,7 +20,7 @@ fi
 CLASSPATH=$FABAN_HOME/lib/fabancommon.jar:$FABAN_HOME/lib/fabanagents.jar
 export CLASSPATH
 
-PATH=$JAVA_HOME/bin:/usr/bin:/bin:/usr/ucb:/usr/sbin:$FABAN_HOME/bin
+PATH=$JAVA_HOME/bin:/bin:/usr/bin:/usr/local/bin:/usr/ucb:/usr/sbin:$FABAN_HOME/bin
 export PATH
 
 $JAVA_HOME/bin/java -server -classpath $CLASSPATH -Dfaban.home=$FABAN_HOME \
