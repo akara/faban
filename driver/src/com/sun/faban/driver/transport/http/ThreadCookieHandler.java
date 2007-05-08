@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ThreadCookieHandler.java,v 1.2 2006/06/29 19:38:38 akara Exp $
+ * $Id: ThreadCookieHandler.java,v 1.3 2007/05/08 04:56:12 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -462,13 +462,16 @@ public class ThreadCookieHandler {
          */
         boolean validate(URI request) {
 
-            if (domain == null)
+            if (domain == null) {
                 domain = request.getHost();
+                logger.finest("Set cookie domain to " + domain);
+            }
 
             if (path == null) {
                 path = request.getPath();
                 int idx = path.lastIndexOf('/');
                 path = path.substring(0, idx + 1);
+                logger.finest("Set cookie path to " + path);
             }
 
 
@@ -563,14 +566,14 @@ public class ThreadCookieHandler {
 
             HashSet<String> domainSet = new HashSet<String>();
 
-            String domain = address[0].getCanonicalHostName();
+            String domain = address[0].getCanonicalHostName().toLowerCase();
             while (domain != null) {
                 logger.finest("Select(1) cookie, domain: " + domain);
                 domainSet.add(domain);
                 domain = parseDomain(domain);
             }
 
-            domain = address[0].getHostName();
+            domain = address[0].getHostName().toLowerCase();
             while (domain != null) {
                 logger.finest("Select(2) cookie, domain: " + domain);
                 domainSet.add(domain);
