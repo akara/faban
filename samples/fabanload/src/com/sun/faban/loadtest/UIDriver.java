@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: UIDriver.java,v 1.3 2007/05/05 01:42:57 akara Exp $
+ * $Id: UIDriver.java,v 1.4 2007/05/12 06:59:10 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -218,11 +218,16 @@ public class UIDriver {
         timing  = Timing.AUTO
     )
     public void pendingRuns() throws IOException {
-        http.fetchURL(pendingList);
-        StringBuilder response = http.getResponseBuffer();
-        String postList = parsePendingTable(response);
-        if (postList != null)
-            http.readURL(deleteRuns, postList);
+        if (realSubmit) {
+            http.fetchURL(pendingList);
+            StringBuilder response = http.getResponseBuffer();
+            String postList = parsePendingTable(response);
+            if (postList != null)
+                http.readURL(deleteRuns, postList);
+        } else {
+            http.readURL(pendingList);
+        }
+
     }
 
     private String[] parseResultTable(StringBuilder content, int start) {
