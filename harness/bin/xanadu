@@ -95,3 +95,25 @@ java -mx756m \
         -Dsun.java2d.pmoffscreen=false \
         org.xanadu.cmd.process.ProcessRun "$@"
 
+# TODO: This is a hack put in for Xanadu 3 for the time being.
+# Need to remove when Xanadu 3 is fixed.
+
+editXan() {
+    sed 's%http://pae.sfbay/twiki/pub/TWiki/NSunSkin%/xanadu/html%g' ${1} > ${1}.1
+    sed 's%http://pae.sfbay/~neel%/xanadu/html%g' ${1}.1 > ${1}
+    rm ${1}.1 ;;
+}
+
+cd $2
+for i in *.xan*.html
+do
+    editXan $i
+done
+for i in *.log.*.html
+do
+    editXan $i
+done
+cd ..
+rm -rf txt
+
+# end hack removal
