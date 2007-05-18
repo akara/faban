@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgentImpl.java,v 1.7 2007/05/03 23:13:17 akara Exp $
+ * $Id: CmdAgentImpl.java,v 1.8 2007/05/18 16:51:51 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -911,7 +911,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
                     }else if (args[i].startsWith("faban.benchmarkName")) {
                         benchName = args[i].substring(args[i].indexOf('=') + 1);
                     } else if (args[i].indexOf("faban.logging.port") != -1) {
-                        jvmOptions = jvmOptions + " " + args[i];
+                        jvmOptions = jvmOptions + ' ' + args[i];
                         Config.LOGGING_PORT = Integer.parseInt(
                                 args[i].substring(args[i].indexOf("=") + 1));
                     } else if(args[i].indexOf("faban.registry.port") != -1) {
@@ -919,9 +919,10 @@ public class CmdAgentImpl extends UnicastRemoteObject
                         Config.RMI_PORT = Integer.parseInt(
                                 args[i].substring(args[i].indexOf("=") + 1));
                     } else {
-                        jvmOptions = jvmOptions + " " + args[i];
+                        jvmOptions = jvmOptions + ' ' + args[i];
                     }
             }
+            logger.finer("JVM options for child processes:" + jvmOptions);
 
             RMISocketFactory.setSocketFactory(new AgentSocketFactory(master, masterLocal));
             // Get hold of the registry
@@ -987,8 +988,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
                 if (cmdImpl.sameHost(host, master))
                     registry.register(Config.FILE_AGENT, f);
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             System.exit(-1);
         }

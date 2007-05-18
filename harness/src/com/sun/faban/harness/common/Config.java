@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.23 2007/05/03 23:13:17 akara Exp $
+ * $Id: Config.java,v 1.24 2007/05/18 16:51:51 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -301,20 +301,11 @@ public class Config {
     }
 
     private static void configLogger() {
-        String path = FABAN_HOME + "logs";
-
-        // Redirect log to faban.log.xml
-        if(path == null)
-            path = "%t";
-
-        path += File.separator + "faban.log.xml";
+        String path = FABAN_HOME + "logs" + File.separator + "faban.log.xml";
         
         // If it's windows, we need to make sure the format is
-        // C:/faban/logs/faban.log.xml
-        // instead of C:\faban\logs\faban.log.xml which doesn't work.
-        // The other option is C:\\faban\\logs\\faban.log.xml. But this
-        // is far harder to do.
-        path = path.replace('\\', '/');
+        // C:\\faban\\logs\\faban.log.xml
+        path = path.replace("\\", "\\\\");
 
         StringBuffer sb = new StringBuffer();
 	    sb.append("\nhandlers = java.util.logging.FileHandler\n");

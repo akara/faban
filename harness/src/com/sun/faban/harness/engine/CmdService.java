@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.12 2007/05/03 23:13:18 akara Exp $
+ * $Id: CmdService.java,v 1.13 2007/05/18 16:51:52 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -151,28 +151,39 @@ final public class CmdService { 	// The final keyword prevents clones
      * @return true if successful, false if setup failed
      *
      */
-    public boolean setup(String benchName, String[][] hosts, String home, String options) {
+    public boolean setup(String benchName, String[][] hosts,
+                         String home, String options) {
 
         javaHome = home;
-        jvmOptions = "-Djava.security.policy=" + Config.FABAN_HOME + "config" + File.separator +
-                "faban.policy -Djava.util.logging.config.file=" + Config.FABAN_HOME + "config" +
-                File.separator + "logging.properties -Dfaban.home=" + Config.FABAN_HOME +
-                " -Dfaban.registry.port=" + Config.RMI_PORT + " -Dfaban.logging.port=" +
+        Config.FABAN_HOME.replace('\\', '/');
+        // We need to be careful to escape properties having '\\' on win32
+        String escapedHome = Config.FABAN_HOME.replace("\\", "\\\\");
+        String fs = File.separatorChar == '\\' ? "\\\\" : File.separator;
+        jvmOptions = "-Dfaban.home=" + escapedHome +
+                " -Djava.security.policy=" + escapedHome + "config" + fs +
+                "faban.policy -Djava.util.logging.config.file=" + escapedHome +
+                "config" + fs + "logging.properties -Dfaban.registry.port=" +
+                Config.RMI_PORT + ' ' + "-Dfaban.logging.port=" +
                 Config.LOGGING_PORT;
 
         try {
             // Update the logging.properties file in config dir
             Properties log = new Properties();
-            FileInputStream in = new FileInputStream(Config.CONFIG_DIR + "logging.properties");
+            FileInputStream in = new FileInputStream(Config.CONFIG_DIR +
+                                                    "logging.properties");
             log.load(in);
             in.close();
 
             // Update if it has changed.
-            if(!(log.getProperty("java.util.logging.SocketHandler.host").equals(master) &&
-                 log.getProperty("java.util.logging.SocketHandler.port").equals(String.valueOf(Config.LOGGING_PORT)))){
+            if(!(log.getProperty("java.util.logging.SocketHandler.host").
+                    equals(master) &&
+                 log.getProperty("java.util.logging.SocketHandler.port").
+                    equals(String.valueOf(Config.LOGGING_PORT)))){
                 log.setProperty("java.util.logging.SocketHandler.host", master);
-                log.setProperty("java.util.logging.SocketHandler.port", String.valueOf(Config.LOGGING_PORT));
-                FileOutputStream out = new FileOutputStream(new File(Config.CONFIG_DIR + "logging.properties"));
+                log.setProperty("java.util.logging.SocketHandler.port",
+                                String.valueOf(Config.LOGGING_PORT));
+                FileOutputStream out = new FileOutputStream(
+                        new File(Config.CONFIG_DIR + "logging.properties"));
                 log.store(out, "Faban logging properties");
                 out.close();
             }
@@ -475,9 +486,9 @@ final public class CmdService { 	// The final keyword prevents clones
         String cmdarray;
         try {
             if (mach.equals(master)) {
-                cmdarray = faban + mach + ' ' + interfaceAddress +
-                        ' ' + masterAddress + ' ' + javaHome +
-                        " faban.benchmarkName=" + benchName + ' ' + jvmOptions;
+                cmdarray = faban + mach + ' ' + interfaceAddress + ' ' +
+                        masterAddress + ' ' + javaHome + ' ' + jvmOptions +
+                        " faban.benchmarkName=" + benchName;
             } else { // if the machine is not the master machine, we need to
                 // do an rsh and pass download instructions
                 // Many times, the FABAN_URL cannot be reached by the benchmark
@@ -490,56 +501,18 @@ final public class CmdService { 	// The final keyword prevents clones
                         fabanURL.getFile());
                 cmdarray = rsh + ' ' + mach + ' ' + faban + mach + ' ' +
                         interfaceAddress + ' ' + masterAddress + ' ' +
-                        javaHome + " faban.benchmarkName=" + benchName +
-                        " faban.download=" + downloadURL.toString() + ' ' +
-                        jvmOptions;
+                        javaHome + ' ' + jvmOptions +
+                        " faban.benchmarkName=" + benchName +
+                        " faban.download=" + downloadURL.toString();
             }
 
-            logger.fine("CmdService: Executing " + cmdarray);
-
-            Process p = Runtime.getRuntime().exec(cmdarray);
-
-            if(p != null) {
-                StringBuffer buffer = new StringBuffer();
-                byte[] b = new byte[1024];
-
-                // We do not expect a lot of output from the cmdAgent
-                // so we do not need a separate thread to do the reading.
-
-                // First process the error stream
-                InputStream is = p.getErrorStream();
-                int size = is.read(b);
-                while (size > -1) {
-                    if (size > 0)
-                        buffer.append(new String(b, 0, size));
-                    size = is.read(b);
-                }
-                is.close();
-                
-                if (buffer.length() > 0)
-                    logger.warning("stderr starting command agent on " + mach +
-                            ":\n" + buffer.toString());
-
-                // Then process the input stream
-                buffer.setLength(0);
-                is = p.getInputStream();
-                size = is.read(b);
-                while (size > -1) {
-                    if (size > 0)
-                        buffer.append(new String(b, 0, size));
-                    size = is.read(b);
-                }
-                is.close();
-
-                if (buffer.length() > 0)
-                    logger.info("stdout starting command agent on " + mach +
-                            ":\n" + buffer.toString());
-                return true;
-            }
-            // Else
-            logger.severe("Could not execute " + faban + "on machine " + mach);
-            return false;
-        } catch(IOException e) {
+            logger.fine("Executing " + cmdarray);
+            Command cmdAgent = new Command(cmdarray);
+            cmdAgent.setSynchronous(false);
+            cmdAgent.setLogLevel(Command.STDOUT, Level.WARNING);
+            cmdAgent.execute();
+            return true;
+        } catch (Exception e) {
             logger.log(Level.SEVERE, "Could not execute " + faban +
                                                     "on machine " + mach, e);
             return false;
