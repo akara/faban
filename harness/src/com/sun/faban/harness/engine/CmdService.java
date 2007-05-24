@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.13 2007/05/18 16:51:52 akara Exp $
+ * $Id: CmdService.java,v 1.14 2007/05/24 01:04:37 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -32,6 +32,8 @@ import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.util.FileHelper;
 import com.sun.faban.harness.util.CmdMap;
 import com.sun.faban.harness.util.InterfaceProbe;
+import com.sun.faban.harness.RemoteCallable;
+import com.sun.faban.harness.FabanHostUnknownException;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -80,8 +82,9 @@ final public class CmdService { 	// The final keyword prevents clones
 
     private static CmdService cmds;
 
-    private ArrayList cmdp, filep;
-    private ArrayList machinesList;	// list of all machines
+    private ArrayList<CmdAgent> cmdp;
+    private ArrayList<FileAgent> filep;
+    private ArrayList<String> machinesList;	// list of all machines
     private Properties hostInterfaces;
     private Logger logger;
     private Registry registry;
@@ -136,9 +139,9 @@ final public class CmdService { 	// The final keyword prevents clones
      *
      */
     public void init() {
-        machinesList = new ArrayList();
-        cmdp = new ArrayList();
-        filep = new ArrayList();
+        machinesList = new ArrayList<String>();
+        cmdp = new ArrayList<CmdAgent>();
+        filep = new ArrayList<FileAgent>();
         hostInterfaces = new Properties();
     }
 
@@ -466,7 +469,7 @@ final public class CmdService { 	// The final keyword prevents clones
             logger.info("CmdService: Configured " + s + " on server " + c.getHostName());
             s = Config.FILE_AGENT + "@" + mach;
             logger.fine("CmdService: Connecting to " + s);
-            filep.add(registry.getService(s));
+            filep.add((FileAgent) registry.getService(s));
             return true;
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error accessing command agent on system "
@@ -542,7 +545,7 @@ final public class CmdService { 	// The final keyword prevents clones
             return machineName; // Cannot resolve
         String retVal = null;
         try {
-            retVal = ((CmdAgent)(cmdp.get(index))).getHostName();
+            retVal = cmdp.get(index).getHostName();
         }
         catch (RemoteException re) {
             logger.severe("RemoteException " +
@@ -581,8 +584,7 @@ final public class CmdService { 	// The final keyword prevents clones
      */
     public CommandHandle execute(String machine, Command c)
             throws IOException, InterruptedException, RemoteException {
-        int index = machinesList.indexOf(machine);
-        return ((CmdAgent)(cmdp.get(index))).execute(c);
+        return findCmdAgent(machine).execute(c);
     }
 
     /**
@@ -598,11 +600,8 @@ final public class CmdService { 	// The final keyword prevents clones
     public CommandHandle[] execute(String[] machines, Command c)
             throws IOException, InterruptedException, RemoteException {
         CommandHandle[] result = new CommandHandle[machines.length];
-        for (int i = 0; i < machines.length; i++) {
-            String machine = machines[i];
-            int index = machinesList.indexOf(machine);
-            result[i] = ((CmdAgent)(cmdp.get(index))).execute(c);
-        }
+        for (int i = 0; i < machines.length; i++)
+            result[i] = findCmdAgent(machines[i]).execute(c);
         return result;
     }
 
@@ -631,8 +630,7 @@ final public class CmdService { 	// The final keyword prevents clones
      */
     public CommandHandle java(String machine, Command c)
             throws IOException, InterruptedException, RemoteException {
-        int index = machinesList.indexOf(machine);
-        return ((CmdAgent)(cmdp.get(index))).java(c);
+        return findCmdAgent(machine).java(c);
     }
 
     /**
@@ -648,13 +646,28 @@ final public class CmdService { 	// The final keyword prevents clones
     public CommandHandle[] java(String[] machines, Command c)
             throws IOException, InterruptedException, RemoteException {
         CommandHandle[] result = new CommandHandle[machines.length];
-        for (int i = 0; i < machines.length; i++) {
-            String machine = machines[i];
-            int index = machinesList.indexOf(machine);
-            result[i] = ((CmdAgent)(cmdp.get(index))).java(c);
-        }
+        for (int i = 0; i < machines.length; i++)
+            result[i] = findCmdAgent(machines[i]).java(c);
         return result;
     }
+
+    public <V extends Serializable> V
+            execute(String machine, RemoteCallable<V> callable)
+            throws Exception {
+        return findCmdAgent(machine).exec(callable);
+    }
+
+    public <V extends Serializable> List<V>
+            execute(String[] machines, RemoteCallable<V> callable)
+            throws Exception {
+
+        ArrayList<V> rl = new ArrayList<V>();
+        for (int i = 0; i < machines.length; i++)
+            rl.add(findCmdAgent(machines[i]).exec(callable));
+        return rl;
+    }
+
+
     /**
      * Start commands sequentially in foreground on machines
      * The command string should include all stdin, stdout, stderr
@@ -680,27 +693,18 @@ final public class CmdService { 	// The final keyword prevents clones
         if (seq == SEQUENTIAL) {
             /* Start cmd on each m/c in foreground */
             for (int i = 0; i < machines.length; i++) {
-                int index = machinesList.indexOf(machines[i]);
-                if (((CmdAgent)(cmdp.get(index))).
-                        start(cmd, priority) == false)
+                if (findCmdAgent(machines[i]).start(cmd, priority) == false)
                     exitcode = false;
             }
         }
         else if (seq == PARALLEL) {
             /* Start cmd on each m/c in parallel, then wait for all */
             String ident = "Generated";
-            for (int i = 0; i < machines.length; i++) {
-
-                int index = machinesList.indexOf(machines[i]);
-
-                ((CmdAgent)(cmdp.get(index))).
-                        start(cmd, ident, priority);
-            }
-            for (int i = 0; i < machines.length; i++) {
-                int index = machinesList.indexOf(machines[i]);
-                if (((CmdAgent)(cmdp.get(index))).wait(ident) == false)
+            for (int i = 0; i < machines.length; i++)
+                findCmdAgent(machines[i]).start(cmd, ident, priority);
+            for (int i = 0; i < machines.length; i++)
+                if (findCmdAgent(machines[i]).wait(ident) == false)
                     exitcode = false;
-            }
         }
         return(exitcode);
     }
@@ -728,14 +732,10 @@ final public class CmdService { 	// The final keyword prevents clones
      */
     public void start(String machines[], String cmd, String ident,
                       int priority) throws Exception {
-        int index;
-
         for (int i = 0; i < machines.length; i++) {
-            if ((machines[i] == null) || (machines[i].equals(""))) {
+            if ((machines[i] == null) || (machines[i].equals("")))
                 continue;
-            }
-            index = machinesList.indexOf(machines[i]);
-            ((CmdAgent)(cmdp.get(index))).start(cmd, ident, priority);
+            findCmdAgent(machines[i]).start(cmd, ident, priority);
         }
     }
 
@@ -757,8 +757,7 @@ final public class CmdService { 	// The final keyword prevents clones
             if ((machines[i] == null) || (machines[i].equals("")))
                 continue;
 
-            int index = machinesList.indexOf(machines[i]);
-            boolean ret = ((CmdAgent)(cmdp.get(index))).
+            boolean ret = findCmdAgent(machines[i]).
                     start(cmd, ident, msg, priority);
             if(ret)
                 logger.fine("Started command " + cmd + " on machine " + machines[i]);
@@ -793,9 +792,8 @@ final public class CmdService { 	// The final keyword prevents clones
 
         logger.info("starting command = "
                     + command + " on machine = " + machine);
-        int index = machinesList.indexOf(machine);
-        String retVal = ((CmdAgent)(cmdp.get(index))).
-                startAndGetOneOutputLine(command, ident, priority);
+        String retVal = findCmdAgent(machine).startAndGetOneOutputLine(
+                                                command, ident, priority);
         return retVal;
     }
 
@@ -812,10 +810,8 @@ final public class CmdService { 	// The final keyword prevents clones
     public String startAndGetStdOut (String machine, String command, int priority)
             throws Exception {
 
-        // logger.fine ("starting command = " + command + " on machine = " + machine);
-        int index = machinesList.indexOf(machine);
-        String retVal = ((CmdAgent)(cmdp.get(index))).
-                startAndGetStdOut(command, priority);
+        String retVal = findCmdAgent(machine).
+                                        startAndGetStdOut(command, priority);
         return retVal;
     }
 
@@ -830,8 +826,7 @@ final public class CmdService { 	// The final keyword prevents clones
                 continue;
             }
             logger.fine("Starting JAVA with " + cmd + " on " + machines[i]);
-            int index = machinesList.indexOf(machines[i]);
-            ((CmdAgent)(cmdp.get(index))).startJavaCmd(cmd, ident, env);
+            findCmdAgent(machines[i]).startJavaCmd(cmd, ident, env);
         }
     }
 
@@ -854,27 +849,15 @@ final public class CmdService { 	// The final keyword prevents clones
      * @param identifier to identify this agent later
      */
     public boolean startAgent(String machines[], Class agentClass, String identifier) throws Exception {
-        int index;
         boolean result = true;
 
         for (int i = 0; i < machines.length; i++) {
             if ((machines[i] == null) || (machines[i].equals(""))) {
                 continue;
             }
-            index = machinesList.indexOf(machines[i]);
-
-            if (index == -1) {
-                StringBuilder listString = new StringBuilder();
-                for (int j = 0; j < machinesList.size(); j++) {
-                    listString.append(machinesList.get(j));
-                    listString.append(' ');
-                }
-                logger.severe("Machine " + machines[i] +
-                              " not in machine list.\nMachine list: " +
-                              listString.toString());
-            }
             //Change the identifier to agent@host
-            result = result && ((CmdAgent)(cmdp.get(index))).startAgent(agentClass, identifier + "@" + machines[i]);
+            result = result && findCmdAgent(machines[i]).
+                    startAgent(agentClass, identifier + "@" + machines[i]);
         }
         return result;
     }
@@ -892,8 +875,7 @@ final public class CmdService { 	// The final keyword prevents clones
     public boolean wait(String machine, String ident) throws Exception {
         boolean exitcode = true;
         logger.info("Waiting for " + ident + " to complete ");
-        int index = machinesList.indexOf(machine);
-        if (((CmdAgent)(cmdp.get(index))).wait(ident) == false)
+        if (findCmdAgent(machine).wait(ident) == false)
             exitcode = false;
         return(exitcode);
     }
@@ -925,10 +907,8 @@ final public class CmdService { 	// The final keyword prevents clones
      */
     public void kill(String machines[], String ident) {
         try {
-            for (int i = 0; i < machines.length; i++) {
-                int index = machinesList.indexOf(machines[i]);
-                ((CmdAgent)(cmdp.get(index))).kill(ident);
-            }
+            for (int i = 0; i < machines.length; i++)
+                findCmdAgent(machines[i]).kill(ident);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to kill " + ident, e);
         }
@@ -951,10 +931,7 @@ final public class CmdService { 	// The final keyword prevents clones
     public void killem(String machines[], String ident, String processString, int sigNum) {
         try {
             for (int i = 0; i < machines.length; i++) {
-                int index = machinesList.indexOf(machines[i]);
-                ((CmdAgent)(cmdp.get(index))).killem(ident,
-                        processString,
-                        sigNum);
+                findCmdAgent(machines[i]).killem(ident, processString, sigNum);
                 logger.info("killed " + processString +
                         " on machine " + machines[i]);
             }
@@ -971,11 +948,7 @@ final public class CmdService { 	// The final keyword prevents clones
      */
     public String getProperty(String machine, String propFile, String propName)
             throws IOException {
-        int idx = machinesList.indexOf(machine);
-        if (idx == -1)
-            throw new IOException(machine + " not in list of machines.");
-        FileAgent agent = (FileAgent) filep.get(idx);
-        return agent.getProperty(propFile, propName);
+        return findFileAgent(machine).getProperty(propFile, propName);
     }
 
 
@@ -989,7 +962,7 @@ final public class CmdService { 	// The final keyword prevents clones
         try {
             for (i = 0; i < cmdp.size(); i++) {
                 logger.info("killing CmdAgent@" + machinesList.get(i));
-                ((CmdAgent)(cmdp.get(i))).kill();
+                cmdp.get(i).kill();
             }
             cmdp.clear();
             filep.clear();
@@ -1022,7 +995,7 @@ final public class CmdService { 	// The final keyword prevents clones
             try {
                 CmdAgent master = (CmdAgent) registry.getService(Config.CMD_AGENT);
                 String src = master.getHostName();
-                String dest = ((CmdAgent) cmdp.get(didx)).getHostName();
+                String dest = cmdp.get(didx).getHostName();
                 if (dest == src)
                     return true;
             } catch (RemoteException e) {
@@ -1032,7 +1005,7 @@ final public class CmdService { 	// The final keyword prevents clones
             }
         }
 
-        FileAgent destf = (FileAgent)(filep.get(didx));
+        FileAgent destf = filep.get(didx);
         try {
             FileService destfilep = destf.open(destfile, FileAgent.WRITE);
             byte[] content = FileHelper.getContent(srcfile);
@@ -1074,8 +1047,8 @@ final public class CmdService { 	// The final keyword prevents clones
 
         if (srcfile.equals(destfile)){
             try{
-                String dest = ((CmdAgent) cmdp.get(didx)).getHostName();
-                String src = ((CmdAgent) cmdp.get(sidx)).getHostName();
+                String dest = cmdp.get(didx).getHostName();
+                String src = cmdp.get(sidx).getHostName();
                 if (dest == src)
                     return true;
             } catch (Exception e) {
@@ -1086,8 +1059,8 @@ final public class CmdService { 	// The final keyword prevents clones
         logger.fine("CmdService: Copying " + srcfile + " from " + srcmachine
                 + " to " + destfile + " in " + destmachine);
 
-        srcf = (FileAgent)(filep.get(sidx));
-        destf = (FileAgent)(filep.get(didx));
+        srcf = filep.get(sidx);
+        destf = filep.get(didx);
         try {
             srcfilep = srcf.open(srcfile, FileAgent.READ);
             if (append)
@@ -1121,7 +1094,7 @@ final public class CmdService { 	// The final keyword prevents clones
                 int didx = machinesList.indexOf(destmachine);
                 if (sidx == didx && srcfile.equals(destfile))
                     return(true);
-                srcf = (FileAgent)(filep.get(sidx));
+                srcf = filep.get(sidx);
                 return srcf.removeFile(srcfile);
             }
         }
@@ -1135,13 +1108,35 @@ final public class CmdService { 	// The final keyword prevents clones
         return false;
     }
 
+    public String getTmpDir(String machine) {
+        try {
+            return findCmdAgent(machine).getTmpDir();
+        } catch (RemoteException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private CmdAgent findCmdAgent(String machine) {
+        int index = machinesList.indexOf(machine);
+        if (index == -1)
+            throw new FabanHostUnknownException(
+                    "Host " + machine + " not found!");
+        return cmdp.get(index);
+    }
+
+    private FileAgent findFileAgent(String machine) {
+        int index = machinesList.indexOf(machine);
+        if (index == -1)
+            throw new FabanHostUnknownException(
+                    "Host " + machine + " not found!");
+        return filep.get(index);
+    }
+
+
     public synchronized boolean delete(String srcmachine, String srcfile) {
         try {
-            int sidx = machinesList.indexOf(srcmachine);
-            FileAgent srcf = (FileAgent)(filep.get(sidx));
-            return srcf.removeFile(srcfile);
-        }
-        catch(Exception ie) {
+            return findFileAgent(srcmachine).removeFile(srcfile);
+        } catch (Exception ie) {
                 logger.severe("CmdService: Could not delete " + srcmachine +
                         ":" + srcfile);
             logger.log(Level.FINE, "Exception", ie);
@@ -1161,15 +1156,13 @@ final public class CmdService { 	// The final keyword prevents clones
      */
     public synchronized boolean copyToStream(String srcmachine, String srcfile, 
                                              OutputStream stream) {
-        FileAgent srcf = null;
         FileService srcfilep = null;
-        int sidx = machinesList.indexOf(srcmachine);
         byte[] buf = null;
 
         //logger.info("CmdService: Copying " + srcfile + " to " + destfile);
         //logger.info("CmdService: Copying from " + srcmachine + " to " + destmachine);
 
-        srcf = (FileAgent)(filep.get(sidx));
+        FileAgent srcf = findFileAgent(srcmachine);
         try {
             srcfilep = srcf.open(srcfile, FileAgent.READ);
 
@@ -1221,8 +1214,8 @@ final public class CmdService { 	// The final keyword prevents clones
         //logger.info("CmdService: Copying from " + srcmachine + " to " + destmachine);
         if (sidx == didx && srcfile.equals(destfile))
             return(true);
-        srcf = (FileAgent)(filep.get(sidx));
-        destf = (FileAgent)(filep.get(didx));
+        srcf = filep.get(sidx);
+        destf = filep.get(didx);
         try {
             srcfilep = srcf.open(srcfile, FileAgent.READ);
             if (append)
@@ -1276,7 +1269,7 @@ final public class CmdService { 	// The final keyword prevents clones
         int i = 0;
         try {
             for (i = 0; i < cmdp.size(); i++) {
-                ((CmdAgent)(cmdp.get(i))).setLogLevel(name, level);
+                cmdp.get(i).setLogLevel(name, level);
             }
         } catch (Exception e) {
             logger.severe(" setLogLevel Failed for CmdAgent@" + machinesList.get(i));

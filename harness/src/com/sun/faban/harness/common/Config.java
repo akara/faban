@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.24 2007/05/18 16:51:51 akara Exp $
+ * $Id: Config.java,v 1.25 2007/05/24 01:04:37 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -148,7 +148,7 @@ public class Config {
     public static String FABAN_HOST; // The host name.
     public static String FABAN_HOME; // This is where Faban is installed
     public static String FABAN_ROOT; // This is the context root for Faban
-    public static String FABAN_URL; // The URL to to access Faban
+    public static String FABAN_URL; // The URL to access Faban
     public static String CONFIG_DIR;
     public static String RUNQ_DIR;
     public static String OUT_DIR;

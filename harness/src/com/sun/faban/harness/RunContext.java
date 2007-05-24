@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunContext.java,v 1.6 2007/02/08 17:55:54 akara Exp $
+ * $Id: RunContext.java,v 1.7 2007/05/24 01:04:39 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -27,10 +27,12 @@ import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
 import com.sun.faban.harness.engine.CmdService;
 import com.sun.faban.harness.engine.RunFacade;
-import com.sun.faban.harness.agent.FileService;
+import com.sun.faban.harness.common.Config;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Serializable;
+import java.util.List;
 
 /**
  * The RunContext provides callbacks into the harness and the run environment.
@@ -71,6 +73,20 @@ public class RunContext {
      */
     public static String getOutDir() {
         return RunFacade.getInstance().getOutDir();
+    }
+
+    /**
+     * Obtains the tmp directory used by Faban on the target host.
+     * This may not be the same as the local one. Each OS is different
+     * and the tmpdir for the web container is also different.
+     * @param host The host to obtain the tmp dir, or null for local JVM
+     * @return The tmp directory
+     */
+    public static String getTmpDir(String host) {
+        if (host == null)
+            return Config.TMP_DIR;
+        else
+            return CmdService.getHandle().getTmpDir(host);
     }
 
     /**
@@ -166,6 +182,31 @@ public class RunContext {
     public static CommandHandle[] java(String[] hosts, Command java)
             throws IOException, InterruptedException {
       return CmdService.getHandle().java(hosts, java);
+    }
+
+    /**
+     * Execute a code block defined as a RemoteCallable on a remote host.
+     * @param host The remote host
+     * @param callable The callable defining the code block
+     * @return The result of the collable.
+     */
+    public static <V extends Serializable> V
+                        exec(String host, RemoteCallable<V> callable)
+            throws Exception {
+        return CmdService.getHandle().execute(host, callable);
+    }
+
+    /**
+     * Execute a code block defined as a RemoteCallable on a set of
+     * remote hosts.
+     * @param hosts The remote hosts
+     * @param callable The callable defining the code block
+     * @return The result of the callable
+     */
+    public static <V extends Serializable> List<V>
+                        exec(String[] hosts, RemoteCallable<V> callable)
+            throws Exception {
+        return CmdService.getHandle().execute(hosts, callable);
     }
 
     /**

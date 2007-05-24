@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdMap.java,v 1.4 2007/05/03 23:13:18 akara Exp $
+ * $Id: CmdMap.java,v 1.5 2007/05/24 01:04:38 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -70,6 +70,8 @@ public class CmdMap {
 
         if (benchName != null)
             addBenchMap(binMap, benchName);
+
+        mapPathExt(binMap);
 
         addCmdMapFile(binMap);
 
@@ -140,6 +142,50 @@ public class CmdMap {
         return emptyList;
     }
 
+    /**
+     * The mapPathExt modifies the binMap according to the Win32
+     * conventions. For example, faban.cmd can be called with just faban.
+     * But calling it with faban.cmd also works. The PATHEXT needs to be
+     * passed to the JVM as a system property faban.pathext. PATHEXT
+     * matching is case insensitive. On Win32-like systems, faban.pathext
+     * would be set at the JVM invocation. On Unix systems, this property
+     * should not be set. This method would be a noop in this case.
+     * @param binMap The binMap
+     */
+    private static void mapPathExt(Map<String, String> binMap) {
+
+        String pathExt = System.getProperty("faban.pathext");
+        if (pathExt == null)
+            return;
+        pathExt = pathExt.trim();
+        if (pathExt.length() == 0)
+            return;
+
+        // Use a separate map so we don't modify binmap while iterating
+        HashMap<String, String> pathExtMap = new HashMap<String, String>();
+
+        // Ensure each of the exts are lowercase.
+        String[] pathExts = pathExt.split(File.pathSeparator);
+        for (int i = 0; i < pathExts.length; i++) {
+            pathExts[i] = pathExts[i].toLowerCase();
+        }
+
+        Set<String> binKeys = binMap.keySet();
+
+        // Scan from back to front so the frontmost one put latest
+        // overrides the others that were put before.
+        for (int i = pathExts.length - 1; i >= 0; i--)
+            for (String key : binKeys)
+                if (key.toLowerCase().endsWith(pathExts[i])) {
+                    String value = binMap.get(key);
+                    String newKey = key.substring(0, key.length() -
+                                    pathExts[i].length());
+                    pathExtMap.put(newKey, value);
+                }
+
+        binMap.putAll(pathExtMap);
+    }
+
 
     /**
      * Reads the command map file and adds/modifies the exec map accordingly.
@@ -163,18 +209,18 @@ public class CmdMap {
             for (Iterator<CmdDetail> iter = cmdList.iterator();
                  iter.hasNext();) {
                 CmdDetail c = iter.next();
-                if (c.path == null) {
-                    c.path = binMap.get(c.name);
+                if (c.exec == null) {
+                    c.exec = binMap.get(c.name);
                 } else {
-                    File f = new File(c.path); // The path can still be in
+                    File f = new File(c.exec); // The exec can still be in
                     if (!f.isAbsolute()) {     // the Faban path. May need
-                        String path = binMap.get(c.path); // another mapping.
+                        String path = binMap.get(c.exec); // another mapping.
                         if (path != null)      // if not absolute path. Just
-                            c.path = path;     // ignore if not found in map.
+                            c.exec = path;     // ignore if not found in map.
                     }                          // Should be in OS path instead.                        
                 }
-                if (c.path == null)
-                    c.path = c.name;
+                if (c.exec == null)
+                    c.exec = c.name;
                 for (int i = 0; i < c.prefix.length; i++) {
                     int spIdx = c.prefix[i].indexOf(' ');
                     String cmd;
@@ -201,7 +247,7 @@ public class CmdMap {
                     exec.append(c.prefix[i]);
                     exec.append(' ');
                 }
-                exec.append(c.path);
+                exec.append(c.exec);
                 binMap.put(c.name, exec.toString());
                 exec.setLength(0);
             }
@@ -225,7 +271,7 @@ public class CmdMap {
 
     static class CmdDetail {
         String name;
-        String path;
+        String exec;
         String[] prefix;
 
         public String toString() {
@@ -236,7 +282,7 @@ public class CmdMap {
                 b.append(prefix[i]);
                 b.append(" ");
             }
-            b.append(path);
+            b.append(exec);
             return b.toString();
         }
     }
@@ -339,8 +385,8 @@ public class CmdMap {
 
             } else if ("name".equals(qName)) {
                 currentCmd.name = buffer.toString().trim();
-            } else if ("path".equals(qName)) {
-                currentCmd.path = buffer.toString().trim();
+            } else if ("exec".equals(qName)) {
+                currentCmd.exec = buffer.toString().trim();
             } else if ("prefix".equals(qName)) {
                 if (currentSequence < 0)
                     currentSequence = -1;
@@ -389,32 +435,32 @@ public class CmdMap {
         for (Iterator<CmdDetail> iter = cmdList.iterator();
              iter.hasNext();) {
             CmdDetail c = iter.next();
-            if (c.path == null)
-                c.path = binMap.get(c.name);
-            if (c.path == null)
-                c.path = c.name;
+            if (c.exec == null)
+                c.exec = binMap.get(c.name);
+            if (c.exec == null)
+                c.exec = c.name;
 
-            // Try to map path back to the binMap
-            String path = c.path;
+            // Try to map exec cmd back to the binMap
+            String exec = c.exec;
 
             // Separate out args
-            int pathEndIdx = path.indexOf(' ');
+            int pathEndIdx = exec.indexOf(' ');
             if (pathEndIdx > 0)
-                path = path.substring(0, pathEndIdx);
+                exec = exec.substring(0, pathEndIdx);
 
             // Search cmd for path separators ('/')
-            int pathSepIdx = path.indexOf(File.separator);
+            int pathSepIdx = exec.indexOf(File.separator);
 
             // If not found, still a relative path
             if (pathSepIdx < 0) {
                 // Map it
-                path = binMap.get(path);
+                exec = binMap.get(exec);
                 // And combine back with args
-                if (path != null) {
+                if (exec != null) {
                     if (pathEndIdx > 0)
-                        c.path = path + path.substring(pathEndIdx);
+                        c.exec = exec + exec.substring(pathEndIdx);
                     else
-                        c.path = path;
+                        c.exec = exec;
                 }
             }
 
@@ -425,14 +471,14 @@ public class CmdMap {
                     cmd = c.prefix[i]; // take the whole
                 else
                     cmd = c.prefix[i].substring(0, spIdx); // take command only
-                // Lookup the actual path from the binMap
-                path = binMap.get(cmd);
-                if (path == null)
-                    path = cmd;
+                // Lookup the actual exec call from the binMap
+                exec = binMap.get(cmd);
+                if (exec == null)
+                    exec = cmd;
                 if (spIdx == -1) // No prefix args?
-                    c.prefix[i] = path; // Set the whole
+                    c.prefix[i] = exec; // Set the whole
                 else
-                    c.prefix[i] = path + c.prefix[i].substring(spIdx);
+                    c.prefix[i] = exec + c.prefix[i].substring(spIdx);
             }
         }
 

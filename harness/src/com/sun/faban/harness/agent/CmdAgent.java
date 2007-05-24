@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgent.java,v 1.3 2006/07/28 07:33:45 akara Exp $
+ * $Id: CmdAgent.java,v 1.4 2007/05/24 01:04:36 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,8 +25,10 @@ package com.sun.faban.harness.agent;
 
 import com.sun.faban.common.CommandHandle;
 import com.sun.faban.common.Command;
+import com.sun.faban.harness.RemoteCallable;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.logging.Level;
@@ -53,6 +55,13 @@ public interface CmdAgent extends Remote {
      */
     public String getHostName() throws RemoteException;
 
+    /**
+     * Obtains the tmp directory of a remote host.
+     * @return The tmp directory.
+     * @throws RemoteException
+     */
+    public String getTmpDir() throws RemoteException;
+
      /**
       * Set the logging level of the Agents
       */
@@ -77,7 +86,16 @@ public interface CmdAgent extends Remote {
      * @throws InterruptedException Thread got interrupted waiting
      */
     public CommandHandle java(Command c)
-            throws IOException, InterruptedException, RemoteException;    
+            throws IOException, InterruptedException, RemoteException;
+
+    /**
+     * Executes the RemoteCallable on the target instance.
+     * @param callable The callable to execute
+     * @return The type specified at creation of the callable.
+     * @throws Exception Any exception from the callable
+     */
+    public <V extends Serializable> V exec(RemoteCallable<V> callable) 
+            throws Exception;
 
     /**
 	 * This method is responsible for starting the command in foreground
@@ -197,6 +215,7 @@ public interface CmdAgent extends Remote {
      */
     public void killem (String identifier, String processString, int sigNum)
     throws RemoteException, IOException;
+
     /**
      * This method waits for the command started in BG to complete.
      * @param ident identifier associated with command in 'start' call

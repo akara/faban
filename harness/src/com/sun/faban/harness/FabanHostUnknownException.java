@@ -17,36 +17,44 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: XMLException.java,v 1.3 2007/05/24 01:04:38 akara Exp $
+ * $Id: FabanHostUnknownException.java,v 1.1 2007/05/24 01:04:39 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
-package com.sun.faban.harness.util;
+package com.sun.faban.harness;
 
 /**
- * Runtime exception for XML and XPath related exceptions.
- *
+ * Exception signifying that the specified host is not part of the rig.
  * @author Akara Sucharitakul
  */
-public class XMLException extends RuntimeException {
+public class FabanHostUnknownException extends RuntimeException {
 
     /**
-     * Constructs a new XML exception with the specified detail message.
-     * The cause is not initialized, and may subsequently be initialized by a
-     * call to {@link #initCause}.
+     * Constructs a new host unknown exception with <code>null</code> as its
+     * detail message.  The cause is not initialized, and may subsequently be
+     * initialized by a call to {@link #initCause}.
+     */
+    public FabanHostUnknownException() {
+        super();
+    }
+
+    /**
+     * Constructs a new host unknown exception with the specified detail
+     * message. The cause is not initialized, and may subsequently be
+     * initialized by a call to {@link #initCause}.
      *
      * @param message the detail message. The detail message is saved for
      *                later retrieval by the {@link #getMessage()} method.
      */
-    public XMLException(String message) {
+    public FabanHostUnknownException(String message) {
         super(message);
     }
 
     /**
-     * Constructs a new XML exception with the specified detail message and
-     * cause.  <p>Note that the detail message associated with
+     * Constructs a new host unknown exception with the specified detail
+     * message and cause.  <p>Note that the detail message associated with
      * <code>cause</code> is <i>not</i> automatically incorporated in
-     * this XML exception's detail message.
+     * this host unknown exception's detail message.
      *
      * @param message the detail message (which is saved for later retrieval
      *                by the {@link #getMessage()} method).
@@ -56,15 +64,15 @@ public class XMLException extends RuntimeException {
      *                unknown.)
      * @since 1.4
      */
-    public XMLException(String message, Throwable cause) {
+    public FabanHostUnknownException(String message, Throwable cause) {
         super(message, cause);
     }
 
     /**
-     * Constructs a new XML exception with the specified cause and a
+     * Constructs a new host unknown exception with the specified cause and a
      * detail message of <tt>(cause==null ? null : cause.toString())</tt>
      * (which typically contains the class and detail message of
-     * <tt>cause</tt>).  This constructor is useful for runtime exceptions
+     * <tt>cause</tt>).  This constructor is useful for host unknown exceptions
      * that are little more than wrappers for other throwables.
      *
      * @param cause the cause (which is saved for later retrieval by the
@@ -73,7 +81,7 @@ public class XMLException extends RuntimeException {
      *              unknown.)
      * @since 1.4
      */
-    public XMLException(Throwable cause) {
+    public FabanHostUnknownException(Throwable cause) {
         super(cause);
     }
 }

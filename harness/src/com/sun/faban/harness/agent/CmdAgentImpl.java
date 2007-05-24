@@ -17,23 +17,23 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgentImpl.java,v 1.8 2007/05/18 16:51:51 akara Exp $
+ * $Id: CmdAgentImpl.java,v 1.9 2007/05/24 01:04:36 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.agent;
 
-import com.sun.faban.common.*;
+import com.sun.faban.common.Command;
+import com.sun.faban.common.CommandChecker;
+import com.sun.faban.common.CommandHandle;
+import com.sun.faban.common.Registry;
+import com.sun.faban.harness.RemoteCallable;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.util.CmdMap;
 
 import java.io.*;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.rmi.RMISecurityManager;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
-import java.rmi.server.RMISocketFactory;
 import java.rmi.server.UnicastRemoteObject;
 import java.rmi.server.Unreferenced;
 import java.util.*;
@@ -68,14 +68,6 @@ public class CmdAgentImpl extends UnicastRemoteObject
     private static Logger logger =
             Logger.getLogger(CmdAgentImpl.class.getName());
 
-    private static String host, ident, master;
-    private static Registry registry;
-    private static String javaHome;
-    // Initialize it to make sure it doesn't end up a 'null'
-    private static String jvmOptions = " ";
-
-    private static CmdAgent cmd;
-
     // This is actually deprecated. The field is responsible for old style
     // ident based executions.
     private Map processMap = Collections.synchronizedMap(new HashMap());
@@ -102,7 +94,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
 
 
     // This class must be created only through the main method.
-    private CmdAgentImpl(String benchName) throws RemoteException {
+    CmdAgentImpl(String benchName) throws RemoteException {
         super();
 
         try {
@@ -113,10 +105,10 @@ public class CmdAgentImpl extends UnicastRemoteObject
             in.close();
 
             // Update if it has changed.
-            if(!(log.getProperty("java.util.logging.SocketHandler.host").equals(master) &&
+            if(!(log.getProperty("java.util.logging.SocketHandler.host").equals(AgentBootstrap.master) &&
                  log.getProperty("java.util.logging.SocketHandler.port").equals(String.valueOf(Config.LOGGING_PORT)))){
                 logger.fine("Updating " + Config.CONFIG_DIR + "logging.properties");
-                log.setProperty("java.util.logging.SocketHandler.host", master);
+                log.setProperty("java.util.logging.SocketHandler.host", AgentBootstrap.master);
                 log.setProperty("java.util.logging.SocketHandler.port", String.valueOf(Config.LOGGING_PORT));
                 FileOutputStream out = new FileOutputStream(new File(Config.CONFIG_DIR + "logging.properties"));
                 log.store(out, "Faban logging properties");
@@ -141,7 +133,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
      *
      */
     public String getHostName() {
-        return host;
+        return AgentBootstrap.host;
     }
 
     /**
@@ -150,7 +142,16 @@ public class CmdAgentImpl extends UnicastRemoteObject
      * @return this Command Agent
      */
     static CmdAgent getHandle() {
-        return cmd;
+        return AgentBootstrap.cmd;
+    }
+
+    /**
+     * Obtains the tmp directory of a remote host.
+     *
+     * @return The tmp directory.
+     */
+    public String getTmpDir() {
+        return Config.TMP_DIR;
     }
 
     /**
@@ -197,6 +198,19 @@ public class CmdAgentImpl extends UnicastRemoteObject
     }
 
     /**
+     * Executes the RemoteCallable on the target instance.
+     *
+     * @param callable The callable to execute
+     * @return The type specified at creation of the callable.
+     * @throws Exception Any exception from the callable
+     */
+    public <V extends Serializable> V exec(RemoteCallable<V> callable)
+            throws Exception {
+
+        return callable.call();
+    }
+
+    /**
      * This method is responsible for starting a java cmd in background
      * @param cmd args and class to start the JVM
      * @param identifier to associate with this command
@@ -240,8 +254,8 @@ public class CmdAgentImpl extends UnicastRemoteObject
         buf.append(' ');
         String classpath = buf.toString();
 
-        cmd = javaHome + File.separator + "bin" + File.separator + "java " +
-              jvmOptions + classpath + cmd;
+        cmd = AgentBootstrap.javaHome + File.separator + "bin" + File.separator + "java " +
+                AgentBootstrap.jvmOptions + classpath + cmd;
         try {
             logger.fine("Starting Java " + cmd);
             p = Runtime.getRuntime().exec(cmd, env);
@@ -266,7 +280,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
         try {
             Remote agent = (Remote)agentClass.newInstance();
             logger.info("Agent class " + agent.getClass().getName() + " created");
-            registry.register(identifier, agent);
+            AgentBootstrap.registry.register(identifier, agent);
             logger.fine("Agent started and Registered as " + identifier);
         }catch(Exception e) {
             logger.log(Level.WARNING, "Failed to create " +
@@ -488,8 +502,8 @@ public class CmdAgentImpl extends UnicastRemoteObject
         boolean status;
         CmdProcess cproc = (CmdProcess) processMap.get(identifier);
         if (cproc == null) {
-            Exception e = new Exception(ident + " wait " + identifier + " : No such identifier");
-            logger.throwing(ident, "wait", e);
+            Exception e = new Exception(AgentBootstrap.ident + " wait " + identifier + " : No such identifier");
+            logger.throwing(AgentBootstrap.ident, "wait", e);
             throw e;
         }
         logger.fine("Waiting for Command Identifier " + identifier);
@@ -595,9 +609,9 @@ public class CmdAgentImpl extends UnicastRemoteObject
 
         /* Exit application */
         try {
-            registry.unregister(ident);
-            if (host.equals(master)) {
-                registry.unregister(Config.CMD_AGENT);
+            AgentBootstrap.registry.unregister(AgentBootstrap.ident);
+            if (AgentBootstrap.host.equals(AgentBootstrap.master)) {
+                AgentBootstrap.registry.unregister(Config.CMD_AGENT);
             }
         }
         catch (RemoteException re){}
@@ -632,15 +646,15 @@ public class CmdAgentImpl extends UnicastRemoteObject
     }
 
     public static Registry getRegistry() {
-        return registry;
+        return AgentBootstrap.registry;
     }
 
     public static String getHost() {
-        return host;
+        return AgentBootstrap.host;
     }
 
     public static String getMaster() {
-        return master;
+        return AgentBootstrap.master;
     }
 
     private Process createProcess(String cmd, int priority) throws Exception {
@@ -808,12 +822,12 @@ public class CmdAgentImpl extends UnicastRemoteObject
      */
     public String checkJavaCommand(String cmd) {
 
-        StringBuilder buf = new StringBuilder(javaHome);
+        StringBuilder buf = new StringBuilder(AgentBootstrap.javaHome);
         buf.append(File.separator);
         buf.append("bin");
         buf.append(File.separator);
         buf.append("java ");
-        buf.append(jvmOptions);
+        buf.append(AgentBootstrap.jvmOptions);
         buf.append(" -cp ");
 
         boolean falseEnding = false;
@@ -850,148 +864,6 @@ public class CmdAgentImpl extends UnicastRemoteObject
         String[] baseClassPath = new String[libList.size()];
         baseClassPath = (String[]) libList.toArray(baseClassPath);
         return baseClassPath;
-    }
-
-    private boolean sameHost(String host1, String host2) {
-        InetAddress[] host1Ip = new java.net.InetAddress[0];
-        try {
-            host1Ip = InetAddress.getAllByName(host1);
-        } catch (UnknownHostException e) {
-            logger.severe("Host " + host1 + " not found.");
-            return false;
-        }
-        InetAddress[] host2Ip = new java.net.InetAddress[0];
-        try {
-            host2Ip = InetAddress.getAllByName(host2);
-        } catch (UnknownHostException e) {
-            logger.severe("Host " + host2 + " not found.");
-            return false;
-        }
-        for (int i = 0; i < host1Ip.length; i++) {
-            for (int j = 0; j < host2Ip.length; j++) {
-                if (host1Ip[i].equals(host2Ip[j]))
-                    return true;
-            }
-        }
-        return false;
-    }
-
-
-    /**
-     * Registration for RMI serving
-     */
-
-    public static void main(String [] args) {
-
-        System.setSecurityManager (new RMISecurityManager());
-
-        if (args.length < 4) {
-            String usage = "Usage: CmdAgentImpl <cmdagent_machine_name> " +
-                    "<master_host_interface_name> <master_local_hostname> " +
-                    "<java_home> <optional_jvm_arguments>";
-            logger.severe(usage);
-            System.err.println(usage);
-            System.exit(-1);
-        }
-
-        try {
-            String hostname = args[0];
-            master = args[1];
-            String masterLocal = args[2];
-            javaHome = args[3];
-
-            String downloadURL = null;
-            String benchName = null;
-            // There may be optional JVM args
-            if(args.length > 4) {
-                for(int i = 4; i < args.length; i++)
-                    if(args[i].startsWith("faban.download")) {
-                        downloadURL = args[i].substring(
-                                args[i].indexOf('=') + 1);
-                    }else if (args[i].startsWith("faban.benchmarkName")) {
-                        benchName = args[i].substring(args[i].indexOf('=') + 1);
-                    } else if (args[i].indexOf("faban.logging.port") != -1) {
-                        jvmOptions = jvmOptions + ' ' + args[i];
-                        Config.LOGGING_PORT = Integer.parseInt(
-                                args[i].substring(args[i].indexOf("=") + 1));
-                    } else if(args[i].indexOf("faban.registry.port") != -1) {
-                        jvmOptions = jvmOptions + " " + args[i];
-                        Config.RMI_PORT = Integer.parseInt(
-                                args[i].substring(args[i].indexOf("=") + 1));
-                    } else {
-                        jvmOptions = jvmOptions + ' ' + args[i];
-                    }
-            }
-            logger.finer("JVM options for child processes:" + jvmOptions);
-
-            RMISocketFactory.setSocketFactory(new AgentSocketFactory(master, masterLocal));
-            // Get hold of the registry
-            registry = RegistryLocator.getRegistry(master, Config.RMI_PORT);
-            logger.fine("Succeeded obtaining registry.");
-
-            // host and ident will be unique
-            host = InetAddress.getLocalHost().getHostName();
-
-            // Sometimes we get the host name with the whole domain baggage.
-            // The host name is widely used in result files, tools, etc. We
-            // do not want that baggage. So we make sure to crop it off.
-            // i.e. brazilian.sfbay.Sun.COM should just show as brazilian.
-            int dotIdx = host.indexOf('.');
-            if (dotIdx > 0)
-                host = host.substring(0, dotIdx);
-
-            ident = Config.CMD_AGENT + "@" + host;
-
-            // Make sure there is only one agent running in a machine
-            CmdAgent agent = (CmdAgent)registry.getService(ident);
-
-            if((agent != null) && (!host.equals(hostname))){
-                // re-register the agents with the 'hostname'
-                registry.register(Config.CMD_AGENT + "@" + hostname, agent);
-                logger.fine("Succeeded re-registering " + Config.CMD_AGENT + "@" + hostname);
-                FileAgent f = (FileAgent)registry.getService(Config.FILE_AGENT + "@" + host);
-                registry.register(Config.FILE_AGENT + "@" + hostname, f);
-                logger.fine("Succeeded re-registering " + Config.FILE_AGENT + "@" + hostname);
-            }
-            else {
-                new BenchmarkLoader().loadBenchmark(benchName, downloadURL);
-                CmdAgentImpl cmdImpl = new CmdAgentImpl(benchName);
-
-                cmd = cmdImpl;
-                registry.register(ident, cmd);
-
-                logger.fine("Succeeded registering " + ident);
-
-                // Register it with the 'hostname' also if host != hostname
-                if(!host.equals(hostname))
-                    registry.register(Config.CMD_AGENT + "@" + hostname, cmd);
-
-                if(host.equals(master)) {
-                    ident = Config.CMD_AGENT;
-                    registry.register(ident, cmd);
-                } else if (cmdImpl.sameHost(host, master)) {
-                    ident = Config.CMD_AGENT;
-                    registry.register(ident, cmd);
-                }
-
-                // Create and register FileAgent
-                FileAgent f = new FileAgentImpl();
-                registry.register(Config.FILE_AGENT + "@" + host, f);
-                logger.fine("Succeeded registering " +
-                        Config.FILE_AGENT + "@" + host);
-
-                // Register it with the 'hostname' also if host != hostname
-                if(!host.equals(hostname))
-                    registry.register(Config.FILE_AGENT + "@" + hostname, f);
-
-                // Register a blank Config.FILE_AGENT for the master's file agent.
-                if (cmdImpl.sameHost(host, master))
-                    registry.register(Config.FILE_AGENT, f);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(-1);
-        }
     }
 
     // The class which spawns a thread to read the stream of the process

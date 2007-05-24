@@ -17,18 +17,18 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunRetriever.java,v 1.10 2006/10/25 23:04:43 akara Exp $
+ * $Id: RunRetriever.java,v 1.11 2007/05/24 01:04:39 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.webclient;
 
+import com.sun.faban.common.NameValuePair;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.Run;
 import com.sun.faban.harness.engine.RunEntryException;
 import com.sun.faban.harness.engine.RunQ;
 import com.sun.faban.harness.util.FileHelper;
-import com.sun.faban.harness.util.NameValuePair;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;

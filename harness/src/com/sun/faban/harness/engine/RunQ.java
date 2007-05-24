@@ -17,19 +17,19 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunQ.java,v 1.18 2007/05/03 23:13:18 akara Exp $
+ * $Id: RunQ.java,v 1.19 2007/05/24 01:04:38 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.engine;
 
+import com.sun.faban.common.NameValuePair;
 import com.sun.faban.harness.ParamRepository;
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.Run;
 import com.sun.faban.harness.common.RunId;
 import com.sun.faban.harness.util.FileHelper;
-import com.sun.faban.harness.util.NameValuePair;
 
 import java.io.*;
 import java.util.Arrays;

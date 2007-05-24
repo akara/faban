@@ -4,41 +4,38 @@
  * compliance with the License.
  *
  * You can obtain a copy of the License at
- * https://faban.dev.java.net/public/CDDLv1.0.html or
- * install_dir/license.txt
+ * http://www.sun.com/cddl/cddl.html or
+ * install_dir/legal/LICENSE
  * See the License for the specific language governing
  * permission and limitations under the License.
  *
  * When distributing Covered Code, include this CDDL
  * Header Notice in each file and include the License file
- * at faban/src/legal/CDDLv1.0.txt.
+ * at install_dir/legal/LICENSE.
  * If applicable, add the following below the CDDL Header,
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: NameValuePair.java,v 1.1 2006/10/04 23:55:07 akara Exp $
+ * $Id: RemoteCallable.java,v 1.1 2007/05/24 01:04:39 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
-package com.sun.faban.harness.util;
+package com.sun.faban.harness;
+
+import java.io.Serializable;
 
 /**
- * Generic object representing a String name and an Object<T> value.
- *
- * @author Akara Sucharitakul
+ * An interface used for executing a piece of code remotely.
  */
-public class NameValuePair<V> {
-    
-    public String name;
-    public V value;
-    
-    public NameValuePair(String name, V value) {
-        this.name = name;
-        this.value = value;
-    }
+public interface RemoteCallable<V extends Serializable>
+        extends Serializable {
 
-    public NameValuePair() {
-
-    }
+    /**
+     * Computes a result, or throws an exception if unable to do so.
+     *
+     * @return computed result
+     * @throws Exception if unable to compute a result
+     */
+    public V call() throws Exception;
 }

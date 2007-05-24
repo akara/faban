@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: XMLReader.java,v 1.3 2007/01/24 02:35:03 akara Exp $
+ * $Id: XMLReader.java,v 1.4 2007/05/24 01:04:38 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -42,9 +42,11 @@ import javax.xml.transform.dom.DOMSource;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class XMLReader {
 
+    private static Logger logger = Logger.getLogger(XMLReader.class.getName());
     private Document doc;
     private XPath xPath;
     private String file;
@@ -163,11 +165,16 @@ public class XMLReader {
             NodeList nodeList = (NodeList) xPath.evaluate(
                                 xpath, doc, XPathConstants.NODESET);
             int length = nodeList.getLength();
+            boolean updated = false;
             for (int i = 0; i < length; i++) {
                 Node node = nodeList.item(i);
                 nodeTraceLoop:
-                while (node != null)
-                    switch (node.getNodeType()) {
+                while (node != null) {
+                    short nodeType = node.getNodeType();
+                    logger.finer("XPath: " + xpath);
+                    logger.finer("NodeType[" + i + "]: " + nodeType);
+
+                    switch (nodeType) {
                         case Node.ATTRIBUTE_NODE :
                         case Node.CDATA_SECTION_NODE :
                         case Node.COMMENT_NODE :
@@ -175,9 +182,20 @@ public class XMLReader {
                         case Node.TEXT_NODE : node.setNodeValue(newValue);
                                               updated = true;
                                               break nodeTraceLoop;
-                        default : node = node.getFirstChild();
+                        default :   if (node.hasChildNodes()) {
+                                        node = node.getFirstChild();
+                                    } else {
+                                        node.setTextContent(newValue);
+                                        updated = true;
+                                        break nodeTraceLoop;
+                                    }
                     }
+                }
             }
+            if (updated)
+                this.updated = true;
+            else
+                throw new XMLException("Update unsuccessful!");
         } catch (XPathExpressionException e) {
             throw new XMLException("Error evaluating " + xpath + ", " +
                                    e.getMessage(), e);
