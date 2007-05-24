@@ -17,18 +17,22 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: NameValuePair.java,v 1.1 2007/05/21 19:46:54 akara Exp $
+ * $Id: NameValuePair.java,v 1.2 2007/05/24 01:06:40 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.common;
+
+import java.io.Serializable;
 
 /**
  * Generic object representing a String name and an Object<T> value.
  *
  * @author Akara Sucharitakul
  */
-public class NameValuePair<V> {
+public class NameValuePair<V> implements Serializable {
+
+    private static final long serialVersionUID = 20070523L;
     
     public String name;
     public V value;

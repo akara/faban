@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Command.java,v 1.4 2006/11/18 05:21:05 akara Exp $
+ * $Id: Command.java,v 1.5 2007/05/24 01:06:40 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -35,6 +35,8 @@ import java.util.logging.Logger;
  * @author Akara Sucharitakul
  */
 public class Command implements Serializable {
+
+    private static final long serialVersionUID = 20070523L;
 
     /**
      * Stream identifier for standard output.

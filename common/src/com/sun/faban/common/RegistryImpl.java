@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RegistryImpl.java,v 1.3 2006/07/27 19:46:48 akara Exp $
+ * $Id: RegistryImpl.java,v 1.4 2007/05/24 01:06:40 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -106,8 +106,13 @@ public class RegistryImpl extends UnicastRemoteObject implements Registry {
             "des exportations et la liste de ressortissants sp\351cifiquement " +
             "d\351sign\351s, sont rigoureusement interdites.\n";
 
+    private static final long serialVersionUID = 20070523L;
+    
     static int rmiPort = RegistryLocator.DEFAULT_PORT;
-    private HashMap servicesTable = new HashMap();
+    private HashMap<String, Remote> servicesTable =
+            new HashMap<String, Remote>();
+    private HashMap<String, HashMap<String, Remote>> servicesTypeTable =
+            new HashMap<String, HashMap<String, Remote>>();
     private String className;
     private Logger logger;
 
@@ -150,11 +155,11 @@ public class RegistryImpl extends UnicastRemoteObject implements Registry {
             throw new NullPointerException("Type: " + type + ", Name: " +
                     name + "| Service reference is null");
         // First check if the type of service exists
-        HashMap h = (HashMap) servicesTable.get(type);
+        HashMap<String, Remote> h = servicesTypeTable.get(type);
 
         if (h == null) {
-            h = new HashMap();
-            servicesTable.put(type, h);
+            h = new HashMap<String, Remote>();
+            servicesTypeTable.put(type, h);
         }
 
         logger.fine("Registry: Registering " + name +
@@ -183,7 +188,7 @@ public class RegistryImpl extends UnicastRemoteObject implements Registry {
       */
     public synchronized void unregister(String type, String name) {
         // First check if the type of service exists
-        HashMap h = (HashMap) servicesTable.get(type);
+        HashMap<String, Remote> h = servicesTypeTable.get(type);
 
         if (h == null) {
             logger.warning("Registry.unregister : " +
@@ -204,8 +209,7 @@ public class RegistryImpl extends UnicastRemoteObject implements Registry {
       * @return remote reference
       */
     public synchronized Remote getService(String name) {
-        Remote r = (Remote) servicesTable.get(name);
-        return(r);
+        return servicesTable.get(name);
     }
 
     /**
@@ -220,16 +224,16 @@ public class RegistryImpl extends UnicastRemoteObject implements Registry {
     public synchronized Remote getService(String type, String name) {
         Remote r = null;
         // First check if the type of service exists
-        HashMap h = (HashMap) servicesTable.get(type);
+        HashMap<String, Remote> h = servicesTypeTable.get(type);
 
         if (h == null) {
             logger.warning("Registry.getService : " +
                     "Cannot find Service type : " + type);
         }
         else {
-            r = (Remote) h.get(name);
+            r = h.get(name);
         }
-        return(r);
+        return r;
     }
 
     /**
@@ -243,7 +247,7 @@ public class RegistryImpl extends UnicastRemoteObject implements Registry {
     public synchronized Remote[] getServices(String type) {
         Remote[] r = null;
         // First check if the type of service exists
-        HashMap h = (HashMap) servicesTable.get(type);
+        HashMap<String, Remote> h = servicesTypeTable.get(type);
 
         if (h == null) {
             logger.warning("Registry.getServices : " +
@@ -251,16 +255,9 @@ public class RegistryImpl extends UnicastRemoteObject implements Registry {
         }
         else {
             r = new Remote[h.size()];
-            Iterator iter =h.values().iterator();
-            int i = 0;
-            while (iter.hasNext()) {
-                r[i] = (Remote) iter.next();
-                if (r[i] == null)
-                    logger.warning("Service reference is null");
-                ++i;
-            }
+            r = h.values().toArray(r);
         }
-        return(r);
+        return r;
     }
 
     /**
@@ -270,7 +267,7 @@ public class RegistryImpl extends UnicastRemoteObject implements Registry {
       */
     public synchronized int getNumServices(String type) {
         // First check if the type of service exists
-        HashMap h = (HashMap) servicesTable.get(type);
+        HashMap<String, Remote> h = servicesTypeTable.get(type);
         int i = 0;
         if (h == null) {
             logger.warning("Registry.getNumServices : " +
@@ -303,9 +300,16 @@ public class RegistryImpl extends UnicastRemoteObject implements Registry {
     public void kill() {
         logger.info("Unregistering Services");
 
-        for(Iterator i = servicesTable.keySet().iterator(); i.hasNext();) {
-            unregister((String)i.next());
-            logger.fine("Unregistering " + i.next());
+        for (Iterator<String> iter = servicesTable.keySet().iterator();
+             iter.hasNext();) {
+            logger.fine("Unregistering " + iter.next());
+            iter.remove();
+        }
+
+        for (Iterator<String> iter = servicesTypeTable.keySet().iterator();
+             iter.hasNext();) {
+            logger.fine("Unregistering " + iter.next());
+            iter.remove();
         }
 
         // *** This is to gracefully return from this method.
