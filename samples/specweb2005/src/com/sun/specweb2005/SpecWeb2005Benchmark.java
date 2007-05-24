@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: SpecWeb2005Benchmark.java,v 1.1 2007/05/24 01:14:23 akara Exp $
+ * $Id: SpecWeb2005Benchmark.java,v 1.2 2007/05/24 17:49:47 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -226,16 +226,27 @@ public class SpecWeb2005Benchmark implements Benchmark {
         }
     }
 
-    // Needs to be static so anonymous inner class is static.
+    // The code looks easier this way passing the code block to execute on
+    // a remote host. But semantically it can be more complicated. If the
+    // object passed has an enclosing object, the enclosing object and all it's
+    // state must be serializable. To create a static anonymous inner class
+    // not to serialize the enclosing object, we need to do this in a static
+    // method. Also, although it looks like all the enclosing class'
+    // variables are accessible syntactically, their behavior is often
+    // undefined when running remotely. So we need to make sure that this
+    // anonymous inner class does not make such assumptions. Access to the
+    // RunContext gives undefined results, for example.
     private static void cleanOldFiles(Set<String> hostsSet) {
         // Clean the result/error/gc files and restart the client driver
         // processes. The processes will be killed at the end of the run.
         for (String hostName : hostsSet) {
+            final String tmp = getTmpDir(hostName);
             try {
                 exec(hostName, new RemoteCallable() {
                     public Serializable call() throws Exception {
-                        // Now running on the target host, tmpdir is local.
-                        String tmp = getTmpDir(null);
+                        // Now running on the target host.
+                        // The RunContext is virtually non-existent here
+                        // RunContext methods have undefined behavior.
                         logger.info("Cleaning the temporary files in " + tmp);
                         // Now running on the target host, tmpdir is local.
                         File tmpDir = new File(tmp);
