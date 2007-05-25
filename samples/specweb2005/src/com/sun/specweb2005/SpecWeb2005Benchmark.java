@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: SpecWeb2005Benchmark.java,v 1.2 2007/05/24 17:49:47 akara Exp $
+ * $Id: SpecWeb2005Benchmark.java,v 1.3 2007/05/25 00:35:10 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -107,7 +107,7 @@ public class SpecWeb2005Benchmark implements Benchmark {
         hostsSet = new LinkedHashSet<String>();
         hostsPorts = new ArrayList<NameValuePair<Integer>>();
 
-        //   Fill up the hosts set with names of all the hosts
+        //  Fill up the hosts set with names of all the hosts
         for (boolean found = m1.find(); found; found = m1.find()) {
             NameValuePair<Integer> hostPort = new NameValuePair<Integer>();
             hostPort.name = m1.group(1);
@@ -126,29 +126,20 @@ public class SpecWeb2005Benchmark implements Benchmark {
             hosts.append(' ');
         }
 
+        // Update the unique hosts to the host filed and save
         par.setParameter("runConfig/hostConfig/host", hosts.toString().trim());
 
         logger.info("Hosts: " + par.getParameter("runConfig/hostConfig/host"));        
 
         par.save();
-    }
 
-    /**
-     * This method is called to configure the specific benchmark run
-     * Tasks done in this method include reading user parameters,
-     * logging them and initializing various local variables.
-     */
-    public void configure() throws Exception {
-        // Add additional configuration needs such as restarting/reconfiguring
-        // servers here.
-        // configure >>
-
+        // Do all translations
         runDir = getOutDir();
         runID = getRunId();
         testType = par.getParameter("runConfig/testtype");
         clientJar = par.getParameter("runConfig/clientDir");
 
-        // 1. translate run.xml into Test.config.
+        // Translate run.xml into Test.config.
         StreamSource stylesheet = new StreamSource(getBenchmarkDir() +
                 "META-INF" + File.separator + "run.xsl");
         StreamSource src = new StreamSource(getParamFile());
@@ -159,8 +150,8 @@ public class SpecWeb2005Benchmark implements Benchmark {
         t.setParameter("outputDir", runDir);
         t.transform(src, result);
 
-        // 2. translate run.xml into appropriate (banking/ecommerce/support)
-        //    config file.
+        // Translate run.xml into appropriate
+        // (banking/ecommerce/support) config file.
         stylesheet = new StreamSource(getBenchmarkDir() + "META-INF" +
                 File.separator + testType + ".xsl");
         result = new StreamResult(
@@ -170,7 +161,7 @@ public class SpecWeb2005Benchmark implements Benchmark {
         t.setParameter("outputDir", runDir);
         t.transform(src, result);
 
-        // 3. translate run.xml into Testbed.config
+        // Translate run.xml into Testbed.config
         stylesheet = new StreamSource(getBenchmarkDir() + "META-INF" +
                 File.separator + "testbed.xsl");
         result = new StreamResult(new File(runDir, "Testbed.config"));
@@ -178,6 +169,17 @@ public class SpecWeb2005Benchmark implements Benchmark {
                             newTransformer(stylesheet);
         t.setParameter("outputDir", runDir);
         t.transform(src, result);
+    }
+
+    /**
+     * This method is called to configure the specific benchmark run
+     * Tasks done in this method include reading user parameters,
+     * logging them and initializing various local variables.
+     */
+    public void configure() throws Exception {
+        // Add additional configuration needs such as restarting/reconfiguring
+        // servers here.
+
     }
 
     /**
@@ -279,8 +281,26 @@ public class SpecWeb2005Benchmark implements Benchmark {
         start_clients();
         // run >>
         // 1. start the run.
+
+        // We need to add the jfreechart libs to the prime client.
+        StringBuilder classpath = new StringBuilder();
+        File clientDir = new File(clientJar).getParentFile();
+        File[] files = clientDir.listFiles();
+        for (File file : files) {
+            String fileName = file.getName();
+            if (fileName.endsWith(".jar")) {
+                if (fileName.startsWith("jcommon") ||
+                        fileName.startsWith("jfreechart")) {
+                    String absolutePath = file.getAbsolutePath();
+                    classpath.append(absolutePath).append(
+                            File.pathSeparatorChar);
+                }
+            }
+        }
+        classpath.append(clientJar);
+
         String cmd = "java -server -Xmx800m -Xms800m -classpath " +
-                     clientJar + "  specweb";
+                     classpath + "  specweb";
         logger.info("Starting the Master: " + cmd);
         Command c = new Command(cmd);
 
@@ -294,7 +314,6 @@ public class SpecWeb2005Benchmark implements Benchmark {
 
         startTime = Calendar.getInstance();
         handle = exec(c);
-
     }
 
     /**
@@ -331,12 +350,12 @@ public class SpecWeb2005Benchmark implements Benchmark {
 
         File resultHtml = new File(resultsDir, resHtml);
 
-        copyFile(resultsDir.getAbsolutePath() + File.separatorChar +
-                        resultHtml, runDir + " SPECWeb-result.html", false);
+        copyFile(resultHtml.getAbsolutePath(),
+                runDir + "SPECWeb-result.html", false);
 
 
-        BufferedReader reader = new BufferedReader(
-                                    new FileReader(resultsDir + resTxt));
+        BufferedReader reader = new BufferedReader(new FileReader(
+                                    new File(resultsDir, resTxt)));
         logger.fine("Text file: " + resultsDir + resTxt);
         // String sessions = par.getParameter("runConfig/sessions");
         Writer writer = new FileWriter(runDir + "summary.xml");

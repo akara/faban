@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<!-- $Id: config.xhtml,v 1.1 2007/05/24 01:14:23 akara Exp $ -->
+<!-- $Id: config.xhtml,v 1.2 2007/05/25 00:35:10 akara Exp $ -->
 <html xmlns:chiba="http://chiba.sourceforge.net/2003/08/xforms"
     xmlns:xforms="http://www.w3.org/2002/xforms"
     chiba:stylesheet="faban.xsl">
@@ -49,7 +49,7 @@
                     <xforms:bind id="bind-server-besimConfig" xforms:nodeset="besimConfig">
                         <xforms:bind id="bind-besim-port" xforms:nodeset="port"/>
                         <xforms:bind id="bind-besim-initScript" xforms:nodeset="initScript"/>
-                        <xforms:bind id="bind-besim-persistent" xforms:nodeset="persistent" xforms:type="positiveInteger"/>
+                        <xforms:bind id="bind-besim-persistent" xforms:nodeset="persistent" xforms:type="nonNegativeInteger"/>
                     </xforms:bind>
                 </xforms:bind>
                 <xforms:bind id="bind-supportParameters" xforms:nodeset="supportParameters">
@@ -342,27 +342,34 @@
                         <!-- xforms:output xforms:bind="bind-unit"/-->
                         <xforms:input id="input-warmupSeconds" xforms:bind="bind-warmupSeconds">
                             <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/warmupSeconds"/>
+                            <xforms:alert>Must be a positive integer</xforms:alert>
                         </xforms:input>
                         <xforms:input id="input-threadRampupSeconds" xforms:bind="bind-threadRampupSeconds">
                             <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/threadRampupSeconds"/>
+                            <xforms:alert>Must be a positive integer</xforms:alert>
                         </xforms:input>
                         <xforms:input id="input-runSeconds" xforms:bind="bind-steadyState">
                             <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/runSeconds"/>
+                            <xforms:alert>Must be a positive integer</xforms:alert>
                         </xforms:input>
                         <xforms:input id="input-threadRampdownSeconds" xforms:bind="bind-rampDown">
                             <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/threadRampdownSeconds"/>
+                            <xforms:alert>Must be a positive integer</xforms:alert>
                         </xforms:input>
                     </xforms:group>
                     <xforms:group id="group-multipleRunControl">
                         <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/multipleRunControl"/>
                         <xforms:input id="input-iterations" xforms:bind="bind-iterations">
                             <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/iterations"/>
+                            <xforms:alert>Must be a positive integer</xforms:alert>
                         </xforms:input>
                         <xforms:input id="input-rampupSeconds" xforms:bind="bind-rampupSeconds">
                             <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/rampupSeconds"/>
+                            <xforms:alert>Must be a positive integer</xforms:alert>
                         </xforms:input>
                         <xforms:input id="input-rampdownSeconds" xforms:bind="bind-rampdownSeconds">
                             <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/rampdownSeconds"/>
+                            <xforms:alert>Must be a positive integer</xforms:alert>
                         </xforms:input>
                     </xforms:group>
                 </xforms:case>
@@ -411,6 +418,7 @@
                             <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/besimPersistent"/>
                             <xforms:hint>Besim Persistent (0/1)</xforms:hint>
                             <xforms:help>Enter Besim Persistent</xforms:help>
+                            <xforms:alert>Persistent must be 0 or 1</xforms:alert>
                         </xforms:input>
                         <xforms:input id="input-besimserver-tools" xforms:bind="bind-besimserver-tools">
                             <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/tools"/>
