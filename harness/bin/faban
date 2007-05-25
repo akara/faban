@@ -25,5 +25,5 @@ export PATH
 
 $JAVA_HOME/bin/java -server -classpath $CLASSPATH -Dfaban.home=$FABAN_HOME \
 -Djava.security.policy=$FABAN_HOME"/config/faban.policy" \
-com.sun.faban.harness.agent.CmdAgentImpl $* >>cmdagent.log 2>&1 &
+com.sun.faban.harness.agent.AgentBootstrap $* >>cmdagent.log 2>&1 &
 
