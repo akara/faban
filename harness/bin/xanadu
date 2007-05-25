@@ -101,7 +101,7 @@ java -mx756m \
 editXan() {
     sed 's%http://pae.sfbay/twiki/pub/TWiki/NSunSkin%/xanadu/html%g' ${1} > ${1}.1
     sed 's%http://pae.sfbay/~neel%/xanadu/html%g' ${1}.1 > ${1}
-    rm ${1}.1 ;;
+    rm ${1}.1
 }
 
 cd $2
