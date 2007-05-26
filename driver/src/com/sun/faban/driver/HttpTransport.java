@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: HttpTransport.java,v 1.5 2007/04/27 22:12:27 akara Exp $
+ * $Id: HttpTransport.java,v 1.6 2007/05/26 06:32:44 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -32,6 +32,7 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -62,9 +63,17 @@ import java.util.regex.Pattern;
  */
 public class HttpTransport {
 
+    /* Default headers used for POST request */
+    private static Map<String, String> postHeadersForm;
+    private static Map<String, String> postHeadersBinary;
+
     static {
         URL.setURLStreamHandlerFactory(new URLStreamHandlerFactory());
         java.net.CookieHandler.setDefault(new CookieHandler());
+	postHeadersForm = new HashMap<String, String>();
+	postHeadersForm.put("Content-type", "application/x-www-form-urlencoded");
+	postHeadersBinary = new HashMap<String, String>();
+	postHeadersBinary.put("Content-type", "application/octet-stream");
     }
 
     /** The main appendable buffer for the total results. */
@@ -209,6 +218,7 @@ public class HttpTransport {
      * Makes a POST request to the URL. Reads data back and discards the data,
      * keeping just the size of the total read. This is useful for ensuring
      * receival of binary or text data that do not need further analysis.
+     * Note that the POST request will be URL encoded.
      * @param url The URL to read from
      * @param postRequest The post request string
      * @param headers The request headers
@@ -218,11 +228,61 @@ public class HttpTransport {
     public int readURL(URL url, String postRequest, Map<String, String> headers)
             throws IOException {
         HttpURLConnection c = getConnection(url);
+        if (headers != null) {
+            String type = headers.get("Content-type");
+            if (type == null)
+                headers.put("Content-type", "application/x-www-form-urlencoded");
+            else if (!type.equals("application/x-www-form-urlencoded"))
+                throw new IOException("Unexepcted header type " + type +
+                        " for URL encoded POST request");
+        } else headers = postHeadersForm;
+        postRequest = URLEncoder.encode(postRequest, "UTF-8");
+        setHeaders(c, headers);
+        postRequest(c, postRequest.getBytes("UTF-8"));
+        responseCode = c.getResponseCode();
+        responseHeader = c.getHeaderFields();
+        return readResponse(c);
+    }
+
+    /**
+     * Makes a POST request to the URL without encoding the data (the
+     * header type is application/octet-stream).
+     *
+     * @param url The URL to read from
+     # @param postRequest The binary data to send
+     # @param headers The request headers
+     * @return The number of bytes read
+     * @throws IOException
+     */
+    public int readURL(URL url, byte[] postRequest, Map<String, String> headers)
+            throws IOException {
+        HttpURLConnection c = getConnection(url);
+        if (headers != null) {
+            String type = headers.get("Content-type");
+            if (type == null)
+                headers.put("Content-type", "application/octet-stream");
+            else if (!type.equals("application/octet-stream"))
+                throw new IOException("Unexepcted header type " + type +
+                        " for URL binary POST request");
+        } else headers = postHeadersBinary;
         setHeaders(c, headers);
         postRequest(c, postRequest);
         responseCode = c.getResponseCode();
         responseHeader = c.getHeaderFields();
         return readResponse(c);
+    }
+
+    /**
+     * Makes a POST request to the URL without encoding the data (the
+     * header type is application/octet-stream).
+     *
+     * @param url The URL to read from
+     * @param postRequest The binary data to send
+     * @return The number of bytes read
+     * @throws IOException
+     */
+    public int readURL(String url, byte[] postRequest) throws IOException {
+        return readURL(new URL(url), postRequest, null);
     }
 
     private HttpURLConnection getConnection(URL url) throws IOException {
@@ -256,12 +316,12 @@ public class HttpTransport {
      * @param request The request string
      * @throws IOException
      */
-    private void postRequest(HttpURLConnection c, String request)
+    private void postRequest(HttpURLConnection c, byte[] request)
             throws IOException {
         c.setRequestMethod("POST");
         c.setDoOutput(true);
         c.setDoInput(true);
-        PrintWriter out = new PrintWriter(c.getOutputStream());
+        OutputStream out = c.getOutputStream();
         out.write(request);
         out.flush();
         out.close();
@@ -406,8 +466,15 @@ public class HttpTransport {
                                   Map<String, String> headers)
             throws IOException {
         HttpURLConnection c = getConnection(url);
+        String type = headers.get("Content-type");
+        if (type == null)
+            headers.put("Content-type", "application/x-www-form-urlencoded");
+        else if (!type.equals("application/x-www-form-urlencoded"))
+            throw new IOException("Unexepcted header type " + type +
+                    " for URL encoded POST request");
+        postRequest = URLEncoder.encode(postRequest, "UTF-8");
         setHeaders(c, headers);
-        postRequest(c, postRequest);
+        postRequest(c, postRequest.getBytes("UTF-8"));
         return fetchResponse(c);
     }
 

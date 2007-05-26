@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunInfo.java,v 1.9 2007/01/24 02:32:06 akara Exp $
+ * $Id: RunInfo.java,v 1.10 2007/05/26 06:32:43 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -344,6 +344,189 @@ public class RunInfo implements Serializable {
             return sb.toString(); 
            
         }
+
+        // Used to create the operation-specific information for various
+        // types of requests
+        private static abstract class RunInfoDefinition {
+            protected boolean isFile, doSubst, isBinary;
+            protected String url;
+            protected String data;
+
+            public abstract String getURL(int opNum);
+            public abstract String getPostRequest(int opNum) throws Exception;
+            public abstract String getStatics(int opNum) throws Exception;
+
+            public void init(boolean isFile, boolean doSubst, boolean isBinary,
+                             String url, String data) {
+                this.isFile = isFile;
+                this.doSubst = doSubst;
+                this.isBinary = isBinary;
+                this.url = url;
+                this.data = data;
+            }
+
+            protected String makeBinaryStaticBlock(byte[] b, int opNum) {
+                StringBuilder sb = new StringBuilder();
+                sb.append("private static byte[] post_data_");
+                sb.append(opNum);
+                sb.append(" = { ");
+                for (int bi = 0; bi < b.length; bi++) {
+                    sb.append((int) b[bi]);
+                    if (bi != b.length - 1)
+                        sb.append(", ");
+                }
+                sb.append(" }; ");
+                return sb.toString();
+            }
+
+            protected String makeCharStaticBlock(char[] c, int opNum) {
+                StringBuilder sb = new StringBuilder();
+                sb.append("private static char[] post_data_");
+                sb.append(opNum);
+                sb.append(" = { ");
+                for (int ci = 0; ci < c.length; ci++) {
+                    sb.append((int) c[ci]);
+                    if (ci != c.length - 1)
+                        sb.append(", ");
+                }
+                sb.append(" };\n");
+                sb.append("private static String post_string_");
+                sb.append(opNum);
+                sb.append(" = new String(post_data_");
+                sb.append(opNum);
+                sb.append(");\n");
+                return sb.toString();
+            }
+
+            protected String generateRandomData(String inputString) {
+                StringBuilder output = new StringBuilder();
+                String[] strArr = inputString.split("@@");
+                for (int i = 0; i < strArr.length; i++) {
+                    if (strArr[i].startsWith("faban.getRandom")) {
+                        String tmp[] = strArr[i].split(",");
+                        String low = tmp[0].split("\\(")[1];
+                        String high = tmp[1].split("\\)")[0];
+
+                        if (strArr[i].startsWith("faban.getRandomString")) {
+                            strArr[i] = new StringBuilder("random.makeAString("
+                            ).append(low).append(",").append(high).append(
+                                    ")").toString();
+                        } else if(strArr[i].startsWith("faban.getRandomInt")) {
+                            strArr[i] = new StringBuilder("random.random(").append(
+                                    low).append(",").append(high).append(")"
+                                    ).toString();
+                        }
+                        output.append(".append(").append(strArr[i]).append(")");
+                    } else {
+                        output.append(".append(\"").
+                                append(strArr[i]).append("\")");
+                    }
+                }
+                return output.toString();
+            }
+        }
+
+        private static class RunInfoPostFileDefinition
+                extends RunInfoDefinition {
+
+            public String getStatics(int opNum) throws Exception {
+                if (isBinary) {
+                    FileInputStream fis = new FileInputStream(data);
+                    byte[] b = new byte[fis.available()];
+                    if (fis.read(b) != b.length)
+                        throw new IOException("Short read of data file " + data);
+                    fis.close();
+                    return makeBinaryStaticBlock(b, opNum);
+                } else if (!doSubst) {
+                    FileReader fr = new FileReader(data);
+                    char[] c = new char[(int) new File(data).length()];
+                    if (fr.read(c) != c.length)
+                        throw new IOException("Short read of data file " + data);
+                    fr.close();
+                    return makeCharStaticBlock(c, opNum);
+                }
+                else return "";
+            }
+
+            public String getURL(int opNum) {
+                return new StringBuilder("\"").append(url).
+                        append("\"").toString();
+            }
+
+            public String getPostRequest(int opNum) throws Exception {
+                if (isBinary) {
+                    return new StringBuilder(", post_data_").append(opNum).
+                                                                    toString();
+                }
+                if (!doSubst) {
+                    return new StringBuilder(", post_string_").append(opNum).
+                                                                    toString();
+                }
+                BufferedReader br = new BufferedReader(new FileReader(data));
+                String s = br.readLine();
+                br.close();
+                String requestString = generateRandomData(s);
+                StringBuilder sb = new StringBuilder(
+                                                ", new StringBuilder(\"\")");
+                sb.append(requestString);
+                sb.append(".toString()");
+                return sb.toString();
+            }
+        }
+
+        private static class RunInfoPostDataDefinition
+                extends RunInfoPostFileDefinition {
+            public String getStatics(int opNum) {
+                if (isBinary)
+                    return makeBinaryStaticBlock(data.getBytes(), opNum);
+                else if (!doSubst)
+                    return makeCharStaticBlock(data.toCharArray(), opNum);
+                else return "";
+            }
+
+            public String getPostRequest(int opNum) throws Exception {
+                if (isBinary || !doSubst)
+                    return super.getPostRequest(opNum);
+                String requestString = generateRandomData(data);
+                StringBuilder sb = new StringBuilder(
+                                                ", new StringBuilder(\"\")");
+                sb.append(requestString);
+                sb.append(".toString()");
+                return sb.toString();
+            }
+        }
+
+        private static class RunInfoGetDefinition extends RunInfoDefinition {
+            public String getStatics(int opNum) {
+                if (doSubst)
+                    return "";
+                StringBuilder sb = new StringBuilder(
+                        "private static String get_string_");
+                sb.append(opNum);
+                sb.append(" = \"");
+                sb.append(url);
+                sb.append(data);
+                sb.append("\"");
+                sb.append(";");
+                return sb.toString();
+            }
+
+            public String getURL(int opNum) {
+                if (doSubst) {
+                    String requestString = generateRandomData(data);
+                    return new StringBuilder(
+                            "new StringBuilder(\"").append(url).append("\")").
+                            append(requestString).append(".toString()").
+                            toString();
+                }
+                else return "get_string_" + opNum;
+            }
+
+            public String getPostRequest(int opNum) {
+                return "";
+            }
+        }
+
         private String createDefinition(Object runConfigNode) throws Exception {
 
             Element benchDefNode = (Element) xp.evaluate(
@@ -354,19 +537,19 @@ public class RunInfo implements Serializable {
 
             String definingClassName= xp.evaluate("driverConfig/@name",
                     runConfigNode);
-            
+
             //Get the cycleTime annotation
             Element driverConfigNode = (Element)xp.evaluate("driverConfig",
                     runConfigNode, XPathConstants.NODE);
             String requestLagTime = getRequestLagTime(driverConfigNode);
-            
-            /**Load the template from file 
+
+            /**Load the template from file
              * Template file is small, but is there a better way to read this?
              **/
             String line = null;
             BufferedReader br = null; 
             InputStream is = null;
-            
+
             try{
                 ClassLoader cl = this.getClass().getClassLoader();
                 is = cl.getResourceAsStream("driver_template");
@@ -376,9 +559,9 @@ public class RunInfo implements Serializable {
                 ex.printStackTrace();
                 throw new ConfigurationException(ex);
             }
-            
+
             StringBuilder sb = new StringBuilder();
-            
+
             while((line=br.readLine())!=null){
                 if(!line.equals("\n")){
                     sb.append(line).append("\n");
@@ -386,10 +569,10 @@ public class RunInfo implements Serializable {
             }
 
             String template = sb.toString();
-            
+
             is.close();
-            
-            /**Get the operation token out of the template. 
+
+            /**Get the operation token out of the template.
              * Use this to create multiple operations/functions that will 
              * replace the token in the java file
              **/
@@ -397,81 +580,105 @@ public class RunInfo implements Serializable {
                     (template.indexOf("#operation")+10),
                     template.indexOf("operation#"));
             StringBuilder operations = new StringBuilder();
-            
+
             Element operationNode = null;
             int i=1;
-            
+
             while( (operationNode=(Element)xp.evaluate(
                     ("driverConfig/operation["+ i +"]"), 
                     runConfigNode, XPathConstants.NODE)) != null){
 
+                /*
+                * There are many different options here. First, the operation
+                * is either POST or GET. In either case, the subst element
+                * indicates whether or not random strings are present in the
+                * payload data (for backward compatibility, it is assumed
+                * that random data is present).
+                *
+                * For POST, we can read the data from a file, and we can
+                * encode the data as form-encoded or binary (octet-stream)
+                */
                 boolean isPost = false;
-                
+                boolean isBinary = false;
+                boolean isFile = false;
+                boolean doSubst = true;
+
                 String requestLagTimeOverride = getRequestLagTime(operationNode);
                 String operationName = xp.evaluate("name", operationNode);
                 String url = xp.evaluate("url", operationNode);
                 String max90th = xp.evaluate("max90th", operationNode);
 
                 String requestString="";
+
                 Element requestNode = (Element)xp.evaluate("get",
-                    operationNode, XPathConstants.NODE);
-                
-                if(requestNode == null){
-                    
-                    requestNode = (Element)xp.evaluate("post",
-                    operationNode, XPathConstants.NODE);
-                    
-                    if(requestNode !=null){
-                        isPost=true;
-                    }else{
-                        throw new ConfigurationException(
-                            "&lt;operation&gt; must have a either a get/post");
+                        operationNode, XPathConstants.NODE);
+
+                if (requestNode == null) {
+                    //Can't have both post & get either, but if both are there,
+                    // will assume you meant GET.
+
+                    requestNode = (Element) xp.evaluate("post",
+                            operationNode, XPathConstants.NODE);
+
+                    if (requestNode != null) {
+                        isPost = true;
+                        if ("true".equalsIgnoreCase(
+                                requestNode.getAttribute("file")))
+                            isFile = true;
+                        if ("true".equalsIgnoreCase(
+                                requestNode.getAttribute("binary")))
+                            isBinary = true;
+                    } else {
+                        throw new ConfigurationException("&lt;operation&gt; " +
+                                            "must have a either a get/post");
                     }
-                    //Can't have both post & get either, but if there, will assume you meant GET.
+                    //Can't have both post & get either, but if there,
+                    // will assume you meant GET.
                 }
-                CDATASection cDataNode = (CDATASection)requestNode.getFirstChild();
-                
-                if(cDataNode!=null){
-                    requestString = cDataNode.getNodeValue();
+                if ("false".equalsIgnoreCase(requestNode.getAttribute("subst")))
+                    doSubst = false;
+                if (isBinary && doSubst)
+                    throw new ConfigurationException("&lt;operation&gt; " +
+                            "cannot be both binary and perform substitution");
+                requestString = requestNode.getNodeValue();
+                if (requestString == null) {
+                    CDATASection cDataNode =
+                            (CDATASection)requestNode.getFirstChild();
+                    if(cDataNode!=null){
+                        requestString = cDataNode.getNodeValue();
+                    }
                 }
-                
-                if(requestLagTimeOverride==null) 
+                if (requestString == null)
+                    requestString = "";
+
+                if(requestLagTimeOverride==null)
                     requestLagTimeOverride="";
                 if(operationName==null) 
                     throw new ConfigurationException(
-                            "&lt;operation&gt; must have a &lt;name&gt; ");
+                            "<operation> must have a <name> ");
                 if(url==null) 
                     throw new ConfigurationException(
-                            "&lt;operation&gt; must have a &lt;url&gt;");
-                
-                    
-                requestString = generateRandomData(requestString);
-                
+                            "<operation> must have a <url>");
+
+
+                RunInfoDefinition rid;
+                if (isPost) {
+                    if (isFile) {
+                        rid = new RunInfoPostFileDefinition();
+                    }
+                    else rid = new RunInfoPostDataDefinition();
+                }
+                else rid = new RunInfoGetDefinition();
+                rid.init(isFile, doSubst, isBinary, url, requestString);
+
                 //Create the benchmark Operation annotation
                 StringBuilder bmop = new StringBuilder(
                         "@BenchmarkOperation(name = \"").append(operationName);
                 bmop.append("\", max90th=").append(max90th).append(
                         ", timing = com.sun.faban.driver.Timing.AUTO");
                 bmop.append(")");
-                
+
                 String opTemplateClone =  new String(opTemplate);
-                String reqUrl = null;
-                String postRequest = "";
-                
-                if(isPost) {
-                    reqUrl = new StringBuilder("\"").append(url).append(
-                            "\"").toString();
-                    postRequest = new StringBuilder(
-                            ", new StringBuilder()").append(
-                            requestString).append(".toString()").toString();
-                    
-                }else{
-                    reqUrl = new StringBuilder(
-                            "new StringBuilder(\"").append(url).append(
-                            "\")").append(requestString).append(".toString()"
-                            ).toString();
-                }
-                
                 //replace tokens with actual content
                 opTemplateClone = opTemplateClone.replaceAll(
                         "@RequestLagTime@", requestLagTimeOverride);
@@ -480,9 +687,11 @@ public class RunInfo implements Serializable {
                 opTemplateClone = opTemplateClone.replaceAll(
                         "@operationName@", operationName);
                 opTemplateClone = opTemplateClone.replaceAll(
-                        "@url@", reqUrl);
+                        "@url@", rid.getURL(i));
                 opTemplateClone = opTemplateClone.replaceAll(
-                        "@postRequest@", postRequest);
+                        "@postRequest@", rid.getPostRequest(i));
+                opTemplateClone = opTemplateClone.replaceAll(
+                        "@Statics@", rid.getStatics(i));
                 
                 operations.append(opTemplateClone);
                 
@@ -543,51 +752,6 @@ public class RunInfo implements Serializable {
             
         }
 
-        private String generateRandomData(String inputString)
-                throws ConfigurationException{
-            StringBuilder output = new StringBuilder();
-            
-            String[] strArr = inputString.split("@@");
-            
-            for(int i=0; i< strArr.length; i++){
-                
-                if(strArr[i].startsWith("faban.getRandom")){
-                   
-                    String tmp[] = strArr[i].split(",");
-                    String low = tmp[0].split("\\(")[1];
-                    String high = tmp[1].split("\\)")[0];
-                    
-                    int nLow = 0;
-                    int nHi = 0;
-                    try{
-                        
-                        nLow = Integer.parseInt(low.trim());
-                        nHi = Integer.parseInt(high.trim());
-                        
-                    }catch(Exception nex){
-                        throw new ConfigurationException(nex);
-                    }
-                    
-                    if(strArr[i].startsWith("faban.getRandomString")){
-                        strArr[i] = new StringBuilder("random.makeAString("
-                                ).append(low).append(",").append(high).append(
-                                ")").toString();
-                    }else if(strArr[i].startsWith("faban.getRandomInt")){
-                        strArr[i] = new StringBuilder("random.random(").append(
-                                low).append(",").append(high).append(")"
-                                ).toString();
-                    }
-                    
-                    output.append(".append(").append(strArr[i]).append(")");
-                }else{
-                    output.append(".append(\"").append(strArr[i]).append("\")");
-                }   
-                
-                
-            }
-
-            return output.toString();
-        }
         private String getBenchmarkDefinition(Object benchDefNode)
                 throws Exception{
             //to do error checking -- name is required?
@@ -747,7 +911,7 @@ public class RunInfo implements Serializable {
                 driverConfig.runControl = benchDef.runControl;
                 if (driverConfigNode == null)
                     throw new ConfigurationException("Element " +
-                            "&lt;driverConfig name=&quot;" + driverConfig.name + 
+                            "&lt;driverConfig name=&quot;" + driverConfig.name +
                             "&quot;&gt; not found.");
 
                 v = xp.evaluate("agents", driverConfigNode);
