@@ -21,6 +21,7 @@ public @DriverClassName@(){
 }
 
 #operation
+@Statics@
 @Operations@
 @RequestLagTime@
 public void @operationName@() throws Exception{

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunInfo.java,v 1.10 2007/05/26 06:32:43 akara Exp $
+ * $Id: RunInfo.java,v 1.11 2007/06/07 23:25:33 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -280,7 +280,7 @@ public class RunInfo implements Serializable {
                         XPathConstants.NODE);
             if (runConfigNode == null)
                 throw new ConfigurationException(
-                        "Cannot find &lt;runConfig&gt; element.");
+                        "Cannot find <runConfig> element.");
             definingClassName = xp.evaluate("@definition", runConfigNode);
             
             //if the defining class is null, the benchmark definition needs 
@@ -629,7 +629,7 @@ public class RunInfo implements Serializable {
                                 requestNode.getAttribute("binary")))
                             isBinary = true;
                     } else {
-                        throw new ConfigurationException("&lt;operation&gt; " +
+                        throw new ConfigurationException("<operation> " +
                                             "must have a either a get/post");
                     }
                     //Can't have both post & get either, but if there,
@@ -638,7 +638,7 @@ public class RunInfo implements Serializable {
                 if ("false".equalsIgnoreCase(requestNode.getAttribute("subst")))
                     doSubst = false;
                 if (isBinary && doSubst)
-                    throw new ConfigurationException("&lt;operation&gt; " +
+                    throw new ConfigurationException("<operation> " +
                             "cannot be both binary and perform substitution");
                 requestString = requestNode.getNodeValue();
                 if (requestString == null) {
@@ -787,46 +787,46 @@ public class RunInfo implements Serializable {
                     runInfo.scale = Integer.parseInt(v);
                 } catch (NumberFormatException e) {
                     throw new ConfigurationException(
-                            "&lt;scale&gt; must be an integer.");
+                            "<scale> must be an integer.");
                 }
 
             v = xp.evaluate("runControl/rampUp", runConfigNode);
             if (v == null || v.length() == 0)
                 throw new ConfigurationException(
-                        "Element &lt;rampUp&gt; not found.");
+                        "Element <rampUp> not found.");
             try {
                 runInfo.rampUp = Integer.parseInt(v);
             } catch (NumberFormatException e) {
                 throw new ConfigurationException(
-                        "&lt;rampUp&gt; must be an integer.");
+                        "<rampUp> must be an integer.");
             }
 
             v = xp.evaluate("runControl/steadyState", runConfigNode);
             if (v == null || v.length() == 0)
                 throw new ConfigurationException(
-                        "Element &lt;steadyState&gt; not found.");
+                        "Element <steadyState> not found.");
             try {
                 runInfo.stdyState = Integer.parseInt(v);
             } catch (NumberFormatException e) {
                 throw new ConfigurationException(
-                        "&lt;steadyState&gt; must be an integer.");
+                        "<steadyState> must be an integer.");
             }
 
             v = xp.evaluate("runControl/rampDown", runConfigNode);
             if (v == null || v.length() == 0)
                 throw new ConfigurationException(
-                        "Element &lt;rampDown&gt; not found.");
+                        "Element <rampDown> not found.");
             try {
                 runInfo.rampDown = Integer.parseInt(v);
             } catch (NumberFormatException e) {
                 throw new ConfigurationException(
-                        "&lt;rampDown&gt; must be an integer.");
+                        "<rampDown> must be an integer.");
             }
 
             runInfo.resultsDir = xp.evaluate("outputDir", runConfigNode);
             if (runInfo.resultsDir == null || runInfo.resultsDir.length() == 0)
                 throw new ConfigurationException(
-                        "Element &lt;resultsDir&gt; not found.");
+                        "Element <resultsDir> not found.");
 
             v = xp.evaluate("audit", runConfigNode);
             if (v != null && v.length() > 0)
@@ -834,7 +834,7 @@ public class RunInfo implements Serializable {
                     runInfo.audit = relaxedParseBoolean(v);
                 } catch (NumberFormatException e) {
                     throw new ConfigurationException(
-                            "&lt;audit&gt; must be true or false.");
+                            "<audit> must be true or false.");
                 }
 
             v = xp.evaluate("threadStart/delay", runConfigNode);
@@ -843,7 +843,7 @@ public class RunInfo implements Serializable {
                     runInfo.msBetweenThreadStart = Integer.parseInt(v);
                 } catch (NumberFormatException e) {
                     throw new ConfigurationException(
-                            "&lt;delay&gt; must be an integer.");
+                            "<delay> must be an integer.");
                 }
 
             v = xp.evaluate("threadStart/simultaneous", runConfigNode);
@@ -852,7 +852,7 @@ public class RunInfo implements Serializable {
                     runInfo.simultaneousStart = relaxedParseBoolean(v);
                 } catch (NumberFormatException e) {
                     throw new ConfigurationException(
-                            "&lt;simultaneous&gt; must be true or false.");
+                            "<simultaneous> must be true or false.");
                 }
 
             v = xp.evaluate("threadStart/parallel", runConfigNode);
@@ -861,7 +861,7 @@ public class RunInfo implements Serializable {
                     runInfo.parallelAgentThreadStart = relaxedParseBoolean(v);
                 } catch (NumberFormatException e) {
                     throw new ConfigurationException(
-                            "&lt;parallel&gt; must be true or false.");
+                            "<parallel> must be true or false.");
                 }
 
             v = xp.evaluate("stats/maxRunTime", runConfigNode);
@@ -870,7 +870,7 @@ public class RunInfo implements Serializable {
                     runInfo.maxRunTime = Integer.parseInt(v);
                 } catch (NumberFormatException e) {
                     throw new ConfigurationException(
-                            "&lt;maxRunTime&gt; must be an integer.");
+                            "<maxRunTime> must be an integer.");
                 }
 
             v = xp.evaluate("stats/interval", runConfigNode);
@@ -879,7 +879,7 @@ public class RunInfo implements Serializable {
                     runInfo.graphInterval = Integer.parseInt(v);
                 } catch (NumberFormatException e) {
                     throw new ConfigurationException(
-                            "&lt;interval&gt; must be an integer.");
+                            "<interval> must be an integer.");
                 }
 
             v = xp.evaluate("runtimeStats/@enabled", runConfigNode);
@@ -888,7 +888,7 @@ public class RunInfo implements Serializable {
                     runInfo.runtimeStatsEnabled = relaxedParseBoolean(v);
                 } catch (Exception e) {
                     throw new ConfigurationException(
-                            "&lt;runtimeStats enabled=[true|false]&gt;");
+                            "<runtimeStats enabled=[true|false]>");
                 }
 
             v = xp.evaluate("runtimeStats/interval", runConfigNode);
@@ -897,7 +897,7 @@ public class RunInfo implements Serializable {
                     runInfo.runtimeStatsInterval = Integer.parseInt(v);
                 } catch (NumberFormatException e) {
                     throw new ConfigurationException(
-                            "&lt;interval&gt; must be an integer.");
+                            "<interval> must be an integer.");
                 }
 
             runInfo.driverConfigs = new DriverConfig[benchDef.drivers.length];
@@ -911,8 +911,8 @@ public class RunInfo implements Serializable {
                 driverConfig.runControl = benchDef.runControl;
                 if (driverConfigNode == null)
                     throw new ConfigurationException("Element " +
-                            "&lt;driverConfig name=&quot;" + driverConfig.name +
-                            "&quot;&gt; not found.");
+                            "<driverConfig name=\"" + driverConfig.name +
+                            "\"> not found.");
 
                 v = xp.evaluate("agents", driverConfigNode);
 
@@ -937,7 +937,7 @@ public class RunInfo implements Serializable {
                             driverConfig.numAgents += Integer.parseInt(v);
                         } catch (NumberFormatException e) {
 
-                            throw new ConfigurationException("&lt;agents&gt; " +
+                            throw new ConfigurationException("<agents> " +
                                     "must be an integer or in the format " +
                                     "host:agents where agents is an integer. " +
                                     "Found: " + v);
@@ -951,7 +951,7 @@ public class RunInfo implements Serializable {
                         driverConfig.numThreads = Integer.parseInt(v);
                     } catch (NumberFormatException e) {
                         throw new ConfigurationException(
-                                "&lt;threads&gt; must be an integer.");
+                                "<threads> must be an integer.");
                     }
 
                 v = xp.evaluate("stats/interval", driverConfigNode);
@@ -960,7 +960,7 @@ public class RunInfo implements Serializable {
                         driverConfig.graphInterval = Integer.parseInt(v);
                     } catch (NumberFormatException e) {
                         throw new ConfigurationException(
-                                "&lt;interval&gt; must be an integer.");
+                                "<interval> must be an integer.");
                     }
                 else driverConfig.graphInterval = runInfo.graphInterval;
 
@@ -970,7 +970,7 @@ public class RunInfo implements Serializable {
                     if (driverConfig.runtimeStatsTarget == null ||
                             driverConfig.runtimeStatsTarget.length() == 0)
                         throw new ConfigurationException("Element " +
-                                "&lt;runtimeStats target=[port]&lt; not found.");
+                                "<runtimeStats target=[port]> not found.");
                 }
                 driverConfig.rootElement = rootElement;
                 driverConfig.properties = (Element) xp.evaluate("properties",

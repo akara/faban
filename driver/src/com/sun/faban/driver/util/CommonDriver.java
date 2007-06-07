@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CommonDriver.java,v 1.1 2007/05/26 06:32:43 akara Exp $
+ * $Id: CommonDriver.java,v 1.2 2007/06/07 23:25:34 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -78,9 +78,7 @@ public class CommonDriver {
     private static boolean postRequest = false;
     private static String path;
     private static String queryString;
-    private static String outputDirectory =
-            System.getProperty("java.io.tmpdir") +
-            "faban_cd";
+    private static String outputDirectory;
     private static String runXmlFileName;
     private static boolean save = false;
     private static boolean substitute = false;
@@ -89,6 +87,11 @@ public class CommonDriver {
     private static final int CYCLE_DEVIATION = 1;
 
     public static void main(String[] args) throws Exception {
+        outputDirectory = System.getProperty("java.io.tmpdir");
+        if (!outputDirectory.endsWith(File.separator))
+            outputDirectory += File.separatorChar;
+        outputDirectory += "faban_cd";
+
         parseArgs(args);
         makeRunXml();
         run();
@@ -243,8 +246,9 @@ public class CommonDriver {
         int users = Integer.parseInt(getValue(doc, "users"));
         double rt = Double.parseDouble(getValue(doc, "rtXtps"));
         if (users * .975 > rt)
-            System.out.println("ERROR: Little's law failed verification: " +
-                    users + " users requested; " + rt + " users simulated");
+            System.out.println("WARNING: Little's law verification results " +
+                    "low: " + users + " users requested; " + rt +
+                    " users simulated");
         double ta = Double.parseDouble(getValue(doc, "targetedAvg"));
         double aa = Double.parseDouble(getValue(doc, "actualAvg"));
         if (Math.abs(aa - ta)/ta > (CYCLE_DEVIATION / 100d))
@@ -281,13 +285,15 @@ public class CommonDriver {
 
     private static void parseArgs(String[] args) throws MalformedURLException {
         int i;
+        String optArg = null;
         for (i = 0; i < args.length; i++) {
             char[] c = args[i].toCharArray();
             if (c[0] != '-')
                 break;
             switch(c[1]) {
                 case 'D':
-                    outputDirectory = args[++i];
+                    outputDirectory =
+                            c.length > 2 ? args[i].substring(2) : args[++i];
                     break;
                 case 'n':
                     System.err.println("numRequests not supported");
@@ -295,17 +301,27 @@ public class CommonDriver {
                                                                     "instead");
                     System.exit(-1);
                 case 'r':
-                    StringTokenizer tok = new StringTokenizer(args[++i], "/");
+                    optArg = c.length > 2 ? args[i].substring(2) : args[++i];
+                    StringTokenizer tok = new StringTokenizer(optArg, "/");
                     rampUp = tok.nextToken();
                     steadyState = tok.nextToken();
                     rampDown = tok.nextToken();
                     break;
-                case 'W': thinkTime = args[++i]; break;
+                case 'W':
+                    thinkTime = c.length > 2 ? args[i].substring(2) : args[++i];
+                    break;
                 case 's': save = true; break;
                 case 'S': substitute = true; break;
-                case 'c': numThreads = Integer.parseInt(args[++i]); break;
-                case 't': ninetyPct = Double.parseDouble(args[++i]); break;
-                case 'p': queryString = args[++i]; postRequest = true; break;
+                case 'c':
+                    optArg = c.length > 2 ? args[i].substring(2) : args[++i];
+                    numThreads = Integer.parseInt(optArg); break;
+                case 't':
+                    optArg = c.length > 2 ? args[i].substring(2) : args[++i];
+                    ninetyPct = Double.parseDouble(optArg); break;
+                case 'p':
+                    queryString =
+                            c.length > 2 ? args[i].substring(2) : args[++i];
+                    postRequest = true; break;
                 case 'b': isBinary = true; break;
                 case 'k':
                     System.err.println("Warning: keep alive is always on");
@@ -339,29 +355,39 @@ public class CommonDriver {
     }
 
     private static void usage() {
-        System.err.println("usage: java [jvm options] com.sun.faban.driver." +
-                                    "util.CommonDriver [program options] URL");
-        System.err.println("Use standard options (including -server) for " +
-                                    "jvm options");
+        String cmd = System.getProperty("faban.cli.command");
+        if (cmd == null) {
+            System.err.println("usage: java [jvm options] com.sun.faban." +
+                            "driver.util.CommonDriver [program options] URL");
+            System.err.println("Use standard options (including -server) for " +
+                                        "jvm options");
+        } else {
+            System.err.println("usage: " + cmd + " [program options] URL");
+        }
         System.err.println("Suported program options are: ");
-        System.err.println("\t-D directory: Use directory for temporary files");
-        System.err.println("\t-r rampup/steady/rampDown:");
+        if (cmd != null) {
+            System.err.println("\t-J jvm_option : Set particular JVM option");
+            System.err.println("\t\tUse standard options (including -server) " +
+                                                            "for jvm options");
+        }
+        System.err.println("\t-D directory : Use directory for temporary files");
+        System.err.println("\t-r rampup/steady/rampDown :");
         System.err.println("\t\tRun for given ramup, steady state, and " +
                                                             "rampdown seconds");
         System.err.println("\t\tDefaults are 300/300/120");
-        System.err.println("\t -W millisecs: Use millisecs pause time between" +
+        System.err.println("\t-W millisecs : Use millisecs pause time between" +
                                                             " requests");
-        System.err.println("\t-s: Save all faban output files in temporary " +
+        System.err.println("\t-s : Save all faban output files in temporary " +
                                                             "directory");
         System.err.println("\t-c concurrentRequests: Run c clients " +
                                                             "concurrently");
-        System.err.println("\t-t 90%: Target 90th % response rate");
-        System.err.println("\t-p file: Use POST data in file");
-        System.err.println("\t-b: Send POST data as binary " +
+        System.err.println("\t-t 90% : Target 90th % response rate");
+        System.err.println("\t-p file : Use POST data in file");
+        System.err.println("\t-b : Send POST data as binary " +
                                                 "(application/octet-stream)");
-        System.err.println("\t-S: Perform Faban data substitutions on GET " +
+        System.err.println("\t-S : Perform Faban data substitutions on GET " +
                                                 "query string or POST data");
-        System.err.println("\t-k: NOTE: Keep alive is always on");
+        System.err.println("\t-k NOTE : Keep alive is always on");
         System.exit(-1);
     }
 }
