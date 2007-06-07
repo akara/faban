@@ -7,7 +7,7 @@
 <commands>
     <command>
         <name>rsh</name>
-        <path>/usr/bin/rsh -n</path>
+        <exec>/usr/bin/rsh -n</exec>
     </command>
     <command>
         <name>cpustat</name>
@@ -20,7 +20,7 @@
     </command>
     <command>
         <name>lockstat</name>
-        <path>/usr/sbin/lockstat</path>
+        <exec>/usr/sbin/lockstat</exec>
         <prefix>fastsu</prefix>
     </command>
     <command>

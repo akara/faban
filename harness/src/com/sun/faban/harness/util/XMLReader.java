@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: XMLReader.java,v 1.4 2007/05/24 01:04:38 akara Exp $
+ * $Id: XMLReader.java,v 1.5 2007/06/07 23:28:26 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -195,7 +195,8 @@ public class XMLReader {
             if (updated)
                 this.updated = true;
             else
-                throw new XMLException("Update unsuccessful!");
+                throw new XMLException("Update of XPath " + xpath +
+                        " unsuccessful!");
         } catch (XPathExpressionException e) {
             throw new XMLException("Error evaluating " + xpath + ", " +
                                    e.getMessage(), e);
