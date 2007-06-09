@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Result.java,v 1.2 2006/06/29 19:38:36 akara Exp $
+ * $Id: Result.java,v 1.3 2007/06/09 07:13:01 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -59,6 +59,12 @@ public abstract class Result {
     public abstract double getMetric();
 
     /**
+     * Obtains the defined operation names, in sequence.
+     * @return The operation names.
+     */
+    public abstract String[] getOpsNames();
+
+    /**
      * Obtains the number of operations of a certain type successfully
      * executed during steady state.
      *
@@ -66,6 +72,14 @@ public abstract class Result {
      * @return The number of successful operations
      */
     public abstract int getOpsCountSteady(String opsName);
+
+    /**
+     * Obtains the number of operations of each type successfully
+     * executed during steady state. The index into the array returned
+     * corresponds to the index of getOpsNames().
+     * @return The number of successful operations for each type
+     */
+    public abstract int[] getOpsCountSteady();
 
 
     /**
@@ -78,10 +92,27 @@ public abstract class Result {
     public abstract int getOpsCountTotal(String opsName);
 
     /**
+     * Obtains the number of operatioins of each type successfully executed
+     * during the whole run. The index into the array returned corresponds
+     * to the index of getOpsNames().
+     * @return The number of successful operations for each type
+     */
+    public abstract int[] getOpsCountTotal();
+
+    /**
      * Obtains the actual mix of the operation. The return value ranges
      * between 0 and 1. To obtain the percent mix, multiply the mix by 100.
      * @param opsName The name of the operation to query
      * @return The mix ratio of the operation during steady state.
      */
     public abstract double getOpsMix(String opsName);
+
+    /**
+     * Obtains the actual mix of each operation. The return values range
+     * between 0 and 1. To obtain the percent mix, multiply the mix by 100.
+     * The index into the array returned corresponds to the index of
+     * getOpsNames().
+     * @return The mix ratio of all operations during steady state.
+     */ 
+    public abstract double[] getOpsMix();
 }

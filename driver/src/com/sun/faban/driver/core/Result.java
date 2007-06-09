@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Result.java,v 1.3 2007/02/23 06:47:12 akara Exp $
+ * $Id: Result.java,v 1.4 2007/06/09 07:13:00 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -83,6 +83,15 @@ public class Result extends com.sun.faban.driver.Result {
     }
 
     /**
+     * Obtains the defined operation names, in sequence.
+     *
+     * @return The operation names.
+     */
+    public String[] getOpsNames() {
+        return m.txNames.clone();
+    }
+
+    /**
      * Obtains the number of operations of a certain type successfully
      * executed during steady state.
      *
@@ -91,6 +100,17 @@ public class Result extends com.sun.faban.driver.Result {
      */
     public int getOpsCountSteady(String opsName) {
         return m.txCntStdy[getOpsIdx(opsName)];
+    }
+
+    /**
+     * Obtains the number of operations of each type successfully
+     * executed during steady state. The index into the array returned
+     * corresponds to the index of getOpsNames().
+     *
+     * @return The number of successful operations for each type
+     */
+    public int[] getOpsCountSteady() {
+        return m.txCntStdy.clone();
     }
 
     /**
@@ -105,6 +125,17 @@ public class Result extends com.sun.faban.driver.Result {
     }
 
     /**
+     * Obtains the number of operatioins of each type successfully executed
+     * during the whole run. The index into the array returned corresponds
+     * to the index of getOpsNames().
+     *
+     * @return The number of successful operations for each type
+     */
+    public int[] getOpsCountTotal() {
+        return m.txCntTotal.clone();
+    }
+
+    /**
      * Obtains the actual mix of the operation. The return value ranges
      * between 0 and 1. To obtain the percent mix, multiply the mix by 100.
      *
@@ -113,5 +144,17 @@ public class Result extends com.sun.faban.driver.Result {
      */
     public double getOpsMix(String opsName) {
         return m.mixRatio[getOpsIdx(opsName)];
+    }
+
+    /**
+     * Obtains the actual mix of each operation. The return values range
+     * between 0 and 1. To obtain the percent mix, multiply the mix by 100.
+     * The index into the array returned corresponds to the index of
+     * getOpsNames().
+     *
+     * @return The mix ratio of all operations during steady state.
+     */
+    public double[] getOpsMix() {
+        return m.mixRatio.clone();
     }
 }

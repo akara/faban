@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DriverContext.java,v 1.3 2006/08/29 20:16:32 akara Exp $
+ * $Id: DriverContext.java,v 1.4 2007/06/09 07:13:01 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -99,6 +99,21 @@ public abstract class DriverContext {
      * @return the current operation's name
      */
     public abstract String getCurrentOperation();
+
+    /**
+     * Obtains the unique id assigned to the current operation type.
+     * This id is commonly used to index into array structures containing
+     * operation-specific information such as stats. The id ranges from 0 to
+     * n where n is the number of operations in the driver less one.
+     * @return The unique id assigned to this operation type.
+     */
+    public abstract int getOperationId();
+
+    /**
+     * Obtains the number of operations active in this driver.
+     * @return The number of active operations
+     */
+    public abstract int getOperationCount();
 
     /**
      * Obtains the per-thread random value generator. Drivers

@@ -1,5 +1,6 @@
 import com.sun.faban.driver.*;
-import com.sun.faban.driver.util.Random; 
+import com.sun.faban.driver.util.ContentSizeStats;
+import com.sun.faban.driver.util.Random;
 
 @BenchmarkDefinition@
 
@@ -13,11 +14,16 @@ import com.sun.faban.driver.util.Random;
 public class @DriverClassName@ {
 
 private HttpTransport httpTransport;
+private DriverContext ctx;
 private Random random;
+private ContentSizeStats contentStats = null;
 
 public @DriverClassName@(){
-	 httpTransport = new  HttpTransport();
-         random = DriverContext.getContext().getRandom();
+	 httpTransport = new HttpTransport();
+	 ctx = DriverContext.getContext();
+     random = ctx.getRandom();
+     contentStats = new ContentSizeStats(ctx.getOperationCount());
+     ctx.attachMetrics(contentStats);
 }
 
 #operation
@@ -31,6 +37,9 @@ public void @operationName@() throws Exception{
             httpTransport.readURL(url@postRequest@);
             //System.out.println("url:"+url);
 
+            if (ctx.isTxSteadyState())
+                contentStats.sumContentSize[ctx.getOperationId()] +=
+                                                httpTransport.getContentSize();
 	}catch(Exception ex){
 	  ex.printStackTrace();
           throw ex;

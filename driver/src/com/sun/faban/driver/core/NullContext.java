@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: NullContext.java,v 1.3 2006/08/29 20:16:32 akara Exp $
+ * $Id: NullContext.java,v 1.4 2007/06/09 07:13:00 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -111,6 +111,31 @@ public class NullContext extends DriverContext {
      */
     public String getCurrentOperation() {
         return "DriverTestNullContext";
+    }
+
+    /**
+     * Obtains the unique id assigned to the current operation type.
+     * This id is commonly used to index into array structures containing
+     * operation-specific information such as stats. The id ranges from 0 to
+     * n where n is the number of operations in the driver less one. This
+     * implementation always returns 0 as it is not backed by the driver
+     * framework.
+     *
+     * @return The unique id assigned to this operation type.
+     */
+    public int getOperationId() {
+        return 0;
+    }
+
+    /**
+     * Obtains the number of operations active in this driver. This
+     * implementation alwasy returns 1 as it is not backed by the
+     * driver framework.
+     *
+     * @return The number of active operations
+     */
+    public int getOperationCount() {
+        return 1;
     }
 
     /**
