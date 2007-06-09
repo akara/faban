@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: WebDriver.java,v 1.3 2006/12/08 22:23:25 akara Exp $
+ * $Id: WebDriver.java,v 1.4 2007/06/09 07:14:33 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,6 +25,7 @@ package sample.driver;
 
 import com.sun.faban.driver.*;
 import com.sun.faban.driver.util.Random;
+import com.sun.faban.driver.util.ContentSizeStats;
 
 import javax.xml.xpath.XPathExpressionException;
 import java.io.IOException;
@@ -58,6 +59,7 @@ public class WebDriver {
     private String url1, url2, url3;
     Logger logger;
     Random random;
+    ContentSizeStats contentStats = null;
 
     public WebDriver() throws XPathExpressionException {
         ctx = DriverContext.getContext();
@@ -72,6 +74,8 @@ public class WebDriver {
         url1 = "http://" + host + ':' + port + '/' + path1;
         url2 = "http://" + host + ':' + port + '/' + path2;
         url3 = "http://" + host + ':' + port + '/' + path3;
+        contentStats = new ContentSizeStats(ctx.getOperationCount());
+        ctx.attachMetrics(contentStats);
     }
 
     @OnceBefore public void testPreRun() {
@@ -98,6 +102,9 @@ public class WebDriver {
     public void doMyOperation1() throws IOException {
         logger.finest("Accessing " + url1);
         http.fetchURL(url1);
+        if (ctx.isTxSteadyState())
+            contentStats.sumContentSize[ctx.getOperationId()] +=
+                                                        http.getContentSize();
     }
 
     @BenchmarkOperation (
@@ -108,6 +115,9 @@ public class WebDriver {
     public void doMyOperation2() throws IOException {
         logger.finest("Accessing " + url2);
         http.fetchURL(url2);
+        if (ctx.isTxSteadyState())
+            contentStats.sumContentSize[ctx.getOperationId()] +=
+                                                        http.getContentSize();
     }
 
     @BenchmarkOperation (
@@ -118,5 +128,8 @@ public class WebDriver {
     public void doMyOperation3() throws IOException {
         logger.finest("Accessing " + url3);
         http.fetchURL(url3);
+        if (ctx.isTxSteadyState())
+            contentStats.sumContentSize[ctx.getOperationId()] +=
+                                                        http.getContentSize();
     }
 }
