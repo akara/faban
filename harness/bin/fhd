@@ -1,0 +1,91 @@
+#!/bin/sh
+BINDIR=`dirname $0`
+
+if [ -n "$BINDIR" ]
+then
+   FABAN_HOME=`cd $BINDIR/.. > /dev/null 2>&1 && pwd`
+    export FABAN_HOME
+fi
+
+# If JAVA_HOME is not defined, we try our best to locate it.
+if [ -z "$JAVA_HOME" ] ; then
+
+    # Check that Java is reachable at all.
+    JAVA_BIN=`which java`
+    if [ -z "$JAVA_BIN" ] ; then
+        echo "Could not find java. Please make sure the JDK is installed \
+and set JAVA_HOME or PATH accordingly." >&2
+        exit 1
+    fi
+
+    # The java command is often a symbolic link.
+    # We need to trace down the sym link chain.
+
+    # For this trick, we need nawk or gawk.
+    # Plain old awk usually does not work.
+    # But we still fall back to it if
+    # everything else falls apart.
+    AWK=/usr/bin/awk
+    if [ -x "/usr/bin/nawk" ] ; then
+        AWK=/usr/bin/nawk
+    elif [ -x "/usr/bin/gawk" ] ; then
+        AWK=/usr/bin/gawk
+    fi
+
+    # Trace the symbolic links.
+    while [ -L "$JAVA_BIN" ] ; do
+        JAVA_BIN=`ls -l "$JAVA_BIN" | ${AWK} -F "-> " '{ print $2 }'`
+    done
+
+    # We can end up in a jre directory or a jdk directory. Have to check
+    # before assigning JAVA_HOME.
+    JAVA_BINDIR=`dirname $JAVA_BIN`
+    case "$JAVA_BINDIR" in
+        */jre/bin) JAVA_HOME=`cd $JAVA_BINDIR/../.. > /dev/null 2>&1 && pwd`;;
+        */bin) JAVA_HOME=`cd $JAVA_BINDIR/.. > /dev/null 2>$1 && pwd`;;
+    esac
+fi
+
+JAVA=$JAVA_HOME/bin/java
+CLASSPATH=$FABAN_HOME/lib/fabancommon.jar:$FABAN_HOME/lib/fabandriver.jar:$JAVA_HOME/lib/tools.jar
+
+JVMARGS=""
+DRIVERARGS=""
+
+addDriverArg() {
+    if [ -n "$DRIVERARGS" ] ; then
+        DRIVERARGS="$DRIVERARGS $1"
+    else
+        DRIVERARGS="$1"
+    fi
+}
+
+addJVMArg() {
+    if [ -n "$JVMARGS" ] ; then
+        JVMARGS="$JVMARGS $1"
+    else
+        JVMARGS="$1"
+    fi
+}
+
+jargfollows=""
+for arg in $*
+do
+    case $arg in
+        -J*) arg=`echo "$arg" | cut -c3-`
+           if [ -n "$arg" ] ; then
+               addJVMArg "$arg"
+           else
+               jargfollows="true"
+           fi;;
+        *) if [ -n "$jargfollows" ] ; then
+               addJVMArg "$arg"
+               jargfollows=""
+           else
+               addDriverArg "$arg"
+           fi;;
+    esac
+done
+
+$JAVA $JVMARGS -cp $CLASSPATH -Dfaban.cli.command=$0 \
+com.sun.faban.driver.util.CommonDriver $DRIVERARGS
