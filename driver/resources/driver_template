@@ -34,12 +34,11 @@ public void @operationName@() throws Exception{
 
 	try{
             String url = @url@;
-            httpTransport.readURL(url@postRequest@);
+            int bytesRead = httpTransport.readURL(url@postRequest@);
             //System.out.println("url:"+url);
 
             if (ctx.isTxSteadyState())
-                contentStats.sumContentSize[ctx.getOperationId()] +=
-                                                httpTransport.getContentSize();
+                contentStats.sumContentSize[ctx.getOperationId()] += bytesRead;
 	}catch(Exception ex){
 	  ex.printStackTrace();
           throw ex;
