@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ServerConfig.java,v 1.4 2007/04/27 21:33:27 akara Exp $
+ * $Id: ServerConfig.java,v 1.5 2007/06/14 06:40:28 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -77,39 +77,41 @@ class ServerConfig {
         String syslogfile = run.getOutDir() + "sysinfo.";
         String userCmds[];
         String[][] serverMachines;
-        try {
-            ArrayList enabledHosts = new ArrayList();
-            List hosts = par.getTokenizedParameters("hostConfig/host");
-            List enabled = par.getParameters("hostConfig/enabled");
-            List cmdList = par.getParameters("hostConfig/userCommands");
-            ArrayList commands = new ArrayList();
-            if(hosts.size() != enabled.size()) {
+        boolean success = true;
+
+        ArrayList enabledHosts = new ArrayList();
+        List hosts = par.getTokenizedParameters("hostConfig/host");
+        List enabled = par.getParameters("hostConfig/enabled");
+        List cmdList = par.getParameters("hostConfig/userCommands");
+        ArrayList commands = new ArrayList();
+        if(hosts.size() != enabled.size()) {
+            logger.severe("Number of hosts does not match Number of " +
+                    "enabled node");
+            return false;
+        }
+        else {
+            if(hosts.size() != cmdList.size()) {
                 logger.severe("Number of hosts does not match Number of " +
-                        "enabled node");
+                        "userCommands");
                 return false;
             }
-            else {
-                if(hosts.size() != cmdList.size()) {
-                    logger.severe("Number of hosts does not match Number of " +
-                            "userCommands");
-                    return false;
+            for(int i = 0; i < hosts.size(); i++) {
+                if(Boolean.valueOf((String)enabled.get(i)).booleanValue()) {
+                    enabledHosts.add(hosts.get(i));
+                    commands.add(cmdList.get(i));
                 }
-                for(int i = 0; i < hosts.size(); i++) {
-                    if(Boolean.valueOf((String)enabled.get(i)).booleanValue()) {
-                        enabledHosts.add(hosts.get(i));
-                        commands.add(cmdList.get(i));
-                    }
-                }
-                serverMachines = (String[][]) enabledHosts.toArray(new String[1][1]);
-                // Each category of hosts may have a user command to be executed.
-                userCmds = (String[]) commands.toArray((new String[1]));
             }
+            serverMachines = (String[][]) enabledHosts.toArray(new String[1][1]);
+            // Each category of hosts may have a user command to be executed.
+            userCmds = (String[]) commands.toArray((new String[1]));
+        }
 
 
-            for(int j = 0; j < serverMachines.length; j++) {
-                for (int i = 0; i < serverMachines[j].length; i++) {
-                    String machine = serverMachines[j][i];
-                    String machineName = cmds.getHostName(machine);
+        for(int j = 0; j < serverMachines.length; j++) {
+            for (int i = 0; i < serverMachines[j].length; i++) {
+                String machine = serverMachines[j][i];
+                String machineName = cmds.getHostName(machine);
+                try {
                     File f = new File(syslogfile + machineName + ".html");
 
                     // In case we have multiple interfaces, the file may
@@ -127,7 +129,7 @@ class ServerConfig {
 
                     // Write header and info to file.
                     syslog.println("<html><head><title>System Info for Server "
-                                   + machineName + "</title></head><body>");
+                            + machineName + "</title></head><body>");
 
                     syslog.write(info);
 
@@ -139,20 +141,21 @@ class ServerConfig {
                         info = handle.fetchOutput(Command.STDOUT);
                         syslog.println(linesep);
                         syslog.println("<h3>" + userCmds[j] + " on server " +
-                                       machineName + "</h3>");
+                                machineName + "</h3>");
                         syslog.println("<pre>\n");
                         syslog.write(info);
                         syslog.println("\n</pre>");
                     }
                     syslog.println("</body></html>");
                     syslog.close();
+                } catch (Exception e) {
+                    logger.log(Level.SEVERE, "Failed to collect system info " +
+                                            "for host " + machineName + '.', e);
+                    success = false;
                 }
             }
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Failed to collect system info.", e);
-            return(false);
         }
-        return(true);
+        return success;
     }
 
     /**
