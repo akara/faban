@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: SpecWeb2005Benchmark.java,v 1.3 2007/05/25 00:35:10 akara Exp $
+ * $Id: SpecWeb2005Benchmark.java,v 1.4 2007/06/29 08:38:54 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -83,22 +83,24 @@ public class SpecWeb2005Benchmark implements Benchmark {
         par = getParamRepository();
 
         int rampUp = Integer.parseInt(par.getParameter(
-                "runConfig/threadRampupSeconds"));
-        rampUp += Integer.parseInt(par.getParameter("runConfig/warmupSeconds"));
+                                        "fa:runConfig/threadRampupSeconds"));
+        rampUp += Integer.parseInt(par.getParameter(
+                                        "fa:runConfig/warmupSeconds"));
 
         // Faban uses some standard names such as rampUp
-        par.setParameter("runConfig/runControl/rampUp", String.valueOf(rampUp));
+        par.setParameter("fa:runConfig/fa:runControl/fa:rampUp",
+                                                String.valueOf(rampUp));
 
 
         // Note that runConfig/clients is used during the generation
         // of Test.config file. And runConfig/hostConfig/host is used for
         // starting the faban processes
-        String clients = par.getParameter("runConfig/clients");
+        String clients = par.getParameter("fa:runConfig/clients");
         // replacing all the newline characters and other white space
         // characters with a blank space
 
         clients = clients.replaceAll("\\s", " ");
-        par.setParameter("runConfig/clients", clients);
+        par.setParameter("fa:runConfig/clients", clients);
 
         // Find the patterns that have either hostname or hostname:port values
         Pattern p1 = Pattern.compile("([a-zA-Z_0-9-]+):?(\\w*)\\s*");
@@ -127,17 +129,19 @@ public class SpecWeb2005Benchmark implements Benchmark {
         }
 
         // Update the unique hosts to the host filed and save
-        par.setParameter("runConfig/hostConfig/host", hosts.toString().trim());
+        par.setParameter("fa:runConfig/fa:hostConfig/fa:host",
+                                                    hosts.toString().trim());
 
-        logger.info("Hosts: " + par.getParameter("runConfig/hostConfig/host"));        
+        logger.info("Hosts: " + par.getParameter(
+                                        "fa:runConfig/fa:hostConfig/fa:host"));
 
         par.save();
 
         // Do all translations
         runDir = getOutDir();
         runID = getRunId();
-        testType = par.getParameter("runConfig/testtype");
-        clientJar = par.getParameter("runConfig/clientDir");
+        testType = par.getParameter("fa:runConfig/testtype");
+        clientJar = par.getParameter("fa:runConfig/clientDir");
 
         // Translate run.xml into Test.config.
         StreamSource stylesheet = new StreamSource(getBenchmarkDir() +
@@ -190,7 +194,7 @@ public class SpecWeb2005Benchmark implements Benchmark {
         // The run's output dir is always run 1 under the assigned output dir.
         // We just need to move the files down after the run (or do we need to?)
 
-        String javaOptions = par.getParameter("jvmConfig/javaOptions");
+        String javaOptions = par.getParameter("fh:jvmConfig/fh:jvmOptions");
         // replacing the GC option with a blank space
         String javaOptionsNoGC = javaOptions.replaceFirst("-Xloggc:\\S+", " ");
 
