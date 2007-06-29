@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.17 2007/06/07 23:28:25 akara Exp $
+ * $Id: GenericBenchmark.java,v 1.18 2007/06/29 08:36:44 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -132,14 +132,14 @@ public class GenericBenchmark {
                 cmds = CmdService.getHandle();
                 cmds.init();
 
-                String javaHome = par.getParameter("jvmConfig/javaHome");
+                String javaHome = par.getParameter("fh:jvmConfig/fh:javaHome");
                 if(!(new File(javaHome)).isDirectory()) {
                     logger.severe("Cannot set JAVA_HOME. " + javaHome +
                             " is not set. Exiting");
                     return;
                 }
 
-                String jvmOpts = par.getParameter("jvmConfig/jvmOptions");
+                String jvmOpts = par.getParameter("fh:jvmConfig/fh:jvmOptions");
                 if((jvmOpts == null) || (jvmOpts.trim().length() == 0))
                     jvmOpts = "";
 
@@ -147,8 +147,9 @@ public class GenericBenchmark {
                 // Specified JVM options will be used by the Agent when it
                 // starts java processes
                 ArrayList enabledHosts = new ArrayList();
-                List hosts = par.getTokenizedParameters("hostConfig/host");
-                List enabled = par.getParameters("hostConfig/enabled");
+                List hosts = par.getTokenizedParameters(
+                                                    "fa:hostConfig/fa:host");
+                List enabled = par.getParameters("fa:hostConfig/fh:enabled");
                 if(hosts.size() != enabled.size()) {
                     logger.severe("Number of <host> (" + hosts.size() +
                             ") does not match <enabled> (" +
@@ -176,7 +177,7 @@ public class GenericBenchmark {
             }
 
             // Reading parameters used by ToolService
-            String s = par.getParameter("runControl/rampUp");
+            String s = par.getParameter("fa:runControl/fa:rampUp");
             if (s != null)
                 s = s.trim();
             if (s == null || s.length() == 0) {
@@ -196,7 +197,7 @@ public class GenericBenchmark {
                 return;
             }
 
-            s = par.getParameter("runControl/steadyState");
+            s = par.getParameter("fa:runControl/fa:steadyState");
             if (s != null)
                 s = s.trim();
             if (s == null || s.length() == 0) {

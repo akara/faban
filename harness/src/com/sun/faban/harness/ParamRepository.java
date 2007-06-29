@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ParamRepository.java,v 1.3 2007/01/24 02:35:03 akara Exp $
+ * $Id: ParamRepository.java,v 1.4 2007/06/29 08:36:46 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -45,7 +45,7 @@ public class ParamRepository {
      * @param file Name of repository
      */
     public ParamRepository(String file) {
-        reader = new XMLReader(file);
+        reader = new XMLReader(file, true);
     }
 
     /**

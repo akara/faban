@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DeployUtil.java,v 1.8 2006/10/08 08:36:56 akara Exp $
+ * $Id: DeployUtil.java,v 1.9 2007/06/29 08:36:45 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -98,10 +98,21 @@ public class DeployUtil {
                     throw new IOException("Element <config-file-name> empty " +
                             "or missing in " + benchmarkXml.getAbsolutePath());
 
+                File libDir = new File(Config.LIB_DIR);
+                String[] jarFiles = libDir.list();
+                String classpath = null;
+                for (int i = 0; i < jarFiles.length; i++)
+                    if (jarFiles[i].endsWith(".jar")) {
+                        if (classpath == null)
+                            classpath = Config.LIB_DIR + jarFiles[i];
+                        else
+                            classpath += File.pathSeparator + Config.LIB_DIR +
+                                     jarFiles[i];
+                    }
+
                 String benchLib = benchDir + "lib";
                 File benchLibDir = new File(benchLib);
-                String[] jarFiles = benchLibDir.list();
-                String classpath = Config.LIB_DIR + "fabandriver.jar";
+                jarFiles = benchLibDir.list();
                 for (int i = 0; i < jarFiles.length; i++)
                     if (jarFiles[i].endsWith(".jar"))
                         classpath += File.pathSeparator + benchLib +

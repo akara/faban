@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: XMLReader.java,v 1.5 2007/06/07 23:28:26 akara Exp $
+ * $Id: XMLReader.java,v 1.6 2007/06/29 08:36:45 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -44,6 +44,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import com.sun.faban.common.ParamReader;
+
 public class XMLReader {
 
     private static Logger logger = Logger.getLogger(XMLReader.class.getName());
@@ -53,6 +55,24 @@ public class XMLReader {
     private boolean updated = false;
 
     public XMLReader(String file) {
+        initLocal(file);
+    }
+
+    public XMLReader(String file, boolean useFabanNS) {
+        if (useFabanNS)
+            try {
+                this.file = file;
+                ParamReader reader = new ParamReader(file);
+                doc = reader.getDocument();
+                xPath = reader.getXPath();
+            } catch (Exception e) {
+                throw new XMLException(e.getMessage(), e);
+            }
+        else
+            initLocal(file);
+    }
+
+    private void initLocal(String file) {
         this.file = file;
         try {
             DocumentBuilder builder = DocumentBuilderFactory.newInstance().

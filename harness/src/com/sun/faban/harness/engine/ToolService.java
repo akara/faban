@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ToolService.java,v 1.4 2006/09/20 23:25:12 akara Exp $
+ * $Id: ToolService.java,v 1.5 2007/06/29 08:36:44 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -88,9 +88,9 @@ final public class ToolService {
 
         /* Get tool related parameters */
 
-        List hostClasses = par.getTokenizedParameters("hostConfig/host");
-        List allTools =  par.getParameters("hostConfig/tools");
-        List enabled = par.getParameters("hostConfig/enabled");
+        List hostClasses = par.getTokenizedParameters("fa:hostConfig/fa:host");
+        List allTools =  par.getParameters("fa:hostConfig/fh:tools");
+        List enabled = par.getParameters("fa:hostConfig/fh:enabled");
 
         if(hostClasses.size() != enabled.size()) {
             logger.warning("Number of hosts does not match " +

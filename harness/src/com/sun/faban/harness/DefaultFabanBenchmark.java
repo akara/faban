@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DefaultFabanBenchmark.java,v 1.8 2007/05/05 01:41:43 akara Exp $
+ * $Id: DefaultFabanBenchmark.java,v 1.9 2007/06/29 08:36:46 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -60,30 +60,22 @@ public class DefaultFabanBenchmark implements Benchmark {
     public void validate() throws Exception {
         params = getParamRepository();
 
-        // Update the output directory to the one assigned by the harness.
-        try {
-            params.setParameter("runConfig/outputDir", getOutDir());
-            params.save();
-        } catch(Exception e) {
-            logger.severe("Exception updating " + getParamFile() + " : " + e);
-            logger.log(Level.FINE, "Exception", e);
-            throw e;
-        }
-
         // Check and match the hosts and agents
         // First, list the drivers in the config file.
         agents = params.getAttributeValues(
-                "runConfig/driverConfig", "name");
+                                    "fa:runConfig/fd:driverConfig", "name");
 
         // Second, obtain the systems to run the drivers.
-        agentHosts = params.getTokenizedValue("runConfig/hostConfig/host");
+        agentHosts = params.getTokenizedValue(
+                                        "fa:runConfig/fa:hostConfig/fa:host");
 
         hostAgents = new HashMap<String, List<String>>(agentHosts.length + 5);
 
         HashMap<String, Integer> anyHostAgents = new HashMap<String, Integer>();
         for (String agentName : agents) {
-            String[] agentSpecs = params.getTokenizedValue("runConfig/" +
-                    "driverConfig[@name=\"" + agentName + "\"]/agents");
+            String[] agentSpecs = params.getTokenizedValue("fa:runConfig/" +
+                    "fd:driverConfig[@name=\"" + agentName +
+                    "\"]/fd:agents");
 
             switch (agentSpecs.length) {
                 case 0: // Empty agents field, throw exception.
@@ -223,10 +215,10 @@ public class DefaultFabanBenchmark implements Benchmark {
 
         try {
             // Save the new host back the list.
-            params.setParameter("runConfig/hostConfig/host",
+            params.setParameter("fa:runConfig/fa:hostConfig/fa:host",
                                                 agentHostsBldr.toString());
             // Update the output directory to the one assigned by the harness.
-            params.setParameter("runConfig/outputDir", getOutDir());
+            params.setParameter("fa:runConfig/fd:outputDir", getOutDir());
             params.save();
         } catch(Exception e) {
             logger.log(Level.SEVERE, "Exception updating " + getParamFile(), e);

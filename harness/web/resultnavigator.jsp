@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultnavigator.jsp,v 1.7 2006/11/16 01:02:09 akara Exp $
+ * $Id: resultnavigator.jsp,v 1.8 2007/06/29 08:36:46 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -51,7 +51,7 @@
     if (desc != null) {
         ParamRepository par = new ParamRepository(Config.OUT_DIR + runId +
                 File.separator + desc.configFileName);
-        scale = par.getParameter("scale");
+        scale = par.getParameter("fa:scale");
     }
 %>
 <html>

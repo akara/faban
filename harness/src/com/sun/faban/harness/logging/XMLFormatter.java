@@ -17,13 +17,14 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: XMLFormatter.java,v 1.2 2006/06/29 19:38:42 akara Exp $
+ * $Id: XMLFormatter.java,v 1.3 2007/06/29 08:36:45 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.logging;
 
 import java.util.logging.Handler;
+// import java.util.logging.LogRecord;
 import java.nio.charset.Charset;
 
 /**
@@ -78,5 +79,29 @@ public class XMLFormatter extends java.util.logging.XMLFormatter {
         sb.append("<log>\n");
         return sb.toString();
     }
+
+    /*
+     * Formats the message to be XML compatible, with the XML escaping.
+     *
+     * @param record the log record containing the raw message
+     * @return a localized and formatted message
+     *
+    public String formatMessage(LogRecord record) {
+        String message = super.formatMessage(record);
+        char[] msgChars = message.toCharArray();
+        StringBuilder msgBuffer = new StringBuilder(msgChars.length * 2);
+        for (int i = 0; i < msgChars.length; i++) {
+            switch(msgChars[i]) {
+                case '<' : msgBuffer.append("&lt;");      break;
+                case '>' : msgBuffer.append("&gt;");      break;
+                case '&' : msgBuffer.append("&amp;");     break;
+                case '"' : msgBuffer.append("&quot;");    break;
+                case '\'': msgBuffer.append("&apos;");    break;
+                default  : msgBuffer.append(msgChars[i]);
+            }
+        }
+        return msgBuffer.toString();
+    }
+    */
 }
 

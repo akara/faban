@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.14 2007/05/24 01:04:37 akara Exp $
+ * $Id: CmdService.java,v 1.15 2007/06/29 08:36:44 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -991,9 +991,13 @@ final public class CmdService { 	// The final keyword prevents clones
     public synchronized boolean push(String srcfile,
                                      String destmachine, String destfile) {
         int didx = machinesList.indexOf(destmachine);
+        if (didx == -1)
+            throw new IndexOutOfBoundsException("Machine " + destmachine +
+                    " not in list!");
         if (srcfile.equals(destfile)){
             try {
-                CmdAgent master = (CmdAgent) registry.getService(Config.CMD_AGENT);
+                CmdAgent master = (CmdAgent)
+                                        registry.getService(Config.CMD_AGENT);
                 String src = master.getHostName();
                 String dest = cmdp.get(didx).getHostName();
                 if (dest == src)

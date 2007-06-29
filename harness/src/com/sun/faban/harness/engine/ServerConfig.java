@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ServerConfig.java,v 1.5 2007/06/14 06:40:28 akara Exp $
+ * $Id: ServerConfig.java,v 1.6 2007/06/29 08:36:44 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -80,9 +80,9 @@ class ServerConfig {
         boolean success = true;
 
         ArrayList enabledHosts = new ArrayList();
-        List hosts = par.getTokenizedParameters("hostConfig/host");
-        List enabled = par.getParameters("hostConfig/enabled");
-        List cmdList = par.getParameters("hostConfig/userCommands");
+        List hosts = par.getTokenizedParameters("fa:hostConfig/fa:host");
+        List enabled = par.getParameters("fa:hostConfig/fh:enabled");
+        List cmdList = par.getParameters("fa:hostConfig/fh:userCommands");
         ArrayList commands = new ArrayList();
         if(hosts.size() != enabled.size()) {
             logger.severe("Number of hosts does not match Number of " +
@@ -165,10 +165,10 @@ class ServerConfig {
      * @return true/false depending on whether we were successful or not
      */
     public boolean set(CmdService cmds) {
-        List CPUs  = par.getTokenizedParameters("hostConfig/cpus");
+        List CPUs  = par.getTokenizedParameters("fa:hostConfig/fh:cpus");
         ArrayList enabledHosts = new ArrayList();
-        List hosts = par.getTokenizedParameters("hostConfig/host");
-        List enabled = par.getParameters("hostConfig/enabled");
+        List hosts = par.getTokenizedParameters("fa:hostConfig/fa:host");
+        List enabled = par.getParameters("fa:hostConfig/fh:enabled");
         ArrayList cpuVector = new ArrayList();
         String[][] serverMachines = null;
         String[][] numCpus = null;
@@ -292,8 +292,8 @@ class ServerConfig {
     public void report(long startTime, long endTime) {
         String[][] serverMachines = null;
         ArrayList enabledHosts = new ArrayList();
-        List hosts = par.getTokenizedParameters("hostConfig/host");
-        List enabled = par.getParameters("hostConfig/enabled");
+        List hosts = par.getTokenizedParameters("fa:hostConfig/fa:host");
+        List enabled = par.getParameters("fa:hostConfig/fh:enabled");
         if(hosts.size() != enabled.size()) {
             logger.severe("Number of hosts does not match Number of enabled node");
             return;

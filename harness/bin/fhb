@@ -44,6 +44,15 @@ and set JAVA_HOME or PATH accordingly." >&2
         */jre/bin) JAVA_HOME=`cd $JAVA_BINDIR/../.. > /dev/null 2>&1 && pwd`;;
         */bin) JAVA_HOME=`cd $JAVA_BINDIR/.. > /dev/null 2>$1 && pwd`;;
     esac
+
+    # A JDK has tools.jar, a JRE does not. We need to check for it.
+    if [ -f "$JAVA_HOME/lib/tools.jar" ] ; then
+        echo "JAVA_HOME not set. Using ${JAVA_HOME}." >&2
+    else
+        echo "Could not find a JDK at ${JAVA_HOME}. Please make sure the JDK\
+ is installed and set JAVA_HOME or PATH accordingly." >&2
+        exit 1
+    fi
 fi
 
 JAVA=$JAVA_HOME/bin/java
@@ -88,4 +97,4 @@ do
 done
 
 $JAVA $JVMARGS -cp $CLASSPATH -Dfaban.cli.command=$0 \
-com.sun.faban.driver.util.CommonDriver $DRIVERARGS
+com.sun.faban.driver.util.FabanHTTPBench $DRIVERARGS

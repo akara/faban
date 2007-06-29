@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunQ.java,v 1.19 2007/05/24 01:04:38 akara Exp $
+ * $Id: RunQ.java,v 1.20 2007/06/29 08:36:44 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -244,7 +244,7 @@ public class RunQ {
                     String desc = null;
                     if (new File(paramFile).exists()) {
                         ParamRepository par = new ParamRepository(paramFile);
-                        desc = par.getParameter("runConfig/description");
+                        desc = par.getParameter("fa:runConfig/fh:description");
                     }
                     if((desc == null) || (desc.length() == 0))
                         data[i][DESCRIPTION] = "UNAVAILABLE";

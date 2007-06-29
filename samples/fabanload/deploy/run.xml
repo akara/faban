@@ -1,30 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <fabanLoad>
-    <jvmConfig>
+    <jvmConfig xmlns="http://faban.sunsource.net/ns/fabanharness">
         <javaHome>/opt/jdk1.6.0</javaHome>
         <jvmOptions>-Xmx256m -Xms64m -XX:+DisableExplicitGC</jvmOptions>
     </jvmConfig>
     <!-- The definition binds the config file with the benchmark class -->
-    <runConfig definition="com.sun.faban.loadtest.UIDriver">
-        <description>Sample web benchmark run</description>
+    <fa:runConfig xmlns:fa="http://faban.sunsource.net/ns/faban"
+                  xmlns:fh="http://faban.sunsource.net/ns/fabanharness"
+                  xmlns="http://faban.sunsource.net/ns/fabandriver"
+                  definition="com.sun.faban.loadtest.UIDriver">
+        <fh:description>Sample web benchmark run</fh:description>
         <!-- The hostConfig section is used by the harness to control hosts -->
-        <hostConfig>
-            <host>sucharitakul</host>
-            <enabled>true</enabled>
-            <cpus>0</cpus>
-            <tools>NONE</tools>
-            <userCommands></userCommands>
-        </hostConfig>
+        <fa:hostConfig>
+            <fa:host>sucharitakul</fa:host>
+            <fh:enabled>true</fh:enabled>
+            <fh:cpus>0</fh:cpus>
+            <fh:tools>NONE</fh:tools>
+            <fh:userCommands></fh:userCommands>
+        </fa:hostConfig>
         <!-- The scale of the benchmark run, the driver definition
         defines the number of threads for each driver scale
         and each driver type. -->
-        <scale>1</scale>
+        <fa:scale>1</fa:scale>
         <!-- The rampup, steadystate, and rampdown of the driver -->
-        <runControl>
-            <rampUp>60</rampUp>
-            <steadyState>300</steadyState>
-            <rampDown>30</rampDown>
-        </runControl>
+        <fa:runControl>
+            <fa:rampUp>60</fa:rampUp>
+            <fa:steadyState>300</fa:steadyState>
+            <fa:rampDown>30</fa:rampDown>
+        </fa:runControl>
         <!-- The place where results are written -->
         <outputDir>/tmp/output</outputDir>
         <!-- Audit is a flag for benchmarks to audit results
@@ -82,18 +85,19 @@
             </properties>
 
         </driverConfig>
-    </runConfig>
+    </fa:runConfig>
     <!-- This shows a way to set different configurations of resources outside
     the driver. Such parameters are generally used by the
     Faban Harness.-->
     <serverConfig>
-        <hostConfig>
-            <host>sucharitakul</host>
+        <fa:hostConfig xmlns:fa="http://faban.sunsource.net/ns/faban"
+                       xmlns="http://faban.sunsource.net/ns/fabanharness">
+            <fa:host>sucharitakul</fa:host>
             <enabled>true</enabled>
             <cpus>0</cpus>
             <tools>NONE</tools>
             <userCommands></userCommands>
-        </hostConfig>
+        </fa:hostConfig>
         <port>9980</port>
     </serverConfig>
 </fabanLoad>
