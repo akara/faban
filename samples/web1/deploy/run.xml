@@ -1,30 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <webBenchmark>
-    <jvmConfig>
+    <jvmConfig xmlns="http://faban.sunsource.net/ns/fabanharness">
         <javaHome>/usr/java</javaHome>
         <jvmOptions>-Xmx1g -Xms256m -XX:+DisableExplicitGC</jvmOptions>
     </jvmConfig>
     <!-- The definition binds the config file with the benchmark class -->
-    <runConfig definition="sample.driver.WebDriver">
-        <description>Sample web benchmark run</description>
+    <!-- We declare the driver as the default namespace 'cause it is most common here -->
+    <fa:runConfig definition="sample.driver.WebDriver"
+                  xmlns:fa="http://faban.sunsource.net/ns/faban"
+                  xmlns:fh="http://faban.sunsource.net/ns/fabanharness"
+                  xmlns="http://faban.sunsource.net/ns/fabandriver">
+        <fh:description>Sample web benchmark run</fh:description>
         <!-- The hostConfig section is used by the harness to control hosts -->
-        <hostConfig>
-            <host>brazilian.sfbay</host>
-            <enabled>true</enabled>
-            <cpus>0</cpus>
-            <tools>NONE</tools>
-            <userCommands></userCommands>
-        </hostConfig>
+        <fa:hostConfig>
+            <fa:host>brazilian.sfbay</fa:host>
+            <fh:enabled>true</fh:enabled>
+            <fh:cpus>0</fh:cpus>
+            <fh:tools>NONE</fh:tools>
+            <fh:userCommands></fh:userCommands>
+        </fa:hostConfig>
         <!-- The scale of the benchmark run, the driver definition
         defines the number of threads for each driver scale
         and each driver type. -->
-        <scale>1</scale>
+        <fa:scale>1</fa:scale>
         <!-- The rampup, steadystate, and rampdown of the driver -->
-        <runControl>
-            <rampUp>60</rampUp>
-            <steadyState>300</steadyState>
-            <rampDown>30</rampDown>
-        </runControl>
+        <fa:runControl unit="time">
+            <fa:rampUp>60</fa:rampUp>
+            <fa:steadyState>300</fa:steadyState>
+            <fa:rampDown>30</fa:rampDown>
+        </fa:runControl>
         <!-- The place where results are written -->
         <outputDir>/tmp/output</outputDir>
         <!-- Audit is a flag for benchmarks to audit results
@@ -68,7 +72,8 @@
 
         <!-- The driver-specific config.  -->
         <driverConfig name="WebDriver">
-            <!-- The number of agents -->
+            <!-- The number of agents, or host:agents pairs
+            separated by space -->
             <agents>1</agents>
             <!-- The stats interval, overrides the ones specified for
             the benchmark. -->
@@ -107,7 +112,7 @@
                 <r>50</r><r>50</r><r>0</r>
             </operationMix>
         </driverConfig>
-    </runConfig>
+    </fa:runConfig>
     <!-- This shows a way to set different configurations of resources outside
     the driver. Such parameters are generally used by the
     Faban Harness.-->

@@ -1,44 +1,47 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<!-- $Id: config.xhtml,v 1.4 2007/05/03 23:16:16 akara Exp $ -->
+<!-- $Id: config.xhtml,v 1.5 2007/06/29 08:39:59 akara Exp $ -->
 <html xmlns:chiba="http://chiba.sourceforge.net/2003/08/xforms"
-    xmlns:xforms="http://www.w3.org/2002/xforms"
-    chiba:stylesheet="faban.xsl">
+      xmlns:xforms="http://www.w3.org/2002/xforms"
+      xmlns:fa="http://faban.sunsource.net/ns/faban"
+      xmlns:fh="http://faban.sunsource.net/ns/fabanharness"
+      xmlns:fd="http://faban.sunsource.net/ns/fabandriver"
+      chiba:stylesheet="faban.xsl">
     <head>
         <xforms:model id="benchmark-model">
             <xforms:instance id="benchmark-instance" src="{benchmark.template}"/>
             <xforms:submission xforms:action="schedule-run.jsp" xforms:replace="all" id="submission-debug" xforms:method="post"/>
             <xforms:bind id="bind-webBenchmark" xforms:nodeset="/webBenchmark">
-                <xforms:bind id="bind-jvmConfig" xforms:nodeset="jvmConfig">
-                    <xforms:bind id="bind-javaHome" xforms:nodeset="javaHome"/>
-                    <xforms:bind id="bind-jvmOptions" xforms:nodeset="jvmOptions"/>
+                <xforms:bind id="bind-jvmConfig" xforms:nodeset="fh:jvmConfig">
+                    <xforms:bind id="bind-javaHome" xforms:nodeset="fh:javaHome"/>
+                    <xforms:bind id="bind-jvmOptions" xforms:nodeset="fh:jvmOptions"/>
                 </xforms:bind>
-                <xforms:bind id="bind-runConfig" xforms:nodeset="runConfig">
-                    <xforms:bind id="bind-description" xforms:nodeset="description"/>
-                    <xforms:bind id="bind-runConfig-hostConfig" xforms:nodeset="hostConfig">
-                        <xforms:bind id="bind-agent-host" xforms:nodeset="host"/>
-                        <xforms:bind id="bind-agent-tools" xforms:nodeset="tools"/>
+                <xforms:bind id="bind-runConfig" xforms:nodeset="fa:runConfig">
+                    <xforms:bind id="bind-description" xforms:nodeset="fh:description"/>
+                    <xforms:bind id="bind-runConfig-hostConfig" xforms:nodeset="fa:hostConfig">
+                        <xforms:bind id="bind-agent-host" xforms:nodeset="fa:host"/>
+                        <xforms:bind id="bind-agent-tools" xforms:nodeset="fh:tools"/>
                     </xforms:bind>
-                    <xforms:bind id="bind-scale" xforms:nodeset="scale" xforms:type="positiveInteger"/>
-                    <xforms:bind id="bind-runControl" xforms:nodeset="runControl">
+                    <xforms:bind id="bind-scale" xforms:nodeset="fa:scale" xforms:type="positiveInteger"/>
+                    <xforms:bind id="bind-runControl" xforms:nodeset="fa:runControl">
                         <xforms:bind id="bind-unit" xforms:nodeset="@unit"/>
-                        <xforms:bind id="bind-rampUp" xforms:nodeset="rampUp" xforms:type="positiveInteger"/>
-                        <xforms:bind id="bind-steadyState" xforms:nodeset="steadyState" xforms:type="positiveInteger"/>
-                        <xforms:bind id="bind-rampDown" xforms:nodeset="rampDown" xforms:type="positiveInteger"/>
+                        <xforms:bind id="bind-rampUp" xforms:nodeset="fa:rampUp" xforms:type="positiveInteger"/>
+                        <xforms:bind id="bind-steadyState" xforms:nodeset="fa:steadyState" xforms:type="positiveInteger"/>
+                        <xforms:bind id="bind-rampDown" xforms:nodeset="fa:rampDown" xforms:type="positiveInteger"/>
                     </xforms:bind>
-                    <xforms:bind id="bind-threadStart" xforms:nodeset="threadStart">
-                        <xforms:bind id="bind-delay" xforms:nodeset="delay" xforms:type="positiveInteger"/>
-                        <xforms:bind id="bind-simultaneous" xforms:nodeset="simultaneous"/>
-                        <xforms:bind id="bind-parallel" xforms:nodeset="parallel"/>
+                    <xforms:bind id="bind-threadStart" xforms:nodeset="fd:threadStart">
+                        <xforms:bind id="bind-delay" xforms:nodeset="fd:delay" xforms:type="positiveInteger"/>
+                        <xforms:bind id="bind-simultaneous" xforms:nodeset="fd:simultaneous"/>
+                        <xforms:bind id="bind-parallel" xforms:nodeset="fd:parallel"/>
                     </xforms:bind>
-                    <xforms:bind id="bind-webDriver" xforms:nodeset="driverConfig[@name='WebDriver']">
-                        <xforms:bind id="bind-driver-agents" xforms:nodeset="agents"/>
-                        <xforms:bind id="bind-driver-statsInterval" xforms:nodeset="stats/interval" xforms:type="positiveInteger"/>
-                        <xforms:bind id="bind-driver-properties" xforms:nodeset="properties">
+                    <xforms:bind id="bind-webDriver" xforms:nodeset="fd:driverConfig[@name='WebDriver']">
+                        <xforms:bind id="bind-driver-agents" xforms:nodeset="fd:agents"/>
+                        <xforms:bind id="bind-driver-statsInterval" xforms:nodeset="fd:stats/fd:interval" xforms:type="positiveInteger"/>
+                        <xforms:bind id="bind-driver-properties" xforms:nodeset="fd:properties">
                             <!-- The property bindings below show the way to bind to properties of different
                                  styles in the config file. Please see the config file for reference. -->
-                            <xforms:bind id="bind-driver-path1" xforms:nodeset="property[name='path1']/value"/>
-                            <xforms:bind id="bind-driver-path2" xforms:nodeset="property[@name='path2']/value"/>
-                            <xforms:bind id="bind-driver-path3" xforms:nodeset="property[@name='path3']"/>
+                            <xforms:bind id="bind-driver-path1" xforms:nodeset="fd:property[fd:name='path1']/fd:value"/>
+                            <xforms:bind id="bind-driver-path2" xforms:nodeset="fd:property[@name='path2']/fd:value"/>
+                            <xforms:bind id="bind-driver-path3" xforms:nodeset="fd:property[@name='path3']"/>
                         </xforms:bind>
                     </xforms:bind>
                 </xforms:bind>
