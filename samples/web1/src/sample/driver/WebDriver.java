@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: WebDriver.java,v 1.4 2007/06/09 07:14:33 akara Exp $
+ * $Id: WebDriver.java,v 1.5 2007/06/29 17:21:58 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -32,7 +32,7 @@ import java.io.IOException;
 import java.util.logging.Logger;
 
 @BenchmarkDefinition (
-    name    = "Sample Web Workload 1",
+    name    = "Sample Web Workload 101",
     version = "0.2"
 )
 @BenchmarkDriver (
