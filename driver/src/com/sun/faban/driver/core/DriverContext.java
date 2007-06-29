@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DriverContext.java,v 1.4 2007/06/09 07:13:00 akara Exp $
+ * $Id: DriverContext.java,v 1.5 2007/06/29 08:35:17 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -220,17 +220,19 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
     private static synchronized HashMap<String, String[]> parseProperties(
             Element propertiesElement) {
         if (properties == null) {
-            NodeList list = propertiesElement.getElementsByTagName("property");
+            NodeList list = propertiesElement.getElementsByTagNameNS(
+                                            RunInfo.DRIVERURI, "property");
             int length = list.getLength();
             HashMap<String, String[]> props =
                     new HashMap<String, String[]>(length);
             for (int i = 0; i < length; i++) {
                 Element propertyElement = (Element) list.item(i);
-                Attr attr = propertyElement.getAttributeNode("name");
+                Attr attr = propertyElement.getAttributeNodeNS(null, "name");
                 if (attr != null)
                     props.put(attr.getValue(), getValue(propertyElement));
                 NodeList nameList =
-                        propertyElement.getElementsByTagName("name");
+                        propertyElement.getElementsByTagNameNS(
+                                                RunInfo.DRIVERURI, "name");
                 if (nameList.getLength() != 1)
                     continue;
                 Element nameElement = (Element) nameList.item(0);
@@ -249,7 +251,8 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      * @return The list of associated values
      */
     private static String[] getValue(Element propertyElement) {
-        NodeList valueList = propertyElement.getElementsByTagName("value");
+        NodeList valueList = propertyElement.getElementsByTagNameNS(
+                                                RunInfo.DRIVERURI, "value");
         String[] values;
         int length = valueList.getLength();
         if (length >= 1) {

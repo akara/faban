@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FixedSequence.java,v 1.2 2006/06/29 19:38:37 akara Exp $
+ * $Id: FixedSequence.java,v 1.3 2007/06/29 08:35:17 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -67,7 +67,7 @@ public class FixedSequence extends Mix {
     public void configure(Element driverConfigNode)
             throws ConfigurationException {
         NodeList operationList = driverConfigNode.
-                getElementsByTagName("operationMix");
+                getElementsByTagNameNS(RunInfo.DRIVERURI, "operationMix");
         if (operationList.getLength() > 0) {
             String msg = "Illegal operationMix configuration - " +
                     "not allowed for @FixedSequence driver.";

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ContentSizeStats.java,v 1.1 2007/06/09 07:13:01 akara Exp $
+ * $Id: ContentSizeStats.java,v 1.2 2007/06/29 08:35:17 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -27,7 +27,7 @@ import com.sun.faban.driver.CustomMetrics;
 import com.sun.faban.driver.Result;
 
 /**
- * The ContentSizeStats collects the content size metrics for the CommonDriver
+ * The ContentSizeStats collects the content size metrics for the FabanHTTPBench
  * or othe standard Http drivers.
  *
  * @author Akara Sucharitakul

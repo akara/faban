@@ -17,29 +17,27 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunInfo.java,v 1.11 2007/06/07 23:25:33 akara Exp $
+ * $Id: RunInfo.java,v 1.12 2007/06/29 08:35:17 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver.core;
 
+import com.sun.faban.common.ParamReader;
 import com.sun.faban.driver.ConfigurationException;
 import com.sun.faban.driver.RunControl;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathFactory;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.logging.Handler;
 import java.util.StringTokenizer;
+import java.util.logging.Handler;
 
 
 /**
@@ -48,6 +46,10 @@ import java.util.StringTokenizer;
  * They directly reflect the run configuration.
  */
 public class RunInfo implements Serializable {
+
+    public static final String FABANURI = "http://faban.sunsource.net/ns/faban";
+    public static final String DRIVERURI =
+                                "http://faban.sunsource.net/ns/fabandriver";
     public String resultsDir;
     public int scale = 1;
     public boolean audit = false;
@@ -262,25 +264,25 @@ public class RunInfo implements Serializable {
         
 
         ConfigurationReader() throws Exception {
-            XPathFactory xf = XPathFactory.newInstance();
-            xp = xf.newXPath();
             configFileName = System.getProperty("benchmark.config");
             if (configFileName == null)
                 throw new IOException("Property \"benchmark.config\" not set.");
-            DocumentBuilderFactory domFactory =
-                    DocumentBuilderFactory.newInstance();
-            DocumentBuilder domBuilder = domFactory.newDocumentBuilder();
-            Document doc = domBuilder.parse(new File(configFileName));
+
+            ParamReader reader = new ParamReader(configFileName);
+            Document doc = reader.getDocument();
+            xp = reader.getXPath();
             rootElement = doc.getDocumentElement();
-            String rootElementName = rootElement.getNodeName();
-            if ("runConfig".equals(rootElementName))
+            String rootNS = rootElement.getNamespaceURI();
+            String rootName = rootElement.getLocalName();
+
+            if (FABANURI.equals(rootNS) && "runConfig".equals(rootName))
                 runConfigNode = rootElement;
             else
-                runConfigNode = xp.evaluate("runConfig", rootElement,
+                runConfigNode = xp.evaluate("fa:runConfig", rootElement,
                         XPathConstants.NODE);
             if (runConfigNode == null)
                 throw new ConfigurationException(
-                        "Cannot find <runConfig> element.");
+                        "Cannot find <fa:runConfig> element.");
             definingClassName = xp.evaluate("@definition", runConfigNode);
             
             //if the defining class is null, the benchmark definition needs 
@@ -290,53 +292,57 @@ public class RunInfo implements Serializable {
             }
         }
         
-        private String getRequestLagTime(Object node) throws Exception{
+        private String getRequestLagTime(Object node) throws Exception {
             
-            Element rltNode = (Element) xp.evaluate("requestLagTime/*[1]", node,
+            Element rltNode = (Element) xp.evaluate("fd:requestLagTime/*[1]", node,
                     XPathConstants.NODE);
             
             if(rltNode == null){
                 return "";
             }
-            String requestLagType = rltNode.getTagName();
+            String requestLagType = rltNode.getLocalName();
+            String namespace = rltNode.getNamespaceURI();
+            if (!DRIVERURI.equals(namespace))
+                throw new ConfigurationException("Namespace " + namespace +
+                            " unexpected under element fd:requestLagTime");
+
             StringBuilder sb = new StringBuilder();
             
-            
-            if("FixedTime".equalsIgnoreCase(requestLagType)){
+            if ("FixedTime".equalsIgnoreCase(requestLagType)) {
                 sb.append("@FixedTime(");
                 sb.append("cycleType=CycleType.").append(
-                        xp.evaluate("cycleType",
+                        xp.evaluate("fd:cycleType",
                         rltNode).toUpperCase()).append(",");
-                sb.append("cycleTime=").append(xp.evaluate("cycleTime",
+                sb.append("cycleTime=").append(xp.evaluate("fd:cycleTime",
                         rltNode)).append(",");
                 sb.append("cycleDeviation=").append(
-                        xp.evaluate("cycleDeviation",rltNode));
+                        xp.evaluate("fd:cycleDeviation",rltNode));
                 sb.append(")");
                 
-            }else if ("Uniform".equalsIgnoreCase(requestLagType)){
+            } else if ("Uniform".equalsIgnoreCase(requestLagType)) {
                 sb.append("@Uniform(");
                 sb.append("cycleType=CycleType.").append(
-                        xp.evaluate("cycleType",
+                        xp.evaluate("fd:cycleType",
                         rltNode).toUpperCase()).append(",");
-                sb.append("cycleMin=").append(xp.evaluate("cycleMin",
+                sb.append("cycleMin=").append(xp.evaluate("fd:cycleMin",
                         rltNode)).append(",");
-                sb.append("cycleMax=").append(xp.evaluate("cycleMax",
+                sb.append("cycleMax=").append(xp.evaluate("fd:cycleMax",
                         rltNode)).append(",");
                 sb.append("cycleDeviation=").append(
-                        xp.evaluate("cycleDeviation", rltNode));
+                        xp.evaluate("fd:cycleDeviation", rltNode));
                 sb.append(")");
                 
-            }else if("NegativeExponential".equalsIgnoreCase(requestLagType)){
+            } else if ("NegativeExponential".equalsIgnoreCase(requestLagType)) {
                 sb.append("@NegativeExponential(");
                 sb.append("cycleType=CycleType.").append(
-                        xp.evaluate("cycleType", 
+                        xp.evaluate("fd:cycleType",
                         rltNode).toUpperCase()).append(",");
                 sb.append("cycleMean=").append(
-                        xp.evaluate("cycleMean",rltNode)).append(",");
+                        xp.evaluate("fd:cycleMean",rltNode)).append(",");
                 sb.append("cycleMax=").append(
-                        xp.evaluate("cycleMax",rltNode)).append(",");
+                        xp.evaluate("fd:cycleMax",rltNode)).append(",");
                 sb.append("cycleDeviation=").append(
-                        xp.evaluate("cycleDeviation",rltNode));
+                        xp.evaluate("fd:cycleDeviation",rltNode));
                 sb.append(")");
                 
             }
@@ -530,16 +536,17 @@ public class RunInfo implements Serializable {
         private String createDefinition(Object runConfigNode) throws Exception {
 
             Element benchDefNode = (Element) xp.evaluate(
-                    "benchmarkDefinition", runConfigNode, XPathConstants.NODE);
+                                    "fd:benchmarkDefinition", runConfigNode,
+                                    XPathConstants.NODE);
 
             if (benchDefNode == null)
                 return null;
 
-            String definingClassName= xp.evaluate("driverConfig/@name",
+            String definingClassName= xp.evaluate("fd:driverConfig/@name",
                     runConfigNode);
 
             //Get the cycleTime annotation
-            Element driverConfigNode = (Element)xp.evaluate("driverConfig",
+            Element driverConfigNode = (Element)xp.evaluate("fd:driverConfig",
                     runConfigNode, XPathConstants.NODE);
             String requestLagTime = getRequestLagTime(driverConfigNode);
 
@@ -585,7 +592,7 @@ public class RunInfo implements Serializable {
             int i=1;
 
             while( (operationNode=(Element)xp.evaluate(
-                    ("driverConfig/operation["+ i +"]"), 
+                    ("fd:driverConfig/fd:operation["+ i +"]"),
                     runConfigNode, XPathConstants.NODE)) != null){
 
                 /*
@@ -604,29 +611,29 @@ public class RunInfo implements Serializable {
                 boolean doSubst = true;
 
                 String requestLagTimeOverride = getRequestLagTime(operationNode);
-                String operationName = xp.evaluate("name", operationNode);
-                String url = xp.evaluate("url", operationNode);
-                String max90th = xp.evaluate("max90th", operationNode);
+                String operationName = xp.evaluate("fd:name", operationNode);
+                String url = xp.evaluate("fd:url", operationNode);
+                String max90th = xp.evaluate("fd:max90th", operationNode);
 
                 String requestString="";
 
-                Element requestNode = (Element)xp.evaluate("get",
+                Element requestNode = (Element)xp.evaluate("fd:get",
                         operationNode, XPathConstants.NODE);
 
                 if (requestNode == null) {
                     //Can't have both post & get either, but if both are there,
                     // will assume you meant GET.
 
-                    requestNode = (Element) xp.evaluate("post",
+                    requestNode = (Element) xp.evaluate("fd:post",
                             operationNode, XPathConstants.NODE);
 
                     if (requestNode != null) {
                         isPost = true;
                         if ("true".equalsIgnoreCase(
-                                requestNode.getAttribute("file")))
+                                requestNode.getAttributeNS(null, "file")))
                             isFile = true;
                         if ("true".equalsIgnoreCase(
-                                requestNode.getAttribute("binary")))
+                                requestNode.getAttributeNS(null, "binary")))
                             isBinary = true;
                     } else {
                         throw new ConfigurationException("<operation> " +
@@ -635,7 +642,8 @@ public class RunInfo implements Serializable {
                     //Can't have both post & get either, but if there,
                     // will assume you meant GET.
                 }
-                if ("false".equalsIgnoreCase(requestNode.getAttribute("subst")))
+                if ("false".equalsIgnoreCase(
+                                    requestNode.getAttributeNS(null, "subst")))
                     doSubst = false;
                 if (isBinary && doSubst)
                     throw new ConfigurationException("<operation> " +
@@ -755,11 +763,11 @@ public class RunInfo implements Serializable {
         private String getBenchmarkDefinition(Object benchDefNode)
                 throws Exception{
             //to do error checking -- name is required?
-            String defName      = xp.evaluate("name", benchDefNode);
-            String version      = xp.evaluate("version", benchDefNode);
-            String metric       = xp.evaluate("metric", benchDefNode);
-            String scaleName    = xp.evaluate("scaleName", benchDefNode);
-            String scaleUnit    = xp.evaluate("scaleUnit", benchDefNode);
+            String defName      = xp.evaluate("fd:name", benchDefNode);
+            String version      = xp.evaluate("fd:version", benchDefNode);
+            String metric       = xp.evaluate("fd:metric", benchDefNode);
+            String scaleName    = xp.evaluate("fd:scaleName", benchDefNode);
+            String scaleUnit    = xp.evaluate("fd:scaleUnit", benchDefNode);
             
             
             StringBuilder sb = new StringBuilder("@BenchmarkDefinition (");
@@ -781,7 +789,7 @@ public class RunInfo implements Serializable {
                 throws Exception {
 
             RunInfo runInfo = new RunInfo();
-            String v = xp.evaluate("scale", runConfigNode);
+            String v = xp.evaluate("fa:scale", runConfigNode);
             if (v != null && v.length() > 0)
                 try {
                     runInfo.scale = Integer.parseInt(v);
@@ -790,7 +798,7 @@ public class RunInfo implements Serializable {
                             "<scale> must be an integer.");
                 }
 
-            v = xp.evaluate("runControl/rampUp", runConfigNode);
+            v = xp.evaluate("fa:runControl/fa:rampUp", runConfigNode);
             if (v == null || v.length() == 0)
                 throw new ConfigurationException(
                         "Element <rampUp> not found.");
@@ -801,7 +809,7 @@ public class RunInfo implements Serializable {
                         "<rampUp> must be an integer.");
             }
 
-            v = xp.evaluate("runControl/steadyState", runConfigNode);
+            v = xp.evaluate("fa:runControl/fa:steadyState", runConfigNode);
             if (v == null || v.length() == 0)
                 throw new ConfigurationException(
                         "Element <steadyState> not found.");
@@ -812,7 +820,7 @@ public class RunInfo implements Serializable {
                         "<steadyState> must be an integer.");
             }
 
-            v = xp.evaluate("runControl/rampDown", runConfigNode);
+            v = xp.evaluate("fa:runControl/fa:rampDown", runConfigNode);
             if (v == null || v.length() == 0)
                 throw new ConfigurationException(
                         "Element <rampDown> not found.");
@@ -823,12 +831,12 @@ public class RunInfo implements Serializable {
                         "<rampDown> must be an integer.");
             }
 
-            runInfo.resultsDir = xp.evaluate("outputDir", runConfigNode);
+            runInfo.resultsDir = xp.evaluate("fd:outputDir", runConfigNode);
             if (runInfo.resultsDir == null || runInfo.resultsDir.length() == 0)
                 throw new ConfigurationException(
                         "Element <resultsDir> not found.");
 
-            v = xp.evaluate("audit", runConfigNode);
+            v = xp.evaluate("fd:audit", runConfigNode);
             if (v != null && v.length() > 0)
                 try {
                     runInfo.audit = relaxedParseBoolean(v);
@@ -837,7 +845,7 @@ public class RunInfo implements Serializable {
                             "<audit> must be true or false.");
                 }
 
-            v = xp.evaluate("threadStart/delay", runConfigNode);
+            v = xp.evaluate("fd:threadStart/fd:delay", runConfigNode);
             if (v != null && v.length() > 0)
                 try {
                     runInfo.msBetweenThreadStart = Integer.parseInt(v);
@@ -846,7 +854,7 @@ public class RunInfo implements Serializable {
                             "<delay> must be an integer.");
                 }
 
-            v = xp.evaluate("threadStart/simultaneous", runConfigNode);
+            v = xp.evaluate("fd:threadStart/fd:simultaneous", runConfigNode);
             if (v != null && v.length() > 0)
                 try {
                     runInfo.simultaneousStart = relaxedParseBoolean(v);
@@ -855,7 +863,7 @@ public class RunInfo implements Serializable {
                             "<simultaneous> must be true or false.");
                 }
 
-            v = xp.evaluate("threadStart/parallel", runConfigNode);
+            v = xp.evaluate("fd:threadStart/fd:parallel", runConfigNode);
             if (v != null && v.length() > 0)
                 try {
                     runInfo.parallelAgentThreadStart = relaxedParseBoolean(v);
@@ -864,7 +872,7 @@ public class RunInfo implements Serializable {
                             "<parallel> must be true or false.");
                 }
 
-            v = xp.evaluate("stats/maxRunTime", runConfigNode);
+            v = xp.evaluate("fd:stats/fd:maxRunTime", runConfigNode);
             if (v!= null && v.length() > 0)
                 try {
                     runInfo.maxRunTime = Integer.parseInt(v);
@@ -873,7 +881,7 @@ public class RunInfo implements Serializable {
                             "<maxRunTime> must be an integer.");
                 }
 
-            v = xp.evaluate("stats/interval", runConfigNode);
+            v = xp.evaluate("fd:stats/fd:interval", runConfigNode);
             if (v!= null && v.length() > 0)
                 try {
                     runInfo.graphInterval = Integer.parseInt(v);
@@ -882,7 +890,7 @@ public class RunInfo implements Serializable {
                             "<interval> must be an integer.");
                 }
 
-            v = xp.evaluate("runtimeStats/@enabled", runConfigNode);
+            v = xp.evaluate("fd:runtimeStats/@enabled", runConfigNode);
             if (v != null && v.length() > 0)
                 try {
                     runInfo.runtimeStatsEnabled = relaxedParseBoolean(v);
@@ -891,7 +899,7 @@ public class RunInfo implements Serializable {
                             "<runtimeStats enabled=[true|false]>");
                 }
 
-            v = xp.evaluate("runtimeStats/interval", runConfigNode);
+            v = xp.evaluate("fd:runtimeStats/fd:interval", runConfigNode);
             if (v != null && v.length() > 0)
                 try {
                     runInfo.runtimeStatsInterval = Integer.parseInt(v);
@@ -905,7 +913,7 @@ public class RunInfo implements Serializable {
                 DriverConfig driverConfig =
                         new DriverConfig(benchDef.drivers[i]);
                 Element driverConfigNode = (Element) xp.evaluate(
-                        "driverConfig[@name=\"" + driverConfig.name + "\"][1]",
+                        "fd:driverConfig[@name=\"" + driverConfig.name + "\"][1]",
                         runConfigNode, XPathConstants.NODE);
 
                 driverConfig.runControl = benchDef.runControl;
@@ -914,7 +922,7 @@ public class RunInfo implements Serializable {
                             "<driverConfig name=\"" + driverConfig.name +
                             "\"> not found.");
 
-                v = xp.evaluate("agents", driverConfigNode);
+                v = xp.evaluate("fd:agents", driverConfigNode);
 
                 // Note that the agents field has two valid formats:
                 // 1. A single integer
@@ -945,7 +953,7 @@ public class RunInfo implements Serializable {
                     }
                 }
 
-                v = xp.evaluate("threads", driverConfigNode);
+                v = xp.evaluate("fd:threads", driverConfigNode);
                 if (v != null && v.length() > 0)
                     try {
                         driverConfig.numThreads = Integer.parseInt(v);
@@ -954,7 +962,7 @@ public class RunInfo implements Serializable {
                                 "<threads> must be an integer.");
                     }
 
-                v = xp.evaluate("stats/interval", driverConfigNode);
+                v = xp.evaluate("fd:stats/fd:interval", driverConfigNode);
                 if (v!= null && v.length() > 0)
                     try {
                         driverConfig.graphInterval = Integer.parseInt(v);
@@ -966,14 +974,14 @@ public class RunInfo implements Serializable {
 
                 if (runInfo.runtimeStatsEnabled) {
                     driverConfig.runtimeStatsTarget = xp.evaluate(
-                            "runtimeStats/@target", driverConfigNode);
+                            "fd:runtimeStats/@target", driverConfigNode);
                     if (driverConfig.runtimeStatsTarget == null ||
                             driverConfig.runtimeStatsTarget.length() == 0)
                         throw new ConfigurationException("Element " +
                                 "<runtimeStats target=[port]> not found.");
                 }
                 driverConfig.rootElement = rootElement;
-                driverConfig.properties = (Element) xp.evaluate("properties",
+                driverConfig.properties = (Element) xp.evaluate("fd:properties",
                         driverConfigNode, XPathConstants.NODE);
                 driverConfig.mix[0].configure(driverConfigNode);
                 driverConfig.mix[0].normalize();

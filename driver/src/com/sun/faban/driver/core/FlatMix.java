@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FlatMix.java,v 1.2 2006/06/29 19:38:37 akara Exp $
+ * $Id: FlatMix.java,v 1.3 2007/06/29 08:35:17 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -157,11 +157,12 @@ public class FlatMix extends Mix {
         HashMap<String, Double> ratioMap =
                 new HashMap<String, Double>(operations.length);
         NodeList operationList = driverConfigNode.
-                getElementsByTagName("operationMix");
+                getElementsByTagNameNS(RunInfo.DRIVERURI, "operationMix");
         int size0 = operationList.getLength();
         for (int i = 0; i < size0; i++) {
             Element opMix = (Element) operationList.item(i);
-            NodeList nl = opMix.getElementsByTagName("name");
+            NodeList nl = opMix.getElementsByTagNameNS(
+                                                    RunInfo.DRIVERURI, "name");
             if (nl.getLength() > 1) {
                 String msg = "Only one operation name allowed in each " +
                         "operation mix.";
@@ -171,7 +172,7 @@ public class FlatMix extends Mix {
                 throw e;
             }
             String name = nl.item(0).getFirstChild().getNodeValue();
-            nl = opMix.getElementsByTagName("r");
+            nl = opMix.getElementsByTagNameNS(RunInfo.DRIVERURI, "r");
             if (nl.getLength() > 1) {
                 String msg = "Only one ratio allowed for @FlatMix";
                 getLogger().severe(msg);

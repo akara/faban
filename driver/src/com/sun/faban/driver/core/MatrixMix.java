@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MatrixMix.java,v 1.3 2007/02/23 06:47:12 akara Exp $
+ * $Id: MatrixMix.java,v 1.4 2007/06/29 08:35:17 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -166,14 +166,15 @@ public class MatrixMix extends Mix {
         HashMap<String, double[]> ratioMap =
                 new HashMap<String, double[]>(operations.length);
         NodeList operationList = driverConfigNode.
-                getElementsByTagName("operationMix");
+                getElementsByTagNameNS(RunInfo.DRIVERURI, "operationMix");
         int size0 = operationList.getLength();
 
         // First we walk the DOM tree and put all ratios in a map with the name
         // as the key. We also keep track of the position of each name.
         for (int i = 0; i < size0; i++) {
             Element opMix = (Element) operationList.item(i);
-            NodeList nl = opMix.getElementsByTagName("name");
+            NodeList nl = opMix.getElementsByTagNameNS(
+                                                    RunInfo.DRIVERURI, "name");
             if (nl.getLength() == 0)
                 throw new ConfigurationException("Element <name> not found " +
                         "inside <operationMix>.");
@@ -184,7 +185,7 @@ public class MatrixMix extends Mix {
 
             String name = nl.item(0).getFirstChild().getNodeValue();
             positionMap.put(name, i);
-            nl = opMix.getElementsByTagName("r");
+            nl = opMix.getElementsByTagNameNS(RunInfo.DRIVERURI, "r");
             int size1 = nl.getLength();
             if (size1 != operations.length) {
                 throw new ConfigurationException("@MatrixMix for " + name +
