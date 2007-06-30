@@ -19,7 +19,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: build.xml,v 1.8 2007/05/03 23:23:44 akara Exp $
+* $Id: build.xml,v 1.9 2007/06/30 04:25:41 akara Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 -->
@@ -48,8 +48,9 @@
 	    <ant dir="${workspace.dir}/driver"/>
 	    <ant dir="${workspace.dir}/harness"/>
         <antcall target="copy"/>
-        <ant dir="samples/web1"/>
+        <ant dir="samples/web101"/>
         <ant dir="samples/fabanload"/>
+        <ant dir="samples/specweb2005"/>
     </target>
 
     <target name="copy" unless="faban.bundled"
@@ -100,11 +101,11 @@
 
         <mkdir dir="output"/>
 
-        <mkdir dir="samples/web1"/>
-        <copy todir="samples/web1"
+        <mkdir dir="samples/web101"/>
+        <copy todir="samples/web101"
             overwrite="true" preservelastmodified="true"
             includeEmptyDirs="true" verbose="true">
-            <fileset dir="${workspace.dir}/samples/web1"/>
+            <fileset dir="${workspace.dir}/samples/web101"/>
         </copy>
 
         <mkdir dir="samples/fabanload"/>
@@ -119,6 +120,13 @@
             overwrite="true" preservelastmodified="true"
             includeEmptyDirs="true" verbose="true">
             <fileset dir="${workspace.dir}/samples/http"/>
+        </copy>
+
+        <mkdir dir="samples/specweb2005"/>
+        <copy todir="samples/specweb2005"
+            overwrite="true" preservelastmodified="true"
+            includeEmptyDirs="true" verbose="true">
+            <fileset dir="${workspace.dir}/samples/specweb2005"/>
         </copy>
 
         <copy todir="master/common/endorsed"

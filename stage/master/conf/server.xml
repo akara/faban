@@ -10,7 +10,10 @@
      define subcomponents such as "Valves" or "Loggers" at this level.
  -->
 
-<Server port="8005" shutdown="SHUTDOWN" debug="0">
+<!-- Faban uses ports in the 9900 range. Changed by Akara to avoid all
+     conflicts with other Tomcat instances and other apps.
+-->
+<Server port="9905" shutdown="SHUTDOWN" debug="0">
 
 
   <!-- Comment these entries out to disable JMX MBeans support -->
@@ -116,7 +119,8 @@
     -->
 
     <!-- Define a Coyote/JK2 AJP 1.3 Connector on port 8009 -->
-    <Connector port="8009" 
+    <!-- Use port 9909 instead to be in the 9900 range -->
+    <Connector port="9909" 
                enableLookups="false" redirectPort="8443" debug="0"
                protocol="AJP/1.3" />
 
