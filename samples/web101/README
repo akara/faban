@@ -1,0 +1,13 @@
+                    Web101 Sample README
+
+The Web101 sample provides a very simple example for organizing a Faban
+benchmark project as well as how to write a new benchmark. Many components
+are generic to most Faban projects. It is a good starting point to copy the
+directory from this sample to create your new benchmark. Many components
+will work with no or little modifications.
+
+Notes:
+- The sbin directory contains utilities to run a benchmark outside
+  the Faban harness. This will not be packaged into the deployment
+  jar files. Benchmark-specific scripts and binaries should be places
+  into the bin directory.
