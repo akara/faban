@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.15 2007/06/29 08:36:44 akara Exp $
+ * $Id: CmdService.java,v 1.16 2007/06/30 04:03:40 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -992,8 +992,8 @@ final public class CmdService { 	// The final keyword prevents clones
                                      String destmachine, String destfile) {
         int didx = machinesList.indexOf(destmachine);
         if (didx == -1)
-            throw new IndexOutOfBoundsException("Machine " + destmachine +
-                    " not in list!");
+            throw new FabanHostUnknownException(
+                    "Host " + destmachine + " not found!");
         if (srcfile.equals(destfile)){
             try {
                 CmdAgent master = (CmdAgent)
@@ -1121,6 +1121,9 @@ final public class CmdService { 	// The final keyword prevents clones
     }
 
     private CmdAgent findCmdAgent(String machine) {
+        if (machine == null || machine.length() == 0)
+            throw new IllegalArgumentException(
+                    "Machine cannot be null or zero length");
         int index = machinesList.indexOf(machine);
         if (index == -1)
             throw new FabanHostUnknownException(
@@ -1129,6 +1132,9 @@ final public class CmdService { 	// The final keyword prevents clones
     }
 
     private FileAgent findFileAgent(String machine) {
+        if (machine == null || machine.length() == 0)
+            throw new IllegalArgumentException(
+                    "Machine cannot be null or zero length");
         int index = machinesList.indexOf(machine);
         if (index == -1)
             throw new FabanHostUnknownException(
