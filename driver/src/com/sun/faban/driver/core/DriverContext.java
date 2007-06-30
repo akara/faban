@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DriverContext.java,v 1.5 2007/06/29 08:35:17 akara Exp $
+ * $Id: DriverContext.java,v 1.6 2007/06/30 04:02:37 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -27,6 +27,7 @@ import com.sun.faban.driver.CustomMetrics;
 import com.sun.faban.driver.Timing;
 import com.sun.faban.driver.util.Random;
 import com.sun.faban.driver.util.Timer;
+import com.sun.faban.common.FabanNamespaceContext;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -333,7 +334,9 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
     public String getXPathValue(String xPath) throws XPathExpressionException {
         if (xPathInstance == null) {
             XPathFactory xf = XPathFactory.newInstance();
+            FabanNamespaceContext nsCtx = new FabanNamespaceContext();            
             xPathInstance = xf.newXPath();
+            xPathInstance.setNamespaceContext(nsCtx);
         }
         return xPathInstance.evaluate(xPath,
                 agentThread.driverConfig.rootElement);

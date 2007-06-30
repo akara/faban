@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: HttpTransport.java,v 1.6 2007/05/26 06:32:44 akara Exp $
+ * $Id: HttpTransport.java,v 1.7 2007/06/30 04:02:38 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -100,7 +100,11 @@ public class HttpTransport {
     /** Reference to the thread local cookie handler. */
     private ThreadCookieHandler cookieHandler;
 
+    /** Default header when we do http posts, if no header is given */
+    private HashMap<String, String> defaultPostHeader;
+
     private boolean followRedirects = false;
+
     /**
      * Constructs a new HttpTransport object.
      */
@@ -465,14 +469,24 @@ public class HttpTransport {
     public StringBuilder fetchURL(URL url, String postRequest,
                                   Map<String, String> headers)
             throws IOException {
-        HttpURLConnection c = getConnection(url);
-        String type = headers.get("Content-type");
-        if (type == null)
-            headers.put("Content-type", "application/x-www-form-urlencoded");
-        else if (!type.equals("application/x-www-form-urlencoded"))
-            throw new IOException("Unexepcted header type " + type +
-                    " for URL encoded POST request");
+        String postHeader = "Content-type";
+        String postHeaderValue = "application/x-www-form-urlencoded";
+        if (headers == null) {
+            if (defaultPostHeader == null) {
+                defaultPostHeader = new HashMap<String, String>();
+                defaultPostHeader.put(postHeader, postHeaderValue);
+            }
+            headers = defaultPostHeader;
+        } else {
+            String type = headers.get(postHeader);
+            if (type == null)
+                headers.put(postHeader, postHeaderValue);
+            else if (!postHeaderValue.equals(type))
+                throw new IOException("Unexepected header type " + type +
+                        " for URL encoded POST request");
+        }
         postRequest = URLEncoder.encode(postRequest, "UTF-8");
+        HttpURLConnection c = getConnection(url);
         setHeaders(c, headers);
         postRequest(c, postRequest.getBytes("UTF-8"));
         return fetchResponse(c);
