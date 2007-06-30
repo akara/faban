@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.16 2007/06/30 04:03:40 akara Exp $
+ * $Id: CmdService.java,v 1.17 2007/06/30 04:20:15 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -94,7 +94,7 @@ final public class CmdService { 	// The final keyword prevents clones
     private String javaHome;
     private String jvmOptions;
     private HashMap<String, String> binMap = new HashMap<String, String>();
-    private String rsh, faban;
+    private String rsh, agent;
 
 
     private CmdService() {
@@ -299,7 +299,7 @@ final public class CmdService { 	// The final keyword prevents clones
         try {
             binMap = CmdMap.getCmdMap(null);
             rsh = binMap.get("rsh");
-            faban = binMap.get("faban") + ' ';
+            agent = binMap.get("agent") + ' ';
         } catch (Exception e) {
             logger.log(Level.WARNING, "Failed to obtain command map.",e);
         }
@@ -489,7 +489,7 @@ final public class CmdService { 	// The final keyword prevents clones
         String cmdarray;
         try {
             if (mach.equals(master)) {
-                cmdarray = faban + mach + ' ' + interfaceAddress + ' ' +
+                cmdarray = agent + mach + ' ' + interfaceAddress + ' ' +
                         masterAddress + ' ' + javaHome + ' ' + jvmOptions +
                         " faban.benchmarkName=" + benchName;
             } else { // if the machine is not the master machine, we need to
@@ -502,7 +502,7 @@ final public class CmdService { 	// The final keyword prevents clones
                 URL downloadURL = new URL(fabanURL.getProtocol(),
                         interfaceAddress, fabanURL.getPort(),
                         fabanURL.getFile());
-                cmdarray = rsh + ' ' + mach + ' ' + faban + mach + ' ' +
+                cmdarray = rsh + ' ' + mach + ' ' + agent + mach + ' ' +
                         interfaceAddress + ' ' + masterAddress + ' ' +
                         javaHome + ' ' + jvmOptions +
                         " faban.benchmarkName=" + benchName +
@@ -516,7 +516,7 @@ final public class CmdService { 	// The final keyword prevents clones
             cmdAgent.execute();
             return true;
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Could not execute " + faban +
+            logger.log(Level.SEVERE, "Could not execute " + agent +
                                                     "on machine " + mach, e);
             return false;
         }
