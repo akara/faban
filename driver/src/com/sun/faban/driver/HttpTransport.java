@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: HttpTransport.java,v 1.7 2007/06/30 04:02:38 akara Exp $
+ * $Id: HttpTransport.java,v 1.8 2007/07/09 22:20:59 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -240,7 +240,6 @@ public class HttpTransport {
                 throw new IOException("Unexepcted header type " + type +
                         " for URL encoded POST request");
         } else headers = postHeadersForm;
-        postRequest = URLEncoder.encode(postRequest, "UTF-8");
         setHeaders(c, headers);
         postRequest(c, postRequest.getBytes("UTF-8"));
         responseCode = c.getResponseCode();
@@ -469,7 +468,7 @@ public class HttpTransport {
     public StringBuilder fetchURL(URL url, String postRequest,
                                   Map<String, String> headers)
             throws IOException {
-        String postHeader = "Content-type";
+        String postHeader = "Content-Type";
         String postHeaderValue = "application/x-www-form-urlencoded";
         if (headers == null) {
             if (defaultPostHeader == null) {
@@ -485,7 +484,6 @@ public class HttpTransport {
                 throw new IOException("Unexepected header type " + type +
                         " for URL encoded POST request");
         }
-        postRequest = URLEncoder.encode(postRequest, "UTF-8");
         HttpURLConnection c = getConnection(url);
         setHeaders(c, headers);
         postRequest(c, postRequest.getBytes("UTF-8"));
