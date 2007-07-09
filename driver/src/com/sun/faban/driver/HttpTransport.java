@@ -17,23 +17,25 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: HttpTransport.java,v 1.8 2007/07/09 22:20:59 akara Exp $
+ * $Id: HttpTransport.java,v 1.9 2007/07/09 22:21:23 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 
 package com.sun.faban.driver;
 
-import com.sun.faban.driver.transport.http.URLStreamHandlerFactory;
 import com.sun.faban.driver.transport.http.CookieHandler;
 import com.sun.faban.driver.transport.http.ThreadCookieHandler;
+import com.sun.faban.driver.transport.http.URLStreamHandlerFactory;
 
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.URLEncoder;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

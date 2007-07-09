@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ThreadCookieHandler.java,v 1.4 2007/05/18 16:52:31 akara Exp $
+ * $Id: ThreadCookieHandler.java,v 1.5 2007/07/09 22:20:59 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -127,7 +127,7 @@ public class ThreadCookieHandler {
         Cookie cookie = Cookie.parseCookie(cookieString, this);
         cookie.validate(request);
         putCookies(cookie);
-        logger.finer("ResponseHeader - " + headerName + ": "
+        logger.fine("ResponseHeader - " + headerName + ": "
                 + cookieString);
         return cookie;
     }
@@ -145,12 +145,13 @@ public class ThreadCookieHandler {
 
         Map<String, List<String>> cookieHeaders =
                 new LinkedHashMap<String, List<String>>();
-        for (Integer version : cookieStore.keySet()) {
-            CookieStore store = cookieStore.get(version);
+        for (Map.Entry<Integer, CookieStore> entry : cookieStore.entrySet()) {
+            int version = entry.getKey();
+            CookieStore store = entry.getValue();
             List<Cookie> cookieList = store.select(request);
             if (cookieList == null)
                 continue;
-            if (version.intValue() == -1)
+            if (version == -1)
                 formatNetscapeCookies(cookieList, cookieHeaders);
             else
                 format2965Cookies(cookieList, cookieHeaders);
@@ -251,7 +252,11 @@ public class ThreadCookieHandler {
                 list = new ArrayList<String>();
                 requestHeaders.put("Cookie", list);
             }
-            list.add(b.toString());
+            String cookieString = b.toString();
+            list.add(cookieString);
+            logger.fine("Cookie:" + cookieString);
+        } else {
+            logger.fine("No request cookies");
         }
     }
 
@@ -280,7 +285,11 @@ public class ThreadCookieHandler {
                 list = new ArrayList<String>();
                 requestHeaders.put("Cookie", list);
             }
-            list.add(b.toString());
+            String cookieString = b.toString();
+            list.add(cookieString);
+            logger.fine("Cookie:" + cookieString);
+        } else {
+            logger.fine("No request cookies");
         }
     }
 
