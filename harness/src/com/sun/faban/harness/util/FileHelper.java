@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileHelper.java,v 1.10 2007/04/27 21:33:28 akara Exp $
+ * $Id: FileHelper.java,v 1.11 2007/07/19 19:32:39 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -477,8 +477,17 @@ public class FileHelper {
      * @throws IOException If the file cannot be read.
      */
     public static byte[] getContent(String file) throws IOException {
-        File fd = new File(file);
-        long size = fd.length();
+        return getContent(new File(file));
+    }
+
+    /**
+     * Obtains the whole content of a local file in a byte array.
+     * @param file The file name
+     * @return The byte content of the file
+     * @throws IOException If the file cannot be read.
+     */
+    public static byte[] getContent(File file) throws IOException {
+        long size = file.length();
         if (size == 0)
             throw new IOException("Cannot determine file size.");
         if (size >= Integer.MAX_VALUE)
@@ -486,7 +495,7 @@ public class FileHelper {
         byte[] content = new byte[(int) size];
         FileInputStream in = null;
         try {
-            in = new FileInputStream(fd);
+            in = new FileInputStream(file);
             int readLength = 0;
             while (readLength < size) {
                 int bytes = in.read(content, readLength,

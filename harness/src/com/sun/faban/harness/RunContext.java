@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunContext.java,v 1.7 2007/05/24 01:04:39 akara Exp $
+ * $Id: RunContext.java,v 1.8 2007/07/19 19:32:40 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -32,6 +32,7 @@ import com.sun.faban.harness.common.Config;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.io.File;
 import java.util.List;
 
 /**
@@ -231,7 +232,9 @@ public class RunContext {
     }
 
     /**
-     * Pushes a local file on the Faban master to the remote host.
+     * Pushes a local file on the Faban master to the remote host. If a
+     * relative path is given for the filename (local file), it is looked
+     * up in the run directory.
      * @param fileName The source file name
      * @param destHost The destination machine
      * @param destFile The destination file name
@@ -239,6 +242,9 @@ public class RunContext {
      */
     public static boolean pushFile(String fileName, String destHost,
                                    String destFile) {
+        File src = new File(fileName);
+        if (!src.isAbsolute())
+            fileName = getOutDir() + fileName;
         return CmdService.getHandle().push(fileName, destHost, destFile);
     }
 
@@ -253,7 +259,9 @@ public class RunContext {
     }
 
     /**
-     * Gets/copies a file from a remote host.
+     * Gets/copies a file from a remote host. If a relative path is given for
+     * localFileName, the file will be placed in the current run output
+     * directory.
      * @param hostName The remote host name
      * @param fileName The file name on the remote host
      * @param localFileName The target file name on the local host
@@ -261,6 +269,9 @@ public class RunContext {
      */
     public static boolean getFile(String hostName, String fileName,
                                   String localFileName) {
+        File dest = new File(localFileName);
+        if (!dest.isAbsolute())
+            localFileName = getOutDir() + localFileName;
         CmdService cs = CmdService.getHandle();
         return cs.copy(hostName, cs.getMaster(), fileName, localFileName,
                        false);
