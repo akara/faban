@@ -1,28 +1,30 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<!-- $Id: config.xhtml,v 1.2 2007/05/25 00:35:10 akara Exp $ -->
+<!-- $Id: config.xhtml,v 1.3 2007/07/20 22:07:09 akara Exp $ -->
 <html xmlns:chiba="http://chiba.sourceforge.net/2003/08/xforms"
-    xmlns:xforms="http://www.w3.org/2002/xforms"
-    chiba:stylesheet="faban.xsl">
+      xmlns:xforms="http://www.w3.org/2002/xforms"
+      xmlns:fa="http://faban.sunsource.net/ns/faban"
+      xmlns:fh="http://faban.sunsource.net/ns/fabanharness"
+      chiba:stylesheet="faban.xsl">
     <head>
         <xforms:model id="benchmark-model">
             <xforms:instance id="benchmark-instance" src="{benchmark.template}"/>
             <xforms:submission xforms:action="schedule-run.jsp" xforms:replace="all" id="submission-debug" xforms:method="post"/>
             <xforms:bind id="bind-specweb2005Benchmark" xforms:nodeset="/specweb2005Benchmark">
-                <xforms:bind id="bind-jvmConfig" xforms:nodeset="jvmConfig">
-                    <xforms:bind id="bind-javaHome" xforms:nodeset="javaHome"/>
-                    <xforms:bind id="bind-javaOptions" xforms:nodeset="javaOptions"/>
+                <xforms:bind id="bind-jvmConfig" xforms:nodeset="fh:jvmConfig">
+                    <xforms:bind id="bind-javaHome" xforms:nodeset="fh:javaHome"/>
+                    <xforms:bind id="bind-javaOptions" xforms:nodeset="fh:jvmOptions"/>
                 </xforms:bind>                
-                <xforms:bind id="bind-runConfig" xforms:nodeset="runConfig">
-                    <xforms:bind id="bind-description" xforms:nodeset="description"/>
-                    <xforms:bind id="bind-runConfig-hostConfig" xforms:nodeset="hostConfig">
-                        <xforms:bind id="bind-agent-tools" xforms:nodeset="tools"/>
+                <xforms:bind id="bind-runConfig" xforms:nodeset="fa:runConfig">
+                    <xforms:bind id="bind-description" xforms:nodeset="fh:description"/>
+                    <xforms:bind id="bind-runConfig-hostConfig" xforms:nodeset="fa:hostConfig">
+                        <xforms:bind id="bind-agent-tools" xforms:nodeset="fh:tools"/>
                     </xforms:bind>
                     <xforms:bind id="bind-clients" xforms:nodeset="clients"/>
                     <xforms:bind id="bind-clientDir" xforms:nodeset="clientDir"/>
-                    <xforms:bind id="bind-sessions" xforms:nodeset="scale" />
-                    <xforms:bind id="bind-runControl" xforms:nodeset="runControl">
-                        <xforms:bind id="bind-steadyState" xforms:nodeset="steadyState" xforms:type="positiveInteger"/>
-                        <xforms:bind id="bind-rampDown" xforms:nodeset="rampDown" xforms:type="positiveInteger"/>
+                    <xforms:bind id="bind-sessions" xforms:nodeset="fa:scale" />
+                    <xforms:bind id="bind-runControl" xforms:nodeset="fa:runControl">
+                        <xforms:bind id="bind-steadyState" xforms:nodeset="fa:steadyState" xforms:type="positiveInteger"/>
+                        <xforms:bind id="bind-rampDown" xforms:nodeset="fa:rampDown" xforms:type="positiveInteger"/>
                     </xforms:bind>
                     <xforms:bind id="bind-testtype" xforms:nodeset="testtype"/>
                     <xforms:bind id="bind-warmupSeconds" xforms:nodeset="warmupSeconds" xforms:type="positiveInteger"/>
@@ -32,9 +34,9 @@
                     <xforms:bind id="bind-iterations" xforms:nodeset="iterations" xforms:type="positiveInteger"/>
                 </xforms:bind>
                 <xforms:bind id="bind-webserverConfig" xforms:nodeset="webserverConfig">
-                    <xforms:bind id="bind-webserver-hostConfig" xforms:nodeset="hostConfig">
-                        <xforms:bind id="bind-webserver-host" xforms:nodeset="host"/>
-                        <xforms:bind id="bind-webserver-tools" xforms:nodeset="tools"/>
+                    <xforms:bind id="bind-webserver-hostConfig" xforms:nodeset="fa:hostConfig">
+                        <xforms:bind id="bind-webserver-host" xforms:nodeset="fa:host"/>
+                        <xforms:bind id="bind-webserver-tools" xforms:nodeset="fh:tools"/>
                     </xforms:bind>
                     <xforms:bind id="bind-server-wsConfig" xforms:nodeset="wsConfig">
                         <xforms:bind id="bind-server-wsPort" xforms:nodeset="wsPort" xforms:type="positiveInteger"/>
@@ -42,9 +44,9 @@
                     </xforms:bind>
                 </xforms:bind>
                 <xforms:bind id="bind-besimserverConfig" xforms:nodeset="besimserverConfig">
-                    <xforms:bind id="bind-besimserver-hostConfig" xforms:nodeset="hostConfig">
-                        <xforms:bind id="bind-besimserver-host" xforms:nodeset="host"/>
-                        <xforms:bind id="bind-besimserver-tools" xforms:nodeset="tools"/>
+                    <xforms:bind id="bind-besimserver-hostConfig" xforms:nodeset="fa:hostConfig">
+                        <xforms:bind id="bind-besimserver-host" xforms:nodeset="fa:host"/>
+                        <xforms:bind id="bind-besimserver-tools" xforms:nodeset="fh:tools"/>
                     </xforms:bind>
                     <xforms:bind id="bind-server-besimConfig" xforms:nodeset="besimConfig">
                         <xforms:bind id="bind-besim-port" xforms:nodeset="port"/>
@@ -333,8 +335,8 @@
                         </xforms:input>
                         <xforms:textarea id="input-clientDir" xforms:bind="bind-clientDir">
                             <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/clientDir"/>
-                            <xforms:hint>Location where TPC-E client is installed</xforms:hint>
-                            <xforms:help>Enter location where TPC-E client is installed</xforms:help>
+                            <xforms:hint>Location where SPECweb2005 client is installed</xforms:hint>
+                            <xforms:help>Enter location where SPECweb2005 client is installed</xforms:help>
                         </xforms:textarea>
                     </xforms:group>
                     <xforms:group id="group-runControl">

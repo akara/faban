@@ -1,20 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                              xmlns:fa="http://faban.sunsource.net/ns/faban"
+                              xmlns:fh="http://faban.sunsource.net/ns/fabanharness">
     <xsl:output method="text"/>
     <xsl:param name="outputDir">oDir</xsl:param>
     <xsl:template match="/specweb2005Benchmark">
 
-        <xsl:text>CLIENTS = "</xsl:text> <xsl:value-of select="runConfig/clients"/><xsl:text> "</xsl:text>
+        <xsl:text>CLIENTS = "</xsl:text> <xsl:value-of select="fa:runConfig/clients"/><xsl:text> "</xsl:text>
 
-        <xsl:text>&#10;&#10;SIMULTANEOUS_SESSIONS = </xsl:text> <xsl:value-of select="runConfig/scale"/>
+        <xsl:text>&#10;&#10;SIMULTANEOUS_SESSIONS = </xsl:text> <xsl:value-of select="fa:runConfig/fa:scale"/>
 
-        <xsl:text>&#10;&#10;TEST_TYPE = </xsl:text> <xsl:value-of select="runConfig/testtype"/>
+        <xsl:text>&#10;&#10;TEST_TYPE = </xsl:text> <xsl:value-of select="fa:runConfig/testtype"/>
 
-        <xsl:text>&#10;&#10;WEB_SERVER = </xsl:text> <xsl:value-of select="webserverConfig/hostConfig/host"/>
+        <xsl:text>&#10;&#10;WEB_SERVER = </xsl:text> <xsl:value-of select="webserverConfig/fa:hostConfig/fa:host"/>
         <xsl:text>&#10;WEB_PORT = </xsl:text> <xsl:value-of select="webserverConfig/wsConfig/wsPort"/>
         <xsl:text>&#10;SSL_PORT = </xsl:text> <xsl:value-of select="webserverConfig/wsConfig/wsSSLport"/>
 
-        <xsl:text>&#10;&#10;BESIM_SERVER = </xsl:text> <xsl:value-of select="besimserverConfig/hostConfig/host"/>
+        <xsl:text>&#10;&#10;BESIM_SERVER = </xsl:text> <xsl:value-of select="besimserverConfig/fa:hostConfig/fa:host"/>
         <xsl:text>&#10;BESIM_PORT = </xsl:text> <xsl:value-of select="besimserverConfig/besimConfig/port"/>
         <xsl:text>&#10;BESIM_INIT_SCRIPT = </xsl:text> <xsl:value-of select="besimserverConfig/besimConfig/initScript"/>
         <xsl:text>&#10;BESIM_PERSISTENT = </xsl:text> <xsl:value-of select="besimserverConfig/besimConfig/persistent"/>
@@ -29,13 +31,13 @@
 
         <xsl:text>&#10;&#10;HTTP_PROTOCOL = "HTTP/1.1"</xsl:text>
 
-        <xsl:text>&#10;&#10;WARMUP_SECONDS = </xsl:text> <xsl:value-of select="runConfig/warmupSeconds"/>
-        <xsl:text>&#10;THREAD_RAMPUP_SECONDS = </xsl:text> <xsl:value-of select="runConfig/threadRampupSeconds"/>
-        <xsl:text>&#10;THREAD_RAMPDOWN_SECONDS = </xsl:text> <xsl:value-of select="runConfig/runControl/rampDown"/>
-        <xsl:text>&#10;RUN_SECONDS = </xsl:text> <xsl:value-of select="runConfig/runControl/steadyState"/>
+        <xsl:text>&#10;&#10;WARMUP_SECONDS = </xsl:text> <xsl:value-of select="fa:runConfig/warmupSeconds"/>
+        <xsl:text>&#10;THREAD_RAMPUP_SECONDS = </xsl:text> <xsl:value-of select="fa:runConfig/threadRampupSeconds"/>
+        <xsl:text>&#10;THREAD_RAMPDOWN_SECONDS = </xsl:text> <xsl:value-of select="fa:runConfig/fa:runControl/fa:rampDown"/>
+        <xsl:text>&#10;RUN_SECONDS = </xsl:text> <xsl:value-of select="fa:runConfig/fa:runControl/fa:steadyState"/>
 
-        <xsl:text>&#10;&#10;RAMPUP_SECONDS = </xsl:text> <xsl:value-of select="runConfig/rampupSeconds"/>
-        <xsl:text>&#10;RAMPDOWN_SECONDS = </xsl:text> <xsl:value-of select="runConfig/rampdownSeconds"/>
+        <xsl:text>&#10;&#10;RAMPUP_SECONDS = </xsl:text> <xsl:value-of select="fa:runConfig/rampupSeconds"/>
+        <xsl:text>&#10;RAMPDOWN_SECONDS = </xsl:text> <xsl:value-of select="fa:runConfig/rampdownSeconds"/>
 
         <xsl:text>&#10;WAIT_TO_BEGIN = 1</xsl:text>
         <xsl:text>&#10;KILL_CLIENT = 0</xsl:text>
@@ -43,7 +45,7 @@
         <xsl:text>&#10;LANGUAGE = EN</xsl:text>
         <xsl:text>&#10;COUNTRY = US</xsl:text>
 
-        <xsl:text>&#10;ITERATIONS = </xsl:text> <xsl:value-of select="runConfig/iterations"/>
+        <xsl:text>&#10;ITERATIONS = </xsl:text> <xsl:value-of select="fa:runConfig/iterations"/>
         <xsl:text>&#10;PARALLEL_CONNS = 2</xsl:text>
         <xsl:text>&#10;SLEEP_TEST_ITERATIONS = 20</xsl:text>
         <xsl:text>&#10;OVERLOAD_RUN = 0</xsl:text>

@@ -1,30 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<specweb2005Benchmark>
+<specweb2005Benchmark xmlns:fa="http://faban.sunsource.net/ns/faban"
+                      xmlns:fh="http://faban.sunsource.net/ns/fabanharness">
     <!-- jvmConfig is only needed for the cmdAgent since this benchmark is
          not java -->
-    <jvmConfig>
-        <javaHome>/usr/java</javaHome>
-        <javaOptions> -server -Xmx840m -Xms840m </javaOptions>
-    </jvmConfig>
-    <runConfig>
-        <description>Sample SPECWEB2005 benchmark run</description>
-        <hostConfig>
-            <host></host><!-- derived from the clients field -->
-            <enabled>true</enabled>
-            <cpus>0</cpus>
-            <tools>NONE</tools>
-            <userCommands></userCommands>
+    <fh:jvmConfig>
+        <fh:javaHome>/usr/java</fh:javaHome>
+        <fh:jvmOptions> -server -Xmx840m -Xms840m </fh:jvmOptions>
+    </fh:jvmConfig>
+    <fa:runConfig>
+        <fh:description>Sample SPECWEB2005 benchmark run</fh:description>
+        <fa:hostConfig>
+            <fa:host/><!-- derived from the clients field -->
+            <fh:enabled>true</fh:enabled>
+            <fh:cpus>0</fh:cpus>
+            <fh:tools>NONE</fh:tools>
+            <fh:userCommands/>
             <nodeid>1</nodeid>
             <port>2000</port>
-        </hostConfig>
+        </fa:hostConfig>
         <clients>starlost starlost:1200</clients>
         <clientDir>/export/home/w2005/sw2005-v1.02f.jar</clientDir>
-        <scale>50</scale>
-        <runControl unit="time">
-            <rampUp>60</rampUp>
-            <steadyState>120</steadyState>
-            <rampDown>60</rampDown>            
-        </runControl>
+        <fa:scale>50</fa:scale>
+        <fa:runControl unit="time">
+            <fa:rampUp>60</fa:rampUp>
+            <fa:steadyState>120</fa:steadyState>
+            <fa:rampDown>60</fa:rampDown>            
+        </fa:runControl>
         <testtype>SPECweb_Support</testtype>
         <warmupSeconds>300</warmupSeconds>
         <threadRampupSeconds>300</threadRampupSeconds>
@@ -36,28 +37,28 @@
         <parConns>1</parConns>
         <sleepTestIterations>1</sleepTestIterations>
         <olRun>1</olRun>        
-    </runConfig>
+    </fa:runConfig>
     <webserverConfig>
-        <hostConfig>
-            <host>watergap</host>
-            <enabled>true</enabled>
-            <cpus>0</cpus>
-            <tools>NONE</tools>
-            <userCommands></userCommands>
-        </hostConfig>
+        <fa:hostConfig>
+            <fa:host>watergap</fa:host>
+            <fh:enabled>true</fh:enabled>
+            <fh:cpus>0</fh:cpus>
+            <fh:tools>NONE</fh:tools>
+            <fh:userCommands/>
+        </fa:hostConfig>
         <wsConfig>
             <wsPort>80</wsPort>
             <wsSSLport>443</wsSSLport>
         </wsConfig>
     </webserverConfig>
     <besimserverConfig>
-        <hostConfig>
-            <host>lindamar</host>
-            <enabled>true</enabled>
-            <cpus>0</cpus>
-            <tools>NONE</tools>
-            <userCommands></userCommands>
-        </hostConfig>
+        <fa:hostConfig>
+            <fa:host>lindamar</fa:host>
+            <fh:enabled>true</fh:enabled>
+            <fh:cpus>0</fh:cpus>
+            <fh:tools>NONE</fh:tools>
+            <fh:userCommands/>
+        </fa:hostConfig>
         <besimConfig>
             <port>8000</port>
             <initScript>/BeSim/specweb2005_besim</initScript>
