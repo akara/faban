@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ParamRepository.java,v 1.4 2007/06/29 08:36:46 akara Exp $
+ * $Id: ParamRepository.java,v 1.5 2007/07/20 22:16:31 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -43,9 +43,10 @@ public class ParamRepository {
     /**
      * Constructor: Open specified repository
      * @param file Name of repository
+     * @param warnDeprecated Log warning when config file is deprecated
      */
-    public ParamRepository(String file) {
-        reader = new XMLReader(file, true);
+    public ParamRepository(String file, boolean warnDeprecated) {
+        reader = new XMLReader(file, true, warnDeprecated);
     }
 
     /**

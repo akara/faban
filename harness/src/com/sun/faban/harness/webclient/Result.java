@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Result.java,v 1.20 2007/06/29 08:36:45 akara Exp $
+ * $Id: Result.java,v 1.21 2007/07/20 22:16:30 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -188,7 +188,7 @@ public class Result {
                 dateTime.text = dateFormat.format(
                         new Date(dateTime.value.longValue()));
             }
-            ParamRepository par = new ParamRepository(paramFileName);
+            ParamRepository par = new ParamRepository(paramFileName, false);
             description = par.getParameter("fa:runConfig/fh:description");
             scale = par.getParameter("fa:runConfig/fa:scale");
 

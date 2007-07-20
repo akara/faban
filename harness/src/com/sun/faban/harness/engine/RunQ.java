@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunQ.java,v 1.20 2007/06/29 08:36:44 akara Exp $
+ * $Id: RunQ.java,v 1.21 2007/07/20 22:16:30 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -243,7 +243,8 @@ public class RunQ {
                             benchMap.get(benchName)).configFileName;
                     String desc = null;
                     if (new File(paramFile).exists()) {
-                        ParamRepository par = new ParamRepository(paramFile);
+                        ParamRepository par =
+                                new ParamRepository(paramFile, false);
                         desc = par.getParameter("fa:runConfig/fh:description");
                     }
                     if((desc == null) || (desc.length() == 0))

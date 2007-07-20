@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: XMLReader.java,v 1.6 2007/06/29 08:36:45 akara Exp $
+ * $Id: XMLReader.java,v 1.7 2007/07/20 22:16:30 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -58,11 +58,11 @@ public class XMLReader {
         initLocal(file);
     }
 
-    public XMLReader(String file, boolean useFabanNS) {
+    public XMLReader(String file, boolean useFabanNS, boolean warnDeprecated) {
         if (useFabanNS)
             try {
                 this.file = file;
-                ParamReader reader = new ParamReader(file);
+                ParamReader reader = new ParamReader(file, warnDeprecated);
                 doc = reader.getDocument();
                 xPath = reader.getXPath();
             } catch (Exception e) {

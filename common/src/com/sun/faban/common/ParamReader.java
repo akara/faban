@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ParamReader.java,v 1.1 2007/06/29 08:34:25 akara Exp $
+ * $Id: ParamReader.java,v 1.2 2007/07/20 22:16:55 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -211,9 +211,12 @@ public class ParamReader {
     /**
      * Constructs a ParamReader for the given configuration file.
      * @param fileName The configuration file
+     * @param warnDeprecated Log warnings if config file is deprecated format
      * @throws Exception If reading this file does not succeed
      */
-    public ParamReader(String fileName) throws Exception {
+    public ParamReader(String fileName, boolean warnDeprecated)
+            throws Exception {
+        this.warnDeprecated = warnDeprecated;
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(true);
         DocumentBuilder parser = factory.newDocumentBuilder();
@@ -275,8 +278,7 @@ public class ParamReader {
                                                     " inputFile outputFile");
             System.exit(1);
         }
-        ParamReader params = new ParamReader(args[0]);
-        params.warnDeprecated = false;
+        ParamReader params = new ParamReader(args[0], false);
         params.checkAndUpgrade();
 
         if (params.docUpgraded) {

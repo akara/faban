@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.18 2007/06/29 08:36:44 akara Exp $
+ * $Id: GenericBenchmark.java,v 1.19 2007/07/20 22:16:29 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -108,7 +108,7 @@ public class GenericBenchmark {
         logger.fine("Reading in user parameters");
         try {
             try {
-                par = new ParamRepository(run.getParamFile());
+                par = new ParamRepository(run.getParamFile(), true);
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Failed to open ParamRepository "
                         + run.getParamFile() + '.', e);

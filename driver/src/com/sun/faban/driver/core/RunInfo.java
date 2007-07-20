@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunInfo.java,v 1.12 2007/06/29 08:35:17 akara Exp $
+ * $Id: RunInfo.java,v 1.13 2007/07/20 22:17:09 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -268,7 +268,7 @@ public class RunInfo implements Serializable {
             if (configFileName == null)
                 throw new IOException("Property \"benchmark.config\" not set.");
 
-            ParamReader reader = new ParamReader(configFileName);
+            ParamReader reader = new ParamReader(configFileName, true);
             Document doc = reader.getDocument();
             xp = reader.getXPath();
             rootElement = doc.getDocumentElement();
