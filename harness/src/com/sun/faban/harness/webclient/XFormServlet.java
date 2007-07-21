@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: XFormServlet.java,v 1.5 2007/04/27 21:33:29 akara Exp $
+ * $Id: XFormServlet.java,v 1.6 2007/07/21 01:41:59 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -121,8 +121,13 @@ public class XFormServlet extends HttpServlet {
 
         String templateFile = (String)
                                 session.getAttribute("faban.submit.template");
+        String styleSheet = (String)
+                                session.getAttribute("faban.submit.stylesheet");
+
         String srcURL = "file://" + templateFile.replace('\\', '/');
+
         session.removeAttribute("faban.submit.template");
+        session.removeAttribute("faban.submit.stylesheet");
 
         try {
             String requestURI = request.getRequestURI();
@@ -168,9 +173,20 @@ public class XFormServlet extends HttpServlet {
             if (configFile != null && configFile.length() > 0)
                 adapter.setConfigPath(configFile);
 
+            File xsl = null;
+            if (styleSheet != null)
+                xsl = new File(styleSheet);
+
+            if (xsl != null && xsl.exists()) {
+                adapter.xslPath = xsl.getParent();
+                adapter.stylesheet = xsl.getName();
+            } else {
+                adapter.xslPath = xsltDir;
+                adapter.stylesheet = "faban.xsl";
+            }
+
             adapter.baseURI = baseURL.toString();
             adapter.formURI = formURI;
-            adapter.xslPath = xsltDir;
             adapter.actionURL = actionURL;
             adapter.beanCtx.put("chiba.web.uploadDir", uploadDir);
             adapter.beanCtx.put("chiba.useragent", request.getHeader(
@@ -179,7 +195,6 @@ public class XFormServlet extends HttpServlet {
             adapter.beanCtx.put("chiba.web.session", session);
             adapter.beanCtx.put("benchmark.template", srcURL);
 
-            adapter.stylesheet = "faban.xsl";
 
             if (css != null) {
                 adapter.CSSFile = css;

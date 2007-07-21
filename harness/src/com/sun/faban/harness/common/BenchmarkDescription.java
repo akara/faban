@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: BenchmarkDescription.java,v 1.8 2007/05/03 23:13:17 akara Exp $
+ * $Id: BenchmarkDescription.java,v 1.9 2007/07/21 01:41:58 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -60,6 +60,9 @@ public class BenchmarkDescription implements Serializable {
 
     /** The form used to configure the benchmark. */
     public String configForm;
+
+    /** The stylesheet used to format the form, if any */
+    public String configStylesheet;
 
     /** The file used for configuring the benchmark. */
     public String configFileName;
@@ -226,6 +229,10 @@ public class BenchmarkDescription implements Serializable {
                     throw new IOException("Element <config-file-name> empty " +
                             "or missing in " + benchmarkXml.getAbsolutePath());
 
+                desc.configStylesheet = xPath.evaluate(
+                                                    "config-stylesheet", root);
+                if ("".equals(desc.configStylesheet))
+                    desc.configStylesheet = null;
 
                 if (desc.benchmarkClass == null ||
                         desc.benchmarkClass.length() == 0)

@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: new-run.jsp,v 1.6 2007/04/27 21:33:29 akara Exp $
+ * $Id: new-run.jsp,v 1.7 2007/07/21 01:41:59 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -61,13 +61,19 @@
                 desc.configFileName + "." + desc.shortName;
         File f = new File(templateFile);
 
+        String benchMetaInf = Config.BENCHMARK_DIR + File.separator +
+                    desc.shortName + File.separator + "META-INF" +
+                    File.separator;
+
         // String dstFile = Config.TMP_DIR + desc.configFileName;
         if(!f.exists()) // Use the default config file
-            templateFile = Config.BENCHMARK_DIR + File.separator +
-                    desc.shortName + File.separator + "META-INF" +
-                    File.separator + desc.configFileName;
+            templateFile = benchMetaInf + desc.configFileName;
 
         session.setAttribute("faban.submit.template", templateFile);
+
+        if (desc.configStylesheet != null)
+            session.setAttribute("faban.submit.stylesheet", 
+                                        benchMetaInf + desc.configStylesheet);
 
         String url = "benchmarks/" + desc.shortName + '/' + desc.configForm;
 %>
