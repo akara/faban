@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunInfo.java,v 1.13 2007/07/20 22:17:09 akara Exp $
+ * $Id: RunInfo.java,v 1.14 2007/07/24 06:30:14 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -398,9 +398,9 @@ public class RunInfo implements Serializable {
                 sb.append(" };\n");
                 sb.append("private static String post_string_");
                 sb.append(opNum);
-                sb.append(" = new String(post_data_");
+                sb.append(" = doEncode(new String(post_data_");
                 sb.append(opNum);
-                sb.append(");\n");
+                sb.append("));\n");
                 return sb.toString();
             }
 

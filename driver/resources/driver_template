@@ -1,3 +1,6 @@
+import java.util.StringTokenizer;
+import java.net.URLEncoder;
+
 import com.sun.faban.driver.*;
 import com.sun.faban.driver.util.ContentSizeStats;
 import com.sun.faban.driver.util.Random;
@@ -24,6 +27,25 @@ public @DriverClassName@(){
      random = ctx.getRandom();
      contentStats = new ContentSizeStats(ctx.getOperationCount());
      ctx.attachMetrics(contentStats);
+}
+
+private static String doEncode(String s) {
+    StringTokenizer tok = new StringTokenizer(s, "&");
+    StringBuilder results = new StringBuilder();
+    boolean isFirst = true;
+    while (tok.hasMoreTokens()) {
+	StringTokenizer param = new StringTokenizer(tok.nextToken(), "=");
+	String name = param.nextToken();
+	String value = param.nextToken();
+	if (!isFirst) {
+	    results.append("&");
+	}
+	else isFirst = false;
+	results.append(URLEncoder.encode(name));
+	results.append("=");
+	results.append(URLEncoder.encode(value));
+    }
+    return results.toString();
 }
 
 #operation
