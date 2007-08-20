@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MasterImpl.java,v 1.11 2007/05/05 01:40:49 akara Exp $
+ * $Id: MasterImpl.java,v 1.12 2007/08/20 19:49:07 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -214,7 +214,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         File runDirFile = null;
         runDirFile = new File(runOutputDir);
         if ( !runDirFile.exists())
-            if ( !runDirFile.mkdir())
+            if ( !runDirFile.mkdirs())
                 throw new IOException("Could not create the new " +
                         "Run Directory: " + runOutputDir);
 
