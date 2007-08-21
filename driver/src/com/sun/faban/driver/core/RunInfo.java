@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunInfo.java,v 1.14 2007/07/24 06:30:14 akara Exp $
+ * $Id: RunInfo.java,v 1.15 2007/08/21 00:03:15 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -834,7 +834,7 @@ public class RunInfo implements Serializable {
             runInfo.resultsDir = xp.evaluate("fd:outputDir", runConfigNode);
             if (runInfo.resultsDir == null || runInfo.resultsDir.length() == 0)
                 throw new ConfigurationException(
-                        "Element <resultsDir> not found.");
+                        "Element <outputDir> not found.");
 
             v = xp.evaluate("fd:audit", runConfigNode);
             if (v != null && v.length() > 0)
