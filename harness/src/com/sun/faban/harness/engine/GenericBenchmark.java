@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.19 2007/07/20 22:16:29 akara Exp $
+ * $Id: GenericBenchmark.java,v 1.20 2007/08/21 17:48:57 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -151,9 +151,9 @@ public class GenericBenchmark {
                                                     "fa:hostConfig/fa:host");
                 List enabled = par.getParameters("fa:hostConfig/fh:enabled");
                 if(hosts.size() != enabled.size()) {
-                    logger.severe("Number of <host> (" + hosts.size() +
-                            ") does not match <enabled> (" +
-                            enabled.size() + ")");
+                    logger.severe("Number of hosts, " + hosts.size() +
+                            ", does not match enabled, " +
+                            enabled.size() + ".");
                     return;
                 }
                 else {
