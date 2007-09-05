@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MultipleTransport.java,v 1.2 2006/06/29 19:38:39 akara Exp $
+ * $Id: MultipleTransport.java,v 1.3 2007/09/05 23:20:11 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -26,7 +26,6 @@ package com.sun.faban.driver.transport.util;
 import com.sun.faban.driver.HttpTransport;
 import com.sun.faban.driver.core.DriverContext;
 
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.concurrent.locks.Condition;
@@ -72,10 +71,22 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class MultipleTransport implements Runnable {
 
-    public static final int FAILED = -1;
-    public static final int SUCCEEDED = 1;
-    public static final int PENDING = 0;
+	private enum Status {
+    /**
+     * FAILED
+     */
+    FAILED,
+    /**
+     * SUCCEEDED
+     */
+    SUCCEEDED,
+    /**
+     * PENDING
+     */
+    PENDING
 
+	}
+    
     private static int myGlobalId = 0;
     private int myId;
     private static synchronized int getId() {
@@ -85,7 +96,7 @@ public class MultipleTransport implements Runnable {
     private static class Request {
         private String url;
         private String postData;
-        private int status;
+        private Status status;
     }
 
     Thread[] threads;
@@ -125,6 +136,9 @@ public class MultipleTransport implements Runnable {
         runHelper = false;
     }
 
+    /**
+     * @see java.lang.Runnable#run()
+     */
     public void run() {
         HttpTransport http = new HttpTransport();
         while (!done) {
@@ -200,7 +214,7 @@ public class MultipleTransport implements Runnable {
      *
      * @return boolean Whether or not all images were loaded successfully.
      */
-    public boolean waitForAll() throws IOException {
+    public boolean waitForAll() {
         DriverContext.getContext().recordTime();
         try {
             lock.lock();
@@ -256,7 +270,7 @@ public class MultipleTransport implements Runnable {
             Iterator<Request> it = completedList.iterator();
             while (it.hasNext()) {
                 Request ir = it.next();
-                if (ir.status != SUCCEEDED)
+                if (ir.status != Status.SUCCEEDED)
                     return false;
             }
             return true;
@@ -282,7 +296,11 @@ public class MultipleTransport implements Runnable {
         // TODO: close globalTransport
     }
 
-    public String toString() {
+    /**
+     * @see java.lang.Object#toString()
+     */
+    @Override
+	public String toString() {
         return "MultipleTransport[" + myId + "]";
     }
 
@@ -291,10 +309,10 @@ public class MultipleTransport implements Runnable {
             if (ir.postData == null)
                 http.readURL(ir.url);
             else http.readURL(ir.url, ir.postData);
-            ir.status = MultipleTransport.SUCCEEDED;
+            ir.status = MultipleTransport.Status.SUCCEEDED;
         } catch (Exception e) {
             e.printStackTrace();
-            ir.status = MultipleTransport.FAILED;
+            ir.status = MultipleTransport.Status.FAILED;
         }
     }
 }
