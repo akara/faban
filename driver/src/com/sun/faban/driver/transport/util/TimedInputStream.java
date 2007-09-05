@@ -3,7 +3,7 @@
  * This software is the proprietary information of Sun Microsystems, Inc.
  * Use is subject to license terms.
  *
- * $Id: TimedInputStream.java,v 1.2 2006/06/29 19:38:39 akara Exp $
+ * $Id: TimedInputStream.java,v 1.3 2007/09/05 23:23:38 noahcampbell Exp $
  *
  */
 package com.sun.faban.driver.transport.util;
@@ -12,7 +12,9 @@ import com.sun.faban.driver.core.DriverContext;
 
 import java.io.FilterInputStream;
 import java.io.InputStream;
-import java.io.IOException;              /* The contents of this file are subject to the terms
+import java.io.IOException;              
+
+/* The contents of this file are subject to the terms
  * of the Common Development and Distribution License
  * (the License). You may not use this file except in
  * compliance with the License.
@@ -31,7 +33,7 @@ import java.io.IOException;              /* The contents of this file are subjec
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TimedInputStream.java,v 1.2 2006/06/29 19:38:39 akara Exp $
+ * $Id: TimedInputStream.java,v 1.3 2007/09/05 23:23:38 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -79,7 +81,8 @@ public class TimedInputStream extends FilterInputStream {
      * @throws java.io.IOException if an I/O error occurs.
      * @see java.io.FilterInputStream#in
      */
-    public int read() throws IOException {
+    @Override
+	public int read() throws IOException {
         int b = super.read();
         if (ctx != null)
             ctx.recordEndTime();
@@ -106,7 +109,8 @@ public class TimedInputStream extends FilterInputStream {
      * @throws java.io.IOException if an I/O error occurs.
      * @see java.io.FilterInputStream#read(byte[], int, int)
      */
-    public int read(byte b[]) throws IOException {
+    @Override
+	public int read(byte b[]) throws IOException {
         int bytes = super.read(b);
         if (ctx != null)
             ctx.recordEndTime();
@@ -130,7 +134,8 @@ public class TimedInputStream extends FilterInputStream {
      * @throws java.io.IOException if an I/O error occurs.
      * @see java.io.FilterInputStream#in
      */
-    public int read(byte b[], int off, int len) throws IOException {
+    @Override
+	public int read(byte b[], int off, int len) throws IOException {
         int bytes = super.read(b, off, len);
         if (ctx != null)
             ctx.recordEndTime();

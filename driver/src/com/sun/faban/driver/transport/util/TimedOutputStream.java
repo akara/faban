@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TimedOutputStream.java,v 1.2 2006/06/29 19:38:39 akara Exp $
+ * $Id: TimedOutputStream.java,v 1.3 2007/09/05 23:23:38 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -64,9 +64,10 @@ public class TimedOutputStream extends FilterOutputStream {
      * Implements the abstract <tt>write</tt> method of <tt>OutputStream</tt>.
      *
      * @param b the <code>byte</code>.
-     * @throws java.io.IOException if an I/O error occurs.
+     * @throws {{@link IOException} if an I/O error occurs.
      */
-    public void write(int b) throws IOException {
+    @Override
+	public void write(int b) throws IOException {
         if (ctx != null)
             ctx.recordStartTime();
         super.write(b);
@@ -85,10 +86,11 @@ public class TimedOutputStream extends FilterOutputStream {
      * argument <code>b</code>.
      *
      * @param b the data to be written.
-     * @throws java.io.IOException if an I/O error occurs.
+     * @throws {{@link IOException} if an I/O error occurs.
      * @see java.io.FilterOutputStream#write(byte[], int, int)
      */
-    public void write(byte b[]) throws IOException {
+    @Override
+	public void write(byte b[]) throws IOException {
         if (ctx != null)
             ctx.recordStartTime();
         super.write(b);
@@ -103,7 +105,8 @@ public class TimedOutputStream extends FilterOutputStream {
      * implements as more efficient task by calling the underlying output
      * stream directly.
      */
-    public void write(byte b[], int off, int len) throws IOException {
+    @Override
+	public void write(byte b[], int off, int len) throws IOException {
         if (ctx != null)
             ctx.recordStartTime();
         out.write(b, off, len);

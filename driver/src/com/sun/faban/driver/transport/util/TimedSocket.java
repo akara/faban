@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TimedSocket.java,v 1.2 2006/06/29 19:38:39 akara Exp $
+ * $Id: TimedSocket.java,v 1.3 2007/09/05 23:23:38 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -199,6 +199,7 @@ public class TimedSocket extends Socket {
      * @param port      the remote port
      * @param localAddr the local address the socket is bound to
      * @param localPort the local port the socket is bound to
+     * 
      * @throws java.io.IOException if an I/O error occurs when creating the socket.
      * @throws SecurityException   if a security manager exists and its
      *                             <code>checkConnect</code> method doesn't
@@ -215,19 +216,21 @@ public class TimedSocket extends Socket {
      * Connects this socket to the server with a specified timeout value.
      * A timeout of zero is interpreted as an infinite timeout. The connection
      * will then block until established or an error occurs.
-     *
+     * 
+     * @param	endpoint the <code>SocketAddress</code>
+     * @param	timeout the timeout value to be used in milliseconds.     
+     * 
      * @throws java.nio.channels.IllegalBlockingModeException
      *                                  if this socket has an associated channel,
      *                                  and the channel is in non-blocking mode
      * @throws IllegalArgumentException if endpoint is null or is a
      *                                  SocketAddress subclass not supported by this socket
-     * @param	endpoint the <code>SocketAddress</code>
-     * @param	timeout the timeout value to be used in milliseconds.
      * @throws	java.io.IOException if an error occurs during the connection
      * @throws	java.net.SocketTimeoutException if timeout expires before connecting
      * @since 1.4
      */
-    public void connect(SocketAddress endpoint, int timeout) throws IOException {
+    @Override
+	public void connect(SocketAddress endpoint, int timeout) throws IOException {
         // Here we intercept the connect and capture the start time.
         DriverContext ctx = DriverContext.getContext();
         if (ctx != null)
@@ -274,7 +277,8 @@ public class TimedSocket extends Socket {
      *                             not connected, or the socket input has been shutdown
      *                             using {@link #shutdownInput()}
      */
-    public InputStream getInputStream() throws IOException {
+    @Override
+	public InputStream getInputStream() throws IOException {
         // The streams returned areall timed.
         return new TimedInputStream(super.getInputStream());
     }
@@ -292,7 +296,8 @@ public class TimedSocket extends Socket {
      * @throws java.io.IOException if an I/O error occurs when creating the
      *                             output stream or if the socket is not connected.
      */
-    public OutputStream getOutputStream() throws IOException {
+    @Override
+	public OutputStream getOutputStream() throws IOException {
         // The streams returned are all timed.
         return new TimedOutputStream(super.getOutputStream());
     }

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TimedSocketFactory.java,v 1.2 2006/06/29 19:38:39 akara Exp $
+ * $Id: TimedSocketFactory.java,v 1.3 2007/09/05 23:23:38 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -38,26 +38,46 @@ import java.io.IOException;
  */
 public class TimedSocketFactory extends SocketFactory {
 
-    public Socket createSocket(Proxy proxy) {
+    /**
+     * @see com.sun.faban.driver.transport.http.SocketFactory#createSocket(java.net.Proxy)
+     */
+    @Override
+	public Socket createSocket(Proxy proxy) {
         return new TimedSocket(proxy);
     }
 
-    public Socket createSocket(String s, int i)
+    /**
+     * @see javax.net.SocketFactory#createSocket(java.lang.String, int)
+     */
+    @Override
+	public Socket createSocket(String s, int i)
             throws IOException, UnknownHostException {
         return new TimedSocket(s, i);
     }
 
-    public Socket createSocket(String s, int i, InetAddress inetAddress, int i1)
+    /**
+     * @see javax.net.SocketFactory#createSocket(java.lang.String, int, java.net.InetAddress, int)
+     */
+    @Override
+	public Socket createSocket(String s, int i, InetAddress inetAddress, int i1)
             throws IOException, UnknownHostException {
         return new TimedSocket(s, i, inetAddress, i1);
     }
 
-    public Socket createSocket(InetAddress inetAddress, int i)
+    /**
+     * @see javax.net.SocketFactory#createSocket(java.net.InetAddress, int)
+     */
+    @Override
+	public Socket createSocket(InetAddress inetAddress, int i)
             throws IOException {
         return new TimedSocket(inetAddress, i);
     }
 
-    public Socket createSocket(InetAddress inetAddress, int i,
+    /**
+     * @see javax.net.SocketFactory#createSocket(java.net.InetAddress, int, java.net.InetAddress, int)
+     */
+    @Override
+	public Socket createSocket(InetAddress inetAddress, int i,
                                InetAddress inetAddress1, int i1)
             throws IOException {
         return new TimedSocket(inetAddress, i, inetAddress1, i1);
