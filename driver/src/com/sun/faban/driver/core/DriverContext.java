@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DriverContext.java,v 1.6 2007/06/30 04:02:37 akara Exp $
+ * $Id: DriverContext.java,v 1.7 2007/09/05 23:14:50 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -52,7 +52,7 @@ import java.util.logging.Logger;
 public class DriverContext extends com.sun.faban.driver.DriverContext {
 
     /** Thread local used for obtaining the context. */
-    private static ThreadLocal localContext = new InheritableThreadLocal();
+    private static ThreadLocal<DriverContext> localContext = new InheritableThreadLocal<DriverContext>();
 
     /** The thread associated with this context. */
     AgentThread agentThread;
@@ -91,7 +91,7 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      * @return the associated DriverContext
      */
     public static DriverContext getContext() {
-        return (DriverContext) localContext.get();
+        return localContext.get();
     }
 
     /**
@@ -110,7 +110,8 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      *
      * @return the current run's scaling rate
      */
-    public int getScale() {
+    @Override
+	public int getScale() {
         return agentThread.runInfo.scale;
     }
 
@@ -119,7 +120,8 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      * is unique for each driver type.
      * @return the global agentImpl thread id
      */
-    public int getThreadId() {
+    @Override
+	public int getThreadId() {
         return agentThread.id;
     }
 
@@ -127,7 +129,8 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      * Obtains the agentImplImpl id for this agentImplImpl.
      * @return the current agentImpl's id
      */
-    public int getAgentId() {
+    @Override
+	public int getAgentId() {
         return agentThread.runInfo.agentInfo.agentNumber;
     }
 
@@ -135,7 +138,8 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      * Obtains the driver's name as annotated in the driver class.
      * @return the driver name
      */
-    public String getDriverName() {
+    @Override
+	public String getDriverName() {
         return agentThread.driverConfig.name;
     }
 
@@ -143,7 +147,8 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      * Obtains the logger to be used by the calling driver.
      * @return the appropriate logger
      */
-    public Logger getLogger() {
+    @Override
+	public Logger getLogger() {
         if (logger == null) {
             logger = Logger.getLogger(agentThread.driverConfig.
                     className + '.' + agentThread.id);
@@ -157,7 +162,8 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      * Obtains the name of the operation currently executing.
      * @return the current operation's name
      */
-    public String getCurrentOperation() {
+    @Override
+	public String getCurrentOperation() {
         return agentThread.driverConfig.operations[
                 agentThread.currentOperation].name;
     }
@@ -170,7 +176,8 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      *
      * @return The unique id assigned to this operation type.
      */
-    public int getOperationId() {
+    @Override
+	public int getOperationId() {
         return agentThread.currentOperation;
     }
 
@@ -179,7 +186,8 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      *
      * @return The number of active operations
      */
-    public int getOperationCount() {
+    @Override
+	public int getOperationCount() {
         return agentThread.driverConfig.operations.length;
     }
 
@@ -189,7 +197,8 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      * their own.
      * @return The random value generator
      */
-    public Random getRandom() {
+    @Override
+	public Random getRandom() {
         return agentThread.random;
     }
 
@@ -198,7 +207,8 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      * of the mix. For stateless mixes such as FlatMix, this operation
      * does nothing.
      */
-    public void resetMix() {
+    @Override
+	public void resetMix() {
         agentThread.selector[agentThread.mixId].reset();
     }
 
@@ -209,7 +219,8 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      * to this method replaces the previously attached metrics.
      * @param metrics The custom metrics to be replaced
      */
-    public void attachMetrics(CustomMetrics metrics) {
+    @Override
+	public void attachMetrics(CustomMetrics metrics) {
         agentThread.metrics.attachment = metrics;
     }
 
@@ -278,7 +289,8 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      * @param name The property name
      * @return The property value, or null if there is no such property
      */
-    public String getProperty(String name) {
+    @Override
+	public String getProperty(String name) {
         if (properties == null)
             properties = parseProperties(getPropertiesNode());
         String[] value = properties.get(name);
@@ -294,7 +306,8 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      * @param name The property name
      * @return The property values
      */
-    public String[] getPropertyValues(String name) {
+    @Override
+	public String[] getPropertyValues(String name) {
         if (properties == null)
             properties = parseProperties(getPropertiesNode());
         return properties.get(name);
@@ -308,7 +321,8 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      *
      * @return The DOM tree representing the properties node
      */
-    public Element getPropertiesNode() {
+    @Override
+	public Element getPropertiesNode() {
         return agentThread.driverConfig.properties;
     }
 
@@ -319,7 +333,8 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      * to establish whether or not the transaction is in steady state.
      * @return True if in steady state, false if not.
      */
-    public boolean isTxSteadyState() {
+    @Override
+	public boolean isTxSteadyState() {
         return agentThread.isSteadyState();
     }
 
@@ -331,7 +346,8 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      * @return The element or attribute value defined by the XPath
      * @exception XPathExpressionException If the given XPath has an error
      */
-    public String getXPathValue(String xPath) throws XPathExpressionException {
+    @Override
+	public String getXPathValue(String xPath) throws XPathExpressionException {
         if (xPathInstance == null) {
             XPathFactory xf = XPathFactory.newInstance();
             FabanNamespaceContext nsCtx = new FabanNamespaceContext();            
@@ -350,7 +366,8 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      * sections.
      * @throws IllegalStateException if the operation uses auto timing
      */
-    public void recordTime() {
+    @Override
+	public void recordTime() {
         if (agentThread.driverConfig.operations[agentThread.currentOperation].
                 timing != Timing.MANUAL) {
             String msg = "Driver: " + getDriverName() + ", Operation: " +
@@ -381,7 +398,8 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      * manual timing, the next call to recordTime ends the pause. Calls
      * pauseTime when the critical section is already paused are simply ignored. 
      */
-    public void pauseTime() {
+    @Override
+	public void pauseTime() {
         if (agentThread.driverConfig.operations[agentThread.currentOperation].
                 timing != Timing.MANUAL) {
             String msg = "Driver: " + getDriverName() + ", Operation: " +
@@ -404,7 +422,8 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      *
      * @return The relative time of the benchmark run
      */
-    public int getTime() {
+    @Override
+	public int getTime() {
         return timer.getTime();
     }
 
@@ -414,7 +433,8 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      *
      * @return The relative time steady state starts
      */
-    public int getSteadyStateStart() {
+    @Override
+	public int getSteadyStateStart() {
         return agentThread.endRampUp;
     }
 
@@ -423,7 +443,8 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      *
      * @return The configured ramp up time, in milliseconds
      */
-    public int getRampUp() {
+    @Override
+	public int getRampUp() {
         return agentThread.runInfo.rampUp;
     }
 
@@ -432,7 +453,8 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      *
      * @return The configured steady state time, in milliseconds
      */
-    public int getSteadyState() {
+    @Override
+	public int getSteadyState() {
         return agentThread.runInfo.stdyState;
     }
 
@@ -441,7 +463,8 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      *
      * @return The configured ramp down time, in milliseconds
      */
-    public int getRampDown() {
+    @Override
+	public int getRampDown() {
         return agentThread.runInfo.rampDown;
     }
 
