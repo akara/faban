@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FatalException.java,v 1.2 2006/06/29 19:38:36 akara Exp $
+ * $Id: FatalException.java,v 1.3 2007/09/05 23:32:28 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -33,7 +33,11 @@ package com.sun.faban.driver;
  */
 public class FatalException extends RuntimeException {
 
-    private boolean logged = false;
+    /**
+	 * SerialVersionUID
+	 */
+	private static final long serialVersionUID = 1L;
+	private boolean logged = false;
 
     /**
      * Constructs a new fatal exception with <code>null</code> as its
@@ -41,6 +45,7 @@ public class FatalException extends RuntimeException {
      * initialized by a call to {@link #initCause}.
      */
     public FatalException() {
+    	super();
     }
 
     /**
@@ -88,10 +93,16 @@ public class FatalException extends RuntimeException {
         super(cause);
     }
 
+    /**
+     * 
+     */
     public void setLogged() {
         logged = true;
     }
 
+    /**
+     * @return
+     */
     public boolean wasLogged() {
         return logged;
     }

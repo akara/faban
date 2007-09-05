@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: BenchmarkDefinition.java,v 1.3 2006/11/23 00:27:59 akara Exp $
+ * $Id: BenchmarkDefinition.java,v 1.4 2007/09/05 23:32:28 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -47,7 +47,7 @@ public @interface BenchmarkDefinition {
      * first driver. If it is in the list of driver classes, it will
      * assume the number according to it's index in the array.
      */
-    Class[] drivers() default { Object.class };
+	Class<?>[] drivers() default { Object.class };
 
     /**
      * Specifies whether this benchmark uses time or cycles to control the

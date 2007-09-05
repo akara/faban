@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FlatSequenceMix.java,v 1.2 2006/06/29 19:38:36 akara Exp $
+ * $Id: FlatSequenceMix.java,v 1.3 2007/09/05 23:32:28 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -52,6 +52,8 @@ public @interface FlatSequenceMix {
      */
     double deviation()    default 2d;
 
-    /* The actual mix ratio for selecting the sequence. */
+    /**
+     *  The actual mix ratio for selecting the sequence. 
+     */
     double[] mix();
 }

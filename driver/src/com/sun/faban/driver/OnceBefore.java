@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: OnceBefore.java,v 1.1 2006/11/23 00:27:59 akara Exp $
+ * $Id: OnceBefore.java,v 1.2 2007/09/05 23:32:28 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -44,4 +44,5 @@ import java.lang.annotation.ElementType;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface OnceBefore {
+	// marker attribute
 }

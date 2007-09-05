@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: HttpTransport.java,v 1.9 2007/07/09 22:21:23 akara Exp $
+ * $Id: HttpTransport.java,v 1.10 2007/09/05 23:32:28 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -254,8 +254,8 @@ public class HttpTransport {
      * header type is application/octet-stream).
      *
      * @param url The URL to read from
-     # @param postRequest The binary data to send
-     # @param headers The request headers
+     * @param postRequest The binary data to send
+     * @param headers The request headers
      * @return The number of bytes read
      * @throws IOException
      */
@@ -508,11 +508,24 @@ public class HttpTransport {
         return fetchURL(url, postRequest, null);
     }
 
-    public StringBuilder fetchPage(URL page, URL[] images) throws IOException {
+    /**
+     * @param page
+     * @param images
+     * @return
+     * @throws IOException
+     */
+    @SuppressWarnings("unused")
+	public StringBuilder fetchPage(URL page, URL[] images) throws IOException {
         // TODO: implement method
         return null;
     }
 
+    /**
+     * @param page
+     * @param images
+     * @return
+     * @throws IOException
+     */
     public StringBuilder fetchPage(String page, String[] images)
             throws IOException {
         URL[] imgURLs = new URL[images.length];
@@ -521,12 +534,29 @@ public class HttpTransport {
         return fetchPage(new URL(page), imgURLs);
     }
 
-    public StringBuilder fetchURL(URL page, URL[] images, String postRequest)
+    /**
+     * 
+     * 
+     * @param page
+     * @param images
+     * @param postRequest
+     * @return
+     * @throws IOException
+     */
+    @SuppressWarnings("unused")
+	public StringBuilder fetchURL(URL page, URL[] images, String postRequest)
             throws IOException {
         // TODO: implement method
         return null;
     }
 
+    /**
+     * @param page
+     * @param images
+     * @param postRequest
+     * @return
+     * @throws IOException
+     */
     public StringBuilder fetchPage(String page, String[] images,
                                   String postRequest) throws IOException {
         URL[] imgURLs = new URL[images.length];
@@ -560,10 +590,10 @@ public class HttpTransport {
             fetchResponseData(reader);
             reader.close();
             return charBuffer;
-        } else {
-            readResponse(connection);
-            return null;
-        }
+        } 
+    
+        readResponse(connection);
+        return null;
     }
 
     /**
@@ -666,10 +696,10 @@ public class HttpTransport {
                                  Map<String, String> headers)
             throws IOException {
         setHeaders(connection, headers);
-        if (fetchResponse((HttpURLConnection) connection) != null)
+        if (fetchResponse((HttpURLConnection) connection) != null) {
             return matchResponse(regex);
-        else
-            return false;
+        }
+        return false;
     }
 
     /**
@@ -832,9 +862,15 @@ public class HttpTransport {
     public String[] getResponseHeader(String name) {
         List<String> values = responseHeader.get(name);
         String[] v = new String[values.size()];
-        return (String[]) values.toArray(v);
+        return values.toArray(v);
     }
 
+    /**
+     * Utility class to get responseHeaders as a string.  The formatting is 
+     * not localized
+     * 
+     * @return responseHeaders
+     */
     public String dumpResponseHeaders() {
         StringBuilder s = new StringBuilder();
         for (Iterator<Map.Entry<String, List<String>>> iter =
@@ -854,6 +890,9 @@ public class HttpTransport {
         return s.toString();
     }
 
+    /**
+     * @return responseCode
+     */
     public int getResponseCode() {
         return responseCode;
     }

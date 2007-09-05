@@ -17,13 +17,14 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: BenchmarkOperation.java,v 1.2 2006/06/29 19:38:36 akara Exp $
+ * $Id: BenchmarkOperation.java,v 1.3 2007/09/05 23:32:28 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver;
 
 import java.lang.annotation.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This annotation interface describes the parameters
@@ -40,12 +41,20 @@ public @interface BenchmarkOperation {
      * The maximum 90th percentile allowed for this operation.
      * The benchmark run will fail if the 90th percentile of this
      * operation exceeds the given limit.
+     * 
+     * The unit of measure is in seconds and can be changed by 
+     * explicitly stating the annotation unit.
      */
     double max90th();
 
     /**
+     * The unit of time for the max90th attribute.
+     */
+    TimeUnit units() default TimeUnit.SECONDS;
+    
+    /**
      * Sets the timing mode of this operation to manual or automatic.
-     * Manual timing is needeed if the benchmark is not a client/server
+     * Manual timing is needed if the benchmark is not a client/server
      * benchmark or the transport still does not support automatic
      * timing.
      */

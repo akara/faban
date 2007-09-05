@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ConfigurationException.java,v 1.2 2006/06/29 19:38:36 akara Exp $
+ * $Id: ConfigurationException.java,v 1.3 2007/09/05 23:32:28 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -31,6 +31,11 @@ package com.sun.faban.driver;
  */
 public class ConfigurationException extends Exception {
     /**
+	 * SerialVersionUID
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
      * Constructs a new exception with <code>null</code> as its detail message.
      * The cause is not initialized, and may subsequently be initialized by a
      * call to {@link #initCause}.

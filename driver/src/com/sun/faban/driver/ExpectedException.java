@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ExpectedException.java,v 1.1 2007/01/24 02:32:06 akara Exp $
+ * $Id: ExpectedException.java,v 1.2 2007/09/05 23:32:28 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -34,7 +34,11 @@ package com.sun.faban.driver;
  */
 public class ExpectedException extends RuntimeException {
 
-    private boolean logged = false;
+    /**
+	 * SerialVersionUID
+	 */
+	private static final long serialVersionUID = 1L;
+	private boolean logged = false;
 
     /**
      * Constructs a new expected exception with <code>null</code> as its
@@ -42,6 +46,7 @@ public class ExpectedException extends RuntimeException {
      * initialized by a call to {@link #initCause}.
      */
     public ExpectedException() {
+    	super();
     }
 
     /**
@@ -89,10 +94,16 @@ public class ExpectedException extends RuntimeException {
         super(cause);
     }
 
+    /**
+     * logged
+     */
     public void setLogged() {
         logged = true;
     }
 
+    /**
+     * @return
+     */
     public boolean wasLogged() {
         return logged;
     }
