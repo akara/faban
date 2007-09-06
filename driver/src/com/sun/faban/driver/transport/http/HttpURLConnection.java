@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: HttpURLConnection.java,v 1.3 2006/09/27 05:26:47 akara Exp $
+ * $Id: HttpURLConnection.java,v 1.4 2007/09/06 02:19:33 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -55,14 +55,16 @@ public class HttpURLConnection
      * @param useCache  whether the cached connection should be used
      *        if present
      */
-    protected void setNewClient (URL url, boolean useCache)
+    @Override
+	protected void setNewClient (URL url, boolean useCache)
 	        throws IOException {
         HttpClient.setSocketFactory(checkSocketFactory());
 	    http = HttpClient.New(url, null, -1, useCache, getConnectTimeout());
 	    http.setReadTimeout(getReadTimeout());
     }
 
-    protected void proxiedConnect(URL url,
+    @Override
+	protected void proxiedConnect(URL url,
 					   String proxyHost, int proxyPort,
 					   boolean useCache)
 	throws IOException {
@@ -75,7 +77,8 @@ public class HttpURLConnection
 	http.setReadTimeout(getReadTimeout());
     }
 
-    protected HttpClient getNewHttpClient(URL url, Proxy p, int connectTimeout)
+    @Override
+	protected HttpClient getNewHttpClient(URL url, Proxy p, int connectTimeout)
             throws IOException {
         HttpClient.setSocketFactory(checkSocketFactory());
         return HttpClient.New(url, p, connectTimeout, true);
@@ -94,13 +97,15 @@ public class HttpURLConnection
      * @see #getDefaultSocketFactory()
      */
     public static void setDefaultSocketFactory(SocketFactory sf) {
-        if (sf == null)
-            throw new IllegalArgumentException(
+        if (sf == null) {
+			throw new IllegalArgumentException(
                     "no default SocketFactory specified");
+		}
 
         SecurityManager sm = System.getSecurityManager();
-        if (sm != null)
-            sm.checkSetFactory();
+        if (sm != null) {
+			sm.checkSetFactory();
+		}
 
         defaultSocketFactory = sf;
     }
@@ -116,8 +121,9 @@ public class HttpURLConnection
      * @see #setDefaultSocketFactory(SocketFactory)
      */
     public static SocketFactory getDefaultSocketFactory() {
-        if (defaultSocketFactory == null)
-            defaultSocketFactory = new TimedSocketFactory();
+        if (defaultSocketFactory == null) {
+			defaultSocketFactory = new TimedSocketFactory();
+		}
         return defaultSocketFactory;
     }
 
@@ -137,8 +143,9 @@ public class HttpURLConnection
      * @see #getSocketFactory()
      */
     public void setSocketFactory(SocketFactory sf) {
-        if (sf == null)
-            throw new IllegalArgumentException("no SocketFactory specified");
+        if (sf == null) {
+			throw new IllegalArgumentException("no SocketFactory specified");
+		}
 
         socketFactory = sf;
     }
@@ -155,8 +162,9 @@ public class HttpURLConnection
     }
 
     private SocketFactory checkSocketFactory() {
-        if (socketFactory != null)
-            return socketFactory;
+        if (socketFactory != null) {
+			return socketFactory;
+		}
         return getDefaultSocketFactory();
     }
 }

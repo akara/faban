@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ThreadCookieHandler.java,v 1.5 2007/07/09 22:20:59 akara Exp $
+ * $Id: ThreadCookieHandler.java,v 1.6 2007/09/06 02:19:32 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -80,14 +80,16 @@ public class ThreadCookieHandler {
      * @return The thread's cookie handler
      */
     public static ThreadCookieHandler getInstance() {
-        ThreadCookieHandler instance = (ThreadCookieHandler) localRef.get();
-        if (instance == null)
-            throw new FatalException(
+        ThreadCookieHandler instance = localRef.get();
+        if (instance == null) {
+			throw new FatalException(
                     "Cookie handler not initialized for thread.");
+		}
         return instance;
     }
 
     private ThreadCookieHandler() {
+    	super();
     }
 
     /**
@@ -140,7 +142,8 @@ public class ThreadCookieHandler {
      * @param requestHeaders The request header map
      * @return The request header map with the cookies put in
      */
-    public Map<String, List<String>> get(URI request, Map<String,
+    @SuppressWarnings("boxing")
+	public Map<String, List<String>> get(URI request, Map<String,
                                           List<String>> requestHeaders) {
 
         Map<String, List<String>> cookieHeaders =
@@ -149,12 +152,14 @@ public class ThreadCookieHandler {
             int version = entry.getKey();
             CookieStore store = entry.getValue();
             List<Cookie> cookieList = store.select(request);
-            if (cookieList == null)
-                continue;
-            if (version == -1)
-                formatNetscapeCookies(cookieList, cookieHeaders);
-            else
-                format2965Cookies(cookieList, cookieHeaders);
+            if (cookieList == null) {
+				continue;
+			}
+            if (version == -1) {
+				formatNetscapeCookies(cookieList, cookieHeaders);
+			} else {
+				format2965Cookies(cookieList, cookieHeaders);
+			}
         }
         return cookieHeaders;
     }
@@ -162,8 +167,9 @@ public class ThreadCookieHandler {
     private static String parseDomain(String hostName) {
         String domainName = null;
         int idx = hostName.indexOf('.', 1);
-        if (idx > 0 && idx < hostName.length() - 1)
-            domainName = hostName.substring(idx);
+        if (idx > 0 && idx < hostName.length() - 1) {
+			domainName = hostName.substring(idx);
+		}
         return domainName;
     }
 
@@ -171,6 +177,7 @@ public class ThreadCookieHandler {
      * Adds the applicable cookies from the cookie handler to the request
      * header of the connection.
      * @param c The connection
+     * @throws URISyntaxException 
      */
     public void addRequestCookies(java.net.HttpURLConnection c)
             throws URISyntaxException {
@@ -201,7 +208,7 @@ public class ThreadCookieHandler {
             store.getValuesByName(name, valueSet);
         }
         String[] values = new String[valueSet.size()];
-        return (String[]) valueSet.toArray(values);
+        return valueSet.toArray(values);
     }
 
     /**
@@ -271,10 +278,11 @@ public class ThreadCookieHandler {
 
         StringBuilder b = null;
         for (Cookie cookie : cookies) {
-            if (b == null) // First time initialization
-                b = new StringBuilder();
-            else
-                b.append("; ");
+            if (b == null) {
+				b = new StringBuilder();
+			} else {
+				b.append("; ");
+			}
             b.append(cookie.name);
             b.append('=');
             b.append(cookie.value);
@@ -339,13 +347,15 @@ public class ThreadCookieHandler {
                     cookieString, ";", false);
             String nameValue = tokenizer.nextToken();
             int idx = nameValue.indexOf('=');
-            if (idx == -1) // No value, invalid cookie
-                return null;
+            if (idx == -1) {
+				return null;
+			}
 
             // Determine the name
             String token = nameValue.substring(0, idx).trim();
-            if (token.startsWith("$")) // Discard cookies starting with '$'
-                return null;
+            if (token.startsWith("$")) {
+				return null;
+			}
             Cookie cookie = new Cookie();
             cookie.timeStamp = System.currentTimeMillis();
             cookie.name = token;
@@ -375,26 +385,30 @@ public class ThreadCookieHandler {
                     cookie.discard = 1;
                 } else if ("Domain".equalsIgnoreCase(nameValue)) {
                     cookie.domainString = token;
-                    if (token.startsWith("\"") && token.endsWith("\""))
-                        cookie.domain = token.substring(1,
+                    if (token.startsWith("\"") && token.endsWith("\"")) {
+						cookie.domain = token.substring(1,
                                 token.length() - 1).trim();
-                    else
-                        cookie.domain = token;
+					} else {
+						cookie.domain = token;
+					}
 
-                    if (!cookie.domain.startsWith("."))
-                        cookie.domain = "." + cookie.domain;
+                    if (!cookie.domain.startsWith(".")) {
+						cookie.domain = "." + cookie.domain;
+					}
                 } else if ("Expires".equalsIgnoreCase(nameValue)) {
                     // Old Netscape cookie spec, we translate to maxAge
                     long expires = -1;
-                    if (h.dateParser == null)
-                        h.dateParser = new SimpleDateFormat(
+                    if (h.dateParser == null) {
+						h.dateParser = new SimpleDateFormat(
                                 "EEE, d-MMM-yyyy HH:mm:ss z");
+					}
                     try {
-                        if (token.startsWith("\"") && token.endsWith("\""))
-                            expires = h.dateParser.parse(token.substring(1,
+                        if (token.startsWith("\"") && token.endsWith("\"")) {
+							expires = h.dateParser.parse(token.substring(1,
                                     token.length() - 1).trim()).getTime();
-                        else
-                            expires = h.dateParser.parse(token).getTime();
+						} else {
+							expires = h.dateParser.parse(token).getTime();
+						}
                     } catch (ParseException e) {
                         throw new IllegalArgumentException(e);
                     }
@@ -404,24 +418,27 @@ public class ThreadCookieHandler {
                     } else {
                         int remainder = (int) (maxAge % 1000);
                         maxAge /= 1000;
-                        if (remainder > 0)
-                            ++maxAge;
+                        if (remainder > 0) {
+							++maxAge;
+						}
                         cookie.maxAge = (int) maxAge;
                     }
                 } else if ("Max-Age".equalsIgnoreCase(nameValue)) {
-                    if (token.startsWith("\"") && token.endsWith("\""))
-                        cookie.maxAge = Integer.parseInt(token.substring(1,
+                    if (token.startsWith("\"") && token.endsWith("\"")) {
+						cookie.maxAge = Integer.parseInt(token.substring(1,
                                 token.length() - 1).trim());
-                    else
-                        cookie.maxAge = Integer.parseInt(token);
+					} else {
+						cookie.maxAge = Integer.parseInt(token);
+					}
 
                 } else if ("Path".equalsIgnoreCase(nameValue)) {
                     cookie.pathString = token;
-                    if (token.startsWith("\"") && token.endsWith("\""))
-                        cookie.path = token.substring(1,
+                    if (token.startsWith("\"") && token.endsWith("\"")) {
+						cookie.path = token.substring(1,
                                 token.length() - 1).trim();
-                    else
-                        cookie.path = token;
+					} else {
+						cookie.path = token;
+					}
                 } else if ("Port".equalsIgnoreCase(nameValue)) {
                     // Strip off the quotes
                     if (token == null) { // Port attribute without value
@@ -431,32 +448,38 @@ public class ThreadCookieHandler {
                     }
 
                     cookie.portString = token; // Save as is for sending.
-                    if (token.startsWith("\"") && token.endsWith("\""))
-                        token = token.substring(1,
+                    if (token.startsWith("\"") && token.endsWith("\"")) {
+						token = token.substring(1,
                                 token.length() - 1).trim();
+					}
 
                     // Put all ports into the list
                     ArrayList<String> portList = new ArrayList<String>();
                     for (StringTokenizer t = new StringTokenizer(
                             token, ", ", false); t.hasMoreTokens();
-                         portList.add(t.nextToken()));
+                         portList.add(t.nextToken())) {
+						// do nothing, the loops does the rest
+					}
 
                     // Allocate array and parse all ports in the array
                     cookie.ports = new int[portList.size()];
-                    for (int i = 0; i < cookie.ports.length; i++)
-                        cookie.ports[i] = Integer.parseInt(portList.get(i));
+                    for (int i = 0; i < cookie.ports.length; i++) {
+						cookie.ports[i] = Integer.parseInt(portList.get(i));
+					}
                 } else if ("Secure".equalsIgnoreCase(nameValue)) {
                     cookie.secure = true;
                 } else if ("Version".equalsIgnoreCase(nameValue)) {
-                    if (token.startsWith("\"") && token.endsWith("\""))
-                        cookie.version = Integer.parseInt(token.substring(1,
+                    if (token.startsWith("\"") && token.endsWith("\"")) {
+						cookie.version = Integer.parseInt(token.substring(1,
                                 token.length() - 1).trim());
-                    else
-                        cookie.version = Integer.parseInt(token);
-                    if (cookie.version < 0)
-                        throw new IllegalArgumentException("Cookie version " +
+					} else {
+						cookie.version = Integer.parseInt(token);
+					}
+                    if (cookie.version < 0) {
+						throw new IllegalArgumentException("Cookie version " +
                                 "must be greater than 0, received " +
                                 cookie.version + '.');
+					}
                 }
             }
             return cookie;
@@ -485,17 +508,19 @@ public class ThreadCookieHandler {
 
 
             if (discard == -1) {// unset
-                if (maxAge == -1)
-                    discard = 1; // discards on exit
-                else
-                    discard = 0; // if max-time set, don't discard
+                if (maxAge == -1) {
+					discard = 1; // discards on exit
+				} else {
+					discard = 0; // if max-time set, don't discard
+				}
             }
 
             // Check for case of ports set without attribute.
             if (portString == null && ports != null) {
                 ports[0] = request.getPort();
-                if (ports[0] == -1)
-                    ports[0] = 80; // HTTP default port
+                if (ports[0] == -1) {
+					ports[0] = 80; // HTTP default port
+				}
             }
             return true;
         }
@@ -508,11 +533,13 @@ public class ThreadCookieHandler {
          * @param o The object to compare to
          * @return True if it is equivalent, false otherwise
          */
-        public boolean equals(Object o) {
+        @Override
+		public boolean equals(Object o) {
             if (o instanceof Cookie) {
                 Cookie other = (Cookie) o;
-                if (name.equals(other.name) && path.equals(other.path))
-                    return true;
+                if (name.equals(other.name) && path.equals(other.path)) {
+					return true;
+				}
             }
             return false;
         }
@@ -525,7 +552,8 @@ public class ThreadCookieHandler {
          * be compared.
          * @return
          */
-        public int hashCode() {
+        @Override
+		public int hashCode() {
             return (name + path).hashCode();
         }
     }
@@ -533,13 +561,16 @@ public class ThreadCookieHandler {
     /**
      * Stores a cookie of a particular version, searchable by domain.
      */
-    static class CookieStore implements Comparable {
+    static class CookieStore implements Comparable<CookieStore> {
 
         int version;
 
         Map<String, DomainCookieStore> store =
                 new HashMap<String, DomainCookieStore>();
 
+        /**
+         * @param version
+         */
         public CookieStore(int version) {
             this.version = version;
         }
@@ -611,30 +642,32 @@ public class ThreadCookieHandler {
                     logger.finest("No cookies found for domain " + dm);
                     continue;
                 }
-                if (dStore == null)
-                    dStore = dxStore.select(request);
-                else
-                    dStore.merge(dxStore.select(request));
+                if (dStore == null) {
+					dStore = dxStore.select(request);
+				} else {
+					dStore.merge(dxStore.select(request));
+				}
             }
 
-            if (dStore == null)
-                return null;
+            if (dStore == null) {
+				return null;
+			}
 
             return dStore.getSortedCookieList();
         }
 
         void getValuesByName(String name, Collection<String> c) {
-            for (DomainCookieStore dStore : store.values())
-                dStore.getValuesByName(name, c);
+            for (DomainCookieStore dStore : store.values()) {
+				dStore.getValuesByName(name, c);
+			}
         }
 
         /**
          * Compares this cookie store to another cookie store.
-         * @param o The other cookie store
+         * @param s The other cookie store
          * @return Positive, negative integer or 0 based on the comparison
          */
-        public int compareTo(Object o) {
-            CookieStore s = (CookieStore) o;
+        public int compareTo(CookieStore s) {
             return s.version - version;
         }
 
@@ -643,7 +676,8 @@ public class ThreadCookieHandler {
          * @param o The other object
          * @return True if stores are equivalent
          */
-        public boolean equals(Object o) {
+        @Override
+		public boolean equals(Object o) {
             if (o instanceof CookieStore) {
                 CookieStore s = (CookieStore) o;
                 return version == s.version;
@@ -692,8 +726,9 @@ public class ThreadCookieHandler {
             for (NameCookieStore nStore : store.values()) {
                 NameCookieStore nResult = nStore.select(request);
                 if (nResult != null) {
-                    if (result == null)
-                        result = new DomainCookieStore(domain);
+                    if (result == null) {
+						result = new DomainCookieStore(domain);
+					}
                     result.store.put(nResult.name, nResult);
                 }
             }
@@ -702,8 +737,9 @@ public class ThreadCookieHandler {
 
         void getValuesByName(String name, Collection<String> c) {
             NameCookieStore nStore = store.get(name);
-            for (Cookie cookie : nStore.store.values())
-                c.add(cookie.value);
+            for (Cookie cookie : nStore.store.values()) {
+				c.add(cookie.value);
+			}
         }
 
         /**
@@ -714,16 +750,19 @@ public class ThreadCookieHandler {
          * @return This store
          */
         DomainCookieStore merge(DomainCookieStore other) {
-            if (other == null)
-                return this;
-            if (domain.equals(other.domain))
-                throw new IllegalArgumentException(
+            if (other == null) {
+				return this;
+			}
+            if (domain.equals(other.domain)) {
+				throw new IllegalArgumentException(
                         "Cannot merge store with same name.");
+			}
 
             for (NameCookieStore nStore : other.store.values()) {
                 NameCookieStore oldNStore = store.put(nStore.name, nStore);
-                if (oldNStore != null)
-                    nStore.merge(oldNStore);
+                if (oldNStore != null) {
+					nStore.merge(oldNStore);
+				}
             }
             domain += ',' + other.domain;
             return this;
@@ -756,7 +795,7 @@ public class ThreadCookieHandler {
     /**
      * Stores the cookies for a certain cookie name
      */
-    static class NameCookieStore implements Comparable {
+    static class NameCookieStore implements Comparable<NameCookieStore> {
 
         int id;
         String name;
@@ -798,8 +837,9 @@ public class ThreadCookieHandler {
             Cookie oldCookie = store.put(cookie.path, cookie);
 
             // Then check validity and add back if the old one is newer
-            if (oldCookie != null && oldCookie.timeStamp > cookie.timeStamp)
-                store.put(oldCookie.path,  oldCookie);
+            if (oldCookie != null && oldCookie.timeStamp > cookie.timeStamp) {
+				store.put(oldCookie.path,  oldCookie);
+			}
         }
 
         /**
@@ -809,18 +849,22 @@ public class ThreadCookieHandler {
          * @return This store after the merge
          */
         public NameCookieStore merge(NameCookieStore otherStore) {
-            if (otherStore == null)
-                return this;
+            if (otherStore == null) {
+				return this;
+			}
 
-            if (!name.equals(otherStore.name))
-                throw new IllegalArgumentException(
+            if (!name.equals(otherStore.name)) {
+				throw new IllegalArgumentException(
                         "Can only merge stores with same name!");
+			}
 
-            if (id > otherStore.id)
-                id = otherStore.id;
+            if (id > otherStore.id) {
+				id = otherStore.id;
+			}
 
-            for (Cookie cookie : otherStore.store.values())
-                add(cookie);
+            for (Cookie cookie : otherStore.store.values()) {
+				add(cookie);
+			}
 
             return this;
         }
@@ -851,30 +895,37 @@ public class ThreadCookieHandler {
 
                 // 3. Port selection
                 int requestPort = request.getPort();
-                if (requestPort == -1)
-                    requestPort = 80; // Default HTTP port
+                if (requestPort == -1) {
+					requestPort = 80; // Default HTTP port
+				}
 
                 boolean portDenied = true;
-                if (cookie.ports == null) // No ports on this cookie, allow all
-                    portDenied = false;
-                else // Ports specified
-                    for (int allowedPort : cookie.ports)
-                        if (requestPort == allowedPort) {
+                if (cookie.ports == null) {
+					portDenied = false;
+				} else {
+					for (int allowedPort : cookie.ports) {
+						if (requestPort == allowedPort) {
                             portDenied = false;
                             break;
                         }
-                if (portDenied)
-                   continue;
+					}
+				}
+                if (portDenied) {
+					continue;
+				}
 
                 // Path selection
                 String path = request.getPath();
-                if (path == null)
-                    path = "/";
-                if (!path.startsWith(cookie.path))
-                    continue;
+                if (path == null) {
+					path = "/";
+				}
+                if (!path.startsWith(cookie.path)) {
+					continue;
+				}
 
-                if (result == null)
-                    result = new NameCookieStore(name, id);
+                if (result == null) {
+					result = new NameCookieStore(name, id);
+				}
 
                 result.add(cookie);
             }
@@ -883,11 +934,10 @@ public class ThreadCookieHandler {
 
         /**
          * Compares this store to another store for ordering by id.
-         * @param o The other store
+         * @param nStore The other store
          * @return A positive integer, a negative integer, or 0
          */
-        public int compareTo(Object o) {
-            NameCookieStore nStore = (NameCookieStore) o;
+        public int compareTo(NameCookieStore nStore) {
             return id - nStore.id;
         }
     }
@@ -913,6 +963,7 @@ public class ThreadCookieHandler {
      * Main method to test cookie handler.
      * @param args Name of each file representing each request header
      * @throws IOException Cannot find or read file
+     * @throws URISyntaxException 
      */
     public static void main(String[] args)
             throws IOException, URISyntaxException {
@@ -928,8 +979,9 @@ public class ThreadCookieHandler {
             while((cookieHeader = r.readLine()) != null) {
                 System.out.println(cookieHeader);
                 int idx = cookieHeader.indexOf(": ");
-                if (idx == -1)
-                    continue;
+                if (idx == -1) {
+					continue;
+				}
                 String key = cookieHeader.substring(0, idx);
                 String value = cookieHeader.substring(idx + 2);
                 List<String> values = respHeader.get(key);
@@ -948,8 +1000,9 @@ public class ThreadCookieHandler {
                  iter.hasNext(); ) {
                 String key = iter.next();
                 List<String> values = reqHeader.get(key);
-                for (int j = 0; j < values.size(); j++)
-                    System.out.println(key + ": " + values.get(j));
+                for (int j = 0; j < values.size(); j++) {
+					System.out.println(key + ": " + values.get(j));
+				}
             }
             reqHeader.clear();
         }

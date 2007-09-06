@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: HttpClient.java,v 1.3 2006/09/27 05:26:47 akara Exp $
+ * $Id: HttpClient.java,v 1.4 2007/09/06 02:19:33 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -49,6 +49,15 @@ public class HttpClient extends sun.net.www.http.HttpClient {
 
     private static SocketFactory socketFactory;
 
+    /**
+     * @param url
+     * @param proxyHost
+     * @param proxyPort
+     * @param useCache
+     * @param timeout
+     * @return
+     * @throws IOException
+     */
     public static HttpClient New(URL url, String proxyHost, int proxyPort,
                                  boolean useCache, int timeout) 
             throws IOException {
@@ -56,6 +65,14 @@ public class HttpClient extends sun.net.www.http.HttpClient {
                 -1, useCache);
     }
 
+    /**
+     * @param url
+     * @param p
+     * @param to
+     * @param useCache
+     * @return
+     * @throws IOException
+     */
     public static HttpClient New(URL url, Proxy p, int to,
                                                   boolean useCache)
             throws IOException {
@@ -93,7 +110,8 @@ public class HttpClient extends sun.net.www.http.HttpClient {
         super(url, proxy, i);
     }
 
-    protected synchronized void putInKeepAliveCache() {
+    @Override
+	protected synchronized void putInKeepAliveCache() {
 	if (inCache) {
 	    assert false : "Duplicate put to keep alive cache";
 	    return;
@@ -108,20 +126,23 @@ public class HttpClient extends sun.net.www.http.HttpClient {
      * overrides NetworClient.doConnect() to use the provided
      * SocketFactory for socket creation.
      */
-    protected Socket doConnect (String server, int port)
+    @Override
+	protected Socket doConnect (String server, int port)
             throws IOException, UnknownHostException {
         Socket s;
         if (proxy != null) {
             if (proxy.type() == Proxy.Type.SOCKS) {
-                s = (Socket) AccessController.doPrivileged(
-                        new PrivilegedAction() {
-                            public Object run() {
+                s = AccessController.doPrivileged(
+                        new PrivilegedAction<Socket>() {
+                            public Socket run() {
                                 return socketFactory.createSocket(proxy);
                             }});
-            } else
-                s = socketFactory.createSocket(Proxy.NO_PROXY);
-        } else
-            s = socketFactory.createSocket();
+            } else {
+				s = socketFactory.createSocket(Proxy.NO_PROXY);
+			}
+        } else {
+			s = socketFactory.createSocket();
+		}
         // Instance specific timeouts do have priority, that means
         // connectTimeout & readTimeout (-1 means not set)
         // Then global default timeouts
@@ -136,9 +157,9 @@ public class HttpClient extends sun.net.www.http.HttpClient {
                 s.connect(new InetSocketAddress(server, port));
             }
         }
-        if (readTimeout >= 0)
-            s.setSoTimeout(readTimeout);
-        else if (defaultSoTimeout > 0) {
+        if (readTimeout >= 0) {
+			s.setSoTimeout(readTimeout);
+		} else if (defaultSoTimeout > 0) {
             s.setSoTimeout(defaultSoTimeout);
         }
         return s;

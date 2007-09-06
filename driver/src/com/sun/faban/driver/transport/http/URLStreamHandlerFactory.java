@@ -17,26 +17,29 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: URLStreamHandlerFactory.java,v 1.3 2006/09/27 05:26:47 akara Exp $
+ * $Id: URLStreamHandlerFactory.java,v 1.4 2007/09/06 02:19:32 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver.transport.http;
 
-import sun.net.www.http.HttpClient;
-
 import java.net.URL;
 import java.net.URLStreamHandler;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+
+import sun.net.www.http.HttpClient;
 
 /**
  * This is a ThreadLocal cache used by the HTTP client keepalive.
@@ -46,10 +49,15 @@ import javax.net.ssl.X509TrustManager;
  */
 class KeepAliveCache extends sun.net.www.http.KeepAliveCache {
 
-    /** The thread local cache */
-    static ThreadLocal localHash = new ThreadLocal() {
-        protected Object initialValue() {
-            return new HashMap();
+    /**
+	 * SerialVersionUID
+	 */
+	private static final long serialVersionUID = 1L;
+	/** The thread local cache */
+    static ThreadLocal<Map<KeepAliveKey, List<HttpClient>>> localHash = new ThreadLocal<Map<KeepAliveKey, List<HttpClient>>>() {
+        @Override
+		protected Map<KeepAliveKey, List<HttpClient>> initialValue() {
+            return new HashMap<KeepAliveKey, List<HttpClient>>();
         }
     };
 
@@ -60,15 +68,16 @@ class KeepAliveCache extends sun.net.www.http.KeepAliveCache {
      * @param obj An additional key, ignored
      * @return An object in the cache, or null if there is none.
      */
-    public Object get(URL url, Object obj) {
-        HashMap map = (HashMap) localHash.get();
+    @Override
+	public Object get(URL url, Object obj) {
+        Map<KeepAliveKey, List<HttpClient>> map = localHash.get();
         KeepAliveKey dkak = new KeepAliveKey(url);
-        ArrayList clientVector = (ArrayList) map.get(dkak);
+        List<HttpClient> clientVector = map.get(dkak);
         int cvIdx = 0;
         if (clientVector == null || (cvIdx = clientVector.size()) == 0) {
             return null;
         }
-        Object ret = clientVector.get(--cvIdx);
+        HttpClient ret = clientVector.get(--cvIdx);
         clientVector.remove(cvIdx);
         return ret;
     }
@@ -79,18 +88,19 @@ class KeepAliveCache extends sun.net.www.http.KeepAliveCache {
      * @param obj An additional key, ignored
      * @param http The http client to put into the cache
      */
-    public void put(URL url, Object obj, HttpClient http) {
+    @Override
+	public void put(URL url, Object obj, HttpClient http) {
         if (http != null) {
-            HashMap map = (HashMap) localHash.get();
+            Map<KeepAliveKey, List<HttpClient>> map = localHash.get();
             KeepAliveKey dkak = new KeepAliveKey(url);
-            ArrayList clientVector = (ArrayList) map.get(dkak);
+            List<HttpClient> clientVector =  map.get(dkak);
             if (clientVector == null) {
-                clientVector = new ArrayList();
+                clientVector = new ArrayList<HttpClient>();
                 clientVector.add(http);
                 map.put(dkak, clientVector);
-            }
-            else
-                clientVector.add(http);
+            } else {
+				clientVector.add(http);
+			}
         }
     }
 
@@ -99,15 +109,16 @@ class KeepAliveCache extends sun.net.www.http.KeepAliveCache {
      * @param url The URL to be cleared.
      */
     public static void clear(URL url) {
-        HashMap map = (HashMap) localHash.get();
+    	Map<KeepAliveKey, List<HttpClient>> map = localHash.get();
         KeepAliveKey dkak = new KeepAliveKey(url);
-        ArrayList clientVector = (ArrayList) map.get(dkak);
-        if (clientVector != null)
-            // Since we know that in a driver situation, the same URLs are
+        List<HttpClient> clientVector = map.get(dkak);
+        if (clientVector != null) {
+			// Since we know that in a driver situation, the same URLs are
             // going to be used over and over. So we decide not to get rid
             // of the clientVector altogether just to create a new one next
             // time, but to clear all the entries.
             clientVector.clear();
+		}
     }
 
 
@@ -122,21 +133,35 @@ class KeepAliveCache extends sun.net.www.http.KeepAliveCache {
         private String	host = null;
         private int		port = 0;
 
+        /**
+         * Construct a {@link KeepAliveKey}
+         * 
+         * @param url
+         */
         public KeepAliveKey(URL url) {
-            this.protocol = url.getProtocol();
-            this.host = url.getHost();
-            this.port = url.getPort();
+            protocol = url.getProtocol();
+            host = url.getHost();
+            port = url.getPort();
         }
 
-        public boolean equals(Object obj) {
-            if (!(obj instanceof KeepAliveKey))
-                return false;
+        /**
+         * @see java.lang.Object#equals(java.lang.Object)
+         */
+        @Override
+		public boolean equals(Object obj) {
+            if (!(obj instanceof KeepAliveKey)) {
+				return false;
+			}
             KeepAliveKey kae = (KeepAliveKey)obj;
             return host.equals(kae.host)
                     && (port == kae.port) && protocol.equals(kae.protocol);
         }
 
-        public int hashCode() {
+        /**
+         * @see java.lang.Object#hashCode()
+         */
+        @Override
+		public int hashCode() {
             String str = protocol+host+port;
             return str.hashCode();
         }
@@ -150,6 +175,9 @@ class KeepAliveCache extends sun.net.www.http.KeepAliveCache {
 public class URLStreamHandlerFactory
         implements java.net.URLStreamHandlerFactory {
 
+    /**
+     * Construct a {@link URLStreamHandlerFactory}
+     */
     public URLStreamHandlerFactory() {
         try {
             Class.forName(
@@ -159,9 +187,13 @@ public class URLStreamHandlerFactory
         }
     }
 
+    /**
+     * @see java.net.URLStreamHandlerFactory#createURLStreamHandler(java.lang.String)
+     */
     public URLStreamHandler createURLStreamHandler(String protocol) {
-        if ("http".equals(protocol))
-            return new Handler();
+        if ("http".equals(protocol)) {
+			return new Handler();
+		}
 	if ("https".equals(protocol)) {
 	    initSSL();
 	    // We want the default handler; we just needed to make sure that
@@ -173,7 +205,9 @@ public class URLStreamHandlerFactory
 
     private static boolean doneInitSSL = false;
     private static synchronized void initSSL() {
-	if (doneInitSSL) return;
+	if (doneInitSSL) {
+		return;
+	}
 	doneInitSSL = true;
 	try {
 	    // A trust manager that accepts all certificates
@@ -184,9 +218,11 @@ public class URLStreamHandlerFactory
                     }
                     public void checkClientTrusted(X509Certificate[] certs,
                                                    String authType) {
+                    	// do nothing
                     }
                     public void checkServerTrusted(X509Certificate[] certs,
                                                    String authType) {
+                    	// do nothing
                     }
                 }
 	    };
@@ -194,13 +230,14 @@ public class URLStreamHandlerFactory
 	    sc.init(null, tm, new SecureRandom());
 	    HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
 
-    	    HostnameVerifier verifier = new HostnameVerifier() {
-		public boolean verify(String url, String server) {
-		    return true;
-		}
-		public boolean verify(String url, SSLSession sess) {
-		    return true;
-		}
+	    HostnameVerifier verifier = new HostnameVerifier() {
+			@SuppressWarnings("unused")
+			public boolean verify(String url, String server) {
+			    return true;
+			}
+			public boolean verify(String url, SSLSession sess) {
+			    return true;
+			}
 	    };
 	    HttpsURLConnection.setDefaultHostnameVerifier(verifier);
 	} catch (Exception e) {

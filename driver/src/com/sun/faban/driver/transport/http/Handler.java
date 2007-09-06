@@ -17,15 +17,14 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Handler.java,v 1.2 2006/06/29 19:38:38 akara Exp $
+ * $Id: Handler.java,v 1.3 2007/09/06 02:19:32 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver.transport.http;
 
-import java.net.URL;
 import java.net.Proxy;
-import java.io.IOException;
+import java.net.URL;
 
 /**
  * Web protocol handler that creates Faban's HttpURLConnection instead.
@@ -34,8 +33,8 @@ import java.io.IOException;
  */
 public class Handler extends sun.net.www.protocol.http.Handler {
 
-    protected java.net.URLConnection openConnection(URL u, Proxy p)
-	        throws IOException {
+    @Override
+	protected java.net.URLConnection openConnection(URL u, Proxy p) {
 	    return new HttpURLConnection(u, p, this);
     }
 }

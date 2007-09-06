@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CookieHandler.java,v 1.2 2006/06/29 19:38:38 akara Exp $
+ * $Id: CookieHandler.java,v 1.3 2007/09/06 02:19:33 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -33,12 +33,20 @@ import java.util.Map;
  */
 public class CookieHandler extends java.net.CookieHandler {
 
-    public Map<String, java.util.List<String>> get(
+    /**
+     * @see java.net.CookieHandler#get(java.net.URI, java.util.Map)
+     */
+    @Override
+	public Map<String, java.util.List<String>> get(
             URI uri, Map<String, java.util.List<String>> map) {
         return ThreadCookieHandler.getInstance().get(uri, map);
     }
 
-    public void put(URI uri, Map<String, java.util.List<String>> map) {
+    /**
+     * @see java.net.CookieHandler#put(java.net.URI, java.util.Map)
+     */
+    @Override
+	public void put(URI uri, Map<String, java.util.List<String>> map) {
         ThreadCookieHandler.getInstance().put(uri, map);
     }
 }
