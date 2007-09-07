@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Agent.java,v 1.2 2006/06/29 19:38:37 akara Exp $
+ * $Id: Agent.java,v 1.3 2007/09/07 15:49:04 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -41,14 +41,18 @@ public interface Agent extends Remote {
 
 	/**
 	 * initialize remote Agents
+	 * @param master 
 	 * @param runInfo run properties
+	 * @param driverType 
      * @param timer the timer
+	 * @throws RemoteException 
 	 */
 	public void configure(Master master, RunInfo runInfo, int driverType,
                           Timer timer) throws RemoteException;
 
     /**
      * Wait until all threads are started.
+     * @throws RemoteException 
      */
     public void waitForThreadStart() throws RemoteException;
 
@@ -63,6 +67,8 @@ public interface Agent extends Remote {
 	 * Report stats from a run, aggregating across all threads of
 	 * the Agent.
 	 * The stats object is actually different for each Agent.
+	 * @return 
+	 * @throws RemoteException 
 	 * @see com.sun.faban.driver.core.Metrics
 	 */
 	public Serializable getResults() throws RemoteException;
@@ -75,6 +81,7 @@ public interface Agent extends Remote {
 
     /**
      * This method is responsible for aborting a run
+     * @throws RemoteException 
      */
     public void kill() throws RemoteException;
 
@@ -83,6 +90,7 @@ public interface Agent extends Remote {
      * Logs the stack trace for all these threads but does not actually
      * wait for the threads to terminate (join). Terminate is called
      * while join is hanging on some thread that refuses to terminate.
+     * @throws RemoteException 
      */
     public void terminate() throws RemoteException;
 

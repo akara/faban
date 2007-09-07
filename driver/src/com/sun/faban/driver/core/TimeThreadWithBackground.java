@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TimeThreadWithBackground.java,v 1.4 2006/12/08 05:15:54 akara Exp $
+ * $Id: TimeThreadWithBackground.java,v 1.5 2007/09/07 15:49:05 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -43,7 +43,8 @@ public class TimeThreadWithBackground extends TimeThread {
      *  Allocates and initializes the timing structures which is specific
      *  to the pseudo-thread dimensions.
      */
-    void initTimes() {
+    @Override
+	void initTimes() {
         delayTime = new int[2];
         startTime = new int[2];
         endTime = new int[2];
@@ -71,7 +72,8 @@ public class TimeThreadWithBackground extends TimeThread {
    	 * which is returned to the Agent via the getResult() method.
      * @see Metrics
      */
-    void doRun() {
+    @Override
+	void doRun() {
 
         driverContext = new DriverContext(this, timer);
 
@@ -134,8 +136,9 @@ public class TimeThreadWithBackground extends TimeThread {
             if (mixId != 1) {
                 previousOperation[0] = mixOperation[0];
                 BenchmarkDefinition.Operation previousOp = null;
-                if (previousOperation[0] >= 0)
-                    previousOp = driverConfig.operations[currentOperation];
+                if (previousOperation[0] >= 0) {
+					previousOp = driverConfig.operations[currentOperation];
+				}
 
                 mixOperation[0] = selector[0].select();
                 op[0] = driverConfig.mix[0].operations[mixOperation[0]];
@@ -145,8 +148,9 @@ public class TimeThreadWithBackground extends TimeThread {
             if (mixId != 0) {
                 previousOperation[1] = mixOperation[1];
                 BenchmarkDefinition.Operation previousOp = null;
-                if (previousOperation[1] >= 0)
-                    previousOp = driverConfig.operations[currentOperation];
+                if (previousOperation[1] >= 0) {
+					previousOp = driverConfig.operations[currentOperation];
+				}
 
                 mixOperation[1] = selector[1].select();
                 op[1] = driverConfig.mix[1].operations[mixOperation[1]];
@@ -155,10 +159,11 @@ public class TimeThreadWithBackground extends TimeThread {
 
             // Now get the new mixId, note that foreground has preference
             // whenever the invoke times are the same.
-            if (invokeTime[1] < invokeTime[0])
-                mixId = 1;
-            else 
-                mixId = 0;
+            if (invokeTime[1] < invokeTime[0]) {
+				mixId = 1;
+			} else {
+				mixId = 0;
+			}
 
             currentOperation = driverConfig.getOperationIdx(
                                                 mixId, mixOperation[mixId]);
@@ -166,8 +171,9 @@ public class TimeThreadWithBackground extends TimeThread {
             // endRampDown is only valid if start time is set.
             // If the start time of next tx is beyond the end
             // of the ramp down, just stop right here.
-            if (startTimeSet && invokeTime[mixId] >= endRampDown)
-                break driverLoop;
+            if (startTimeSet && invokeTime[mixId] >= endRampDown) {
+				break driverLoop;
+			}
 
             driverContext.setInvokeTime(invokeTime[mixId]);
 
@@ -199,17 +205,16 @@ public class TimeThreadWithBackground extends TimeThread {
                         metrics.recordError();
                         logError(cause, op[mixId]);
                         continue driverLoop;
-                    } else {
-                        // Too late, we'll need to use the real time
-                        // for both invoke and respond time.
-                        timingInfo.invokeTime = timer.getTime();
-                        timingInfo.respondTime = timingInfo.invokeTime;
-                        checkRamp();
-                        metrics.recordError();
-                        logError(cause, op[mixId]);
-                        // The delay time is invalid,
-                        // we cannot record in this case.
                     }
+					// Too late, we'll need to use the real time
+					// for both invoke and respond time.
+					timingInfo.invokeTime = timer.getTime();
+					timingInfo.respondTime = timingInfo.invokeTime;
+					checkRamp();
+					metrics.recordError();
+					logError(cause, op[mixId]);
+					// The delay time is invalid,
+					// we cannot record in this case.
                 } else if (timingInfo.respondTime == -1) {
                     timingInfo.respondTime = timer.getTime();
                     checkRamp();
@@ -232,8 +237,9 @@ public class TimeThreadWithBackground extends TimeThread {
             startTime[mixId] = driverContext.timingInfo.invokeTime;
             endTime[mixId] = driverContext.timingInfo.respondTime;
 
-            if (startTimeSet && endTime[mixId] >= endRampDown)
-                break driverLoop;
+            if (startTimeSet && endTime[mixId] >= endRampDown) {
+				break driverLoop;
+			}
         }
         logger.fine(name + ": End of run.");
     }

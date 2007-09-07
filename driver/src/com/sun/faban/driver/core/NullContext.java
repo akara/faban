@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: NullContext.java,v 1.4 2007/06/09 07:13:00 akara Exp $
+ * $Id: NullContext.java,v 1.5 2007/09/07 15:49:05 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -45,246 +45,199 @@ public class NullContext extends DriverContext {
     private Random random;
     private long baseTime = System.currentTimeMillis();
 
+ 
     /**
-     * Obtains the scale or scaling rate of the current run.
-     * The scale is always 0 for the NullContext.
-     * @return the current run's scaling rate
+     * @see com.sun.faban.driver.DriverContext#getScale()
      */
-    public int getScale() {
+    @Override
+	public int getScale() {
         return 0;
     }
 
     /**
-     * Obtains the global agent thread id for this context's thread.
-     *
-     * @return the global agent thread id
+     * @see com.sun.faban.driver.DriverContext#getThreadId()
      */
-    public int getThreadId() {
+    @Override
+	public int getThreadId() {
         return 0;
     }
 
+
     /**
-     * Obtains the agent id for this agent.
-     *
-     * @return the current agent's id
+     * @see com.sun.faban.driver.DriverContext#getAgentId()
      */
-    public int getAgentId() {
+    @Override
+	public int getAgentId() {
         return 0;
     }
 
+
     /**
-     * Obtains the driver's name as annotated in the driver class.
-     *
-     * @return the driver name
+     * @see com.sun.faban.driver.DriverContext#getDriverName()
      */
-    public String getDriverName() {
+    @Override
+	public String getDriverName() {
         return "DriverTestNullContext";
     }
 
     /**
-     * Obtains the logger to be used by the calling driver.
-     *
-     * @return the appropriate logger
+     * @see com.sun.faban.driver.DriverContext#getLogger()
      */
-    public Logger getLogger() {
-        if (logger == null)
-            logger = Logger.getLogger("faban.test");
+    @Override
+	public Logger getLogger() {
+        if (logger == null) {
+			logger = Logger.getLogger("faban.test");
+		}
         return logger;
     }
 
     /**
-     * Attaches a custom metrics object to the primary metrics.
-     * This should be done by the driver at initialization time.
-     * Only one custom metrics can be attached. Subsequent calls
-     * to this method replaces the previously attached metrics.
-     *
-     * @param metrics The custom metrics to be replaced
+     * @see com.sun.faban.driver.DriverContext#attachMetrics(com.sun.faban.driver.CustomMetrics)
      */
-    public void attachMetrics(CustomMetrics metrics) {
+    @Override
+	public void attachMetrics(CustomMetrics metrics) {
         // Noop.
     }
 
     /**
-     * Obtains the name of the operation currently executing.
-     *
-     * @return the current operation's name
+     * @see com.sun.faban.driver.DriverContext#getCurrentOperation()
      */
-    public String getCurrentOperation() {
+    @Override
+	public String getCurrentOperation() {
         return "DriverTestNullContext";
     }
 
     /**
-     * Obtains the unique id assigned to the current operation type.
-     * This id is commonly used to index into array structures containing
-     * operation-specific information such as stats. The id ranges from 0 to
-     * n where n is the number of operations in the driver less one. This
-     * implementation always returns 0 as it is not backed by the driver
-     * framework.
-     *
-     * @return The unique id assigned to this operation type.
+     * @see com.sun.faban.driver.DriverContext#getOperationId()
      */
-    public int getOperationId() {
+    @Override
+	public int getOperationId() {
         return 0;
     }
 
+
     /**
-     * Obtains the number of operations active in this driver. This
-     * implementation alwasy returns 1 as it is not backed by the
-     * driver framework.
-     *
-     * @return The number of active operations
+     * @see com.sun.faban.driver.DriverContext#getOperationCount()
      */
-    public int getOperationCount() {
+    @Override
+	public int getOperationCount() {
         return 1;
     }
 
     /**
-     * Obtains the per-thread random value generator. Drivers
-     * should use this random value generator and not instantiate
-     * their own.
-     *
-     * @return The random value generator
+     * @see com.sun.faban.driver.DriverContext#getRandom()
      */
-    public Random getRandom() {
-        if (random == null)
-            random = new Random();
+    @Override
+	public Random getRandom() {
+        if (random == null) {
+			random = new Random();
+		}
         return random;
     }
 
     /**
-     * Records the start time and end of the critical section of an operation.
-     * This operation may block until the appropriate start time for the
-     * operation has arrived. There is no blocking for the end time.
-     *
-     * @throws IllegalStateException if the operation uses auto timing
+     * @see com.sun.faban.driver.DriverContext#recordTime()
      */
-    public void recordTime() {
+    @Override
+	public void recordTime() {
         // Noop
     }
 
     /**
-     * Pauses the critical section so that operations made during the pause
-     * do not count into the response time. If Timing.AUTO is used, the pause
-     * ends automatically when the next request is sent to the server. For
-     * manual timing, the next call to recordTime ends the pause.
+     * @see com.sun.faban.driver.DriverContext#pauseTime()
      */
-    public void pauseTime() {
+    @Override
+	public void pauseTime() {
         //Noop
     }
 
     /**
-     * Obtains a relative time, in milliseconds. This time is relative to
-     * a certain time at the beginning of the benchmark run and does not
-     * represent a wall clock time. All agents will have the same reference
-     * time. Use this time to check time durations during the benchmark run.
-     *
-     * @return The relative time of the benchmark run
+     * @see com.sun.faban.driver.DriverContext#getTime()
      */
-    public int getTime() {
+    @Override
+	public int getTime() {
         return (int) (System.currentTimeMillis() - baseTime);
     }
 
     /**
-     * Obtains the relative time - in milliseconds - that steady state starts,
-     * if set. The if the time is not yet set, it will return 0.
-     *
-     * @return The relative time steady state starts
+     * @see com.sun.faban.driver.DriverContext#getSteadyStateStart()
      */
-    public int getSteadyStateStart() {
+    @Override
+	public int getSteadyStateStart() {
         return (int) (System.currentTimeMillis() - baseTime + 5000l);
     }
 
     /**
-     * Obtains the configured ramp up time.
-     *
-     * @return The configured ramp up time, in milliseconds
+     * @see com.sun.faban.driver.DriverContext#getRampUp()
      */
-    public int getRampUp() {
+    @Override
+	public int getRampUp() {
         return 0;
     }
 
     /**
-     * Obtains the configured steady state time.
-     *
-     * @return The configured steady state time, in milliseconds
+     * @see com.sun.faban.driver.DriverContext#getSteadyState()
      */
-    public int getSteadyState() {
+    @Override
+	public int getSteadyState() {
         // Just provide a very high number.
         return Integer.MAX_VALUE / 2;
     }
 
     /**
-     * Obtains the configured ramp down time.
-     *
-     * @return The configured ramp down time, in milliseconds
+     * @see com.sun.faban.driver.DriverContext#getRampDown()
      */
-    public int getRampDown() {
+    @Override
+	public int getRampDown() {
         return 0;
     }
 
     /**
-     * Resets the state of the current mix to start off at the beginning
-     * of the mix. For stateless mixes such as FlatMix, this operation
-     * does nothing.
+     * @see com.sun.faban.driver.DriverContext#resetMix()
      */
-    public void resetMix() {
+    @Override
+	public void resetMix() {
         //noop
     }
 
     /**
-     * Checks whether the driver is currently in steady state or not.
-     * In NullContext, isTxSteadyState always returns true to excercise
-     * the code.
-     * @return True
+     * @see com.sun.faban.driver.DriverContext#isTxSteadyState()
      */
-    public boolean isTxSteadyState() {
+    @Override
+	public boolean isTxSteadyState() {
         return true;
     }
     /**
-     * Obtains a single-value property from the configuration. If the name
-     * of a multi-value property is given, only one value is returned.
-     * It is undefined as to which value in the list is returned.
-     *
-     * @param name The property name
-     * @return The property value
+     * @see com.sun.faban.driver.DriverContext#getProperty(java.lang.String)
      */
-    public String getProperty(String name) {
+    @Override
+	public String getProperty(String name) {
         return System.getProperty(name);
     }
 
     /**
-     * Obtains a multiple-value property from the configuration. A
-     * single-value property will be returned as an array of dimension 1.
-     *
-     * @param name The property name
-     * @return The property values
+     * @see com.sun.faban.driver.DriverContext#getPropertyValues(java.lang.String)
      */
-    public String[] getPropertyValues(String name) {
+    @Override
+	public String[] getPropertyValues(String name) {
         return new String[0];
     }
 
     /**
-     * Obtains the reference to the whole properties element as configured
-     * in the driverConfig element of this driver in the config file. This
-     * method allows custom free-form structures but the driver will need
-     * to spend the effort walking the DOM tree.
-     *
-     * @return The DOM tree representing the properties node
+     * @see com.sun.faban.driver.DriverContext#getPropertiesNode()
      */
-    public Element getPropertiesNode() {
+    @Override
+	public Element getPropertiesNode() {
         return null;
     }
 
+    
     /**
-     * Reads the element or attribute by it's XPath. The XPath is evaluated
-     * from the root of the configuration file.
-     *
-     * @param xPath The XPath to evaluate.
-     * @return The element or attribute value defined by the XPath
-     * @throws javax.xml.xpath.XPathExpressionException
-     *          If the given XPath has an error
+     * @see com.sun.faban.driver.DriverContext#getXPathValue(java.lang.String)
      */
-    public String getXPathValue(String xPath) throws XPathExpressionException {
+    @SuppressWarnings("unused")
+	@Override
+	public String getXPathValue(String xPath) throws XPathExpressionException {
         return null;
     }
 }

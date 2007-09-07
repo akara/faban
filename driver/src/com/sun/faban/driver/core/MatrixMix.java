@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MatrixMix.java,v 1.4 2007/06/29 08:35:17 akara Exp $
+ * $Id: MatrixMix.java,v 1.5 2007/09/07 15:49:05 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -43,7 +43,11 @@ import java.lang.annotation.Annotation;
  */
 public class MatrixMix extends Mix {
 
-    double[][] mix;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	double[][] mix;
 
     /**
      * Initializes this mix according to the annotation.
@@ -53,7 +57,8 @@ public class MatrixMix extends Mix {
      * @throws com.sun.faban.driver.DefinitionException
      *          If there is an error in the annotation
      */
-    public void init(Class<?> driverClass, Annotation a)
+    @Override
+	public void init(Class<?> driverClass, Annotation a)
             throws DefinitionException {
         com.sun.faban.driver.MatrixMix matrixMix =
                 (com.sun.faban.driver.MatrixMix) a;
@@ -61,8 +66,9 @@ public class MatrixMix extends Mix {
                 matrixMix.operations());
         Row[] lines = matrixMix.mix();
         mix = new double[lines.length][];
-        for (int i = 0; i < lines.length; i++)
-            mix[i] = lines[i].value();
+        for (int i = 0; i < lines.length; i++) {
+			mix[i] = lines[i].value();
+		}
         deviation = matrixMix.deviation();
         validate();
     }
@@ -120,7 +126,8 @@ public class MatrixMix extends Mix {
      * @return a clone of this instance.
      * @see Cloneable
      */
-    public Object clone() {
+    @Override
+	public Object clone() {
         MatrixMix clone = (MatrixMix) super.clone();
         clone.mix = new double[mix.length][];
         for (int i = 0; i < mix.length; i++) {
@@ -137,7 +144,9 @@ public class MatrixMix extends Mix {
      * @param driverConfigNode The driverConfig DOM node
      * @throws ConfigurationException If there is a configuration error
      */
-    public void configure(Element driverConfigNode)
+    @SuppressWarnings("boxing")
+	@Override
+	public void configure(Element driverConfigNode)
             throws ConfigurationException {
         /* The format is as follows:
         <operationMix>
@@ -175,13 +184,15 @@ public class MatrixMix extends Mix {
             Element opMix = (Element) operationList.item(i);
             NodeList nl = opMix.getElementsByTagNameNS(
                                                     RunInfo.DRIVERURI, "name");
-            if (nl.getLength() == 0)
-                throw new ConfigurationException("Element <name> not found " +
+            if (nl.getLength() == 0) {
+				throw new ConfigurationException("Element <name> not found " +
                         "inside <operationMix>.");
+			}
 
-            if (nl.getLength() > 1)
-                throw new ConfigurationException("Only one operation name " +
+            if (nl.getLength() > 1) {
+				throw new ConfigurationException("Only one operation name " +
                         "allowed in each operation mix");
+			}
 
             String name = nl.item(0).getFirstChild().getNodeValue();
             positionMap.put(name, i);
@@ -193,23 +204,26 @@ public class MatrixMix extends Mix {
                         " ratio <r> elements, found " + size1 + '.');
             }
             double[] ratios = new double[size1];
-            for (int j = 0; j < ratios.length; j++)
-                ratios[j] = Double.parseDouble(nl.item(j).
+            for (int j = 0; j < ratios.length; j++) {
+				ratios[j] = Double.parseDouble(nl.item(j).
                         getFirstChild().getNodeValue());
+			}
             ratioMap.put(name, ratios);
         }
 
         // If no configuration specified, we just don't override
-        if (ratioMap.size() <= 0)
-            return;
+        if (ratioMap.size() <= 0) {
+			return;
+		}
 
         // Then we have to extract the ratio map based on the defined name list
         double[][] ratios = new double[operations.length][];
         for (int i = 0; i < operations.length; i++) {
             ratios[i] = ratioMap.remove(operations[i].name);
-            if (ratios == null)
-                throw new ConfigurationException("Configured ratio for " +
+            if (ratios[i] == null) {
+				throw new ConfigurationException("Configured ratio for " +
                         "operation " + operations[i].name + " not found");
+			}
         }
 
         // By now, the map should be empty
@@ -217,8 +231,9 @@ public class MatrixMix extends Mix {
             String msg = "";
             for (Iterator<String> i = ratioMap.keySet().iterator();
                  i.hasNext();) {
-                if (msg.length() > 0)
-                    msg += ", ";
+                if (msg.length() > 0) {
+					msg += ", ";
+				}
                 msg += i.next();
             }
             throw new ConfigurationException("Invalid operation name(s) in " +
@@ -228,11 +243,12 @@ public class MatrixMix extends Mix {
         // But the ratios are still sorted by the configured list which
         // may not be in the same order as the defined list. So we need to
         // sort through each row.
-        for (int i = 0; i < ratios.length; i++)
-            for (int j = 0; j < operations.length; j++) {
+        for (int i = 0; i < ratios.length; i++) {
+			for (int j = 0; j < operations.length; j++) {
                 int position = positionMap.get(operations[j].name);
                 mix[i][j] = ratios[i][position];
             }
+		}
     }
 
     /**
@@ -251,8 +267,8 @@ public class MatrixMix extends Mix {
             getLogger().throwing(className, "validate", e);
             throw e;
         }
-        for (int i = 0; i < operations.length; i++)
-            if (mix[i].length != operations.length) {
+        for (int i = 0; i < operations.length; i++) {
+			if (mix[i].length != operations.length) {
                 String msg = "All rows in mix matrix must be " +
                         operations.length + " (#ops) in size.\nFound row " +
                         i + " to be of size " + mix[i].length + ".";
@@ -261,6 +277,7 @@ public class MatrixMix extends Mix {
                 getLogger().throwing(className, "validate", e);
                 throw e;
             }
+		}
     }
 
     /**
@@ -269,20 +286,24 @@ public class MatrixMix extends Mix {
      * amount but the selector (doMenu) will base the random number
      * generator to 1.
      */
-    public void normalize() {
+    @Override
+	public void normalize() {
 
         for (int i = 0; i < mix.length; i++) {
             double rowTotal = 0;
-            for (int j = 0; j < mix.length; j++)
-                rowTotal += mix[i][j];
-            for (int j = 0; j < mix.length; j++)
-                mix[i][j] /= rowTotal;
+            for (int j = 0; j < mix.length; j++) {
+				rowTotal += mix[i][j];
+			}
+            for (int j = 0; j < mix.length; j++) {
+				mix[i][j] /= rowTotal;
+			}
         }
         // The following is called only to dump out the resulting mix info.
         // If the log level is not fine enough, we just do not calculate.
         // It is not necessary in the logic.
-        if (getLogger().isLoggable(Level.FINER))
-            flatMix();
+        if (getLogger().isLoggable(Level.FINER)) {
+			flatMix();
+		}
     }
 
     /**
@@ -291,7 +312,8 @@ public class MatrixMix extends Mix {
      * runtime exceptions or divergence (infinite loops) may occur.
      * @return the flat mix equivalent of this mix
      */
-    public FlatMix flatMix() {
+    @Override
+	public FlatMix flatMix() {
 
          getLogger().finer("flatMix - before\n" + toString());
 
@@ -316,10 +338,13 @@ public class MatrixMix extends Mix {
         double threshold = 1d/multiplier;
 
         // First we do a power of 2 to populate an intermediate result (iResult)
-        for (int i = 0; i < mix.length; i++)
-            for (int j = 0; j < mix.length; j++)
-                for (int k = 0; k < mix.length; k++)
-                    iResults[0][i][j] += mix[i][k] * mix[k][j];
+        for (int i = 0; i < mix.length; i++) {
+			for (int j = 0; j < mix.length; j++) {
+				for (int k = 0; k < mix.length; k++) {
+					iResults[0][i][j] += mix[i][k] * mix[k][j];
+				}
+			}
+		}
 
         // We just don't think it has converged yet, start power 3 without check
         int power = 3;
@@ -330,13 +355,15 @@ public class MatrixMix extends Mix {
             int resIdx = power & 1; // Just need to know the idx 0 or 1
 
             // Do the next multiplication
-            for (int i = 0; i < mix.length; i++)
-                for (int j = 0; j < mix.length; j++) {
+            for (int i = 0; i < mix.length; i++) {
+				for (int j = 0; j < mix.length; j++) {
                     iResults[resIdx][i][j] = 0d;
-                    for (int k = 0; k < mix.length; k++)
-                        iResults[resIdx][i][j] +=
+                    for (int k = 0; k < mix.length; k++) {
+						iResults[resIdx][i][j] +=
                                 iResults[srcIdx][i][k] * mix[k][j];
+					}
                 }
+			}
 
             // Now we check the results
             for (int j = 0; j < mix.length; j++) {// j for column
@@ -349,17 +376,20 @@ public class MatrixMix extends Mix {
                         // We first do the inexact comparison, low cost
                         double diff = Math.abs(iResults[resIdx][i][j] -
                                                iResults[resIdx][k][j]);
-                        if (diff > threshold)
-                            continue incrementPower;
+                        if (diff > threshold) {
+							continue incrementPower;
+						}
 
                         // If we past that, we do the exact version
-                        if (comparator == -1)
-                            comparator = (int) Math.round(
+                        if (comparator == -1) {
+							comparator = (int) Math.round(
                                     iResults[resIdx][i][j] * multiplier);
+						}
                         int comparatee = (int) Math.round(
                                 iResults[resIdx][k][j] * multiplier);
-                        if (comparator != comparatee)
-                            continue incrementPower;
+                        if (comparator != comparatee) {
+							continue incrementPower;
+						}
                     }
                 }
                 // Once we past all checks for a row, we use the final
@@ -385,7 +415,11 @@ public class MatrixMix extends Mix {
         return flatMix;
     }
 
-    public String toString() {
+    /**
+     * @see java.lang.Object#toString()
+     */
+    @Override
+	public String toString() {
         StringBuffer buffer = new StringBuffer();
         buffer.append("MatrixMix\n");
         buffer.append("operations: ");
@@ -416,7 +450,8 @@ public class MatrixMix extends Mix {
      * @param random The per-thread random value generator
      * @return The selector to be used by the driver
      */
-    public Selector selector(Random random) {
+    @Override
+	public Selector selector(Random random) {
         getLogger().finest("Get selector: " + toString());
         Selector s = new Selector(random, mix);
         getLogger().finest(s.toString());
@@ -448,15 +483,18 @@ public class MatrixMix extends Mix {
          *
          * @return The operation index selected to run next
          */
-        public int select() {
+        @Override
+		public int select() {
             if (op == -1) { // first selection
                 op = 0;
             } else { // Any subsequent selection
                 double val = random.drandom(0, 1);
                 int i;
-                for (i = 0; i < selectMix.length; i++)
-                    if (val <= selectMix[op][i])
-                        break;
+                for (i = 0; i < selectMix.length; i++) {
+					if (val <= selectMix[op][i]) {
+						break;
+					}
+				}
                 op = i;
             }
             return op;
@@ -466,11 +504,16 @@ public class MatrixMix extends Mix {
          * Resets the selector's state to start at the first op,
          * if applicable.
          */
-        public void reset() {
+        @Override
+		public void reset() {
             op = -1;
         }
 
-        public String toString() {
+        /**
+         * @see java.lang.Object#toString()
+         */
+        @Override
+		public String toString() {
             StringBuffer buffer = new StringBuffer();
             buffer.append("MatrixMix.Selector\n");
             for (int i = 0; i < selectMix.length; i++) {

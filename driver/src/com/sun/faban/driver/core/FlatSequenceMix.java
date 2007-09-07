@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FlatSequenceMix.java,v 1.2 2006/06/29 19:38:37 akara Exp $
+ * $Id: FlatSequenceMix.java,v 1.3 2007/09/07 15:49:04 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -64,7 +64,11 @@ import java.lang.annotation.Annotation;
  */
 public class FlatSequenceMix extends Mix {
 
-    private String[] operationNames;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private String[] operationNames;
     private int[][] operationSequences;
     double[] mix;
     double[] normalizedMix;
@@ -77,7 +81,8 @@ public class FlatSequenceMix extends Mix {
      * @throws com.sun.faban.driver.DefinitionException
      *          If there is an error in the annotation
      */
-    public void init(Class<?> driverClass, Annotation a)
+    @Override
+	public void init(Class<?> driverClass, Annotation a)
             throws DefinitionException {
         com.sun.faban.driver.FlatSequenceMix fsMix =
                 (com.sun.faban.driver.FlatSequenceMix) a;
@@ -93,6 +98,7 @@ public class FlatSequenceMix extends Mix {
     /**
      * Initialized the mix based on the defined sequences from the driver
      * annotations.
+     * @param seq An array of {@link OperationSequence}
      */
     public void init(OperationSequence[] seq) {
         // We're assuming mix[] adds to 100%, which is okay because
@@ -109,9 +115,11 @@ public class FlatSequenceMix extends Mix {
                 double factor = 1. / s.length;
                 factor *= (mix[i] / 100.);
                 Double d = set.get(s[j]);
-                if (d == null)
-                    d = new Double(factor);
-                else d = new Double(d.doubleValue() + factor);
+                if (d == null) {
+					d = new Double(factor);
+				} else {
+					d = new Double(d.doubleValue() + factor);
+				}
                 set.put(s[j], d);
             }
         }
@@ -151,6 +159,9 @@ public class FlatSequenceMix extends Mix {
         }
     }
 
+    /**
+     * @return operations The names of the operations
+     */
     public String[] operations() {
         return operationNames;
     }
@@ -161,20 +172,23 @@ public class FlatSequenceMix extends Mix {
      * @return a clone of this instance.
      * @see Cloneable
      */
-    public Object clone() {
+    @Override
+	public Object clone() {
         FlatSequenceMix clone = (FlatSequenceMix) super.clone();
         if (mix != null) {
             clone.mix = new double[mix.length];
             System.arraycopy(mix, 0, clone.mix, 0, mix.length);
-        }
-        else clone.mix = null;
+        } else {
+			clone.mix = null;
+		}
 
         if (operationNames != null) {
             clone.operationNames = new String[operationNames.length];
             System.arraycopy(operationNames, 0, clone.operationNames,
                     0, operationNames.length);
-        }
-        else clone.operationNames = null;
+        } else {
+			clone.operationNames = null;
+		}
 
         if (operationSequences != null) {
             clone.operationSequences = new int[operationSequences.length][];
@@ -183,8 +197,9 @@ public class FlatSequenceMix extends Mix {
                 System.arraycopy(operationSequences[i], 0, clone.operationSequences[i],
                         0, operationSequences[i].length);
             }
-        }
-        else clone.operationSequences = null;
+        } else {
+			clone.operationSequences = null;
+		}
         return clone;
     }
 
@@ -195,9 +210,11 @@ public class FlatSequenceMix extends Mix {
      * @throws ConfigurationException   If the configuration is invalid
      *                                  for the mix
      */
-    public void configure(Element driverConfigNode)
+    @SuppressWarnings("unused")
+	@Override
+	public void configure(Element driverConfigNode)
             throws ConfigurationException {
-
+    	// noop
     }
 
     /**
@@ -206,7 +223,9 @@ public class FlatSequenceMix extends Mix {
      * @throws com.sun.faban.driver.DefinitionException Found missing or
      *                                                  invalid row/column
      */
-    public void validate() throws DefinitionException {
+    @SuppressWarnings("unused")
+	public void validate() throws DefinitionException {
+    	// noop
     }
 
     /**
@@ -215,15 +234,18 @@ public class FlatSequenceMix extends Mix {
      * amount but the selector (doMenu) will base the random number
      * generator to 1.
      */
-    public void normalize() {
+    @Override
+	public void normalize() {
         // if (logger.isLoggable(Level.FINEST))
         getLogger().finest("normalize - before\n" + toString());
 
         double rowTotal = 0d;
-        for (int i = 0; i < mix.length; i++)
-            rowTotal += mix[i];
-        for (int i = 0; i < mix.length; i++)
-            mix[i] /= rowTotal;
+        for (int i = 0; i < mix.length; i++) {
+			rowTotal += mix[i];
+		}
+        for (int i = 0; i < mix.length; i++) {
+			mix[i] /= rowTotal;
+		}
 
         // if (logger.isLoggable(Level.FINEST))
         getLogger().finest("normalize - after\n" + toString());
@@ -235,7 +257,8 @@ public class FlatSequenceMix extends Mix {
      *
      * @return The flat mix representation.
      */
-    public FlatMix flatMix() {
+    @Override
+	public FlatMix flatMix() {
         FlatMix fm = new FlatMix();
         fm.operations = operations;
         fm.deviation = deviation;
@@ -243,8 +266,12 @@ public class FlatSequenceMix extends Mix {
         return fm;
     }
 
-    public String toString() {
-        StringBuffer buffer = new StringBuffer();
+    /**
+     * @see java.lang.Object#toString()
+     */
+    @Override
+	public String toString() {
+        StringBuilder buffer = new StringBuilder();
         buffer.append("FlatSequenceMix\n");
         buffer.append("operations: ");
         buffer.append(operations[0].name);
@@ -271,7 +298,8 @@ public class FlatSequenceMix extends Mix {
      * @param random The per-thread random value generator
      * @return The selector to be used by the driver
      */
-    public Selector selector(Random random) {
+    @Override
+	public Selector selector(Random random) {
         return new Selector(random, mix, operationSequences);
     }
 
@@ -303,13 +331,16 @@ public class FlatSequenceMix extends Mix {
          *
          * @return The operation index selected to run next
          */
-        public int select() {
+        @Override
+		public int select() {
             if (curIndex == operationSequences[curSequence].length) {
                 curIndex = 0;
                 double val = random.drandom(0, 1);
-                for (curSequence = 0; curSequence < selectMix.length; curSequence++)
-                    if (val <= selectMix[curSequence])
-                        break;
+                for (curSequence = 0; curSequence < selectMix.length; curSequence++) {
+					if (val <= selectMix[curSequence]) {
+						break;
+					}
+				}
             }
             return operationSequences[curSequence][curIndex++];
         }
@@ -318,7 +349,8 @@ public class FlatSequenceMix extends Mix {
          * Resets the selector's state to start at the first op,
          * if applicable.
          */
-        public void reset() {
+        @Override
+		public void reset() {
             curSequence = 0;
             curIndex = operationSequences[0].length;
         }

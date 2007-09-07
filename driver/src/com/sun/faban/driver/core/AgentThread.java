@@ -17,12 +17,13 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentThread.java,v 1.9 2007/01/24 02:32:06 akara Exp $
+ * $Id: AgentThread.java,v 1.10 2007/09/07 15:49:04 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver.core;
 
+import com.sun.faban.driver.BenchmarkOperation;
 import com.sun.faban.driver.FatalException;
 import com.sun.faban.driver.Timing;
 import com.sun.faban.driver.ExpectedException;
@@ -46,12 +47,43 @@ import java.io.InterruptedIOException;
  */
 public abstract class AgentThread extends Thread {
 
-    public static final int NOT_STARTED = 0;
-    public static final int INITIALIZING = 1;
-    public static final int PRE_RUN = 2;
-    public static final int RUNNING = 3;
-    public static final int POST_RUN = 4;
-    public static final int ENDED = 5;
+	/**
+	 * The various run states for an {@link AgentThread}.
+	 * 
+	 * @author ncampbell
+	 */
+	public static enum RunState {
+		/* !!!
+		 * Please note the order is significant for this enumeration.  A
+		 * Enum#compareTo is used which is based on the order of these RunStates.
+		 * !!!
+		 */
+		/**
+		 * The {@link AgentThread} thread has not started
+		 */
+	    NOT_STARTED,
+	    /**
+	     * The {@link AgentThread} has initialized.
+	     */
+	    INITIALIZING,
+	    /**
+	     * The {@link AgentThread} is executing {@link BenchmarkOperation}s to warm
+	     * the SUT.
+	     */
+	    PRE_RUN,
+	    /**
+	     * The {@link AgentThread} is running in steady state.
+	     */
+	    RUNNING,
+	    /**
+	     * The {@link AgentThread} is doing a post run.
+	     */
+	    POST_RUN,
+	    /**
+	     *  The {@link AgentThread} has completed.
+	     */
+	    ENDED
+	}
 
     String type;
     String name;
@@ -67,14 +99,14 @@ public abstract class AgentThread extends Thread {
     Timer timer;
     AgentImpl agent;
     RunInfo.DriverConfig driverConfig;
-    Class driverClass;
+    Class<?> driverClass;
     Object driver;
     boolean inRamp = true; // indicator for rampup or rampdown, initially true
     int[] delayTime;  // recently calculated cycle times
     int[] startTime; // start times for previous tx
     int[] endTime; // end time for the recent tx ended
 
-    private int threadState = NOT_STARTED;
+    private RunState threadState = RunState.NOT_STARTED;
 
     Logger logger;
     String className;
@@ -99,15 +131,16 @@ public abstract class AgentThread extends Thread {
      * @return An instance of the AgentThread subclass.
      */
     public static AgentThread getInstance(String type, String agentId, int id,
-                                Class driverClass, Timer timer,
+                                Class<?> driverClass, Timer timer,
                                 AgentImpl agent) {
         RunInfo.DriverConfig driverConfig = RunInfo.getInstance().driverConfig;
         AgentThread agentThread = null;
         switch (driverConfig.runControl) {
-           case TIME : if (driverConfig.mix[1] != null)
-                            agentThread = new TimeThreadWithBackground();
-                       else
-                            agentThread = new TimeThread();
+           case TIME : if (driverConfig.mix[1] != null) {
+			agentThread = new TimeThreadWithBackground();
+		} else {
+			agentThread = new TimeThread();
+		}
                        break;
            case CYCLES : agentThread = new CycleThread();
         }
@@ -127,7 +160,7 @@ public abstract class AgentThread extends Thread {
      * @param agent The agent calling this thread
      */
     private void configure(String type, String agentId, int id,
-                                Class driverClass, Timer timer,
+                                Class<?> driverClass, Timer timer,
                                 AgentImpl agent) {
         this.type = type;
         this.id = id;
@@ -155,9 +188,10 @@ public abstract class AgentThread extends Thread {
      * Entry point for starting the thread. Subclasses do not override this
      * method but override doRun instead. Run implicitly calls doRun.
      */
-    public final void run() {
+    @Override
+	public final void run() {
         try {
-            setThreadState(INITIALIZING);
+            setThreadState(RunState.INITIALIZING);
             doRun();
         } catch (FatalException e) {
             // A fatal exception thrown by the driver is already caught
@@ -166,10 +200,11 @@ public abstract class AgentThread extends Thread {
             // methods signals termination of this thread.
             if (!e.wasLogged())  {
                 Throwable t = e.getCause();
-                if (t != null)
-                    logger.log(Level.SEVERE, name + ": " + t.getMessage(), t);
-                else
-                    logger.log(Level.SEVERE, name + ": " + e.getMessage(), e);
+                if (t != null) {
+					logger.log(Level.SEVERE, name + ": " + t.getMessage(), t);
+				} else {
+					logger.log(Level.SEVERE, name + ": " + e.getMessage(), e);
+				}
                 e.setLogged();
                 agent.abortRun();
             }
@@ -201,12 +236,13 @@ public abstract class AgentThread extends Thread {
         if (e instanceof FatalException) {
             FatalException fatal = (FatalException) e;
             e = fatal.getCause();
-            if (e != null)
-                logger.log(Level.SEVERE, name + '.' + op.m.getName() +
+            if (e != null) {
+				logger.log(Level.SEVERE, name + '.' + op.m.getName() +
                         ": " + e.getMessage(), e);
-            else
-                logger.log(Level.SEVERE, name + '.' + op.m.getName() +
+			} else {
+				logger.log(Level.SEVERE, name + '.' + op.m.getName() +
                         ": " + fatal.getMessage(), fatal);
+			}
             fatal.setLogged();
             agent.abortRun();
             throw fatal; // Also don't continue with current thread.
@@ -222,24 +258,26 @@ public abstract class AgentThread extends Thread {
     void logError(Throwable e, BenchmarkDefinition.Operation op) {
         String message = name + "." + op.m.getName() + ": " +
                 e.getMessage();
-        if (inRamp)
-            message += "\nNote: Error not counted in result." +
+        if (inRamp) {
+			message += "\nNote: Error not counted in result." +
                     "\nEither transaction start or end time is not " +
                     "within steady state.";
+		}
         Level level;
-        if (e instanceof ExpectedException)
-            level = Level.FINER;
-        else
-            level = Level.WARNING;
+        if (e instanceof ExpectedException) {
+			level = Level.FINER;
+		} else {
+			level = Level.WARNING;
+		}
         logger.log(level, message, e);
     }
 
-    private synchronized void setThreadState(int state) {
+    private synchronized void setThreadState(RunState state) {
         threadState = state;
         notifyAll();
     }
 
-    private synchronized boolean compareAndSetThreadState(int orig, int state) {
+    private synchronized boolean compareAndSetThreadState(RunState orig, RunState state) {
         boolean set = threadState == orig;
         if (set) {
             threadState = state;
@@ -253,7 +291,7 @@ public abstract class AgentThread extends Thread {
      * Obtains the state of the current thread.
      * @return The state of the current thread.
      */
-    public synchronized int getThreadState() {
+    public synchronized RunState getThreadState() {
         return threadState;
     }
 
@@ -261,11 +299,12 @@ public abstract class AgentThread extends Thread {
      * Waits for a given state of the thread to arrive.
      * @param state The state to wait for.
      */
-    public synchronized void waitThreadState(int state) {
-        while (threadState < state) {
+    public synchronized void waitThreadState(RunState state) {
+        while (threadState.compareTo(state) < 0) {
             try {
                 wait(10000);
             } catch (InterruptedException e) {
+            	logger.log(Level.FINE, e.getMessage(), e);
             }
         }
     }
@@ -276,7 +315,7 @@ public abstract class AgentThread extends Thread {
     void preRun() {
         // Thread 0 needs to do the preRun
         if (id == 0 && driverConfig.preRun != null) {
-            setThreadState(PRE_RUN);
+            setThreadState(RunState.PRE_RUN);
             logger.fine(name + ": Invoking preRun @OnceBefore");
             try {
                 invokePrePost(driverConfig.preRun.m);
@@ -286,7 +325,7 @@ public abstract class AgentThread extends Thread {
             }
             agent.preRunLatch.countDown();
         }
-        setThreadState(RUNNING);
+        setThreadState(RunState.RUNNING);
     }
 
     /**
@@ -294,12 +333,14 @@ public abstract class AgentThread extends Thread {
      */
     void postRun() {
         if (id == 0 && driverConfig.postRun != null &&
-                compareAndSetThreadState(RUNNING, POST_RUN)) {
-            while (agent.postRunLatch.getCount() > 0l)
-                try {
+                compareAndSetThreadState(RunState.RUNNING, RunState.POST_RUN)) {
+            while (agent.postRunLatch.getCount() > 0l) {
+				try {
                     agent.postRunLatch.await();
                 } catch (InterruptedException e) {
+                	logger.log(Level.FINE, e.getMessage(), e);
                 }
+			}
             // We need to make sure this method is re-run if I/O is interrupted.
             // This may happen if terminate gets called while thread is
             // switching to POST_RUN state.
@@ -313,7 +354,7 @@ public abstract class AgentThread extends Thread {
                 }
             } while (interrupted);
         }
-        setThreadState(ENDED);
+        setThreadState(RunState.ENDED);
     }
 
     private void invokePrePost(Method m) throws InterruptedIOException {
@@ -321,12 +362,14 @@ public abstract class AgentThread extends Thread {
             m.invoke(driver);
         } catch (InvocationTargetException e) {
             Throwable cause = e.getCause();
-            if (cause == null)
-                cause = e;
+            if (cause == null) {
+				cause = e;
+			}
             logger.log(Level.WARNING, name + "." + m.getName() + ": " +
                     e.getMessage(), e);
-            if (cause instanceof InterruptedIOException)
-                throw (InterruptedIOException) cause;
+            if (cause instanceof InterruptedIOException) {
+				throw (InterruptedIOException) cause;
+			}
         } catch (IllegalAccessException e) {
             logger.log(Level.SEVERE, name + "." + m.getName() + ": " +
                     e.getMessage(), e);
@@ -335,19 +378,21 @@ public abstract class AgentThread extends Thread {
     }
 
     /**
-     * Obtains the invoke time of the next operaion.
+     * Obtains the invoke time of the next operation. 
+     * 
      * @param op The operation
      * @param mixId The mix
      * @return The targeted invoke time.
      */
     int getInvokeTime(BenchmarkDefinition.Operation op, int mixId) {
         Cycle cycle;
-        if (op == null)
-            // No op, this is the initial cycle, use initialDelay
+        if (op == null) {
+			// No op, this is the initial cycle, use initialDelay
             cycle = runInfo.driverConfig.initialDelay[mixId];
-        else
-            // Set the start time based on the operation selected
+		} else {
+			// Set the start time based on the operation selected
             cycle = op.cycle;
+		}
 
         int invokeTime = -1;
         delayTime[mixId] = cycle.getDelay(random);

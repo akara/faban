@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Result.java,v 1.4 2007/06/09 07:13:00 akara Exp $
+ * $Id: Result.java,v 1.5 2007/09/07 15:49:04 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -33,6 +33,9 @@ public class Result extends com.sun.faban.driver.Result {
     private static Result instance;
     private Metrics m;
 
+    /**
+     * @return instance
+     */
     public static Result getInstance() {
         return instance;
     }
@@ -47,9 +50,11 @@ public class Result extends com.sun.faban.driver.Result {
 
     private int getOpsIdx(String opsName) {
         int idx = 0;
-        for (; idx < m.txNames.length; idx++)
-            if (m.txNames[idx].equals(opsName))
-                break;
+        for (; idx < m.txNames.length; idx++) {
+			if (m.txNames[idx].equals(opsName)) {
+				break;
+			}
+		}
         return idx;
     }
 
@@ -59,7 +64,8 @@ public class Result extends com.sun.faban.driver.Result {
      *
      * @return The run's steady state
      */
-    public int getSteadyState() {
+    @Override
+	public int getSteadyState() {
         return m.stdyState;
     }
 
@@ -68,7 +74,8 @@ public class Result extends com.sun.faban.driver.Result {
      *
      * @return The scale of the run.
      */
-    public int getScale() {
+    @Override
+	public int getScale() {
         return RunInfo.getInstance().scale;
     }
 
@@ -78,7 +85,8 @@ public class Result extends com.sun.faban.driver.Result {
      *
      * @return The metric
      */
-    public double getMetric() {
+    @Override
+	public double getMetric() {
         return m.metric;
     }
 
@@ -87,7 +95,8 @@ public class Result extends com.sun.faban.driver.Result {
      *
      * @return The operation names.
      */
-    public String[] getOpsNames() {
+    @Override
+	public String[] getOpsNames() {
         return m.txNames.clone();
     }
 
@@ -98,7 +107,8 @@ public class Result extends com.sun.faban.driver.Result {
      * @param opsName The name of the operation to query
      * @return The number of successful operations
      */
-    public int getOpsCountSteady(String opsName) {
+    @Override
+	public int getOpsCountSteady(String opsName) {
         return m.txCntStdy[getOpsIdx(opsName)];
     }
 
@@ -109,7 +119,8 @@ public class Result extends com.sun.faban.driver.Result {
      *
      * @return The number of successful operations for each type
      */
-    public int[] getOpsCountSteady() {
+    @Override
+	public int[] getOpsCountSteady() {
         return m.txCntStdy.clone();
     }
 
@@ -120,7 +131,8 @@ public class Result extends com.sun.faban.driver.Result {
      * @param opsName The name of the operation to query
      * @return The number of successful operations
      */
-    public int getOpsCountTotal(String opsName) {
+    @Override
+	public int getOpsCountTotal(String opsName) {
         return m.txCntTotal[getOpsIdx(opsName)];
     }
 
@@ -131,7 +143,8 @@ public class Result extends com.sun.faban.driver.Result {
      *
      * @return The number of successful operations for each type
      */
-    public int[] getOpsCountTotal() {
+    @Override
+	public int[] getOpsCountTotal() {
         return m.txCntTotal.clone();
     }
 
@@ -142,7 +155,8 @@ public class Result extends com.sun.faban.driver.Result {
      * @param opsName The name of the operation to query
      * @return The mix ratio of the operation during steady state.
      */
-    public double getOpsMix(String opsName) {
+    @Override
+	public double getOpsMix(String opsName) {
         return m.mixRatio[getOpsIdx(opsName)];
     }
 
@@ -154,7 +168,8 @@ public class Result extends com.sun.faban.driver.Result {
      *
      * @return The mix ratio of all operations during steady state.
      */
-    public double[] getOpsMix() {
+    @Override
+	public double[] getOpsMix() {
         return m.mixRatio.clone();
     }
 }

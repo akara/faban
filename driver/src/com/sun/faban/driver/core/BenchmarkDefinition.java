@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: BenchmarkDefinition.java,v 1.7 2006/12/08 22:17:07 akara Exp $
+ * $Id: BenchmarkDefinition.java,v 1.8 2007/09/07 15:49:05 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -32,6 +32,7 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.net.URL;
@@ -45,7 +46,11 @@ import java.io.File;
  */
 public class BenchmarkDefinition implements Serializable, Cloneable {
 
-    String name;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	String name;
     String version;
     Driver[] drivers;
     RunControl runControl;
@@ -122,15 +127,18 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
         ArrayList<Class<?>> driverClassList = new ArrayList<Class<?>>();
 
         // Get all the driver classes
-        for (Class<?> driverClass : benchDefAnnotation.drivers())
-            if (driverClass != Object.class && driverClass.isAnnotationPresent(
-                    BenchmarkDriver.class))
-                driverClassList.add(driverClass);
+        for (Class<?> driverClass : benchDefAnnotation.drivers()) {
+			if (driverClass != Object.class && driverClass.isAnnotationPresent(
+                    BenchmarkDriver.class)) {
+				driverClassList.add(driverClass);
+			}
+		}
 
         // If defClass is not in list and is a driver, prepend
         if (driverClassList.indexOf(defClass) < 0 &&
-                defClass.isAnnotationPresent(BenchmarkDriver.class))
-            driverClassList.add(0, defClass);
+                defClass.isAnnotationPresent(BenchmarkDriver.class)) {
+			driverClassList.add(0, defClass);
+		}
 
         // Check that we have at least one driver
         if (driverClassList.size() <= 0) {
@@ -160,19 +168,23 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
             def.drivers[i].mix[0] = Mix.getMix(driverClasses[i]);
             def.drivers[i].initialDelay[0] = getInitialDelay(driverClasses[i]);
             int totalOps = def.drivers[i].mix[0].operations.length;
-            if (def.drivers[i].mix[1] != null)
-                totalOps += def.drivers[i].mix[1].operations.length;
+            if (def.drivers[i].mix[1] != null) {
+				totalOps += def.drivers[i].mix[1].operations.length;
+			}
 
             // Copy operation references into a flat array.
             def.drivers[i].operations = 
                     new BenchmarkDefinition.Operation[totalOps];
-            for (int j = 0; j < def.drivers[i].mix[0].operations.length; j++)
-                def.drivers[i].operations[j] =
+            for (int j = 0; j < def.drivers[i].mix[0].operations.length; j++) {
+				def.drivers[i].operations[j] =
                         def.drivers[i].mix[0].operations[j];
-            if (def.drivers[i].mix[1] != null)
-            for (int j = 0; j < def.drivers[i].mix[1].operations.length; j++)
-                def.drivers[i].operations[j + def.drivers[i].mix[0].operations.
-                        length] = def.drivers[i].mix[1].operations[j];
+			}
+            if (def.drivers[i].mix[1] != null) {
+				for (int j = 0; j < def.drivers[i].mix[1].operations.length; j++) {
+					def.drivers[i].operations[j + def.drivers[i].mix[0].operations.
+				            length] = def.drivers[i].mix[1].operations[j];
+				}
+			}
 
             def.drivers[i].driverClass = driverClasses[i];
         }
@@ -254,17 +266,20 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
         } else if (timings.length == 1) { // Apply to all the background ops
             FixedTime fixedTime = new FixedTime();
             fixedTime.init(timings[0]);
-            for (Operation op : mix.operations)
-                op.cycle = fixedTime;
+            for (Operation op : mix.operations) {
+				op.cycle = fixedTime;
+			}
         } else if (timings.length > 1) { // Appy timing to each background op
-            if (timings.length != mix.operations.length)
-                throw new DefinitionException("No of background ops must " +
+            if (timings.length != mix.operations.length) {
+				throw new DefinitionException("No of background ops must " +
                         "match the no of timings, currently " +
                         mix.operations.length + " vs " + timings.length);
+			}
             for (int i = 0; i < timings.length; i++) {
-                if (mix.operations[i].cycle != null)
-                    throw new DefinitionException("Duplicate operations " +
+                if (mix.operations[i].cycle != null) {
+					throw new DefinitionException("Duplicate operations " +
                             "entry in @Background");
+				}
                 mix.operations[i].cycle = new FixedTime();
                 mix.operations[i].cycle.init(timings[i]);
             }
@@ -278,10 +293,11 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
         InitialDelay initDelay = driverClass.getAnnotation(
                 InitialDelay.class);
         int max;
-        if (initDelay == null)
-            max = 0;
-        else
-            max = initDelay.max();
+        if (initDelay == null) {
+			max = 0;
+		} else {
+			max = initDelay.max();
+		}
         return getInitialDelay(max);
     }
 
@@ -303,6 +319,7 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
     }
 
     private BenchmarkDefinition() {
+    	super();
     }
 
     static Operation[] getOperations(Class<?> driverClass, String[] names)
@@ -320,25 +337,28 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
 
         // First we read all the operations that have the annotation
         Method[] methods = driverClass.getMethods();
-        for (Method m : methods)
-            if (m.isAnnotationPresent(BenchmarkOperation.class)) {
+        for (Method m : methods) {
+			if (m.isAnnotationPresent(BenchmarkOperation.class)) {
                 BenchmarkOperation benchOp = m.getAnnotation(
                         BenchmarkOperation.class);
                 Operation op = new Operation();
                 op.name = benchOp.name();
                 op.max90th = benchOp.max90th();
+                op.units = benchOp.units();
                 op.timing = benchOp.timing();
                 op.m = m;
                 operationMap.put(op.name, op);
             }
+		}
         Operation[] ops = new Operation[names.length];
 
         // Then we list them according to the name
         for (int i = 0; i < names.length; i++) {
             ops[i] = operationMap.get(names[i]);
-            if (ops[i] == null)
-                throw new DefinitionException("Operation \"" + names[i] +
+            if (ops[i] == null) {
+				throw new DefinitionException("Operation \"" + names[i] +
                         "\" listed in mix not found");
+			}
         }
         return ops;
     }
@@ -347,17 +367,19 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
             throws DefinitionException {
         ArrayList<Operation> operationList = new ArrayList<Operation>();
         Method[] methods = driverClass.getMethods();
-        for (Method m : methods)
-            if (m.isAnnotationPresent(BenchmarkOperation.class)) {
+        for (Method m : methods) {
+			if (m.isAnnotationPresent(BenchmarkOperation.class)) {
                 BenchmarkOperation benchOp = m.getAnnotation(
                         BenchmarkOperation.class);
                 Operation op = new Operation();
                 op.name = benchOp.name();
                 op.max90th = benchOp.max90th();
+                op.units = benchOp.units();
                 op.timing = benchOp.timing();
                 op.m = m;
                 operationList.add(op);
             }
+		}
 
         Operation[] ops = new Operation[operationList.size()];
         ops = operationList.toArray(ops);
@@ -368,8 +390,8 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
     static void populatePrePost(Class<?> driverClass, Driver driver)
             throws DefinitionException {
         Method[] methods = driverClass.getMethods();
-        for (Method m : methods)
-            if (m.isAnnotationPresent(OnceBefore.class)) {
+        for (Method m : methods) {
+			if (m.isAnnotationPresent(OnceBefore.class)) {
                 if (driver.preRun == null) {
                     driver.preRun = new DriverMethod();
                     driver.preRun.m = m;
@@ -390,6 +412,7 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
                             " and " + m.toGenericString() + ".");
                 }
             }
+		}
     }
 
     /**
@@ -404,13 +427,16 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
             int i;
 
             // Find a method in the list that is null
-            for (i = 0; i < operations.length; i++ )
-                if (operations[i].m == null)
-                    break;
+            for (i = 0; i < operations.length; i++ ) {
+				if (operations[i].m == null) {
+					break;
+				}
+			}
 
             // If none found, we do not need to do anything else.
-            if (i == operations.length)
-                return;
+            if (i == operations.length) {
+				return;
+			}
         }
 
         HashMap<String, Method> methodMap =
@@ -418,17 +444,20 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
 
         // First we read all the operations that have the annotation
         Method[] methods = driverClass.getMethods();
-        for (Method m : methods)
-            if (m.isAnnotationPresent(BenchmarkOperation.class)) {
+        for (Method m : methods) {
+			if (m.isAnnotationPresent(BenchmarkOperation.class)) {
                 BenchmarkOperation benchOp = m.getAnnotation(
                         BenchmarkOperation.class);
                 methodMap.put(benchOp.name(), m);
             }
+		}
 
         // Then we check each operation and get the method from the map.
-        for (Operation o : operations)
-            if (o.m == null)
-                o.m = methodMap.get(o.name);
+        for (Operation o : operations) {
+			if (o.m == null) {
+				o.m = methodMap.get(o.name);
+			}
+		}
     }
 
     /**
@@ -440,11 +469,12 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
     static void refillMethod(Class<?> driverClass, DriverMethod method) {
         if (method != null && method.m == null) {
             Method[] methods = driverClass.getMethods();
-            for (Method m : methods)
-                if (method.genericName.equals(m.toGenericString())) {
+            for (Method m : methods) {
+				if (method.genericName.equals(m.toGenericString())) {
                     method.m = m;
                     break;
                 }
+			}
         }
     }
 
@@ -506,20 +536,26 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
      *                                    be cloned.
      * @see Cloneable
      */
-    public Object clone() throws CloneNotSupportedException {
+    @Override
+	public Object clone() throws CloneNotSupportedException {
         // Shallow copy for primitives and immutables
         BenchmarkDefinition clone = (BenchmarkDefinition) super.clone();
 
         // Then deep copy for the arrays and mutables.
         clone.drivers = new Driver[drivers.length];
-        for (int i = 0; i < drivers.length; i++)
-            clone.drivers[i] = (Driver) drivers[i].clone();
+        for (int i = 0; i < drivers.length; i++) {
+			clone.drivers[i] = (Driver) drivers[i].clone();
+		}
 
         return clone;
     }
 
     static class Driver implements Serializable, Cloneable {
-        String name;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+		String name;
         String metric;
         String opsUnit;
         int threadPerScale;
@@ -535,7 +571,7 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
         //  work due to dependencies, we will need to set this field transient.
         // The receiving end must check this value for null and re-load the
         // class in such cases.
-        Class driverClass;
+        Class<?> driverClass;
 
         /**
          * Creates and returns a copy of this object.  The precise meaning
@@ -595,28 +631,35 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
          *                                    be cloned.
          * @see Cloneable
          */
-        public Object clone() throws CloneNotSupportedException {
+        @Override
+		public Object clone() throws CloneNotSupportedException {
             Driver clone = (Driver) super.clone();
-            if (preRun != null)
-                clone.preRun = (DriverMethod) preRun.clone();
-            if (postRun != null)
-                clone.postRun = (DriverMethod) postRun.clone();
+            if (preRun != null) {
+				clone.preRun = (DriverMethod) preRun.clone();
+			}
+            if (postRun != null) {
+				clone.postRun = (DriverMethod) postRun.clone();
+			}
             clone.mix[0] = (Mix) mix[0].clone();
-            if (mix[1] != null)
-                clone.mix[1] = (Mix) mix[1].clone();
+            if (mix[1] != null) {
+				clone.mix[1] = (Mix) mix[1].clone();
+			}
 
             clone.initialDelay[0] = (Uniform) initialDelay[0].clone();
-            if (initialDelay[1] != null)
-                clone.initialDelay[1] = (Uniform) initialDelay[1].clone();
+            if (initialDelay[1] != null) {
+				clone.initialDelay[1] = (Uniform) initialDelay[1].clone();
+			}
 
             // Copy operation references into a flat array.
             int totalOps = operations.length;
             clone.operations = new BenchmarkDefinition.Operation[totalOps];
-            for (int j = 0; j < mix[0].operations.length; j++)
-                clone.operations[j] = clone.mix[0].operations[j];
-            for (int j = 0; j < mix[1].operations.length; j++)
-                clone.operations[j + mix[0].operations.length] = 
+            for (int j = 0; j < mix[0].operations.length; j++) {
+				clone.operations[j] = clone.mix[0].operations[j];
+			}
+            for (int j = 0; j < mix[1].operations.length; j++) {
+				clone.operations[j + mix[0].operations.length] = 
                         clone.mix[1].operations[j];
+			}
 
             return clone;
         }
@@ -631,15 +674,20 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
          */
         public int getOperationIdx(int mixId, int opId) {
             int idx = 0;
-            for (int i = 0; i < mixId; i++)
-                idx += mix[i].operations.length;
+            for (int i = 0; i < mixId; i++) {
+				idx += mix[i].operations.length;
+			}
             idx += opId;
             return idx;
         }
     }
 
     static class DriverMethod implements Serializable, Cloneable {
-        String genericName;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+		String genericName;
         transient Method m;
 
         /**
@@ -647,7 +695,8 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
          * @return a clone of this instance.
          * @see Cloneable
          */
-        public Object clone() {
+        @Override
+		public Object clone() {
             Object clone = null;
             try {
                 clone = super.clone();
@@ -660,14 +709,22 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
     }
 
     static class Operation implements Serializable, Cloneable {
-        String name;
+        /**
+		 * SerialVersionUID 
+		 */
+		private static final long serialVersionUID = 1L;
+		
+		String name;
         double max90th;
+        TimeUnit units;
         Timing timing;
         Cycle cycle;
+        
         transient Method m;
 
         /**
          * Creates an exact deep clone of this object.
+         * 
          * @return a clone of this instance.
          * @throws CloneNotSupportedException if the object's class does not
          *                                    support the <code>Cloneable</code> interface. Subclasses
@@ -676,7 +733,8 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
          *                                    be cloned.
          * @see Cloneable
          */
-        public Object clone() throws CloneNotSupportedException {
+        @Override
+		public Object clone() throws CloneNotSupportedException {
             Operation clone = (Operation) super.clone();
             clone.cycle = (Cycle) cycle.clone();
             return clone;

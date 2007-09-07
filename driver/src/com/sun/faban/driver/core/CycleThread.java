@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CycleThread.java,v 1.5 2006/12/08 05:15:54 akara Exp $
+ * $Id: CycleThread.java,v 1.6 2007/09/07 15:49:05 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -39,7 +39,8 @@ public class CycleThread extends AgentThread {
      * Allocates and initializes the timing structures which is specific
      * to the pseudo-thread dimensions.
      */
-    void initTimes() {
+    @Override
+	void initTimes() {
         delayTime = new int[1];
         startTime = new int[1];
         endTime = new int[1];
@@ -63,7 +64,8 @@ public class CycleThread extends AgentThread {
    	 * which is returned to the Agent via the getResult() method.
      * @see Metrics
      */
-    void doRun() {
+    @Override
+	void doRun() {
         driverContext = new DriverContext(this, timer);
 
         try {
@@ -81,8 +83,9 @@ public class CycleThread extends AgentThread {
         // Notify the agent that we have started successfully.
         agent.threadStartLatch.countDown();
         
-        if (runInfo.simultaneousStart)
-            waitStartTime();
+        if (runInfo.simultaneousStart) {
+			waitStartTime();
+		}
 
         // Calculate cycle counts
         endRampUp = runInfo.rampUp;
@@ -101,8 +104,9 @@ public class CycleThread extends AgentThread {
             // Save the previous operation
             previousOperation[mixId] = currentOperation;
             BenchmarkDefinition.Operation previousOp = null;
-            if (previousOperation[mixId] >= 0)
-                previousOp = driverConfig.operations[currentOperation];
+            if (previousOperation[mixId] >= 0) {
+				previousOp = driverConfig.operations[currentOperation];
+			}
 
             // Select the operation
             currentOperation = selector[0].select();
@@ -164,8 +168,9 @@ public class CycleThread extends AgentThread {
             startTime[mixId] = driverContext.timingInfo.invokeTime;
             endTime[mixId] = driverContext.timingInfo.respondTime;
 
-            if (cycleCount > endRampDown)
-                break driverLoop;
+            if (cycleCount > endRampDown) {
+				break driverLoop;
+			}
         }
         logger.fine(name + ": End of run.");
     }
@@ -177,18 +182,20 @@ public class CycleThread extends AgentThread {
      * method only reads the stats.
      * @return True if the last operation is in steady state, false otherwise.
      */
-    boolean isSteadyState() {
-        if (!startTimeSet)
-            return false;
+    @Override
+	boolean isSteadyState() {
+        if (!startTimeSet) {
+			return false;
+		}
         // Copy out cycle count so we do not alternate it here.
         // Remember, this method is controlled by the user-implemented
         // driver through the context.
         int cycleCount = this.cycleCount;
         ++cycleCount;
-        if (cycleCount > endRampUp && cycleCount <= endStdyState)
-            return true;
-        else
-            return false;
+        if (cycleCount > endRampUp && cycleCount <= endStdyState) {
+			return true;
+		}
+		return false;	
     }
 
     /**
@@ -200,7 +207,8 @@ public class CycleThread extends AgentThread {
      * @param end   The end of a time span
      * @return true if this time span is in steady state, false otherwise.
      */
-    boolean isSteadyState(int start, int end) {
+    @Override
+	boolean isSteadyState(int start, int end) {
         return isSteadyState();
     }
 
@@ -208,7 +216,8 @@ public class CycleThread extends AgentThread {
      * Checks whether the last operation is in the ramp-up or ramp-down or
      * not. Updates the inRamp parameter accordingly.
      */
-    void checkRamp() {
+    @Override
+	void checkRamp() {
         // Note: in cycle runs without simultaneous start, the startTimeSet
         // flag is only set once the start time has reached. Unlike time runs
         // without simultaneous starts where the startTimeSet is set to true
@@ -228,10 +237,11 @@ public class CycleThread extends AgentThread {
             }
         } else if (startTimeSet) { // Cycle where start time set not counted.
             ++cycleCount;
-            if (cycleCount > endRampUp && cycleCount <= endStdyState)
-                inRamp = false;
-            else
-                inRamp = true;
+            if (cycleCount > endRampUp && cycleCount <= endStdyState) {
+				inRamp = false;
+			} else {
+				inRamp = true;
+			}
         }
     }
 }

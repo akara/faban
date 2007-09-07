@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FixedSequence.java,v 1.3 2007/06/29 08:35:17 akara Exp $
+ * $Id: FixedSequence.java,v 1.4 2007/09/07 15:49:05 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -39,6 +39,11 @@ import java.lang.annotation.Annotation;
 public class FixedSequence extends Mix {
 
     /**
+	 * SerialVersionUID
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
      * Initializes this mix according to the annotation.
      *
      * @param driverClass The driver class annotating this mix
@@ -46,7 +51,8 @@ public class FixedSequence extends Mix {
      * @throws com.sun.faban.driver.DefinitionException
      *          If there is an error in the annotation
      */
-    public void init(Class<?> driverClass, Annotation a)
+    @Override
+	public void init(Class<?> driverClass, Annotation a)
             throws DefinitionException {
         com.sun.faban.driver.FixedSequence fixedMix =
                 (com.sun.faban.driver.FixedSequence) a;
@@ -64,7 +70,8 @@ public class FixedSequence extends Mix {
      * @param driverConfigNode The driverConfig DOM node
      * @throws ConfigurationException If operationMix element exists
      */
-    public void configure(Element driverConfigNode)
+    @Override
+	public void configure(Element driverConfigNode)
             throws ConfigurationException {
         NodeList operationList = driverConfigNode.
                 getElementsByTagNameNS(RunInfo.DRIVERURI, "operationMix");
@@ -83,7 +90,9 @@ public class FixedSequence extends Mix {
      * The fixed sequence has no selection and does not need
      * normalization so this method is a noop.
      */
-    public void normalize() {
+    @Override
+	public void normalize() {
+    	// noop
     }
 
     /**
@@ -92,14 +101,16 @@ public class FixedSequence extends Mix {
      *
      * @return The flat mix representation.
      */
-    public FlatMix flatMix() {
+    @Override
+	public FlatMix flatMix() {
         FlatMix flatMix = new FlatMix();
         flatMix.operations = operations;
         flatMix.deviation = deviation;
         flatMix.mix = new double[operations.length];
         double ratio = 1d / operations.length;
-        for (int i = 0; i < flatMix.mix.length; i++)
-            flatMix.mix[i] = ratio;
+        for (int i = 0; i < flatMix.mix.length; i++) {
+			flatMix.mix[i] = ratio;
+		}
         return flatMix;
     }
 
@@ -109,7 +120,8 @@ public class FixedSequence extends Mix {
      * @param random The per-thread random value generator
      * @return The selector to be used by the driver
      */
-    public Selector selector(Random random) {
+    @Override
+	public Selector selector(Random random) {
         return new Selector(operations);
     }
 
@@ -130,10 +142,12 @@ public class FixedSequence extends Mix {
          *
          * @return The operation index selected to run next
          */
-        public int select() {
+        @Override
+		public int select() {
             ++currentOp;
-            if (currentOp >= totalOps)
-                currentOp = 0;
+            if (currentOp >= totalOps) {
+				currentOp = 0;
+			}
             return currentOp;
         }
 
@@ -141,7 +155,8 @@ public class FixedSequence extends Mix {
          * Resets the selector's state to start at the first op,
          * if applicable.
          */
-        public void reset() {
+        @Override
+		public void reset() {
             currentOp = -1;
         }
     }

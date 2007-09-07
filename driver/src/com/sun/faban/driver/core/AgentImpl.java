@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentImpl.java,v 1.5 2006/12/08 22:17:07 akara Exp $
+ * $Id: AgentImpl.java,v 1.6 2007/09/07 15:49:05 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -49,7 +49,11 @@ import java.util.logging.Logger;
 public class AgentImpl extends UnicastRemoteObject
         implements Agent, Unreferenced, Runnable {
 
-    static AgentImpl agentImpl;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	static AgentImpl agentImpl;
     Master master;
     RunInfo runInfo;
     int driverType;
@@ -106,7 +110,9 @@ public class AgentImpl extends UnicastRemoteObject
      * The threads are created at this point
      * @param master the remote interface to the Master
      * @param runInfo run information passed by Master
+     * @param driverType 
      * @param timer BenchmarkDefinition Start time
+     * @throws RemoteException 
      */
     public void configure(Master master, RunInfo runInfo, int driverType,
                           Timer timer) throws RemoteException {
@@ -119,10 +125,12 @@ public class AgentImpl extends UnicastRemoteObject
         threadStartLatch = new CountDownLatch(runInfo.agentInfo.threads);
         timeSetLatch = new CountDownLatch(1);
         if (runInfo.agentInfo.startThreadNumber == 0) { // first agent
-            if (runInfo.driverConfig.preRun != null)
-                preRunLatch = new CountDownLatch(1);
-            if (runInfo.driverConfig.postRun != null)
-                postRunLatch = new CountDownLatch(1);
+            if (runInfo.driverConfig.preRun != null) {
+				preRunLatch = new CountDownLatch(1);
+			}
+            if (runInfo.driverConfig.postRun != null) {
+				postRunLatch = new CountDownLatch(1);
+			}
         }
         try {
             runInfo.postDeserialize();
@@ -142,12 +150,13 @@ public class AgentImpl extends UnicastRemoteObject
             // start thread and return
             new Thread(this).start();
             if (runInfo.agentInfo.startThreadNumber == 0 &&
-                    runInfo.driverConfig.preRun != null)
-                try {
+                    runInfo.driverConfig.preRun != null) {
+				try {
                     preRunLatch.await();
                 } catch (InterruptedException e) {
                     // Do nothing.
                 }
+			}
         } else {
             // block until done and return
             this.run();
@@ -175,11 +184,13 @@ public class AgentImpl extends UnicastRemoteObject
             // but if we assume it to be short enough, we can savely
             // use the avg with errors in the 5 millisec range.
             diff  = (int) (t2 - t1);
-            if (diff <= 10)
-                break;
+            if (diff <= 10) {
+				break;
+			}
             try {
                 Thread.sleep(5000);
             } catch (InterruptedException e) {
+            	logger.fine("Sleep Interrupted: " + e.getMessage());
             }
         }
 
@@ -197,6 +208,9 @@ public class AgentImpl extends UnicastRemoteObject
         timer.adjustBaseTime(offset);
     }
 
+    /**
+     * @see java.lang.Runnable#run()
+     */
     public void run() {
         // Create the required number of threads
         numThreads = runInfo.agentInfo.threads;
@@ -219,8 +233,9 @@ public class AgentImpl extends UnicastRemoteObject
 
                     // Adjust baseTime if the preRun takes long.
                     int currentTime = timer.getTime();
-                    if (currentTime - baseTime > runInfo.msBetweenThreadStart)
-                        baseTime = currentTime - runInfo.msBetweenThreadStart;                    
+                    if (currentTime - baseTime > runInfo.msBetweenThreadStart) {
+						baseTime = currentTime - runInfo.msBetweenThreadStart;
+					}                    
                 }
 
                 // We ensure we catch up with the configured thread starting
@@ -229,29 +244,34 @@ public class AgentImpl extends UnicastRemoteObject
                         baseTime - timer.getTime();
 
                 // In case we fall short, we sleep only 1/3 the interval
-                if (sleepTime <= 0)
-                    sleepTime = runInfo.msBetweenThreadStart / 3;
+                if (sleepTime <= 0) {
+					sleepTime = runInfo.msBetweenThreadStart / 3;
+				}
 
                 // If the configured time is low, we can still end up
                 // with 0 on an integer operation, so we just check again.
-                if (sleepTime > 0)
-                    try {
+                if (sleepTime > 0) {
+					try {
                         Thread.sleep(sleepTime);
                     } catch (InterruptedException ie) {
+                    	logger.log(Level.FINE, ie.getMessage(), ie);
                     }
+				}
             }
-            if (runAborted)
-                logger.warning(displayName + ": Run aborted before starting " +
+            if (runAborted) {
+				logger.warning(displayName + ": Run aborted before starting " +
                         numThreads + " driver threads.\n" + count +
                         " threads were started.");
-            else
-                logger.info(displayName + ": Successfully started " +
+			} else {
+				logger.info(displayName + ": Successfully started " +
                         numThreads + " driver threads.");
+			}
         } catch (Exception e) {
             logger.log(Level.SEVERE, e.getMessage(), e);
             try {
                 master.abortRun();
             } catch (RemoteException e1) {
+            	logger.log(Level.FINE, e1.getMessage(), e);
             }
         }
     }
@@ -261,8 +281,9 @@ public class AgentImpl extends UnicastRemoteObject
      * master calls kill.
      */
     public synchronized void abortRun() {
-        if (runAborted) // If it is already aborted, we do not need to call
-            return;     // the master again. Once per agent is enough.
+        if (runAborted) {
+			return;     // the master again. Once per agent is enough.
+		}
         runAborted = true;
         try {
             master.abortRun();
@@ -276,11 +297,13 @@ public class AgentImpl extends UnicastRemoteObject
      * Wait until all threads are started.
      */
     public void waitForThreadStart() {
-        if (!runAborted)
-            try {
+        if (!runAborted) {
+			try {
                 threadStartLatch.await();
             } catch (InterruptedException e) {
+            	logger.log(Level.FINE, e.getMessage(), e);
             }
+		}
     }
 
     /**
@@ -305,14 +328,16 @@ public class AgentImpl extends UnicastRemoteObject
     public synchronized void kill() {
         runAborted = true;
         logger.warning(displayName + ": Killing benchmark run");
-        for (int i = 0; i < numThreads; i++)
-            if (agentThreads[i] != null && agentThreads[i].isAlive())
-                try {
+        for (int i = 0; i < numThreads; i++) {
+			if (agentThreads[i] != null && agentThreads[i].isAlive()) {
+				try {
                     agentThreads[i].stopExecution();
                 } catch (Throwable t) {
                     logger.log(Level.SEVERE, agentThreads[i].name +
                             ": Error killing thread.", t);
                 }
+			}
+		}
         // cleanup
         results = null;
     }
@@ -327,9 +352,9 @@ public class AgentImpl extends UnicastRemoteObject
         boolean terminationLogged = false;
         int terminationCount = 0;
         Throwable t = null;
-        for (int i = numThreads - 1; i > 0; i--)
-            if (agentThreads[i] != null && agentThreads[i].isAlive())
-                try {
+        for (int i = numThreads - 1; i > 0; i--) {
+			if (agentThreads[i] != null && agentThreads[i].isAlive()) {
+				try {
                     if (!terminationLogged) { // Log this only once.
                         logger.warning(displayName +
                                 ": Forcefully terminating benchmark run");
@@ -347,11 +372,13 @@ public class AgentImpl extends UnicastRemoteObject
                     logger.log(Level.SEVERE, agentThreads[i].name +
                             ": Error killing thread.", e);
                 }
+			}
+		}
 
         if (runInfo.agentInfo.startThreadNumber == 0 &&
                 runInfo.driverConfig.postRun != null &&
                 agentThreads[0] != null) {
-            if (agentThreads[0].getThreadState() == AgentThread.RUNNING) {
+            if (agentThreads[0].getThreadState() == AgentThread.RunState.RUNNING) {
                 try {
                     if (!terminationLogged) { // Log this only once.
                         logger.warning(displayName +
@@ -372,7 +399,7 @@ public class AgentImpl extends UnicastRemoteObject
                 }
             }
             postRunLatch.countDown();
-            agentThreads[0].waitThreadState(AgentThread.ENDED);
+            agentThreads[0].waitThreadState(AgentThread.RunState.ENDED);
         } else if (agentThreads[0] != null && agentThreads[0].isAlive()) {
             try { // Just terminate it like any other thread.
                 if (!terminationLogged) { // Log this only once.
@@ -393,9 +420,10 @@ public class AgentImpl extends UnicastRemoteObject
                         ": Error killing thread.", e);
             }
         }
-        if (terminationCount > 0)
-            logger.log(Level.WARNING, displayName + ": " + terminationCount +
+        if (terminationCount > 0) {
+			logger.log(Level.WARNING, displayName + ": " + terminationCount +
                            " threads forcefully terminated.", t);
+		}
     }
 
     /**
@@ -403,6 +431,7 @@ public class AgentImpl extends UnicastRemoteObject
      * Each thread's result is obtained by calling that thread's getResult()
      * All these results are then aggregated by calling one of the
      * thread's getAggregateResult method.
+     * @return results
      */
     public Serializable getResults() {
         Metrics[] results = new Metrics[numThreads];
@@ -410,21 +439,25 @@ public class AgentImpl extends UnicastRemoteObject
             results[i] = agentThreads[i].getResult();
         }
         Metrics agentStats = (Metrics) results[0].clone();
-        for (int index = 1; index < results.length; index++)
-            agentStats.add(results[index]);
-        return(agentStats);
+        for (int index = 1; index < results.length; index++) {
+			agentStats.add(results[index]);
+		}
+        return agentStats;
     }
 
     /**
      * Waits for all the threads to terminate.
      */
     public void join() {
-        for (int i = agentThreads.length - 1; i > 0; i--)
-            while(agentThreads[i] != null && agentThreads[i].isAlive())
-                try {
+        for (int i = agentThreads.length - 1; i > 0; i--) {
+			while(agentThreads[i] != null && agentThreads[i].isAlive()) {
+				try {
                     agentThreads[i].join();
                 } catch (InterruptedException e) {
+                	logger.log(Level.FINE, e.getMessage(), e);
                 }
+			}
+		}
         if (runInfo.agentInfo.startThreadNumber == 0 &&
                 runInfo.driverConfig.postRun != null &&
                 agentThreads[0] != null) {// first agent, preRun
@@ -432,11 +465,13 @@ public class AgentImpl extends UnicastRemoteObject
             try {
                 agentThreads[0].join();
             } catch (InterruptedException e) {
+            	logger.log(Level.FINE, e.getMessage(), e);
             }            
         } else if (agentThreads[0] != null && agentThreads[0].isAlive()) {
             try {
                 agentThreads[0].join();
             } catch (InterruptedException e) {
+            	logger.log(Level.FINE, e.getMessage(), e);
             }
         }
         master = null;

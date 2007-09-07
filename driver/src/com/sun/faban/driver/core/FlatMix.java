@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FlatMix.java,v 1.3 2007/06/29 08:35:17 akara Exp $
+ * $Id: FlatMix.java,v 1.4 2007/09/07 15:49:05 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -40,7 +40,11 @@ import java.lang.annotation.Annotation;
  */
 public class FlatMix extends Mix {
 
-    double[] mix;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	double[] mix;
 
     /**
      * Initializes this mix according to the annotation.
@@ -49,7 +53,8 @@ public class FlatMix extends Mix {
      * @param a           The annotation
      * @throws DefinitionException If there is an error in the annotation
      */
-    public void init(Class<?> driverClass, Annotation a)
+    @Override
+	public void init(Class<?> driverClass, Annotation a)
             throws DefinitionException {
         com.sun.faban.driver.FlatMix flatMix =
                 (com.sun.faban.driver.FlatMix) a;
@@ -63,12 +68,14 @@ public class FlatMix extends Mix {
     /**
      * Initializes the default FlatMix without an annotation. 
      * @param driverClass The driver class in question
+     * @throws DefinitionException 
      */
     public void init(Class<?> driverClass) throws DefinitionException {
         operations = BenchmarkDefinition.getOperations(driverClass);
         mix = new double[operations.length];
-        for (int i = 0; i < mix.length; i++)
-            mix[i] = 1d;
+        for (int i = 0; i < mix.length; i++) {
+			mix[i] = 1d;
+		}
         deviation = 2d; // Default allowed deviation is 2%
     }
 
@@ -125,7 +132,8 @@ public class FlatMix extends Mix {
      * @return a clone of this instance.
      * @see Cloneable
      */
-    public Object clone() {
+    @Override
+	public Object clone() {
         FlatMix clone = (FlatMix) super.clone();
         clone.mix = new double[mix.length];
         System.arraycopy(mix, 0, clone.mix, 0, mix.length);
@@ -139,7 +147,8 @@ public class FlatMix extends Mix {
      * @throws ConfigurationException   If the configuration is invalid
      *                                  for the mix
      */
-    public void configure(Element driverConfigNode)
+    @Override
+	public void configure(Element driverConfigNode)
             throws ConfigurationException {
 
         /* The format is as follows:
@@ -185,8 +194,9 @@ public class FlatMix extends Mix {
             ratioMap.put(name, ratio);
         }
 
-        if (ratioMap.size() <= 0)
-            return;
+        if (ratioMap.size() <= 0) {
+			return;
+		}
 
         for (int i = 0; i < operations.length; i++) {
             Double value = ratioMap.remove(operations[i].name);
@@ -206,8 +216,9 @@ public class FlatMix extends Mix {
             String msg = "";
             for (Iterator<String> i = ratioMap.keySet().iterator();
                  i.hasNext();) {
-                if (msg.length() > 0)
-                    msg += ", ";
+                if (msg.length() > 0) {
+					msg += ", ";
+				}
                 msg += i.next();
             }
             msg = "Invalid operation name(s) in operationMix " +
@@ -242,15 +253,18 @@ public class FlatMix extends Mix {
      * amount but the selector (doMenu) will base the random number
      * generator to 1.
      */
-    public void normalize() {
+    @Override
+	public void normalize() {
         // if (logger.isLoggable(Level.FINEST))
             getLogger().finest("normalize - before\n" + toString());
 
         double rowTotal = 0d;
-        for (int i = 0; i < mix.length; i++)
-            rowTotal += mix[i];
-        for (int i = 0; i < mix.length; i++)
-            mix[i] /= rowTotal;
+        for (int i = 0; i < mix.length; i++) {
+			rowTotal += mix[i];
+		}
+        for (int i = 0; i < mix.length; i++) {
+			mix[i] /= rowTotal;
+		}
 
         // if (logger.isLoggable(Level.FINEST))
             getLogger().finest("normalize - after\n" + toString());
@@ -262,11 +276,16 @@ public class FlatMix extends Mix {
      *
      * @return The flat mix representation.
      */
-    public FlatMix flatMix() {
+    @Override
+	public FlatMix flatMix() {
         return this;
     }
 
-    public String toString() {
+    /**
+     * @see java.lang.Object#toString()
+     */
+    @Override
+	public String toString() {
         StringBuffer buffer = new StringBuffer();
         buffer.append("FlatMix\n");
         buffer.append("operations: ");
@@ -294,7 +313,8 @@ public class FlatMix extends Mix {
      * @param random The per-thread random value generator
      * @return The selector to be used by the driver
      */
-    public Selector selector(Random random) {
+    @Override
+	public Selector selector(Random random) {
         return new Selector(random, mix);
     }
 
@@ -320,11 +340,14 @@ public class FlatMix extends Mix {
          *
          * @return The operation index selected to run next
          */
-        public int select() {
+        @Override
+		public int select() {
             double val = random.drandom(0, 1);
-            for (int i = 0; i < selectMix.length; i++)
-                if (val <= selectMix[i])
-                    return i;
+            for (int i = 0; i < selectMix.length; i++) {
+				if (val <= selectMix[i]) {
+					return i;
+				}
+			}
             return -1;
         }
 
@@ -332,7 +355,8 @@ public class FlatMix extends Mix {
          * Resets the selector's state to start at the first op,
          * if applicable.
          */
-        public void reset() {
+        @Override
+		public void reset() {
             // Noop... there's nothing to reset in a flatmix as it does
             // not contain any state.
         }

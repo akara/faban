@@ -17,27 +17,40 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunInfo.java,v 1.15 2007/08/21 00:03:15 noahcampbell Exp $
+ * $Id: RunInfo.java,v 1.16 2007/09/07 15:49:05 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver.core;
 
-import com.sun.faban.common.ParamReader;
-import com.sun.faban.driver.ConfigurationException;
-import com.sun.faban.driver.RunControl;
-import org.w3c.dom.CDATASection;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.StringTokenizer;
 import java.util.logging.Handler;
+
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+
+import org.w3c.dom.CDATASection;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import com.sun.faban.common.ParamReader;
+import com.sun.faban.driver.ConfigurationException;
+import com.sun.faban.driver.RunControl;
 
 
 /**
@@ -47,37 +60,96 @@ import java.util.logging.Handler;
  */
 public class RunInfo implements Serializable {
 
-    public static final String FABANURI = "http://faban.sunsource.net/ns/faban";
+    /**
+	 * SerialVersionUID
+	 */
+	private static final long serialVersionUID = 1L;
+	
+	/** FABANURI */
+	public static final String FABANURI = "http://faban.sunsource.net/ns/faban";
+    /** DRIVERURI */
     public static final String DRIVERURI =
                                 "http://faban.sunsource.net/ns/fabandriver";
+    /**
+     * Results Directory
+     */
     public String resultsDir;
+    
+    /**
+     * Scale
+     */
     public int scale = 1;
+    
+    /**
+     * Audit
+     */
     public boolean audit = false;
+    
+    /**
+     * Run ID
+     */
     public String runId;
+    
+    /**
+     * Ramp Up 
+     */
     public int rampUp;
+    
+    /**
+     * Ramp Down
+     */
     public int rampDown;
+    
+    /**
+     * Steady State
+     */
     public int stdyState;
+    
+    /**
+     * Simultaneous Start
+     */
     public boolean simultaneousStart = false;
+    
+    /**
+     * Parallel Agent Thread Start
+     */
     public boolean parallelAgentThreadStart = false;
+    
+    /**
+     * milliseconds between thread start.
+     */
     public int msBetweenThreadStart = 0;
+    
+  
+    /** benchStartTime */
     public int benchStartTime = Integer.MAX_VALUE;
+    /** start */
     public long start = Long.MAX_VALUE;			// benchStartTime in actual time
+    /** maxRunTime */
     public int maxRunTime = 6;  // 6 hrs
+    /** graphInterval */
     public int graphInterval = 30; // 30 seconds
+    /** runtimeStatsEnabled */
     public boolean runtimeStatsEnabled = false;
+    /** runtimeStatsInterval */
     public int runtimeStatsInterval = 30;
+    /** driverConfig */
     public DriverConfig driverConfig;
+    /** agentInfo */
     public AgentInfo agentInfo;
 
+    /** defBytes */
     public byte[] defBytes;
             
     transient DriverConfig[] driverConfigs;
 
     private static transient ConfigurationReader reader;
     private static transient RunInfo instance;
+    /** logHandler */
     public transient Handler logHandler;
 
     private RunInfo() {
+    	super();
     }
 
     /**
@@ -118,8 +190,9 @@ public class RunInfo implements Serializable {
      * @throws ClassNotFoundException
      */
     public void postDeserialize() throws ClassNotFoundException{
-        if (instance == null)
-            instance = this;
+        if (instance == null) {
+			instance = this;
+		}
 
         if (driverConfig.driverClass == null){
             try{
@@ -184,9 +257,10 @@ public class RunInfo implements Serializable {
 
         BenchmarkDefinition.refillOperations(
                 driverConfig.driverClass, driverConfig.mix[0].operations);
-        if (driverConfig.mix[1] != null)
-        BenchmarkDefinition.refillOperations(
-                driverConfig.driverClass, driverConfig.mix[1].operations);
+        if (driverConfig.mix[1] != null) {
+			BenchmarkDefinition.refillOperations(
+			        driverConfig.driverClass, driverConfig.mix[1].operations);
+		}
 
     }
 
@@ -196,21 +270,48 @@ public class RunInfo implements Serializable {
      * one to another agent.
      */
     public static class AgentInfo implements Serializable {
-        public int agentNumber;
+        
+		private static final long serialVersionUID = 1L;
+		/** agentNumber */
+		public int agentNumber;
+        /** startThreadNumber */
         public int startThreadNumber;
+        /** threads */
         public int threads;
+        /** agentScale */
         public double agentScale;
+        /** agentType */
         public transient String agentType;
     }
 
+    /**
+     * The {@link DriverConfig}
+     */
     public static class DriverConfig extends BenchmarkDefinition.Driver {
-        public RunControl runControl;
+        
+    	/**
+		 * SerialVersionUID
+		 */
+		private static final long serialVersionUID = 1L;
+		
+		/**
+		 * runControl
+		 */
+		public RunControl runControl;
+		
+		/**
+		 * Number of agents
+		 */
         public int numAgents = -1; // Defaults to the actual number of agents.
+        /** numThreads */
         public int numThreads = -1; // Overrides the threadPerScale
         int maxRunTime;
         int graphInterval;
+        /** runtimeStatsTarget */
         public String runtimeStatsTarget;
+        /** rootElement */
         public Element rootElement;
+        /** properties */
         public Element properties;
 
         DriverConfig(BenchmarkDefinition.Driver driverDef) {
@@ -218,29 +319,36 @@ public class RunInfo implements Serializable {
             metric = driverDef.metric;
             opsUnit = driverDef.opsUnit;
             threadPerScale = driverDef.threadPerScale;
-            if (driverDef.preRun != null)
-                preRun = (BenchmarkDefinition.DriverMethod)
+            if (driverDef.preRun != null) {
+				preRun = (BenchmarkDefinition.DriverMethod)
                         driverDef.preRun.clone();
-            if (driverDef.postRun != null)
-                postRun = (BenchmarkDefinition.DriverMethod)
+			}
+            if (driverDef.postRun != null) {
+				postRun = (BenchmarkDefinition.DriverMethod)
                         driverDef.postRun.clone();
-            if (driverDef.mix[1] != null)
-                mix[1] = (Mix) driverDef.mix[1].clone();
+			}
+            if (driverDef.mix[1] != null) {
+				mix[1] = (Mix) driverDef.mix[1].clone();
+			}
             mix[0] = (Mix) driverDef.mix[0].clone();
 
-            if (driverDef.initialDelay[1] != null)
-                initialDelay[1] = (Cycle) driverDef.initialDelay[1].clone();
+            if (driverDef.initialDelay[1] != null) {
+				initialDelay[1] = (Cycle) driverDef.initialDelay[1].clone();
+			}
             initialDelay[0] = (Cycle) driverDef.initialDelay[0].clone();
 
             // Copy operation references into a flat array.
             int totalOps = driverDef.operations.length;
             operations = new BenchmarkDefinition.Operation[totalOps];
-            for (int j = 0; j < mix[0].operations.length; j++)
-                operations[j] = mix[0].operations[j];
-            if (mix[1] != null)
-                for (int j = 0; j < mix[1].operations.length; j++)
-                    operations[j + mix[0].operations.length] =
+            for (int j = 0; j < mix[0].operations.length; j++) {
+				operations[j] = mix[0].operations[j];
+			}
+            if (mix[1] != null) {
+				for (int j = 0; j < mix[1].operations.length; j++) {
+					operations[j + mix[0].operations.length] =
                             mix[1].operations[j];
+				}
+			}
 
             className = driverDef.className;
             driverClass = driverDef.driverClass;
@@ -265,8 +373,9 @@ public class RunInfo implements Serializable {
 
         ConfigurationReader() throws Exception {
             configFileName = System.getProperty("benchmark.config");
-            if (configFileName == null)
-                throw new IOException("Property \"benchmark.config\" not set.");
+            if (configFileName == null) {
+				throw new IOException("Property \"benchmark.config\" not set.");
+			}
 
             ParamReader reader = new ParamReader(configFileName, true);
             Document doc = reader.getDocument();
@@ -275,14 +384,16 @@ public class RunInfo implements Serializable {
             String rootNS = rootElement.getNamespaceURI();
             String rootName = rootElement.getLocalName();
 
-            if (FABANURI.equals(rootNS) && "runConfig".equals(rootName))
-                runConfigNode = rootElement;
-            else
-                runConfigNode = xp.evaluate("fa:runConfig", rootElement,
+            if (FABANURI.equals(rootNS) && "runConfig".equals(rootName)) {
+				runConfigNode = rootElement;
+			} else {
+				runConfigNode = xp.evaluate("fa:runConfig", rootElement,
                         XPathConstants.NODE);
-            if (runConfigNode == null)
-                throw new ConfigurationException(
+			}
+            if (runConfigNode == null) {
+				throw new ConfigurationException(
                         "Cannot find <fa:runConfig> element.");
+			}
             definingClassName = xp.evaluate("@definition", runConfigNode);
             
             //if the defining class is null, the benchmark definition needs 
@@ -302,9 +413,10 @@ public class RunInfo implements Serializable {
             }
             String requestLagType = rltNode.getLocalName();
             String namespace = rltNode.getNamespaceURI();
-            if (!DRIVERURI.equals(namespace))
-                throw new ConfigurationException("Namespace " + namespace +
+            if (!DRIVERURI.equals(namespace)) {
+				throw new ConfigurationException("Namespace " + namespace +
                             " unexpected under element fd:requestLagTime");
+			}
 
             StringBuilder sb = new StringBuilder();
             
@@ -358,10 +470,33 @@ public class RunInfo implements Serializable {
             protected String url;
             protected String data;
 
+            /**
+             * @param opNum
+             * @return
+             */
             public abstract String getURL(int opNum);
+            
+            /**
+             * @param opNum
+             * @return
+             * @throws Exception
+             */
             public abstract String getPostRequest(int opNum) throws Exception;
+            
+            /**
+             * @param opNum
+             * @return
+             * @throws Exception
+             */
             public abstract String getStatics(int opNum) throws Exception;
 
+            /**
+             * @param isFile
+             * @param doSubst
+             * @param isBinary
+             * @param url
+             * @param data
+             */
             public void init(boolean isFile, boolean doSubst, boolean isBinary,
                              String url, String data) {
                 this.isFile = isFile;
@@ -371,15 +506,17 @@ public class RunInfo implements Serializable {
                 this.data = data;
             }
 
-            protected String makeBinaryStaticBlock(byte[] b, int opNum) {
+            @SuppressWarnings("cast")
+			protected String makeBinaryStaticBlock(byte[] b, int opNum) {
                 StringBuilder sb = new StringBuilder();
                 sb.append("private static byte[] post_data_");
                 sb.append(opNum);
                 sb.append(" = { ");
                 for (int bi = 0; bi < b.length; bi++) {
                     sb.append((int) b[bi]);
-                    if (bi != b.length - 1)
-                        sb.append(", ");
+                    if (bi != b.length - 1) {
+						sb.append(", ");
+					}
                 }
                 sb.append(" }; ");
                 return sb.toString();
@@ -392,8 +529,9 @@ public class RunInfo implements Serializable {
                 sb.append(" = { ");
                 for (int ci = 0; ci < c.length; ci++) {
                     sb.append((int) c[ci]);
-                    if (ci != c.length - 1)
-                        sb.append(", ");
+                    if (ci != c.length - 1) {
+						sb.append(", ");
+					}
                 }
                 sb.append(" };\n");
                 sb.append("private static String post_string_");
@@ -435,31 +573,46 @@ public class RunInfo implements Serializable {
         private static class RunInfoPostFileDefinition
                 extends RunInfoDefinition {
 
-            public String getStatics(int opNum) throws Exception {
+            /**
+             * @see com.sun.faban.driver.core.RunInfo.ConfigurationReader.RunInfoDefinition#getStatics(int)
+             */
+            @Override
+			public String getStatics(int opNum) throws Exception {
                 if (isBinary) {
                     FileInputStream fis = new FileInputStream(data);
                     byte[] b = new byte[fis.available()];
-                    if (fis.read(b) != b.length)
-                        throw new IOException("Short read of data file " + data);
+                    if (fis.read(b) != b.length) {
+						throw new IOException("Short read of data file " + data);
+					}
                     fis.close();
                     return makeBinaryStaticBlock(b, opNum);
                 } else if (!doSubst) {
                     FileReader fr = new FileReader(data);
                     char[] c = new char[(int) new File(data).length()];
-                    if (fr.read(c) != c.length)
-                        throw new IOException("Short read of data file " + data);
+                    if (fr.read(c) != c.length) {
+						throw new IOException("Short read of data file " + data);
+					}
                     fr.close();
                     return makeCharStaticBlock(c, opNum);
-                }
-                else return "";
+                } else {
+					return "";
+				}
             }
 
-            public String getURL(int opNum) {
+            /**
+             * @see com.sun.faban.driver.core.RunInfo.ConfigurationReader.RunInfoDefinition#getURL(int)
+             */
+            @Override
+			public String getURL(int opNum) {
                 return new StringBuilder("\"").append(url).
                         append("\"").toString();
             }
 
-            public String getPostRequest(int opNum) throws Exception {
+            /**
+             * @see com.sun.faban.driver.core.RunInfo.ConfigurationReader.RunInfoDefinition#getPostRequest(int)
+             */
+            @Override
+			public String getPostRequest(int opNum) throws Exception {
                 if (isBinary) {
                     return new StringBuilder(", post_data_").append(opNum).
                                                                     toString();
@@ -482,17 +635,28 @@ public class RunInfo implements Serializable {
 
         private static class RunInfoPostDataDefinition
                 extends RunInfoPostFileDefinition {
-            public String getStatics(int opNum) {
-                if (isBinary)
-                    return makeBinaryStaticBlock(data.getBytes(), opNum);
-                else if (!doSubst)
-                    return makeCharStaticBlock(data.toCharArray(), opNum);
-                else return "";
+            /**
+             * @see com.sun.faban.driver.core.RunInfo.ConfigurationReader.RunInfoPostFileDefinition#getStatics(int)
+             */
+            @Override
+			public String getStatics(int opNum) {
+                if (isBinary) {
+					return makeBinaryStaticBlock(data.getBytes(), opNum);
+				} else if (!doSubst) {
+					return makeCharStaticBlock(data.toCharArray(), opNum);
+				} else {
+					return "";
+				}
             }
 
-            public String getPostRequest(int opNum) throws Exception {
-                if (isBinary || !doSubst)
-                    return super.getPostRequest(opNum);
+            /**
+             * @see com.sun.faban.driver.core.RunInfo.ConfigurationReader.RunInfoPostFileDefinition#getPostRequest(int)
+             */
+            @Override
+			public String getPostRequest(int opNum) throws Exception {
+                if (isBinary || !doSubst) {
+					return super.getPostRequest(opNum);
+				}
                 String requestString = generateRandomData(data);
                 StringBuilder sb = new StringBuilder(
                                                 ", new StringBuilder(\"\")");
@@ -503,9 +667,14 @@ public class RunInfo implements Serializable {
         }
 
         private static class RunInfoGetDefinition extends RunInfoDefinition {
-            public String getStatics(int opNum) {
-                if (doSubst)
-                    return "";
+            /**
+             * @see com.sun.faban.driver.core.RunInfo.ConfigurationReader.RunInfoDefinition#getStatics(int)
+             */
+            @Override
+			public String getStatics(int opNum) {
+                if (doSubst) {
+					return "";
+				}
                 StringBuilder sb = new StringBuilder(
                         "private static String get_string_");
                 sb.append(opNum);
@@ -517,18 +686,28 @@ public class RunInfo implements Serializable {
                 return sb.toString();
             }
 
-            public String getURL(int opNum) {
+            /**
+             * @see com.sun.faban.driver.core.RunInfo.ConfigurationReader.RunInfoDefinition#getURL(int)
+             */
+            @Override
+			public String getURL(int opNum) {
                 if (doSubst) {
                     String requestString = generateRandomData(data);
                     return new StringBuilder(
                             "new StringBuilder(\"").append(url).append("\")").
                             append(requestString).append(".toString()").
                             toString();
-                }
-                else return "get_string_" + opNum;
+                }  
+				
+                return "get_string_" + opNum;
+				
             }
 
-            public String getPostRequest(int opNum) {
+            /**
+             * @see com.sun.faban.driver.core.RunInfo.ConfigurationReader.RunInfoDefinition#getPostRequest(int)
+             */
+            @Override
+			public String getPostRequest(int opNum) {
                 return "";
             }
         }
@@ -539,8 +718,9 @@ public class RunInfo implements Serializable {
                                     "fd:benchmarkDefinition", runConfigNode,
                                     XPathConstants.NODE);
 
-            if (benchDefNode == null)
-                return null;
+            if (benchDefNode == null) {
+				return null;
+			}
 
             String definingClassName= xp.evaluate("fd:driverConfig/@name",
                     runConfigNode);
@@ -630,11 +810,13 @@ public class RunInfo implements Serializable {
                     if (requestNode != null) {
                         isPost = true;
                         if ("true".equalsIgnoreCase(
-                                requestNode.getAttributeNS(null, "file")))
-                            isFile = true;
+                                requestNode.getAttributeNS(null, "file"))) {
+							isFile = true;
+						}
                         if ("true".equalsIgnoreCase(
-                                requestNode.getAttributeNS(null, "binary")))
-                            isBinary = true;
+                                requestNode.getAttributeNS(null, "binary"))) {
+							isBinary = true;
+						}
                     } else {
                         throw new ConfigurationException("<operation> " +
                                             "must have a either a get/post");
@@ -643,11 +825,13 @@ public class RunInfo implements Serializable {
                     // will assume you meant GET.
                 }
                 if ("false".equalsIgnoreCase(
-                                    requestNode.getAttributeNS(null, "subst")))
-                    doSubst = false;
-                if (isBinary && doSubst)
-                    throw new ConfigurationException("<operation> " +
+                                    requestNode.getAttributeNS(null, "subst"))) {
+					doSubst = false;
+				}
+                if (isBinary && doSubst) {
+					throw new ConfigurationException("<operation> " +
                             "cannot be both binary and perform substitution");
+				}
                 requestString = requestNode.getNodeValue();
                 if (requestString == null) {
                     CDATASection cDataNode =
@@ -656,27 +840,33 @@ public class RunInfo implements Serializable {
                         requestString = cDataNode.getNodeValue();
                     }
                 }
-                if (requestString == null)
-                    requestString = "";
+                if (requestString == null) {
+					requestString = "";
+				}
 
-                if(requestLagTimeOverride==null)
-                    requestLagTimeOverride="";
-                if(operationName==null) 
-                    throw new ConfigurationException(
+                if(requestLagTimeOverride==null) {
+					requestLagTimeOverride="";
+				}
+                if(operationName==null) {
+					throw new ConfigurationException(
                             "<operation> must have a <name> ");
-                if(url==null) 
-                    throw new ConfigurationException(
+				}
+                if(url==null) {
+					throw new ConfigurationException(
                             "<operation> must have a <url>");
+				}
 
 
                 RunInfoDefinition rid;
                 if (isPost) {
                     if (isFile) {
                         rid = new RunInfoPostFileDefinition();
-                    }
-                    else rid = new RunInfoPostDataDefinition();
-                }
-                else rid = new RunInfoGetDefinition();
+                    } else {
+						rid = new RunInfoPostDataDefinition();
+					}
+                } else {
+					rid = new RunInfoGetDefinition();
+				}
                 rid.init(isFile, doSubst, isBinary, url, requestString);
 
                 //Create the benchmark Operation annotation
@@ -790,18 +980,20 @@ public class RunInfo implements Serializable {
 
             RunInfo runInfo = new RunInfo();
             String v = xp.evaluate("fa:scale", runConfigNode);
-            if (v != null && v.length() > 0)
-                try {
+            if (v != null && v.length() > 0) {
+				try {
                     runInfo.scale = Integer.parseInt(v);
                 } catch (NumberFormatException e) {
                     throw new ConfigurationException(
                             "<scale> must be an integer.");
                 }
+			}
 
             v = xp.evaluate("fa:runControl/fa:rampUp", runConfigNode);
-            if (v == null || v.length() == 0)
-                throw new ConfigurationException(
+            if (v == null || v.length() == 0) {
+				throw new ConfigurationException(
                         "Element <rampUp> not found.");
+			}
             try {
                 runInfo.rampUp = Integer.parseInt(v);
             } catch (NumberFormatException e) {
@@ -810,9 +1002,10 @@ public class RunInfo implements Serializable {
             }
 
             v = xp.evaluate("fa:runControl/fa:steadyState", runConfigNode);
-            if (v == null || v.length() == 0)
-                throw new ConfigurationException(
+            if (v == null || v.length() == 0) {
+				throw new ConfigurationException(
                         "Element <steadyState> not found.");
+			}
             try {
                 runInfo.stdyState = Integer.parseInt(v);
             } catch (NumberFormatException e) {
@@ -821,9 +1014,10 @@ public class RunInfo implements Serializable {
             }
 
             v = xp.evaluate("fa:runControl/fa:rampDown", runConfigNode);
-            if (v == null || v.length() == 0)
-                throw new ConfigurationException(
+            if (v == null || v.length() == 0) {
+				throw new ConfigurationException(
                         "Element <rampDown> not found.");
+			}
             try {
                 runInfo.rampDown = Integer.parseInt(v);
             } catch (NumberFormatException e) {
@@ -832,81 +1026,90 @@ public class RunInfo implements Serializable {
             }
 
             runInfo.resultsDir = xp.evaluate("fd:outputDir", runConfigNode);
-            if (runInfo.resultsDir == null || runInfo.resultsDir.length() == 0)
-                throw new ConfigurationException(
+            if (runInfo.resultsDir == null || runInfo.resultsDir.length() == 0) {
+				throw new ConfigurationException(
                         "Element <outputDir> not found.");
+			}
 
             v = xp.evaluate("fd:audit", runConfigNode);
-            if (v != null && v.length() > 0)
-                try {
+            if (v != null && v.length() > 0) {
+				try {
                     runInfo.audit = relaxedParseBoolean(v);
                 } catch (NumberFormatException e) {
                     throw new ConfigurationException(
                             "<audit> must be true or false.");
                 }
+			}
 
             v = xp.evaluate("fd:threadStart/fd:delay", runConfigNode);
-            if (v != null && v.length() > 0)
-                try {
+            if (v != null && v.length() > 0) {
+				try {
                     runInfo.msBetweenThreadStart = Integer.parseInt(v);
                 } catch (NumberFormatException e) {
                     throw new ConfigurationException(
                             "<delay> must be an integer.");
                 }
+			}
 
             v = xp.evaluate("fd:threadStart/fd:simultaneous", runConfigNode);
-            if (v != null && v.length() > 0)
-                try {
+            if (v != null && v.length() > 0) {
+				try {
                     runInfo.simultaneousStart = relaxedParseBoolean(v);
                 } catch (NumberFormatException e) {
                     throw new ConfigurationException(
                             "<simultaneous> must be true or false.");
                 }
+			}
 
             v = xp.evaluate("fd:threadStart/fd:parallel", runConfigNode);
-            if (v != null && v.length() > 0)
-                try {
+            if (v != null && v.length() > 0) {
+				try {
                     runInfo.parallelAgentThreadStart = relaxedParseBoolean(v);
                 } catch (NumberFormatException e) {
                     throw new ConfigurationException(
                             "<parallel> must be true or false.");
                 }
+			}
 
             v = xp.evaluate("fd:stats/fd:maxRunTime", runConfigNode);
-            if (v!= null && v.length() > 0)
-                try {
+            if (v!= null && v.length() > 0) {
+				try {
                     runInfo.maxRunTime = Integer.parseInt(v);
                 } catch (NumberFormatException e) {
                     throw new ConfigurationException(
                             "<maxRunTime> must be an integer.");
                 }
+			}
 
             v = xp.evaluate("fd:stats/fd:interval", runConfigNode);
-            if (v!= null && v.length() > 0)
-                try {
+            if (v!= null && v.length() > 0) {
+				try {
                     runInfo.graphInterval = Integer.parseInt(v);
                 } catch (NumberFormatException e) {
                     throw new ConfigurationException(
                             "<interval> must be an integer.");
                 }
+			}
 
             v = xp.evaluate("fd:runtimeStats/@enabled", runConfigNode);
-            if (v != null && v.length() > 0)
-                try {
+            if (v != null && v.length() > 0) {
+				try {
                     runInfo.runtimeStatsEnabled = relaxedParseBoolean(v);
                 } catch (Exception e) {
                     throw new ConfigurationException(
                             "<runtimeStats enabled=[true|false]>");
                 }
+			}
 
             v = xp.evaluate("fd:runtimeStats/fd:interval", runConfigNode);
-            if (v != null && v.length() > 0)
-                try {
+            if (v != null && v.length() > 0) {
+				try {
                     runInfo.runtimeStatsInterval = Integer.parseInt(v);
                 } catch (NumberFormatException e) {
                     throw new ConfigurationException(
                             "<interval> must be an integer.");
                 }
+			}
 
             runInfo.driverConfigs = new DriverConfig[benchDef.drivers.length];
             for (int i = 0; i < benchDef.drivers.length; i++) {
@@ -917,10 +1120,11 @@ public class RunInfo implements Serializable {
                         runConfigNode, XPathConstants.NODE);
 
                 driverConfig.runControl = benchDef.runControl;
-                if (driverConfigNode == null)
-                    throw new ConfigurationException("Element " +
+                if (driverConfigNode == null) {
+					throw new ConfigurationException("Element " +
                             "<driverConfig name=\"" + driverConfig.name +
                             "\"> not found.");
+				}
 
                 v = xp.evaluate("fd:agents", driverConfigNode);
 
@@ -934,13 +1138,16 @@ public class RunInfo implements Serializable {
                     driverConfig.numAgents = 0;
                     while (t.hasMoreTokens()) {
                         v = t.nextToken().trim();
-                        if (v.length() == 0)
-                            continue;
+                        if (v.length() == 0) {
+							continue;
+						}
                         int idx = v.indexOf(':');
-                        if (++idx > 0)
-                            v = v.substring(idx);
-                        if (v.length() == 0)
-                            continue;
+                        if (++idx > 0) {
+							v = v.substring(idx);
+						}
+                        if (v.length() == 0) {
+							continue;
+						}
                         try {
                             driverConfig.numAgents += Integer.parseInt(v);
                         } catch (NumberFormatException e) {
@@ -954,31 +1161,35 @@ public class RunInfo implements Serializable {
                 }
 
                 v = xp.evaluate("fd:threads", driverConfigNode);
-                if (v != null && v.length() > 0)
-                    try {
+                if (v != null && v.length() > 0) {
+					try {
                         driverConfig.numThreads = Integer.parseInt(v);
                     } catch (NumberFormatException e) {
                         throw new ConfigurationException(
                                 "<threads> must be an integer.");
                     }
+				}
 
                 v = xp.evaluate("fd:stats/fd:interval", driverConfigNode);
-                if (v!= null && v.length() > 0)
-                    try {
+                if (v!= null && v.length() > 0) {
+					try {
                         driverConfig.graphInterval = Integer.parseInt(v);
                     } catch (NumberFormatException e) {
                         throw new ConfigurationException(
                                 "<interval> must be an integer.");
                     }
-                else driverConfig.graphInterval = runInfo.graphInterval;
+				} else {
+					driverConfig.graphInterval = runInfo.graphInterval;
+				}
 
                 if (runInfo.runtimeStatsEnabled) {
                     driverConfig.runtimeStatsTarget = xp.evaluate(
                             "fd:runtimeStats/@target", driverConfigNode);
                     if (driverConfig.runtimeStatsTarget == null ||
-                            driverConfig.runtimeStatsTarget.length() == 0)
-                        throw new ConfigurationException("Element " +
+                            driverConfig.runtimeStatsTarget.length() == 0) {
+						throw new ConfigurationException("Element " +
                                 "<runtimeStats target=[port]> not found.");
+					}
                 }
                 driverConfig.rootElement = rootElement;
                 driverConfig.properties = (Element) xp.evaluate("fd:properties",
@@ -991,7 +1202,6 @@ public class RunInfo implements Serializable {
                 //if the driver is an http driver
                 
                 InputStream is = null;
-                Class defClass=null;
                 String defClassName = getDefiningClassName();
                 try{
                     //check whether this class is defined in this class loader
@@ -1021,7 +1231,7 @@ public class RunInfo implements Serializable {
                     
                     try{
                         
-                        defClass=loader.loadClass(defClassName);
+                        loader.loadClass(defClassName);
                         is = loader.getResourceAsStream(defClassName+".class");
                         
                         runInfo.defBytes = new byte[is.available()];
@@ -1044,15 +1254,16 @@ public class RunInfo implements Serializable {
             boolean retVal;
             if ("true".equals(newStr) || "t".equals(newStr)
                 || "yes".equals(newStr) || "y".equals(newStr)
-                || "1".equals(newStr))
-                retVal = true;
-            else if ("false".equals(newStr) || "f".equals(newStr)
+                || "1".equals(newStr)) {
+				retVal = true;
+			} else if ("false".equals(newStr) || "f".equals(newStr)
                 || "no".equals(newStr) || "n".equals(newStr)
-                || "0".equals(newStr))
-                retVal = false;
-            else
-                throw new NumberFormatException("Boolean " + str +
+                || "0".equals(newStr)) {
+				retVal = false;
+			} else {
+				throw new NumberFormatException("Boolean " + str +
                         " not recognized!");
+			}
             return retVal;
         }
     }

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DriverContext.java,v 1.7 2007/09/05 23:14:50 noahcampbell Exp $
+ * $Id: DriverContext.java,v 1.8 2007/09/07 15:49:05 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -152,8 +152,9 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
         if (logger == null) {
             logger = Logger.getLogger(agentThread.driverConfig.
                     className + '.' + agentThread.id);
-            if (agentThread.runInfo.logHandler != null)
-                logger.addHandler(agentThread.runInfo.logHandler);
+            if (agentThread.runInfo.logHandler != null) {
+				logger.addHandler(agentThread.runInfo.logHandler);
+			}
         }
         return logger;
     }
@@ -240,17 +241,20 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
             for (int i = 0; i < length; i++) {
                 Element propertyElement = (Element) list.item(i);
                 Attr attr = propertyElement.getAttributeNodeNS(null, "name");
-                if (attr != null)
-                    props.put(attr.getValue(), getValue(propertyElement));
+                if (attr != null) {
+					props.put(attr.getValue(), getValue(propertyElement));
+				}
                 NodeList nameList =
                         propertyElement.getElementsByTagNameNS(
                                                 RunInfo.DRIVERURI, "name");
-                if (nameList.getLength() != 1)
-                    continue;
+                if (nameList.getLength() != 1) {
+					continue;
+				}
                 Element nameElement = (Element) nameList.item(0);
                 String name = nameElement.getFirstChild().getNodeValue();
-                if (name != null)
-                    props.put(name, getValue(propertyElement));
+                if (name != null) {
+					props.put(name, getValue(propertyElement));
+				}
             }
             properties = props;
         }
@@ -291,11 +295,13 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      */
     @Override
 	public String getProperty(String name) {
-        if (properties == null)
-            properties = parseProperties(getPropertiesNode());
+        if (properties == null) {
+			properties = parseProperties(getPropertiesNode());
+		}
         String[] value = properties.get(name);
-        if (value == null)
-            return null;
+        if (value == null) {
+			return null;
+		}
         return value[0];
     }
 
@@ -308,8 +314,9 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      */
     @Override
 	public String[] getPropertyValues(String name) {
-        if (properties == null)
-            properties = parseProperties(getPropertiesNode());
+        if (properties == null) {
+			properties = parseProperties(getPropertiesNode());
+		}
         return properties.get(name);
     }
 
@@ -378,8 +385,8 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
             logger.throwing(className, "recordTime", e);
             throw e;
         }
-        if (timingInfo != null)
-            if (timingInfo.invokeTime == -1) {
+        if (timingInfo != null) {
+			if (timingInfo.invokeTime == -1) {
                 timer.sleep(timingInfo.intendedInvokeTime);
                 // But since sleep may not be exact, we get the time again here.
                 timingInfo.invokeTime = timer.getTime();
@@ -389,6 +396,7 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
             } else {
                 timingInfo.respondTime = timer.getTime();
             }
+		}
     }
 
     /**
@@ -410,8 +418,9 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
             logger.throwing(className, "recordTime", e);
             throw e;
         }
-        if (pauseStart == -1)
-            pauseStart = timer.getTime();
+        if (pauseStart == -1) {
+			pauseStart = timer.getTime();
+		}
     }
 
     /**
@@ -525,8 +534,9 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      */
     public void recordEndTime() {
         if (timingInfo != null && agentThread.driverConfig.operations[
-                agentThread.currentOperation].timing == Timing.AUTO)
-            timingInfo.respondTime = timer.getTime();
+                agentThread.currentOperation].timing == Timing.AUTO) {
+			timingInfo.respondTime = timer.getTime();
+		}
     }
 
     /**
@@ -550,9 +560,21 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      * timing records for each operation.
      */
     public static class TimingInfo {
+    	/**
+    	 * Intended Invoke Time
+    	 */
         public int intendedInvokeTime = -1;
+        /**
+         * Actual Invoke Time.
+         */
         public int invokeTime = -1;
+        /**
+         * Respond Time
+         */
         public int respondTime = -1;
+        /**
+         * Pause Time.
+         */
         public int pauseTime = 0;
     }
 }

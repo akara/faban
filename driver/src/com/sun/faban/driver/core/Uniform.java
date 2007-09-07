@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Uniform.java,v 1.2 2006/06/29 19:38:37 akara Exp $
+ * $Id: Uniform.java,v 1.3 2007/09/07 15:49:05 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -36,7 +36,11 @@ import java.lang.annotation.Annotation;
  */
 public class Uniform extends Cycle {
 
-    int cycleMin;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	int cycleMin;
     int cycleMax;
 
     /**
@@ -44,7 +48,8 @@ public class Uniform extends Cycle {
      * @param a The annotation
      * @throws DefinitionException If there is an error in the annotation
      */
-    public void init(Annotation a) throws DefinitionException {
+    @Override
+	public void init(Annotation a) throws DefinitionException {
         com.sun.faban.driver.Uniform cycleDef =
                 (com.sun.faban.driver.Uniform) a;
         cycleType = cycleDef.cycleType();
@@ -53,15 +58,19 @@ public class Uniform extends Cycle {
         cycleMax = cycleDef.cycleMax();
         
         // Now check parameters for validity.
-        if (cycleMin < 0)
-            throw new DefinitionException("@Uniform cycleMin < 0");
-        if (cycleMax < 0)
-            throw new DefinitionException("@Uniform cycleMax < 0");
-        if (cycleMin > cycleMax)
-            throw new DefinitionException("@Uniform cycleMin > cycleMax");
-        if (cycleMax == 0 && cycleType == CycleType.CYCLETIME)
-            throw new DefinitionException(
+        if (cycleMin < 0) {
+			throw new DefinitionException("@Uniform cycleMin < 0");
+		}
+        if (cycleMax < 0) {
+			throw new DefinitionException("@Uniform cycleMax < 0");
+		}
+        if (cycleMin > cycleMax) {
+			throw new DefinitionException("@Uniform cycleMin > cycleMax");
+		}
+        if (cycleMax == 0 && cycleType == CycleType.CYCLETIME) {
+			throw new DefinitionException(
                     "@Uniform CYCLETIME cycleMax cannot be 0");
+		}
     }
 
     /**
@@ -72,7 +81,8 @@ public class Uniform extends Cycle {
      * @param random The random number generator used
      * @return The delay time
      */
-    public int getDelay(Random random) {
+    @Override
+	public int getDelay(Random random) {
         return random.random(cycleMin, cycleMax);
     }
 
@@ -81,9 +91,11 @@ public class Uniform extends Cycle {
      *
      * @return The max reasonable delay to be presented in the output histogram.
      */
-    public double getHistogramMax() {
-        if (cycleMax > 0)
-            return 1.5d * cycleMax;
+    @Override
+	public double getHistogramMax() {
+        if (cycleMax > 0) {
+			return 1.5d * cycleMax;
+		}
 
         // We know it takes very little time to prepare the data to submit.
         // This case can only happen for think time. Giving a histogram

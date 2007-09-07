@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.8 2007/04/23 19:49:56 akara Exp $
+ * $Id: Metrics.java,v 1.9 2007/09/07 15:49:05 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -29,7 +29,6 @@ import com.sun.faban.driver.RunControl;
 import com.sun.faban.common.TextTable;
 
 import java.io.Serializable;
-import java.io.IOException;
 import java.util.Date;
 import java.util.Formatter;
 import java.util.logging.Logger;
@@ -43,7 +42,12 @@ import java.util.logging.Logger;
  */
 public class Metrics implements Serializable, Cloneable {
 
-    /** Number of response time buckets in histogram. */
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/** Number of response time buckets in histogram. */
     public static final int RESPBUCKETS = 100;
 
     /** Number of delay time buckets in histogram. */
@@ -178,6 +182,9 @@ public class Metrics implements Serializable, Cloneable {
     protected int stdyState;
     protected transient AgentThread thread;    
     
+    /**
+     * @param agent
+     */
     public Metrics(AgentThread agent) {
         this.thread = agent;
         RunInfo runInfo = RunInfo.getInstance();
@@ -191,8 +198,9 @@ public class Metrics implements Serializable, Cloneable {
 
         // We cannot serialize the agent itself but we only need the names.
         txNames = new String[txTypes];
-        for (int i = 0; i < driverConfig.operations.length; i++)
-            txNames[i] = driverConfig.operations[i].name;
+        for (int i = 0; i < driverConfig.operations.length; i++) {
+			txNames[i] = driverConfig.operations[i].name;
+		}
 
         // Initialize all the arrays.
         txCntStdy = new int[txTypes];
@@ -206,8 +214,9 @@ public class Metrics implements Serializable, Cloneable {
         delaySum = new long[txTypes];
         delayMax = new int[txTypes];
         delayMin = new int[txTypes];
-        for (int i = 0; i < delayMin.length; i++)
-	        delayMin[i] = Integer.MAX_VALUE; // init to the largest number
+        for (int i = 0; i < delayMin.length; i++) {
+			delayMin[i] = Integer.MAX_VALUE; // init to the largest number
+		}
         targetedDelaySum = new long[txTypes];
         elapse = new double[txTypes];
         respHist = new int[txTypes][RESPBUCKETS];
@@ -216,23 +225,27 @@ public class Metrics implements Serializable, Cloneable {
 
         // The actual run configuration is used in case it represents time.
         // This prevents us from over-allocating the thruput histogram.
-        if (driverConfig.runControl == RunControl.TIME)
-            graphBuckets = 1 + (runInfo.rampUp + runInfo.stdyState +
+        if (driverConfig.runControl == RunControl.TIME) {
+			graphBuckets = 1 + (runInfo.rampUp + runInfo.stdyState +
                     runInfo.rampDown) / driverConfig.graphInterval;
-        else // If cycles are used, we have to resort to the maxRunTime.
-            graphBuckets = (int) Math.ceil(3600d * // Convert hr => s
+		} else {
+			graphBuckets = (int) Math.ceil(3600d * // Convert hr => s
                     runInfo.maxRunTime / driverConfig.graphInterval);
+		}
 
         // Convert to ms.
         graphBucketSize = driverConfig.graphInterval * 1000;
         thruputGraph = new int[txTypes][graphBuckets];
         respGraph = new int[txTypes][graphBuckets];
 
+        // TODO: Consider the Unit of time on the operation
         // Find the maximum 90th% resp among all ops, in seconds
         double max90th = driverConfig.operations[0].max90th;
-        for (int i = 1; i < txTypes; i++)
-            if (driverConfig.operations[i].max90th > max90th)
-                max90th = driverConfig.operations[i].max90th;
+        for (int i = 1; i < txTypes; i++) {
+			if (driverConfig.operations[i].max90th > max90th) {
+				max90th = driverConfig.operations[i].max90th;
+			}
+		}
 
         double respHistMax = max90th * 5d;  // 5 x max response time
         respBucketSize = (int) Math.ceil(1000d * respHistMax / RESPBUCKETS);
@@ -244,8 +257,9 @@ public class Metrics implements Serializable, Cloneable {
         for (int i = 1; i < txTypes; i++) {
             double opMaxDelay = driverConfig.operations[i].
                     cycle.getHistogramMax();
-            if (opMaxDelay > delayHistMax)
-                delayHistMax = opMaxDelay;
+            if (opMaxDelay > delayHistMax) {
+				delayHistMax = opMaxDelay;
+			}
         }
         delayBucketSize = (int) Math.ceil(delayHistMax / DELAYBUCKETS);
     }
@@ -255,8 +269,9 @@ public class Metrics implements Serializable, Cloneable {
      */
     public void recordTx() {
 
-        if (threadCnt == 0) // Set threadCnt once this stat is used for a thread
-            threadCnt = 1;
+        if (threadCnt == 0) {
+			threadCnt = 1;
+		}
 
         int txType = thread.currentOperation;
         DriverContext.TimingInfo timingInfo =
@@ -285,13 +300,15 @@ public class Metrics implements Serializable, Cloneable {
             respSumStdy[txType] += responseTime;
 
             // post in histogram of response times
-            if ((responseTime / respBucketSize) >= RESPBUCKETS)
-                respHist[txType][RESPBUCKETS - 1]++;
-            else
-                respHist[txType][responseTime / respBucketSize]++;
+            if ((responseTime / respBucketSize) >= RESPBUCKETS) {
+				respHist[txType][RESPBUCKETS - 1]++;
+			} else {
+				respHist[txType][responseTime / respBucketSize]++;
+			}
 
-            if (responseTime > respMax[txType])
-                respMax[txType] = responseTime;
+            if (responseTime > respMax[txType]) {
+				respMax[txType] = responseTime;
+			}
         }
     }
 
@@ -300,15 +317,17 @@ public class Metrics implements Serializable, Cloneable {
      */
     public void recordError() {
 
-        if (threadCnt == 0) // Set threadCnt once this stat is used for a thread
-            threadCnt = 1;
+        if (threadCnt == 0) {
+			threadCnt = 1;
+		}
 
         int txType = thread.currentOperation;
 
         errCntTotal[txType]++;
 
-        if (!thread.inRamp)
-            errCntStdy[txType]++;
+        if (!thread.inRamp) {
+			errCntStdy[txType]++;
+		}
 
         endTime = thread.driverContext.timingInfo.respondTime;
     }
@@ -320,8 +339,9 @@ public class Metrics implements Serializable, Cloneable {
     public void recordDelayTime() {
 
         int txType = thread.previousOperation[thread.mixId];
-        if (txType < 0) // First cycle, previous op is not there. Don't record.
-            return;
+        if (txType < 0) {
+			return;
+		}
         
         DriverContext.TimingInfo timingInfo =
                 thread.driverContext.timingInfo;
@@ -330,9 +350,10 @@ public class Metrics implements Serializable, Cloneable {
         int actualCycleTime = -1;
 
         if (thread.isSteadyState(thread.startTime[thread.mixId],
-                                 timingInfo.invokeTime))
-            actualCycleTime = timingInfo.invokeTime -
+                                 timingInfo.invokeTime)) {
+			actualCycleTime = timingInfo.invokeTime -
                               thread.startTime[thread.mixId];
+		}
 
         CycleType cycleType = RunInfo.getInstance().driverConfig.
                 operations[thread.currentOperation].cycle.cycleType;
@@ -342,43 +363,50 @@ public class Metrics implements Serializable, Cloneable {
             case THINKTIME :
                 if (thread.endTime[thread.mixId] >= 0) {// Normal
                     if (thread.isSteadyState(thread.endTime[thread.mixId],
-                                             timingInfo.invokeTime))
-                        actualDelayTime = timingInfo.invokeTime -
+                                             timingInfo.invokeTime)) {
+						actualDelayTime = timingInfo.invokeTime -
                                 thread.endTime[thread.mixId];
+					}
                 } else { // Exceptions occurred, no respond time available
                     actualDelayTime = actualCycleTime;
                 }
         }
 
-        if (thread.mixId == 0 && actualCycleTime >= 0)
-        // cycleSum is for little's law verification.
+        if (thread.mixId == 0 && actualCycleTime >= 0) {
+			// cycleSum is for little's law verification.
         // We do not count background cycles to the cycleSum or the
         // verification will be totally off.
             cycleSum += actualCycleTime;
+		}
 
-        if (actualDelayTime < 0) // The delay is not in steady state
-            return;
+        if (actualDelayTime < 0) {
+			return;
+		}
 
         ++delayCntStdy[txType];
         delaySum[txType] += actualDelayTime;
         targetedDelaySum[txType] += thread.delayTime[thread.mixId];
 
 
-        if (actualDelayTime > delayMax[txType])
-            delayMax[txType] = actualDelayTime;
-        if (actualDelayTime < delayMin[txType])
-            delayMin[txType] = actualDelayTime;
+        if (actualDelayTime > delayMax[txType]) {
+			delayMax[txType] = actualDelayTime;
+		}
+        if (actualDelayTime < delayMin[txType]) {
+			delayMin[txType] = actualDelayTime;
+		}
 
-        if ((actualDelayTime / delayBucketSize) >= DELAYBUCKETS)
-            delayHist[txType][DELAYBUCKETS - 1]++;
-        else
-            delayHist[txType][actualDelayTime / delayBucketSize]++;
+        if ((actualDelayTime / delayBucketSize) >= DELAYBUCKETS) {
+			delayHist[txType][DELAYBUCKETS - 1]++;
+		} else {
+			delayHist[txType][actualDelayTime / delayBucketSize]++;
+		}
         if ((thread.delayTime[thread.mixId] / delayBucketSize) >=
-                DELAYBUCKETS)
-            targetedDelayHist[txType][DELAYBUCKETS - 1]++;
-        else
-            targetedDelayHist[txType]
+                DELAYBUCKETS) {
+			targetedDelayHist[txType][DELAYBUCKETS - 1]++;
+		} else {
+			targetedDelayHist[txType]
                     [thread.delayTime[thread.mixId] / delayBucketSize]++;
+		}
     }
 
     /**
@@ -406,39 +434,52 @@ public class Metrics implements Serializable, Cloneable {
             respSumTotal[i] += s.respSumTotal[i];
 			delaySum[i] += s.delaySum[i];
 			targetedDelaySum[i] += s.targetedDelaySum[i];
-			if (s.respMax[i] > respMax[i])
+			if (s.respMax[i] > respMax[i]) {
 				respMax[i] = s.respMax[i];
-			if (s.delayMax[i] > delayMax[i])
+			}
+			if (s.delayMax[i] > delayMax[i]) {
 				delayMax[i] = s.delayMax[i];
-			if (s.delayMin[i] < delayMin[i])
+			}
+			if (s.delayMin[i] < delayMin[i]) {
 				delayMin[i] = s.delayMin[i];
+			}
 
 			// sum up histogram buckets
-			for (int j = 0; j < RESPBUCKETS; j++)
+			for (int j = 0; j < RESPBUCKETS; j++) {
 				respHist[i][j] += s.respHist[i][j];
+			}
 			for (int j = 0; j < graphBuckets; j++) {
 				thruputGraph[i][j] += s.thruputGraph[i][j];
                 respGraph[i][j] += s.respGraph[i][j];
             }
-			for (int j = 0; j < DELAYBUCKETS; j++)
+			for (int j = 0; j < DELAYBUCKETS; j++) {
 				delayHist[i][j] += s.delayHist[i][j];
-			for (int j = 0; j < DELAYBUCKETS; j++)
+			}
+			for (int j = 0; j < DELAYBUCKETS; j++) {
 				targetedDelayHist[i][j] +=
                                         s.targetedDelayHist[i][j];
+			}
 		}
 
-        if (s.startTime < startTime)
-            startTime = s.startTime;
+        if (s.startTime < startTime) {
+			startTime = s.startTime;
+		}
 
         // We want the last end time.
-        if (s.endTime > endTime)
-            endTime = s.endTime;
+        if (s.endTime > endTime) {
+			endTime = s.endTime;
+		}
 
-        if (attachment != null && s.attachment != null)
-            attachment.add(s.attachment);
+        if (attachment != null && s.attachment != null) {
+			attachment.add(s.attachment);
+		}
 	}
 
-    public Object clone() {
+    /**
+     * @see java.lang.Object#clone()
+     */
+    @Override
+	public Object clone() {
         Metrics clone = null;
         try {
             clone = (Metrics) super.clone();
@@ -455,22 +496,26 @@ public class Metrics implements Serializable, Cloneable {
             clone.delayMax = delayMax.clone();
             clone.delayMin = delayMin.clone();
             clone.respHist = new int[respHist.length][];
-            for (int i = 0; i < respHist.length; i++)
-                clone.respHist[i] = respHist[i].clone();
+            for (int i = 0; i < respHist.length; i++) {
+				clone.respHist[i] = respHist[i].clone();
+			}
             clone.delayHist = new int[delayHist.length][];
-            for (int i = 0; i < delayHist.length; i++)
-                clone.delayHist[i] = delayHist[i].clone();
+            for (int i = 0; i < delayHist.length; i++) {
+				clone.delayHist[i] = delayHist[i].clone();
+			}
             clone.targetedDelayHist = new int[targetedDelayHist.length][];
-            for (int i = 0; i < targetedDelayHist.length; i++)
-                clone.targetedDelayHist[i] = targetedDelayHist[i].clone();
+            for (int i = 0; i < targetedDelayHist.length; i++) {
+				clone.targetedDelayHist[i] = targetedDelayHist[i].clone();
+			}
             clone.thruputGraph = new int[thruputGraph.length][];
             clone.respGraph = new int[respGraph.length][];
             for (int i = 0; i < thruputGraph.length; i++) {
                 clone.thruputGraph[i] = thruputGraph[i].clone();
                 clone.respGraph[i] = respGraph[i].clone();
             }
-            if (attachment != null)
-                clone.attachment = (CustomMetrics) attachment.clone();
+            if (attachment != null) {
+				clone.attachment = (CustomMetrics) attachment.clone();
+			}
 
         } catch (CloneNotSupportedException e) {
             // This should not happen as we already implement cloneable.
@@ -484,8 +529,9 @@ public class Metrics implements Serializable, Cloneable {
      */
     public double getTps() {
         int totalCnt = 0;
-        for (int i = 0; i < txTypes; i++)
-            totalCnt += txCntStdy[i];
+        for (int i = 0; i < txTypes; i++) {
+			totalCnt += txCntStdy[i];
+		}
         return totalCnt * 1000d / stdyState;
     }
 
@@ -493,7 +539,8 @@ public class Metrics implements Serializable, Cloneable {
      * Provides a string presentation of the current stats.
      * @return The string representing the statistics.
      */
-    public String toString() {
+    @Override
+	public String toString() {
         StringBuilder buffer = new StringBuilder();
 
         buffer.append("sumusers=" + threadCnt);
@@ -514,20 +561,24 @@ public class Metrics implements Serializable, Cloneable {
         /* Now print out the histogram data */
         for (int i = 0; i < txTypes; i++) {
             buffer.append(txNames[i] + " Response Times Histogram\n");
-            for (int j = 0; j < RESPBUCKETS; j++)
-                buffer.append(" " + respHist[i][j]);
+            for (int j = 0; j < RESPBUCKETS; j++) {
+				buffer.append(" " + respHist[i][j]);
+			}
             buffer.append('\n');
             buffer.append(txNames[i] + " Throughput Graph\n");
-            for (int j = 0; j < graphBuckets; j++)
-                buffer.append(" " + thruputGraph[i][j]);
+            for (int j = 0; j < graphBuckets; j++) {
+				buffer.append(" " + thruputGraph[i][j]);
+			}
             buffer.append('\n');
             buffer.append(txNames[i] + " Response Time Graph\n");
-            for (int j = 0; j < graphBuckets; j++)
-                buffer.append(" " + respGraph[i][j]);
+            for (int j = 0; j < graphBuckets; j++) {
+				buffer.append(" " + respGraph[i][j]);
+			}
             buffer.append('\n');
             buffer.append(txNames[i] + " Cycle Times Histogram\n");
-            for (int j = 0; j < DELAYBUCKETS; j++)
-                buffer.append(" " + delayHist[i][j]);
+            for (int j = 0; j < DELAYBUCKETS; j++) {
+				buffer.append(" " + delayHist[i][j]);
+			}
             buffer.append('\n');
         }
         return(buffer.toString());
@@ -541,7 +592,8 @@ public class Metrics implements Serializable, Cloneable {
      * @param benchDef The benchmark definition
      * @return true if this driver passed, false if not
      */
-    public boolean printSummary(StringBuilder buffer,
+    @SuppressWarnings("boxing")
+	public boolean printSummary(StringBuilder buffer,
                                 BenchmarkDefinition benchDef) {
 
         int sumTxCnt = 0;
@@ -565,22 +617,26 @@ public class Metrics implements Serializable, Cloneable {
         space(4, buffer).append("<driverSummary name=\"").append(driverName).
                 append("\">\n");
 
-        for (int i = 0; i < txTypes; i++)
-            sumTxCnt += txCntStdy[i];
+        for (int i = 0; i < txTypes; i++) {
+			sumTxCnt += txCntStdy[i];
+		}
         
-        for (int i = 0; i < fgTxTypes; i++)
-            sumFgTxCnt += txCntStdy[i];
+        for (int i = 0; i < fgTxTypes; i++) {
+			sumFgTxCnt += txCntStdy[i];
+		}
         
         int sumBgTxCnt = sumTxCnt - sumFgTxCnt;
 
         metric = sumTxCnt / (double) runInfo.stdyState;
         if (sumFgTxCnt > 0) {
-            for (int i = 0; i < fgTxTypes; i++)
-                mixRatio[i] = txCntStdy[i] / (double) sumFgTxCnt;
+            for (int i = 0; i < fgTxTypes; i++) {
+				mixRatio[i] = txCntStdy[i] / (double) sumFgTxCnt;
+			}
         }
         if (sumBgTxCnt > 0) {
-            for (int i = fgTxTypes; i < txTypes; i++)
-                mixRatio[i] = txCntStdy[i] / (double) sumBgTxCnt;
+            for (int i = fgTxTypes; i < txTypes; i++) {
+				mixRatio[i] = txCntStdy[i] / (double) sumBgTxCnt;
+			}
         }
         space(8, buffer);
         formatter.format("<metric unit=\"%s\">%.03f</metric>\n", driver.metric,
@@ -675,8 +731,9 @@ public class Metrics implements Serializable, Cloneable {
                 int j = 0;
                 for (; j < RESPBUCKETS; j++) {
                     sumtx += respHist[i][j];
-                    if (sumtx >= cnt90)		/* 90% of tx. got */
-                        break;
+                    if (sumtx >= cnt90) {
+						break;
+					}
                 }
                 resp90 = (j + 1) * respBucketSize / 1000d;
                 space(16, buffer);
@@ -732,15 +789,17 @@ public class Metrics implements Serializable, Cloneable {
                 // Make sure we're not dealing with the 0 think time case.
                 // We cannot check a deviation on 0 think time.
                 if (driver.operations[i].cycle.cycleType == CycleType.CYCLETIME
-                        || tavg > 0.001d)
-                    passDelay = (Math.abs(avg - tavg)/tavg <=
+                        || tavg > 0.001d) {
+					passDelay = (Math.abs(avg - tavg)/tavg <=
                             driver.operations[i].cycle.cycleDeviation /100d);
+				}
 
                 space(16, buffer);
                 buffer.append("<passed>").append(passDelay).
                         append("</passed>\n");
-                if (!passDelay)
-                    success = false;
+                if (!passDelay) {
+					success = false;
+				}
             } else {
                 space(16, buffer).append("<targetedAvg/>\n");
                 space(16, buffer).append("<actualAvg/>\n");
@@ -763,18 +822,21 @@ public class Metrics implements Serializable, Cloneable {
                             element.description).append("</description>\n");
                     space(16, buffer).append("<result>").append(element.result).
                             append("</result>\n");
-                    if (element.target != null)
-                        space(16, buffer).append("<target>").append(
+                    if (element.target != null) {
+						space(16, buffer).append("<target>").append(
                                 element.target).append("</target>\n");
-                    if (element.allowedDeviation != null)
-                        space(16, buffer).append("<allowedDeviation>").
+					}
+                    if (element.allowedDeviation != null) {
+						space(16, buffer).append("<allowedDeviation>").
                                 append(element.allowedDeviation).
                                 append("</allowedDeviation>\n");
+					}
                     if (element.passed != null) {
                         space(16, buffer).append("<passed>").append(element.
                                 passed.booleanValue()).append("</passed>\n");
-                        if (!element.passed.booleanValue())
-                            success = false;
+                        if (!element.passed.booleanValue()) {
+							success = false;
+						}
                     }
                     space(12, buffer).append("</stat>\n");
                 }
@@ -785,9 +847,10 @@ public class Metrics implements Serializable, Cloneable {
         space(4, buffer).append("</driverSummary>\n");
 
         // Go back and correct the driver-level pass/fail if not success
-        if (!success)
-            buffer.replace(passStrOffset, passStrOffset + "true".length(),
+        if (!success) {
+			buffer.replace(passStrOffset, passStrOffset + "true".length(),
                     "false");
+		}
 
         return success;
     }
@@ -820,7 +883,8 @@ public class Metrics implements Serializable, Cloneable {
                 targetedDelayHist);
     }
 
-    private void printGraph(StringBuilder b, String label, double unit,
+    @SuppressWarnings("boxing")
+	private void printGraph(StringBuilder b, String label, double unit,
                             String unitFormat, String dataFormat,
                             int[][] rawGraph, double divider) {
 
@@ -830,8 +894,9 @@ public class Metrics implements Serializable, Cloneable {
         // The graph buckets are sized according to the run time.
         // So we'll scan only if the run is cycleControl.
         if (RunInfo.getInstance().driverConfigs[driverType].
-                runControl == RunControl.CYCLES)
-            bucketLimit = getBucketLimit(rawGraph);
+                runControl == RunControl.CYCLES) {
+			bucketLimit = getBucketLimit(rawGraph);
+		}
 
         // Data header
         b.append("<stat_group name=\"").append(driverName).append(' ').
@@ -841,12 +906,13 @@ public class Metrics implements Serializable, Cloneable {
         Formatter formatter = new Formatter(b);
 
         // The actual data
-        for (int i = 0; i < bucketLimit; i++)
-            for (int j = 0; j < txTypes; j++) {
+        for (int i = 0; i < bucketLimit; i++) {
+			for (int j = 0; j < txTypes; j++) {
                 b.append("<cell>");
                 formatter.format(dataFormat, rawGraph[j][i]/divider);
                 b.append("</cell>\n");
             }
+		}
 
         b.append("</cell_list>\n");
 
@@ -854,21 +920,24 @@ public class Metrics implements Serializable, Cloneable {
         b.append("<dim group=\"0\" level=\"0\">\n");
 
         // The legends
-        for (int i = 0; i < txTypes; i++)
-            b.append("<dimval>").append(txNames[i]).append("</dimval>\n");
+        for (int i = 0; i < txTypes; i++) {
+			b.append("<dimval>").append(txNames[i]).append("</dimval>\n");
+		}
 
         b.append("</dim>\n");
 
         // The X Axis
         b.append("<dim group=\"1\" level=\"1\" name=\"Time (s)\">\n");
 
-        for (int i = 0; i < bucketLimit; i++)
-            formatter.format("<dimval>" + unitFormat + "</dimval>\n", unit * i);
+        for (int i = 0; i < bucketLimit; i++) {
+			formatter.format("<dimval>" + unitFormat + "</dimval>\n", unit * i);
+		}
 
         b.append("</dim>\n</dim_list>\n</stat_group>\n");
     }
 
-    private void printGraph(StringBuilder b, String label, double unit,
+    @SuppressWarnings("boxing")
+	private void printGraph(StringBuilder b, String label, double unit,
                             String unitFormat, String dataFormat,
                             int[][] rawGraph, int[][] divider, double divider2){
 
@@ -878,8 +947,9 @@ public class Metrics implements Serializable, Cloneable {
         // The graph buckets are sized according to the run time.
         // So we'll scan only if the run is cycleControl.
         if (RunInfo.getInstance().driverConfigs[driverType].
-                runControl == RunControl.CYCLES)
-            bucketLimit = getBucketLimit(rawGraph);
+                runControl == RunControl.CYCLES) {
+			bucketLimit = getBucketLimit(rawGraph);
+		}
 
         // Data header
         b.append("<stat_group name=\"").append(driverName).append(' ').
@@ -889,15 +959,17 @@ public class Metrics implements Serializable, Cloneable {
         Formatter formatter = new Formatter(b);
 
         // The actual data
-        for (int i = 0; i < bucketLimit; i++)
-            for (int j = 0; j < txTypes; j++) {
+        for (int i = 0; i < bucketLimit; i++) {
+			for (int j = 0; j < txTypes; j++) {
                 double data = 0d;
-                if (divider[j][i] != 0)
-                    data = rawGraph[j][i] / (divider2 * divider[j][i]);
+                if (divider[j][i] != 0) {
+					data = rawGraph[j][i] / (divider2 * divider[j][i]);
+				}
                 b.append("<cell>");
                 formatter.format(dataFormat, data);
                 b.append("</cell>\n");
             }
+		}
 
         b.append("</cell_list>\n");
 
@@ -905,16 +977,18 @@ public class Metrics implements Serializable, Cloneable {
         b.append("<dim group=\"0\" level=\"0\">\n");
 
         // The legends
-        for (int i = 0; i < txTypes; i++)
-            b.append("<dimval>").append(txNames[i]).append("</dimval>\n");
+        for (int i = 0; i < txTypes; i++) {
+			b.append("<dimval>").append(txNames[i]).append("</dimval>\n");
+		}
 
         b.append("</dim>\n");
 
         // The X Axis
         b.append("<dim group=\"1\" level=\"1\" name=\"Time (s)\">\n");
 
-        for (int i = 0; i < bucketLimit; i++)
-            formatter.format("<dimval>" + unitFormat + "</dimval>\n", unit * i);
+        for (int i = 0; i < bucketLimit; i++) {
+			formatter.format("<dimval>" + unitFormat + "</dimval>\n", unit * i);
+		}
 
         b.append("</dim>\n</dim_list>\n</stat_group>\n");
     }
@@ -928,17 +1002,22 @@ public class Metrics implements Serializable, Cloneable {
         int maxBucketId = data[0].length - 1;
 
         bucketScanLoop:
-        for (; maxBucketId >= 0; maxBucketId--)
-            for (int i = 0; i < data.length; i++)
-                if (data[i][maxBucketId] != 0)
-                    break bucketScanLoop;
+        for (; maxBucketId >= 0; maxBucketId--) {
+			for (int i = 0; i < data.length; i++) {
+				if (data[i][maxBucketId] != 0) {
+					break bucketScanLoop;
+				}
+			}
+		}
         ++maxBucketId;
-        if (maxBucketId < data[0].length)
-            ++maxBucketId; // Include one row of zeros if not last row.
+        if (maxBucketId < data[0].length) {
+			++maxBucketId; // Include one row of zeros if not last row.
+		}
         return maxBucketId;
     }
 
-    private void printHistogram(StringBuilder b, String label, double unit,
+    @SuppressWarnings("boxing")
+	private void printHistogram(StringBuilder b, String label, double unit,
                                 String unitFormat, int[][] histogram) {
 
         // First, check the histogram and do not output unused buckets.
@@ -950,9 +1029,11 @@ public class Metrics implements Serializable, Cloneable {
         b.append("<cell_list>\n");
 
         // The actual data
-        for (int i = 0; i < bucketLimit; i++)
-            for (int j = 0; j < txTypes; j++)
-                b.append("<cell>").append(histogram[j][i]).append("</cell>\n");
+        for (int i = 0; i < bucketLimit; i++) {
+			for (int j = 0; j < txTypes; j++) {
+				b.append("<cell>").append(histogram[j][i]).append("</cell>\n");
+			}
+		}
 
         b.append("</cell_list>\n");
 
@@ -960,8 +1041,9 @@ public class Metrics implements Serializable, Cloneable {
         b.append("<dim group=\"0\" level=\"0\">\n");
 
         // The legends
-        for (int i = 0; i < txTypes; i++)
-            b.append("<dimval>").append(txNames[i]).append("</dimval>\n");
+        for (int i = 0; i < txTypes; i++) {
+			b.append("<dimval>").append(txNames[i]).append("</dimval>\n");
+		}
 
         b.append("</dim>\n");
 
@@ -969,13 +1051,17 @@ public class Metrics implements Serializable, Cloneable {
         b.append("<dim group=\"1\" level=\"1\" name=\"Time (s)\">\n");
 
         Formatter formatter = new Formatter(b);
-        for (int i = 0; i < bucketLimit; i++)
-            formatter.format("<dimval>" + unitFormat + "</dimval>\n", unit * i);
+        for (int i = 0; i < bucketLimit; i++) {
+			formatter.format("<dimval>" + unitFormat + "</dimval>\n", unit * i);
+		}
 
         b.append("</dim>\n</dim_list>\n</stat_group>\n");
     }
 
     // TODO: Remove the old XML generation.
+    /**
+     * @param b
+     */
     public void printDetailXan(StringBuilder b)  {
         printGraphXan(b, "Throughput", graphBucketSize / 1000d,
                 "%.0f", "%.2f", thruputGraph, graphBucketSize / 1000d);
@@ -994,7 +1080,8 @@ public class Metrics implements Serializable, Cloneable {
                 targetedDelayHist);
     }
 
-    private void printGraphXan(StringBuilder b, String label, double unit,
+    @SuppressWarnings("boxing")
+	private void printGraphXan(StringBuilder b, String label, double unit,
                             String unitFormat, String dataFormat,
                             int[][] rawGraph, double divider) {
 
@@ -1004,8 +1091,9 @@ public class Metrics implements Serializable, Cloneable {
         // The graph buckets are sized according to the run time.
         // So we'll scan only if the run is cycleControl.
         if (RunInfo.getInstance().driverConfigs[driverType].
-                runControl == RunControl.CYCLES)
-            bucketLimit = getBucketLimit(rawGraph);
+                runControl == RunControl.CYCLES) {
+			bucketLimit = getBucketLimit(rawGraph);
+		}
 
         // Data header
         b.append("Section: ").append(driverName).append(' ').append(label).
@@ -1016,8 +1104,9 @@ public class Metrics implements Serializable, Cloneable {
 
         // The X axis headers and column headers, or legends
         table.setHeader(0, "Time (s)");
-        for (int j = 0; j < txTypes; j++)
-            table.setHeader(j + 1, txNames[j]);
+        for (int j = 0; j < txTypes; j++) {
+			table.setHeader(j + 1, txNames[j]);
+		}
 
         // The X axis and the data
         for (int i = 0; i < bucketLimit; i++) {
@@ -1034,7 +1123,8 @@ public class Metrics implements Serializable, Cloneable {
         b.append('\n');
     }
 
-    private void printGraphXan(StringBuilder b, String label, double unit,
+    @SuppressWarnings("boxing")
+	private void printGraphXan(StringBuilder b, String label, double unit,
                             String unitFormat, String dataFormat,
                             int[][] rawGraph, int[][] divider, double divider2){
 
@@ -1044,8 +1134,9 @@ public class Metrics implements Serializable, Cloneable {
         // The graph buckets are sized according to the run time.
         // So we'll scan only if the run is cycleControl.
         if (RunInfo.getInstance().driverConfigs[driverType].
-                runControl == RunControl.CYCLES)
-            bucketLimit = getBucketLimit(rawGraph);
+                runControl == RunControl.CYCLES) {
+			bucketLimit = getBucketLimit(rawGraph);
+		}
 
         // Data header
         b.append("Section: ").append(driverName).append(' ').append(label).
@@ -1056,8 +1147,9 @@ public class Metrics implements Serializable, Cloneable {
 
         // The X axis headers and column headers, or legends
         table.setHeader(0, "Time (s)");
-        for (int j = 0; j < txTypes; j++)
-            table.setHeader(j + 1, txNames[j]);
+        for (int j = 0; j < txTypes; j++) {
+			table.setHeader(j + 1, txNames[j]);
+		}
 
         // The X axis and the data
         for (int i = 0; i < bucketLimit; i++) {
@@ -1067,8 +1159,9 @@ public class Metrics implements Serializable, Cloneable {
             // The data
             for (int j = 0; j < txTypes; j++) {
                 double data = 0d;
-                if (divider[j][i] != 0)
-                    data = rawGraph[j][i] / (divider2 * divider[j][i]);
+                if (divider[j][i] != 0) {
+					data = rawGraph[j][i] / (divider2 * divider[j][i]);
+				}
                 table.setField(i, j + 1, String.format(dataFormat, data));
             }
         }
@@ -1076,7 +1169,8 @@ public class Metrics implements Serializable, Cloneable {
         b.append('\n');
     }
 
-    private void printHistogramXan(StringBuilder b, String label, double unit,
+    @SuppressWarnings("boxing")
+	private void printHistogramXan(StringBuilder b, String label, double unit,
                                 String unitFormat, int[][] histogram) {
 
         // First, check the histogram and do not output unused buckets.
@@ -1091,8 +1185,9 @@ public class Metrics implements Serializable, Cloneable {
 
         // The X axis headers and column headers, or legends
         table.setHeader(0, "Time (s)");
-        for (int j = 0; j < txTypes; j++)
-            table.setHeader(j + 1, txNames[j]);
+        for (int j = 0; j < txTypes; j++) {
+			table.setHeader(j + 1, txNames[j]);
+		}
 
         // The X axis and the data
         for (int i = 0; i < bucketLimit; i++) {
@@ -1100,16 +1195,18 @@ public class Metrics implements Serializable, Cloneable {
             table.setField(i, 0, String.format(unitFormat, unit * i));
 
             // The data
-            for (int j = 0; j < txTypes; j++)
-                table.setField(i, j + 1, String.valueOf(histogram[j][i]));
+            for (int j = 0; j < txTypes; j++) {
+				table.setField(i, j + 1, String.valueOf(histogram[j][i]));
+			}
         }
         table.format(b);
         b.append('\n');
     }
 
     static StringBuilder space(int space, StringBuilder buffer) {
-        for (int i = 0; i < space; i++)
-            buffer.append(' ');
+        for (int i = 0; i < space; i++) {
+			buffer.append(' ');
+		}
         return buffer;
     }
 }

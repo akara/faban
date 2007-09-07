@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TimeThread.java,v 1.5 2006/12/08 05:15:54 akara Exp $
+ * $Id: TimeThread.java,v 1.6 2007/09/07 15:49:05 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -41,7 +41,8 @@ public class TimeThread extends AgentThread {
      * Allocates and initializes the timing structures which is specific
      * to the pseudo-thread dimensions.
      */
-    void initTimes() {
+    @Override
+	void initTimes() {
         delayTime = new int[1];
         startTime = new int[1];
         endTime = new int[1];
@@ -65,7 +66,8 @@ public class TimeThread extends AgentThread {
    	 * which is returned to the Agent via the getResult() method.
      * @see Metrics
      */
-    void doRun() {
+    @Override
+	void doRun() {
 
         driverContext = new DriverContext(this, timer);
 
@@ -117,8 +119,9 @@ public class TimeThread extends AgentThread {
             // Save the previous operation
             previousOperation[mixId] = currentOperation;
             BenchmarkDefinition.Operation previousOp = null;
-            if (previousOperation[mixId] >= 0)
-                previousOp = driverConfig.operations[currentOperation];
+            if (previousOperation[mixId] >= 0) {
+				previousOp = driverConfig.operations[currentOperation];
+			}
 
             // Select the operation
             currentOperation = selector[0].select();
@@ -132,8 +135,9 @@ public class TimeThread extends AgentThread {
             // endRampDown is only valid if start time is set.
             // If the start time of next tx is beyond the end
             // of the ramp down, just stop right here.
-            if (startTimeSet && invokeTime >= endRampDown)
-                break driverLoop;
+            if (startTimeSet && invokeTime >= endRampDown) {
+				break driverLoop;
+			}
 
             driverContext.setInvokeTime(invokeTime);
 
@@ -165,17 +169,16 @@ public class TimeThread extends AgentThread {
                         metrics.recordError();
                         logError(cause, op);
                         continue driverLoop;
-                    } else {
-                        // Too late, we'll need to use the real time
-                        // for both invoke and respond time.
-                        timingInfo.invokeTime = timer.getTime();
-                        timingInfo.respondTime = timingInfo.invokeTime;
-                        checkRamp();
-                        metrics.recordError();
-                        logError(cause, op);
-                        // The delay time is invalid,
-                        // we cannot record in this case.
                     }
+					// Too late, we'll need to use the real time
+					// for both invoke and respond time.
+					timingInfo.invokeTime = timer.getTime();
+					timingInfo.respondTime = timingInfo.invokeTime;
+					checkRamp();
+					metrics.recordError();
+					logError(cause, op);
+					// The delay time is invalid,
+					// we cannot record in this case.
                 } else if (timingInfo.respondTime == -1) {
                     timingInfo.respondTime = timer.getTime();
                     checkRamp();
@@ -198,8 +201,9 @@ public class TimeThread extends AgentThread {
             startTime[mixId] = driverContext.timingInfo.invokeTime;
             endTime[mixId] = driverContext.timingInfo.respondTime;
 
-            if (startTimeSet && endTime[mixId] >= endRampDown)
-                break driverLoop;
+            if (startTimeSet && endTime[mixId] >= endRampDown) {
+				break driverLoop;
+			}
         }
         logger.fine(name + ": End of run.");
     }
@@ -208,7 +212,8 @@ public class TimeThread extends AgentThread {
      * Checks whether the last operation is in the ramp-up or ramp-down or
      * not. Updates the inRamp parameter accordingly.
      */
-    void checkRamp() {
+    @Override
+	void checkRamp() {
         inRamp = !isSteadyState(driverContext.timingInfo.invokeTime,
                                 driverContext.timingInfo.respondTime);
     }
@@ -219,11 +224,13 @@ public class TimeThread extends AgentThread {
      * not to change run control parameters. This method only reads the stats.
      * @return True if the last operation is in steady state, false otherwise.
      */
-    boolean isSteadyState() {
-        if (driverContext.timingInfo.respondTime == -1)
-            throw new FatalException("isTxSteadyState called before response " +
+    @Override
+	boolean isSteadyState() {
+        if (driverContext.timingInfo.respondTime == -1) {
+			throw new FatalException("isTxSteadyState called before response " +
                     "time capture. Cannot determine tx in steady state or " +
                     "not. This is a bug in the driver code.");
+		}
 
         return isSteadyState(driverContext.timingInfo.invokeTime,
                                 driverContext.timingInfo.respondTime);
@@ -238,7 +245,8 @@ public class TimeThread extends AgentThread {
      * @param end   The end of a time span
      * @return true if this time span is in steady state, false otherwise.
      */
-    boolean isSteadyState(int start, int end) {
+    @Override
+	boolean isSteadyState(int start, int end) {
         return startTimeSet && start >= endRampUp && end < endStdyState;
     }
 }

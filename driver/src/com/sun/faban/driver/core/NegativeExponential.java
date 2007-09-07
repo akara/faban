@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: NegativeExponential.java,v 1.2 2006/06/29 19:38:37 akara Exp $
+ * $Id: NegativeExponential.java,v 1.3 2007/09/07 15:49:05 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -36,7 +36,11 @@ import java.lang.annotation.Annotation;
  */
 public class NegativeExponential extends Cycle {
 
-    int cycleMean;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	int cycleMean;
     int cycleMax;
 
     /**
@@ -44,27 +48,33 @@ public class NegativeExponential extends Cycle {
      * @param a The annotation
      * @throws DefinitionException If there is an error in the annotation
      */
-    public void init(Annotation a) throws DefinitionException {
+    @Override
+	public void init(Annotation a) throws DefinitionException {
         com.sun.faban.driver.NegativeExponential cycleDef =
                 (com.sun.faban.driver.NegativeExponential) a;
         cycleType = cycleDef.cycleType();
         cycleDeviation = cycleDef.cycleDeviation();
         cycleMean = cycleDef.cycleMean();
         cycleMax = cycleDef.cycleMax();
-        if (cycleMax == -1)
-            cycleMax = 5 * cycleMean;
+        if (cycleMax == -1) {
+			cycleMax = 5 * cycleMean;
+		}
 
         // Now check parameters for validity.
-        if (cycleMean < 0)
-            throw new DefinitionException("@NegativeExponential cycleMean < 0");
-        if (cycleMax < 0)
-            throw new DefinitionException("@NegativeExponential cycleMax < 0");
-        if (cycleMean > cycleMax)
-            throw new DefinitionException(
+        if (cycleMean < 0) {
+			throw new DefinitionException("@NegativeExponential cycleMean < 0");
+		}
+        if (cycleMax < 0) {
+			throw new DefinitionException("@NegativeExponential cycleMax < 0");
+		}
+        if (cycleMean > cycleMax) {
+			throw new DefinitionException(
                     "@NegativeExponential cycleMean > cycleMax");
-        if (cycleMax == 0 && cycleType == CycleType.CYCLETIME)
-            throw new DefinitionException(
+		}
+        if (cycleMax == 0 && cycleType == CycleType.CYCLETIME) {
+			throw new DefinitionException(
                     "@NegativeExponential CYCLETIME cycleMax cannot be 0");
+		}
 
     }
 
@@ -76,15 +86,18 @@ public class NegativeExponential extends Cycle {
      * @param random The random number generator used
      * @return The delay time
      */
-    public int getDelay(Random random) {
+    @Override
+	public int getDelay(Random random) {
         int delay = 0;
         if (cycleMean > 0) {
             double x = random.drandom(0.0, 1.0);
-            if (x == 0)
-                x = 0.05;
+            if (x == 0) {
+				x = 0.05;
+			}
             delay = (int)(cycleMean * -Math.log(x));
-            if (delay > cycleMax)
-                delay = cycleMax;
+            if (delay > cycleMax) {
+				delay = cycleMax;
+			}
         }
         return delay;
     }
@@ -94,9 +107,11 @@ public class NegativeExponential extends Cycle {
      *
      * @return The max reasonable delay to be presented in the output histogram.
      */
-    public double getHistogramMax() {
-        if (cycleMax > 0)
-            return cycleMax;
+    @Override
+	public double getHistogramMax() {
+        if (cycleMax > 0) {
+			return cycleMax;
+		}
 
         // We know it takes very little time to prepare the data to submit.
         // This case can only happen for think time. Giving a histogram

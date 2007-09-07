@@ -17,11 +17,30 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MasterImpl.java,v 1.12 2007/08/20 19:49:07 noahcampbell Exp $
+ * $Id: MasterImpl.java,v 1.13 2007/09/07 15:49:05 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver.core;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.rmi.ConnectException;
+import java.rmi.NotBoundException;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+import java.util.Date;
+import java.util.Formatter;
+import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 import com.sun.faban.common.Registry;
 import com.sun.faban.common.RegistryLocator;
@@ -30,22 +49,6 @@ import com.sun.faban.driver.FatalException;
 import com.sun.faban.driver.RunControl;
 import com.sun.faban.driver.util.PlotServer;
 import com.sun.faban.driver.util.Timer;
-
-import java.io.*;
-import java.rmi.ConnectException;
-import java.rmi.NotBoundException;
-import java.rmi.Remote;
-import java.rmi.RemoteException;
-import java.rmi.server.UnicastRemoteObject;
-import java.util.Date;
-import java.util.Formatter;
-import java.util.List;
-import java.util.TimerTask;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.FileHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
 
 /**
  * This is the main Master class for running a Faban driver.
@@ -62,7 +65,12 @@ import java.util.logging.SimpleFormatter;
  */
 public class MasterImpl extends UnicastRemoteObject implements Master {
 
-    // This field is a legal requirement and serves no other purpose.
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	// This field is a legal requirement and serves no other purpose.
     static final String COPYRIGHT =
             "Copyright \251 2006 Sun Microsystems, Inc., 4150 Network Circle, " +
             "Santa Clara, California 95054, U.S.A. All rights reserved.\n" +
@@ -142,7 +150,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
     private boolean runAborted = false;
 
     protected Object stateLock = new Object();
-    protected int state = MasterState.CONFIGURING;
+    protected MasterState state = MasterState.CONFIGURING;
 
     protected java.util.Timer scheduler;
 
@@ -180,15 +188,17 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         // In that case the faban.outputdir.unique property must be set to true.
         boolean uniqueDir = false;
         String uniqueDirString = System.getProperty("faban.outputdir.unique");
-        if (uniqueDirString != null)
-            uniqueDir = RunInfo.ConfigurationReader.
+        if (uniqueDirString != null) {
+			uniqueDir = RunInfo.ConfigurationReader.
                     relaxedParseBoolean(uniqueDirString);
+		}
 
         if (uniqueDir) {
             // Ensure separator is not at end.
-            if (runInfo.resultsDir.endsWith(fs))
-                runInfo.resultsDir = runInfo.resultsDir.substring(0,
+            if (runInfo.resultsDir.endsWith(fs)) {
+				runInfo.resultsDir = runInfo.resultsDir.substring(0,
                         runInfo.resultsDir.length() - fs.length());
+			}
 
             // Then take the innermost directory name.
             int idx = runInfo.resultsDir.lastIndexOf(fs);
@@ -207,16 +217,19 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         logger.info("RunID for this run is : " + runInfo.runId);
 
         String runOutputDir = runInfo.resultsDir;
-        if (!uniqueDir)
-            runOutputDir = runInfo.resultsDir + fs + runInfo.runId;
+        if (!uniqueDir) {
+			runOutputDir = runInfo.resultsDir + fs + runInfo.runId;
+		}
 
         // make a new directory for the run.
         File runDirFile = null;
         runDirFile = new File(runOutputDir);
-        if ( !runDirFile.exists())
-            if ( !runDirFile.mkdirs())
-                throw new IOException("Could not create the new " +
+        if ( !runDirFile.exists()) {
+			if ( !runDirFile.mkdirs()) {
+				throw new IOException("Could not create the new " +
                         "Run Directory: " + runOutputDir);
+			}
+		}
 
         logger.info("Output directory for this run is : " + runOutputDir);
         runInfo.resultsDir = runOutputDir;
@@ -233,8 +246,9 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         try {
             int agentCnt = configure();
             if (agentCnt > 0) {
-                for (int i = 0; i < benchDef.drivers.length && !runAborted; i++)
-                    configureAgents(i);
+                for (int i = 0; i < benchDef.drivers.length && !runAborted; i++) {
+					configureAgents(i);
+				}
                 logger.config("Detected " + agentCnt + " Remote Agents.");
             } else {
                 configureLocal();
@@ -246,8 +260,9 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         } catch (RemoteException e) {
             Throwable t = e.getCause();
             Throwable tt;
-            while ((tt = t.getCause()) != null)
-                t = tt;
+            while ((tt = t.getCause()) != null) {
+				t = tt;
+			}
             logger.log(Level.WARNING,
                     "Error acccessing registry or agent!", t);
             configureLocal();
@@ -265,13 +280,16 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
      * may be called more than once from many processes.
      *
      * @param increment Whether the file shall be incremented or not
+     * @return runId
+     * @throws IOException 
      */
     public String getRunID(boolean increment) throws IOException{
         int runID = -1;
 
         String seqDir = System.getProperty("faban.sequence.path");
-        if (seqDir == null)
-            seqDir = System.getProperty("user.home");
+        if (seqDir == null) {
+			seqDir = System.getProperty("user.home");
+		}
 
         String seqFileName = seqDir + fs +
                 benchDef.name.toLowerCase() + ".seq";
@@ -299,16 +317,18 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
             }
             if (length > 0) {
                 // Strip off the newlines
-                if (buffer[length - 1] == '\n')
-                    --length;
-                if (buffer[length - 1] == '\r')
-                    --length;
+                if (buffer[length - 1] == '\n') {
+					--length;
+				}
+                if (buffer[length - 1] == '\r') {
+					--length;
+				}
                 runID = Integer.parseInt(new String(buffer, 0, length));
             }
         }
         if (runID == -1) {
-            if (increment) // Only create file in case we increment it
-                try {
+            if (increment) {
+				try {
                     seqFile.createNewFile();
                 }
                 catch (IOException e) {
@@ -316,11 +336,12 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
                             "file " + seqFileName + '.', e);
                     throw e;
                 }
+			}
             runID = 1;
         }
         // Update the runid in the sequence file
-        if (increment)
-            try {
+        if (increment) {
+			try {
                 FileWriter fileOut = new FileWriter(seqFileName);
                 fileOut.write(Integer.toString(runID + 1));
                 fileOut.close();
@@ -330,6 +351,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
                         + seqFileName + '.', e);
                 throw e;
             }
+		}
         return Integer.toString(runID);
     }
 
@@ -377,9 +399,10 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
                 // be some others sneaking in...
                 if (refs == null || (agentCnt = refs.length) == 0) {
                     // Hmmm, for some reason the agents didn't get started
-                    if (runInfo.driverConfigs[i].numAgents > 0)
-                        logger.warning("Cannot find " + agentName + "s. Not " +
+                    if (runInfo.driverConfigs[i].numAgents > 0) {
+						logger.warning("Cannot find " + agentName + "s. Not " +
                                 "starting " + benchDef.drivers[i].name + '.');
+					}
                     runInfo.driverConfigs[i].numAgents = 0;
                     continue;
                 }
@@ -389,12 +412,13 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
                         logger.warning("Configured " + runInfo.driverConfigs[i].
                                 numAgents + ' ' + benchDef.drivers[i].name +
                                 "Agents but found " + agentCnt + '.');
-                        if (agentCnt > runInfo.driverConfigs[i].numAgents)
-                            logger.warning("Some unkown agents managed to " +
+                        if (agentCnt > runInfo.driverConfigs[i].numAgents) {
+							logger.warning("Some unkown agents managed to " +
                                     "sneak in! We'll use'em!");
-                        else
-                            logger.warning("Some agents surely didn't get " +
+						} else {
+							logger.warning("Some agents surely didn't get " +
                                    "started. We'll just use the ones we have.");
+						}
                     }
 
                     // Now we need to adjust the runInfo according to realty
@@ -403,13 +427,15 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 
                 // Now assign the agent refs to the global agent array.
                 agentRefs[i] = new Agent[agentCnt];
-                for (int j = 0; j < agentCnt; j++)
-                    agentRefs[i][j] = (Agent) refs[j];
+                for (int j = 0; j < agentCnt; j++) {
+					agentRefs[i][j] = (Agent) refs[j];
+				}
 
                 // We need to calculate the thread counts
-                if (runInfo.driverConfigs[i].numThreads == -1)
-                    runInfo.driverConfigs[i].numThreads = runInfo.scale *
+                if (runInfo.driverConfigs[i].numThreads == -1) {
+					runInfo.driverConfigs[i].numThreads = runInfo.scale *
                             benchDef.drivers[i].threadPerScale;
+				}
                 agentThreads[i] = runInfo.driverConfigs[i].numThreads /
                         runInfo.driverConfigs[i].numAgents;
                 remainderThreads[i] = runInfo.driverConfigs[i].numThreads -
@@ -424,8 +450,8 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
     protected void configureLocal() throws Exception {
         int driverToRun = -1;
         if (runInfo.driverConfigs.length > 1) {
-            for (int i = 0; i < runInfo.driverConfigs.length; i++)
-                if (runInfo.driverConfigs[i].numAgents == 1) {
+            for (int i = 0; i < runInfo.driverConfigs.length; i++) {
+				if (runInfo.driverConfigs[i].numAgents == 1) {
                     if (driverToRun == -1) {
                         driverToRun = i;
                     } else {
@@ -441,21 +467,24 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
                             runInfo.driverConfigs[i].numAgents + " agents.";
                     throw new ConfigurationException(msg);
                 }
+			}
         } else {
             driverToRun = 0;
             runInfo.driverConfigs[0].numAgents = 1;
         }
 
-        if (driverToRun < 0)
-            throw new ConfigurationException("No driver configured to run.");
+        if (driverToRun < 0) {
+			throw new ConfigurationException("No driver configured to run.");
+		}
 
         logger.config("Starting single, in-process " +
                       benchDef.drivers[driverToRun].name + "Agent.");
 
         // We need to calculate the thread counts
-        if (runInfo.driverConfigs[driverToRun].numThreads == -1)
-            runInfo.driverConfigs[driverToRun].numThreads = runInfo.
+        if (runInfo.driverConfigs[driverToRun].numThreads == -1) {
+			runInfo.driverConfigs[driverToRun].numThreads = runInfo.
                     scale * benchDef.drivers[driverToRun].threadPerScale;
+		}
         agentThreads[driverToRun] =
                 runInfo.driverConfigs[driverToRun].numThreads;
 
@@ -471,7 +500,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 
         agentInfo.threads = this.agentThreads[driverToRun];
         agentInfo.agentScale = runInfo.scale;
-        ((Agent) agentRefs[driverToRun][0]).configure(this, runInfo,
+        agentRefs[driverToRun][0].configure(this, runInfo,
                 driverToRun, timer);
     }
 
@@ -540,8 +569,9 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         StatsWriter sw = null;
 
         // Now wait for all threads to start if it is parallel.
-        if (runInfo.parallelAgentThreadStart)
-            waitForThreadStart();
+        if (runInfo.parallelAgentThreadStart) {
+			waitForThreadStart();
+		}
 
         // Leave plenty of time to notify all agents of the start time.
         setStartTime(estimateCommsTime() + timer.getTime());
@@ -558,6 +588,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
             try {
                 Thread.sleep(10000); // But wait for some cleanup before we do
             } catch (InterruptedException e) {
+            	logger.log(Level.FINE, e.getMessage(), e);
             }
             throw new FatalException("Run Aborted.");
         }
@@ -567,6 +598,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         try {
             Thread.sleep(sleepTime);
         } catch (InterruptedException ie) {
+        	logger.log(Level.FINE, ie.getMessage(), ie);
         }
         // At this time each agent will start the run automatically.
 
@@ -583,17 +615,23 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
             changeState(MasterState.RAMPUP);
             try {
                 Thread.sleep(runInfo.rampUp * 1000);
-            } catch (InterruptedException ie) {}
+            } catch (InterruptedException ie) {
+            	logger.log(Level.FINE, ie.getMessage(), ie);
+            }
             changeState(MasterState.STEADYSTATE);
             logger.info("Ramp up completed");
             try {
                 Thread.sleep(runInfo.stdyState * 1000);
-            } catch (InterruptedException ie) {}
+            } catch (InterruptedException ie) {
+            	logger.log(Level.FINE, ie.getMessage(), ie);
+            }
             changeState(MasterState.RAMPDOWN);
             logger.info("Steady state completed");
             try {
                 Thread.sleep(runInfo.rampDown * 1000);
-            } catch (InterruptedException ie) {}
+            } catch (InterruptedException ie) {
+            	logger.log(Level.FINE, ie.getMessage(), ie);
+            }
             logger.info("Ramp down completed");
 
             // Schedule a forced termination 2 minutes from here where we start
@@ -602,21 +640,26 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 
                         Thread mainThread = Thread.currentThread();
 
-                        public void run() {
-                            for (int i = 0; i < agentRefs.length; i++)
-                                if (agentRefs[i] != null)
-                                    // Ensure we terminate the first agent last
+                        @Override
+						public void run() {
+                            for (int i = 0; i < agentRefs.length; i++) {
+								if (agentRefs[i] != null) {
+									// Ensure we terminate the first agent last
                                     for (int j = agentRefs[i].length - 1;
-                                         j >= 0; j--)
-                                        try {
+                                         j >= 0; j--) {
+										try {
                                             agentRefs[i][j].terminate();
                                         } catch (RemoteException e) {
                                             logger.log(Level.SEVERE,
                                                     "Error checking thread " +
                                                     "starts.", e);
                                         }
-                            if (joining.get())
-                                mainThread.interrupt();
+									}
+								}
+							}
+                            if (joining.get()) {
+								mainThread.interrupt();
+							}
                         }
                     };
             scheduler.schedule(killAtEnd, 120000);
@@ -633,8 +676,8 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
             if (runInfo.driverConfigs[driverType].numAgents > 0) {
                 Remote refs[] = agentRefs[driverType];
                 // Make sure we join the first agent last
-                for (int i = refs.length - 1; i >= 0; i--)
-                    try {
+                for (int i = refs.length - 1; i >= 0; i--) {
+					try {
                         ((Agent) refs[i]).join();
                     } catch (RemoteException e) {
                         logger.warning("Master: RemoteException got " + e);
@@ -643,9 +686,11 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
                         // If the RemoteException is caused by an interrupt,
                         // we break the loop. This is because killAtEnd is in
                         // effect.
-                        if (Thread.interrupted())
-                            break joinLoop;
+                        if (Thread.interrupted()) {
+							break joinLoop;
+						}
                     }
+				}
             }
         }
         joining.set(false);
@@ -653,14 +698,16 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         // It would be good if we do not have to execute killAtEnd. By now
         // if it's still there in the scheduler it means all the joins work
         // flawlessly.
-        if (killAtEnd != null)
-            killAtEnd.cancel();
+        if (killAtEnd != null) {
+			killAtEnd.cancel();
+		}
 
         /* Gather stats and print report */
         changeState(MasterState.RESULTS);
         Metrics[] results = new Metrics[runInfo.driverConfigs.length];
-        for (int driverType = 0; driverType < results.length; driverType++)
-            results[driverType] = getDriverMetrics(driverType);
+        for (int driverType = 0; driverType < results.length; driverType++) {
+			results[driverType] = getDriverMetrics(driverType);
+		}
 
         generateReports(results);
 
@@ -678,21 +725,26 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
                 refs = agentRefs[driverType];
                 logger.info("Gathering " +
                         benchDef.drivers[driverType].name + "Stats ...");
-                for (int i = 0; i < refs.length; i++)
-                    results[i] = (Metrics) (((Agent) refs[i]).getResults());
+                for (int i = 0; i < refs.length; i++) {
+					results[i] = (Metrics) (((Agent) refs[i]).getResults());
+				}
 
-                for (int i = 0; i < results.length; i++)
-                    if (results[i] != null)
-                        if (result == null)
-                            result = results[i];
-                        else
-                            result.add(results[i]);
+                for (int i = 0; i < results.length; i++) {
+					if (results[i] != null) {
+						if (result == null) {
+							result = results[i];
+						} else {
+							result.add(results[i]);
+						}
+					}
+				}
 
                 // Once we have the metrics, we have to set it's start time
                 // Since this is set after all threads have started, it will
                 // be 0 in all the metrices we receive.
-                if (result != null)
-                    result.startTime =  runInfo.start;
+                if (result != null) {
+					result.startTime =  runInfo.start;
+				}
             }
         } catch (RemoteException re) {
             logger.log(Level.WARNING, "Master: RemoteException got " + re, re);
@@ -703,6 +755,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
     /**
      * Generates the summary and detail report.
      * @param results Array of Metrics objects, one per driver type
+     * @throws IOException 
      */
     public void generateReports(Metrics[] results) throws IOException {
         String runOutputDir = runInfo.resultsDir + fs;
@@ -734,7 +787,8 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
      * @param results The per-driver metrics
      * @return The report as a char sequence
      */
-    private CharSequence createSummaryReport(Metrics[] results) {
+    @SuppressWarnings("boxing")
+	private CharSequence createSummaryReport(Metrics[] results) {
         long startTime = Long.MAX_VALUE;
         long endTime = 0l;
         double metric = 0d;
@@ -749,18 +803,22 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
                         " results, ignoring...");
                 continue;
             }
-            if (results[i].startTime < startTime)
-                startTime = results[i].startTime;
+            if (results[i].startTime < startTime) {
+				startTime = results[i].startTime;
+			}
             long end;
-            if ((end = results[i].startTime + results[i].endTime) > endTime)
-                endTime = end;
-            if (!results[i].printSummary(buffer, benchDef))
-                passed = false;
+            if ((end = results[i].startTime + results[i].endTime) > endTime) {
+				endTime = end;
+			}
+            if (!results[i].printSummary(buffer, benchDef)) {
+				passed = false;
+			}
             metric += results[i].metric;
         }
         String xslPath = System.getProperty("faban.xsl.path", "../../xslt/");
-        if (!xslPath.endsWith("/"))
-            xslPath += '/';
+        if (!xslPath.endsWith("/")) {
+			xslPath += '/';
+		}
         hdrBuffer.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
         hdrBuffer.append("<?xml-stylesheet type=\"text/xsl\" href=\"").
                 append(xslPath).append("summary_report.xsl\"?>\n");
@@ -799,9 +857,11 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         buffer.append("<meta name=\"RunId\" value=\"").append(runInfo.runId).
                 append("\"/>\n");
 
-        for (Metrics result : results)
-            if (result != null)
-                result.printDetail(buffer);
+        for (Metrics result : results) {
+			if (result != null) {
+				result.printDetail(buffer);
+			}
+		}
 
         buffer.append("</stat_doc>\n");
         return buffer;
@@ -816,9 +876,11 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         buffer.append("Name   Value\n");
         buffer.append("-----  -------------\n");
         buffer.append("RunId  ").append(runInfo.runId).append("\n\n\n");
-        for (Metrics result : results)
-            if (result != null)
-                result.printDetailXan(buffer);
+        for (Metrics result : results) {
+			if (result != null) {
+				result.printDetailXan(buffer);
+			}
+		}
 
         return buffer;
     }
@@ -829,7 +891,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 
         PlotServer[] plotServers = new PlotServer[driverTypes];
         Metrics[][] currentResults = new Metrics[driverTypes][];
-        List[] dumpTargets = new List[driverTypes];
+        
         Remote[] refs;
         boolean started = false;
         boolean endFlag = false;
@@ -843,17 +905,23 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 
 
 
+        /**
+         * Construct a {@link StatsWriter}.
+         */
         public StatsWriter() {
-            if (!runInfo.runtimeStatsEnabled)
-                return;
+            if (!runInfo.runtimeStatsEnabled) {
+				return;
+			}
 
             for (int driverId = 0; driverId < driverTypes; driverId ++) {
-                if (runInfo.driverConfigs[driverId].numAgents <= 0)
-                    continue;
+                if (runInfo.driverConfigs[driverId].numAgents <= 0) {
+					continue;
+				}
                 String dumpResource =
                         runInfo.driverConfigs[driverId].runtimeStatsTarget;
-                if (dumpResource == null) // Ignore the driver without resource
-                    continue;
+                if (dumpResource == null) {
+					continue;
+				}
                 if (!started) {
                     logger.info("Starting StatsWriter ...");
                     started = true;
@@ -874,30 +942,27 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
             start();
         }
 
-        public void run() {
+        /**
+         * @see java.lang.Thread#run()
+         */
+        @Override
+		public void run() {
 
             long baseTime = System.currentTimeMillis();
 
             // Loop, sleeping for dumpInterval and then dump stats
             while (! endFlag) {
                 baseTime += dumpInterval;
-                for (;;)
-
-                        /* This algorithm may not be very accurate
-                        * but accurate enough. The more important
-                        * thing is it adjusts for cumulative
-                        * errors/delays caused by other ops,
-                        * network, and environment.
-                        */
-
-                    try {
+                for (;;) {
+					try {
                         // Adjust for time spent in other ops.
                         long sleepTime = baseTime -
                                 System.currentTimeMillis();
 
                         // Only sleep the remaining time.
-                        if (sleepTime > 0)
-                            Thread.sleep(sleepTime);
+                        if (sleepTime > 0) {
+							Thread.sleep(sleepTime);
+						}
 
                         // Break loop when sleep complete
                         // or no time left to sleep.
@@ -906,6 +971,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
                         // If interrupted, just loop
                         // back and sleep the remaining time.
                     }
+				}
 
                 try {
                     // The time range for the next output is between
@@ -916,14 +982,16 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
                         // runtimeStatsTarget for that driver will be null if
                         // a. The numAgents for the driver is 0 or less
                         // b. The runtimeStatsTarget property for the driver is null
-                        if (plotServers[driverId] == null)
-                            continue;
+                        if (plotServers[driverId] == null) {
+							continue;
+						}
                         currentResults[driverId] = new Metrics[
                                 runInfo.driverConfigs[driverId].numAgents];
-                        for (int i = 0; i < agentRefs[driverId].length; i++)
-                            currentResults[driverId][i] = (Metrics)
-                                    (((Agent)agentRefs[driverId][i]).
+                        for (int i = 0; i < agentRefs[driverId].length; i++) {
+							currentResults[driverId][i] = (Metrics)
+                                    (agentRefs[driverId][i].
                                     getResults());
+						}
                         dumpStats(driverId, currentResults[driverId]);
                     }
                     elapsed = newElapsed;
@@ -956,16 +1024,19 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
             int rampUp = runInfo.rampUp/1000; // The rampup in secs
 
             // Get the aggregate tx
-            for (int i = 0; i < agentStats.length; i++)
-                for (int j = 0; j < agentStats[i].txCntStdy.length; j++)
-                    txCnt += agentStats[i].txCntStdy[j];
+            for (int i = 0; i < agentStats.length; i++) {
+				for (int j = 0; j < agentStats[i].txCntStdy.length; j++) {
+					txCnt += agentStats[i].txCntStdy[j];
+				}
+			}
 
             // The immediate tps;
             plotData[0] = (double) (txCnt - prevTxCnt[driverId]) / dumpSecs;
 
             // Calculate the new average tps
-            if (elapsed > rampUp)
-                plotData[1] = (double)txCnt / (elapsed - rampUp);
+            if (elapsed > rampUp) {
+				plotData[1] = (double)txCnt / (elapsed - rampUp);
+			}
 
             try {
                 plotServers[driverId].plot(plotData);
@@ -985,14 +1056,17 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
     /**
      * Obtain the master's time for time adjustment.
      *
+     * TODO: This does not return the master's time, instead it
+     * returns {@link System#currentTimeMillis()}.
+     *
      * @return The current time on the master
-     * @throws java.rmi.RemoteException A network error occurred
      */
-    public long currentTimeMillis() throws RemoteException {
+    @Deprecated
+    public long currentTimeMillis() {
         return System.currentTimeMillis();
     }
 
-    protected void changeState(int newState) {
+    protected void changeState(MasterState newState) {
         synchronized (stateLock) {
             state = newState;
             stateLock.notifyAll();
@@ -1004,7 +1078,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
      * Obtains the current state of the master.
      * @return The current state of the master.
      */
-    public int getCurrentState() {
+    public MasterState getCurrentState() {
         /*
          * State is an int and changed by int assignment which is atomic.
          * So we will get one or the other state, but not something in between.
@@ -1017,15 +1091,16 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
      * Wait for a certain state on the master.
      * @param state
      */
-    public void waitForState(int state) {
+    public void waitForState(MasterState state) {
         synchronized (stateLock) {
-            while (state > this.state)
-                try {
+            while (state.compareTo(this.state) > 0) {
+				try {
                     stateLock.wait();
                 } catch (InterruptedException e) {
                     logger.log(Level.FINE, "Interrupted waiting for state!",
                                e);
                 }
+			}
         }
     }
 
@@ -1035,16 +1110,19 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
      */
     int estimateCommsTime() {
         int agentCount = 0;
-        for (Agent[] agentRef : agentRefs)
-            if (agentRef != null)
-                agentCount += agentRef.length;
+        for (Agent[] agentRef : agentRefs) {
+			if (agentRef != null) {
+				agentCount += agentRef.length;
+			}
+		}
 
         // Given 100ms per agent (more than enough), Calculate the total time.
         int time = 100 * agentCount;
 
         // Minimum of 2 secs.
-        if (time < 2000)
-            time = 2000;
+        if (time < 2000) {
+			time = 2000;
+		}
 
         return time;
     }
@@ -1053,16 +1131,20 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
      * Waits for all threads in all agents to start.
      */
     public void waitForThreadStart() {
-        if (agentRefs != null)
-            for (int i = 0; i < agentRefs.length && !runAborted; i++)
-                if (agentRefs[i] != null)
-                    for (int j = 0; j < agentRefs[i].length; j++)
-                        try {
+        if (agentRefs != null) {
+			for (int i = 0; i < agentRefs.length && !runAborted; i++) {
+				if (agentRefs[i] != null) {
+					for (int j = 0; j < agentRefs[i].length; j++) {
+						try {
                             agentRefs[i][j].waitForThreadStart();
                         } catch (RemoteException e) {
                             logger.log(Level.SEVERE,
                                     "Error checking thread starts.", e);
                         }
+					}
+				}
+			}
+		}
     }
 
     /**
@@ -1072,28 +1154,31 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
     public void setStartTime(int relTime) {
         runInfo.benchStartTime = relTime;
         runInfo.start = relTime + timer.getOffsetTime();
-        if (agentRefs != null)
-            for (int i = 0; i < agentRefs.length && !runAborted; i++)
-                if (agentRefs[i] != null)
-                    for (int j = 0; j < agentRefs[i].length; j++)
-                        try {
+        if (agentRefs != null) {
+			for (int i = 0; i < agentRefs.length && !runAborted; i++) {
+				if (agentRefs[i] != null) {
+					for (int j = 0; j < agentRefs[i].length; j++) {
+						try {
                             agentRefs[i][j].setStartTime(relTime);
                         } catch (RemoteException e) {
                             logger.log(Level.SEVERE,
                                     "Error checking thread starts.", e);
                         }
+					}
+				}
+			}
+		}
     }
 
     /**
      * Notifies the master to terminate the run immediately.
      * This usually happens if there is a fatal error in the run.
-     *
-     * @throws java.rmi.RemoteException A network error occurred.
      */
-    public synchronized void abortRun() throws RemoteException {
+    public synchronized void abortRun() {
 
-        if (runAborted) // We only need to schedule the killAll once.
-            return;
+        if (runAborted) {
+			return;
+		}
 
         runAborted = true;
         changeState(MasterState.ABORTED);
@@ -1102,26 +1187,33 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         // run right here. We need to schedule the termintation
         // asynchronously.
         TimerTask killAll = new TimerTask() {
-            public void run() {
+            @Override
+			public void run() {
                 if (agentRefs != null) {
-                    for (int i = 0; i < agentRefs.length; i++)
-                        if (agentRefs[i] != null)
-                            for (int j = 0; j < agentRefs[i].length; j++)
-                                try {
+                    for (int i = 0; i < agentRefs.length; i++) {
+						if (agentRefs[i] != null) {
+							for (int j = 0; j < agentRefs[i].length; j++) {
+								try {
                                     agentRefs[i][j].kill();
                                 } catch (RemoteException e) {
                                     logger.log(Level.SEVERE,
                                             "Error calling kill on agent.", e);
                                 }
-                    for (int i = 0; i < agentRefs.length; i++)
-                        if (agentRefs[i] != null)
-                            for (int j = 0; j < agentRefs[i].length; j++)
-                                try {
+							}
+						}
+					}
+                    for (int i = 0; i < agentRefs.length; i++) {
+						if (agentRefs[i] != null) {
+							for (int j = 0; j < agentRefs[i].length; j++) {
+								try {
                                     agentRefs[i][j].join();
                                 } catch (RemoteException e) {
                                     logger.log(Level.SEVERE,
                                             "Error calling join on agent.", e);
                                 }
+							}
+						}
+					}
                 }
                 logger.severe("Run aborted. Master terminating!");
                 System.exit(1);
@@ -1161,8 +1253,9 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         }
         try {
             m.runBenchmark();
-            if (normalExit)
-                System.exit(0);
+            if (normalExit) {
+				System.exit(0);
+			}
         } catch (Throwable t) {
             m.logger.log(Level.SEVERE, "Master terminated with errors.", t);
             System.exit(1);

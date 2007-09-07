@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Master.java,v 1.3 2006/10/19 18:48:19 akara Exp $
+ * $Id: Master.java,v 1.4 2007/09/07 15:49:05 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -50,12 +50,14 @@ public interface Master extends Remote {
     /**
      * Obtains the current state of the master.
      * @return The current state of the master.
+     * @throws RemoteException 
      */
-    int getCurrentState() throws RemoteException;
+    MasterState getCurrentState() throws RemoteException;
 
     /**
      * Wait for a certain state on the master.
      * @param state
+     * @throws RemoteException 
      */
-    void waitForState(int state) throws RemoteException;
+    void waitForState(MasterState state) throws RemoteException;
 }

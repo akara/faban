@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FixedTime.java,v 1.3 2006/11/23 00:28:00 akara Exp $
+ * $Id: FixedTime.java,v 1.4 2007/09/07 15:49:04 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -36,14 +36,19 @@ import java.io.IOException;
  */
 public class FixedTime extends Cycle {
 
-    int cycleTime;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	int cycleTime;
 
     /**
      * Initializes this cycle according to the annotation.
      * @param a The annotation
      * @throws DefinitionException If there is an error in the annotation
      */
-    public void init(Annotation a) throws DefinitionException {
+    @Override
+	public void init(Annotation a) throws DefinitionException {
         com.sun.faban.driver.FixedTime cycleDef =
                 (com.sun.faban.driver.FixedTime) a;
         cycleType = cycleDef.cycleType();
@@ -51,9 +56,10 @@ public class FixedTime extends Cycle {
         cycleTime = cycleDef.cycleTime();
 
         // Now check parameters for validity.
-        if (cycleTime == 0 && cycleType == CycleType.CYCLETIME)
-            throw new DefinitionException("@FixedTime cycle time " +
+        if (cycleTime == 0 && cycleType == CycleType.CYCLETIME) {
+			throw new DefinitionException("@FixedTime cycle time " +
                     "cannot be 0, use think time instead.");
+		}
 
     }
 
@@ -66,7 +72,8 @@ public class FixedTime extends Cycle {
      * @param random The random number generator used
      * @return The delay time
      */
-    public int getDelay(Random random) {
+    @Override
+	public int getDelay(Random random) {
         return cycleTime;
     }
 
@@ -75,9 +82,11 @@ public class FixedTime extends Cycle {
      *
      * @return The max reasonable delay to be presented in the output histogram.
      */
-    public double getHistogramMax() {
-        if (cycleTime > 0)
-            return cycleTime * 2;
+    @Override
+	public double getHistogramMax() {
+        if (cycleTime > 0) {
+			return cycleTime * 2;
+		}
 
         // We know it takes very little time to prepare the data to submit.
         // This case can only happen for think time. Giving a histogram

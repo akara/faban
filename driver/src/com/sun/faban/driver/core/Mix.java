@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Mix.java,v 1.2 2006/06/29 19:38:37 akara Exp $
+ * $Id: Mix.java,v 1.3 2007/09/07 15:49:05 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -72,9 +72,10 @@ public abstract class Mix implements Serializable, Cloneable {
                 // pick it up.
                 continue;
             }
-            if (returnMix != null)
-                throw new DefinitionException("Duplicate mix annotation @" +
+            if (returnMix != null) {
+				throw new DefinitionException("Duplicate mix annotation @" +
                         annotationName);
+			}
             mix.init(driverClass, annotations[i]);
             returnMix = mix;
         }
@@ -105,8 +106,9 @@ public abstract class Mix implements Serializable, Cloneable {
      * @return The logger for this class
      */
     protected Logger getLogger() {
-        if (logger == null)
-            logger = Logger.getLogger(className);
+        if (logger == null) {
+			logger = Logger.getLogger(className);
+		}
         return logger;
     }
 
@@ -163,13 +165,15 @@ public abstract class Mix implements Serializable, Cloneable {
      * @return a clone of this instance.
      * @see Cloneable
      */
-    public Object clone() {
+    @Override
+	public Object clone() {
         Mix clone = null;
         try {
             clone = (Mix) super.clone();
-            for (int i = 0; i < operations.length; i++)
-                clone.operations[i] = (BenchmarkDefinition.Operation)
+            for (int i = 0; i < operations.length; i++) {
+				clone.operations[i] = (BenchmarkDefinition.Operation)
                         operations[i].clone();
+			}
         } catch (CloneNotSupportedException e) {
             // Noop. This is not possible as we are implementing cloneable.
         }
