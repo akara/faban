@@ -17,17 +17,21 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MasterImpl.java,v 1.13 2007/09/07 15:49:05 noahcampbell Exp $
+ * $Id: MasterImpl.java,v 1.14 2007/09/08 02:43:14 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver.core;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import com.sun.faban.common.Registry;
+import com.sun.faban.common.RegistryLocator;
+import com.sun.faban.driver.ConfigurationException;
+import com.sun.faban.driver.FatalException;
+import com.sun.faban.driver.RunControl;
+import com.sun.faban.driver.util.PlotServer;
+import com.sun.faban.driver.util.Timer;
+
+import java.io.*;
 import java.rmi.ConnectException;
 import java.rmi.NotBoundException;
 import java.rmi.Remote;
@@ -41,14 +45,6 @@ import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
-
-import com.sun.faban.common.Registry;
-import com.sun.faban.common.RegistryLocator;
-import com.sun.faban.driver.ConfigurationException;
-import com.sun.faban.driver.FatalException;
-import com.sun.faban.driver.RunControl;
-import com.sun.faban.driver.util.PlotServer;
-import com.sun.faban.driver.util.Timer;
 
 /**
  * This is the main Master class for running a Faban driver.
@@ -400,7 +396,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
                 if (refs == null || (agentCnt = refs.length) == 0) {
                     // Hmmm, for some reason the agents didn't get started
                     if (runInfo.driverConfigs[i].numAgents > 0) {
-						logger.warning("Cannot find " + agentName + "s. Not " +
+                        logger.warning("Cannot find " + agentName + "s. Not " +
                                 "starting " + benchDef.drivers[i].name + '.');
 					}
                     runInfo.driverConfigs[i].numAgents = 0;
@@ -640,7 +636,6 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 
                         Thread mainThread = Thread.currentThread();
 
-                        @Override
 						public void run() {
                             for (int i = 0; i < agentRefs.length; i++) {
 								if (agentRefs[i] != null) {
@@ -760,8 +755,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
     public void generateReports(Metrics[] results) throws IOException {
         String runOutputDir = runInfo.resultsDir + fs;
         FileWriter summary = new FileWriter(runOutputDir + "summary.xml");
-        FileWriter detail = new FileWriter(runOutputDir + "detail.xml");
-        FileWriter detailXan = new FileWriter(runOutputDir + "detail.xan");
+        FileWriter detail = new FileWriter(runOutputDir + "detail.xan");
 
         // As all stats from each agentImpl are of the same type, we can
         // create a new instance from any instance.
@@ -769,13 +763,9 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         summary.append(createSummaryReport(results));
         summary.close();
 
-        logger.info("Summary finished. Now printing detail xml ...");
+        logger.info("Summary finished. Now printing detail ...");
         detail.append(createDetailReport(results));
         detail.close();
-
-        logger.info("Summary finished. Now printing detail ...");
-        detailXan.append(createDetailReportXan(results));
-        detailXan.close();
 
         logger.info("Detail finished. Results written to " +
                 runInfo.resultsDir + '.');
@@ -851,36 +841,15 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
      */
     private CharSequence createDetailReport(Metrics[] results) {
         StringBuilder buffer = new StringBuilder(8192);
-        buffer.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-        buffer.append("<stat_doc name=\"").append(benchDef.name).
-                append(" Detailed Results\">\n");
-        buffer.append("<meta name=\"RunId\" value=\"").append(runInfo.runId).
-                append("\"/>\n");
-
-        for (Metrics result : results) {
-			if (result != null) {
-				result.printDetail(buffer);
-			}
-		}
-
-        buffer.append("</stat_doc>\n");
-        return buffer;
-    }
-
-    // TODO: Remove the old detail.xml generation.
-    private CharSequence createDetailReportXan(Metrics[] results) {
-        StringBuilder buffer = new StringBuilder(8192);
         buffer.append("Title: ").append(benchDef.name).
                 append(" Detailed Results\n\n\n");
         buffer.append("Section: Benchmark Information\n");
         buffer.append("Name   Value\n");
         buffer.append("-----  -------------\n");
         buffer.append("RunId  ").append(runInfo.runId).append("\n\n\n");
-        for (Metrics result : results) {
-			if (result != null) {
-				result.printDetailXan(buffer);
-			}
-		}
+        for (Metrics result : results)
+            if (result != null)
+                result.printDetail(buffer);
 
         return buffer;
     }
@@ -1056,12 +1025,8 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
     /**
      * Obtain the master's time for time adjustment.
      *
-     * TODO: This does not return the master's time, instead it
-     * returns {@link System#currentTimeMillis()}.
-     *
      * @return The current time on the master
      */
-    @Deprecated
     public long currentTimeMillis() {
         return System.currentTimeMillis();
     }
@@ -1176,7 +1141,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
      */
     public synchronized void abortRun() {
 
-        if (runAborted) {
+        if (runAborted) { // We only need to schedule the killAll once.
 			return;
 		}
 
@@ -1187,7 +1152,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         // run right here. We need to schedule the termintation
         // asynchronously.
         TimerTask killAll = new TimerTask() {
-            @Override
+
 			public void run() {
                 if (agentRefs != null) {
                     for (int i = 0; i < agentRefs.length; i++) {

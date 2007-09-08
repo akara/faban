@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentImpl.java,v 1.6 2007/09/07 15:49:05 noahcampbell Exp $
+ * $Id: AgentImpl.java,v 1.7 2007/09/08 02:43:14 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -49,9 +49,6 @@ import java.util.logging.Logger;
 public class AgentImpl extends UnicastRemoteObject
         implements Agent, Unreferenced, Runnable {
 
-    /**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	static AgentImpl agentImpl;
     Master master;
@@ -378,7 +375,8 @@ public class AgentImpl extends UnicastRemoteObject
         if (runInfo.agentInfo.startThreadNumber == 0 &&
                 runInfo.driverConfig.postRun != null &&
                 agentThreads[0] != null) {
-            if (agentThreads[0].getThreadState() == AgentThread.RunState.RUNNING) {
+            if (agentThreads[0].getThreadState() ==
+                    AgentThread.RunState.RUNNING) {
                 try {
                     if (!terminationLogged) { // Log this only once.
                         logger.warning(displayName +
