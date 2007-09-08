@@ -17,11 +17,13 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Utilities.java,v 1.2 2007/05/05 01:39:45 akara Exp $
+ * $Id: Utilities.java,v 1.3 2007/09/08 01:10:07 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.common;
+
+import java.io.File;
 
 /**
  * Common utilities, usually accessible via static import.
@@ -77,4 +79,17 @@ public class Utilities {
         }
         return buf.toString();
     }
+
+    /**
+     * Obtains the JAVA_HOME of the current JVM.
+     * @return The current JAVA_HOME
+     */
+    public static String getJavaHome() {
+        String javaHome = System.getProperty("java.home");
+        String suffix = File.separator + "jre";
+        if (javaHome.endsWith(suffix))
+            javaHome = javaHome.substring(0, javaHome.length() -
+                       suffix.length());
+        return javaHome;
+    }    
 }

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CommandHandleImpl.java,v 1.5 2006/11/18 05:21:05 akara Exp $
+ * $Id: CommandHandleImpl.java,v 1.6 2007/09/08 01:10:07 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -83,11 +83,12 @@ public class CommandHandleImpl implements CommandHandle {
      * @throws InterruptedException The waiting thread got interrupted
      */
     public void waitFor() throws InterruptedException {
-        if (!command.daemon)
-            for (int i = 0; i < readers.length; i++)
-                readers[i].waitFor();
-
+        // Wait for the process to terminate
         command.process.waitFor();
+        if (!command.daemon)
+            // For non-daemon, wait another max 10 secs to clear the streams
+            for (int i = 0; i < readers.length; i++)
+                readers[i].waitFor(10000);
     }
 
     /**

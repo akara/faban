@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Command.java,v 1.5 2007/05/24 01:06:40 akara Exp $
+ * $Id: Command.java,v 1.6 2007/09/08 01:10:07 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -27,6 +27,8 @@ import java.io.*;
 import java.rmi.RemoteException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.Map;
+import java.util.LinkedHashMap;
 
 /**
  * Represents a command that can be sent to execute on any machine. It
@@ -147,7 +149,35 @@ public class Command implements Serializable {
         }
         Logger logger = Logger.getLogger(this.getClass().getName());
         logger.fine("Executing " + command);
-        process = Runtime.getRuntime().exec(command, env,
+
+        // We do not want to set all env. So we merge the given env with the
+        // one that comes with the process.
+        String[] envStrings = null;
+        if (this.env != null) {
+            LinkedHashMap<String, String> env = // Copy the map...
+                    new LinkedHashMap<String, String>(System.getenv());
+            for (String envi : this.env) {
+                int eqIdx = envi.indexOf('=');
+                if (eqIdx < 1) {
+                    logger.warning("Invalid env string: " + envi +
+                                   " -- ignoring");
+                    continue;
+                }
+                String name = envi.substring(0, eqIdx).trim();
+                String value = envi.substring(eqIdx + 1).trim();
+                if (value.length() > 0)
+                    env.put(name, value);
+                else // No value, intentionally unset that variable.
+                    env.remove(name);
+            }
+
+            envStrings = new String[env.size()];
+            int i = 0;
+            for (Map.Entry<String, String> entry : env.entrySet())
+                envStrings[i++] = entry.getKey() + '=' + entry.getValue();
+        }
+
+        process = Runtime.getRuntime().exec(command, envStrings,
                 this.dir == null ? null : new File(this.dir));
         stream[STDOUT] = process.getInputStream();
         stream[STDERR] = process.getErrorStream();
@@ -187,7 +217,15 @@ public class Command implements Serializable {
     }
 
     /**
-     * Sets the environment under which this command should run.
+     * Sets the environment variables in which this command should run in the
+     * form of <tt>name=value</tt>. Names and values are typically case
+     * sensitive. The environment set here will be combined with the
+     * environment inherited from the system in the following ways:<ul>
+     * <li>If the variable is not already set, it will be set.</li>
+     * <li>If the variable is set, it will be replaced with these settings.</li>
+     * <li>If the value of the variable is empty, the environment will be
+     *     removed if it is set. Otherwise it will not be set.</li>
+     * </ul>
      * @param env The shell environment relevant to this command
      */
     public void setEnvironment(String[] env) {
@@ -195,7 +233,8 @@ public class Command implements Serializable {
     }
 
     /**
-     * Obtains the current environment this command is set to run. May
+     * Obtains the current environment this command is set to run. This does
+     * not return the inherited environment for this command. It may
      * return null if the default process' environment is used.
      * @return The current set environment, or null if not set
      */

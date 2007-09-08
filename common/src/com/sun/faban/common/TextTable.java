@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TextTable.java,v 1.2 2007/04/23 19:47:31 akara Exp $
+ * $Id: TextTable.java,v 1.3 2007/09/08 01:10:07 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -28,7 +28,7 @@ import java.io.IOException;
 /**
  * The text table assists in formatting tabular data for text output.
  * I takes care of column alignments. The output format is compatible with
- * Xanadu's Xan format.
+ * FenXi's Xan format.
  * @author Akara Sucharitakul
  */
 public class TextTable {
