@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileHelper.java,v 1.11 2007/07/19 19:32:39 akara Exp $
+ * $Id: FileHelper.java,v 1.12 2007/09/08 01:21:14 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,6 +25,7 @@ package com.sun.faban.harness.util;
 
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
+import com.sun.faban.common.Utilities;
 import com.sun.faban.harness.agent.CmdAgentImpl;
 import com.sun.faban.harness.agent.FileAgent;
 import com.sun.faban.harness.agent.FileService;
@@ -302,19 +303,6 @@ public class FileHelper {
     }
 
     /**
-     * Obtains the JAVA_HOME of the current JVM.
-     * @return The current JAVA_HOME
-     */
-    public static String getJavaHome() {
-        String javaHome = System.getProperty("java.home");
-        String suffix = File.separator + "jre";
-        if (javaHome.endsWith(suffix))
-            javaHome = javaHome.substring(0, javaHome.length() -
-                       suffix.length());
-        return javaHome;
-    }
-
-    /**
      * Jars up a directory to a given Jar file
      * @param dir The base directory to jar (not included in output)
      * @param fileNames The file names to jar, can be multiple
@@ -326,7 +314,7 @@ public class FileHelper {
 
         logger.fine("Jar'ring up " + dir + " to " + jarPath + '.');
 
-        String jarCmd = getJavaHome() + File.separator + "bin" +
+        String jarCmd = Utilities.getJavaHome() + File.separator + "bin" +
                 File.separator + "jar";
         Command cmd = new Command(jarCmd + " cf " + jarPath +
                 ' ' + fileNames);
@@ -352,7 +340,7 @@ public class FileHelper {
             throws IOException {
 
         logger.fine("Unjar'ring " + jarPath + " to " + outputDir + '.');
-        String jarCmd = getJavaHome() + File.separator + "bin" +
+        String jarCmd = Utilities.getJavaHome() + File.separator + "bin" +
                 File.separator + "jar";
         Command cmd = new Command(jarCmd + " xf " + jarPath);
         cmd.setWorkingDirectory(outputDir);

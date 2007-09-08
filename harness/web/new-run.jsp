@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: new-run.jsp,v 1.7 2007/07/21 01:41:59 akara Exp $
+ * $Id: new-run.jsp,v 1.8 2007/09/08 01:21:15 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -75,7 +75,7 @@
             session.setAttribute("faban.submit.stylesheet", 
                                         benchMetaInf + desc.configStylesheet);
 
-        String url = "benchmarks/" + desc.shortName + '/' + desc.configForm;
+        String url = "bm_submit/" + desc.shortName + '/' + desc.configForm;
 %>
 
 <meta HTTP-EQUIV=REFRESH CONTENT="0;URL=<%=url%>">

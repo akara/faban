@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunContext.java,v 1.8 2007/07/19 19:32:40 akara Exp $
+ * $Id: RunContext.java,v 1.9 2007/09/08 01:21:14 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -275,6 +275,39 @@ public class RunContext {
         CmdService cs = CmdService.getHandle();
         return cs.copy(hostName, cs.getMaster(), fileName, localFileName,
                        false);
+    }
+
+    /**
+     * Checks whether the given remote file exists.
+     * @param hostName The host name to check.
+     * @param fileName The file name to test.
+     * @return true if exists, false otherwise.
+     */
+    public static boolean exists(String hostName, String fileName) {
+        CmdService cs = CmdService.getHandle();
+        return cs.doesFileExist(hostName, fileName);
+    }
+
+    /**
+     * Checks whether the given remote file exists and is a normal file.
+     * @param hostName The host name to check.
+     * @param fileName The file name to test.
+     * @return true if file is a normal file, false otherwise.
+     */
+    public static boolean isFile(String hostName, String fileName) {
+        CmdService cs = CmdService.getHandle();
+        return cs.isFile(hostName, fileName);
+    }
+
+    /**
+     * Checks whether the given remote file exists and is a directory.
+     * @param hostName The host name to check.
+     * @param fileName The file name to test.
+     * @return true if file is a directory, false otherwise.
+     */
+    public static boolean isDirectory(String hostName, String fileName) {
+        CmdService cs = CmdService.getHandle();
+        return cs.isDirectory(hostName, fileName);        
     }
 
     /**

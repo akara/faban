@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: XFormServlet.java,v 1.6 2007/07/21 01:41:59 akara Exp $
+ * $Id: XFormServlet.java,v 1.7 2007/09/08 01:21:14 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -133,7 +133,7 @@ public class XFormServlet extends HttpServlet {
             String requestURI = request.getRequestURI();
             String formURI = null;
             String contextPath = request.getContextPath();
-            String benchPath = contextPath + "/benchmarks/";
+            String benchPath = contextPath + "/bm_submit/";
             if (requestURI.startsWith(benchPath)) {
                 int idx = requestURI.indexOf('/', benchPath.length());
                 String benchName = requestURI.substring(benchPath.length(),

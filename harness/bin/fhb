@@ -7,6 +7,8 @@ then
     export FABAN_HOME
 fi
 
+JAVA=""
+
 # If JAVA_HOME is not defined, we try our best to locate it.
 if [ -z "$JAVA_HOME" ] ; then
 
@@ -17,84 +19,12 @@ if [ -z "$JAVA_HOME" ] ; then
 and set JAVA_HOME or PATH accordingly." >&2
         exit 1
     fi
-
-    # The java command is often a symbolic link.
-    # We need to trace down the sym link chain.
-
-    # For this trick, we need nawk or gawk.
-    # Plain old awk usually does not work.
-    # But we still fall back to it if
-    # everything else falls apart.
-    AWK=/usr/bin/awk
-    if [ -x "/usr/bin/nawk" ] ; then
-        AWK=/usr/bin/nawk
-    elif [ -x "/usr/bin/gawk" ] ; then
-        AWK=/usr/bin/gawk
-    fi
-
-    # Trace the symbolic links.
-    while [ -L "$JAVA_BIN" ] ; do
-        JAVA_BIN=`ls -l "$JAVA_BIN" | ${AWK} -F "-> " '{ print $2 }'`
-    done
-
-    # We can end up in a jre directory or a jdk directory. Have to check
-    # before assigning JAVA_HOME.
-    JAVA_BINDIR=`dirname $JAVA_BIN`
-    case "$JAVA_BINDIR" in
-        */jre/bin) JAVA_HOME=`cd $JAVA_BINDIR/../.. > /dev/null 2>&1 && pwd`;;
-        */bin) JAVA_HOME=`cd $JAVA_BINDIR/.. > /dev/null 2>$1 && pwd`;;
-    esac
-
-    # A JDK has tools.jar, a JRE does not. We need to check for it.
-    if [ -f "$JAVA_HOME/lib/tools.jar" ] ; then
-        echo "JAVA_HOME not set. Using ${JAVA_HOME}." >&2
-    else
-        echo "Could not find a JDK at ${JAVA_HOME}. Please make sure the JDK\
- is installed and set JAVA_HOME or PATH accordingly." >&2
-        exit 1
-    fi
+    JAVA=$JAVA_BIN
+else
+    JAVA=$JAVA_HOME/bin/java
 fi
 
-JAVA=$JAVA_HOME/bin/java
-CLASSPATH=$FABAN_HOME/lib/fabancommon.jar:$FABAN_HOME/lib/fabandriver.jar:$JAVA_HOME/lib/tools.jar
-
-JVMARGS=""
-DRIVERARGS=""
-
-addDriverArg() {
-    if [ -n "$DRIVERARGS" ] ; then
-        DRIVERARGS="$DRIVERARGS $1"
-    else
-        DRIVERARGS="$1"
-    fi
-}
-
-addJVMArg() {
-    if [ -n "$JVMARGS" ] ; then
-        JVMARGS="$JVMARGS $1"
-    else
-        JVMARGS="$1"
-    fi
-}
-
-jargfollows=""
-for arg in $*
-do
-    case $arg in
-        -J*) arg=`echo "$arg" | cut -c3-`
-           if [ -n "$arg" ] ; then
-               addJVMArg "$arg"
-           else
-               jargfollows="true"
-           fi;;
-        *) if [ -n "$jargfollows" ] ; then
-               addJVMArg "$arg"
-               jargfollows=""
-           else
-               addDriverArg "$arg"
-           fi;;
-    esac
-done
-
-$JAVA $JVMARGS -cp $CLASSPATH -Dfaban.cli.command=$0 \
-com.sun.faban.driver.util.FabanHTTPBench $DRIVERARGS
+$JAVA -client -Xmx2m -cp "$FABAN_HOME"/lib/fabancommon.jar \
+      -Dfaban.cli.command=$0 -Dfabanshell.needJDK=true \
+      -Dfabanshell.exec=com.sun.faban.driver.util.FabanHTTPBench \
+      com.sun.faban.common.FabanShell $*

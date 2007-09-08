@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileAgent.java,v 1.2 2006/06/29 19:38:40 akara Exp $
+ * $Id: FileAgent.java,v 1.3 2007/09/08 01:21:12 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -87,4 +87,25 @@ public interface FileAgent extends Remote {
      */
     String getProperty(String configFile, String propName)
             throws IOException;
+
+    /**
+     * Checks whether the given remote file exists.
+     * @param fileName The file name to test.
+     * @return true if exists, false otherwise.
+     */
+    boolean doesFileExist(String fileName) throws RemoteException;
+
+    /**
+     * Checks whether the given remote file exists and is a normal file.
+     * @param fileName The file name to test.
+     * @return true if file is a normal file, false otherwise.
+     */
+    boolean isFile(String fileName) throws RemoteException;
+
+    /**
+     * Checks whether the given remote file exists and is a directory.
+     * @param fileName The file name to test.
+     * @return true if file is a directory, false otherwise.
+     */
+    boolean isDirectory(String fileName) throws RemoteException;
 }

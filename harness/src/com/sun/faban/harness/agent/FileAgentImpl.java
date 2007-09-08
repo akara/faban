@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileAgentImpl.java,v 1.3 2007/04/27 21:33:26 akara Exp $
+ * $Id: FileAgentImpl.java,v 1.4 2007/09/08 01:21:12 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -206,6 +206,39 @@ public class FileAgentImpl extends UnicastRemoteObject
             return file.delete();
         }
         return false;
+    }
+
+    /**
+     * Checks whether the given remote file exists.
+     *
+     * @param fileName The file name to test.
+     * @return true if exists, false otherwise.
+     */
+    public boolean doesFileExist(String fileName) {
+        File file = new File(fileName);
+        return file.exists();
+    }
+
+    /**
+     * Checks whether the given remote file exists and is a normal file.
+     *
+     * @param fileName The file name to test.
+     * @return true if file is a normal file, false otherwise.
+     */
+    public boolean isFile(String fileName) {
+        File file = new File(fileName);
+        return file.isFile();
+    }
+
+    /**
+     * Checks whether the given remote file exists and is a directory.
+     *
+     * @param fileName The file name to test.
+     * @return true if file is a directory, false otherwise.
+     */
+    public boolean isDirectory(String fileName) {
+        File file = new File(fileName);
+        return file.isDirectory();
     }
 
     /**

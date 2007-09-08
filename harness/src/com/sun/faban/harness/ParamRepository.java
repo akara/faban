@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ParamRepository.java,v 1.5 2007/07/20 22:16:31 akara Exp $
+ * $Id: ParamRepository.java,v 1.6 2007/09/08 01:21:14 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -104,13 +104,12 @@ public class ParamRepository {
      */
     public List<String[]> getTokenizedParameters(String xpath) {
         ArrayList<String[]> params = new ArrayList<String[]>();
-        List l = reader.getValues(xpath);
-        for(int i = 0; i < l.size(); i++) {
-            StringTokenizer st = new StringTokenizer((String)l.get(i));
+        List<String> entries = reader.getValues(xpath);
+        for (String entry : entries) {
+            StringTokenizer st = new StringTokenizer(entry);
             String[] values = new String[st.countTokens()];
-            int j = 0;
-            while(st.hasMoreTokens())
-                values[j++] = st.nextToken();
+            for (int i = 0; st.hasMoreTokens(); i++)
+                values[i] = st.nextToken();
             params.add(values);
         }
         return params;
@@ -126,10 +125,8 @@ public class ParamRepository {
 
         StringTokenizer st = new StringTokenizer(reader.getValue(xpath));
         String[] hosts = new String[st.countTokens()];
-        int i = 0;
-        while(st.hasMoreTokens())
-            hosts[i++] = st.nextToken();
-
+        for (int i = 0; st.hasMoreTokens(); i++)
+            hosts[i] = st.nextToken();
         return hosts;
     }
 

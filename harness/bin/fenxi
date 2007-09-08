@@ -4,16 +4,16 @@ BINDIR=`dirname $0`
 
 if [ -n "$BINDIR" ] ; then
     FABAN_HOME=`cd $BINDIR/.. > /dev/null 2>&1 && pwd`
-    XANADU_HOME=`cd $FABAN_HOME/master/webapps/xanadu > /dev/null 2>&1 && pwd`
-    XANADU_SCRIPTS=$XANADU_HOME/scripts
-    export FABAN_HOME XANADU_HOME XANADU_SCRIPTS
+    FENXI_HOME=`cd $FABAN_HOME/master/webapps/fenxi > /dev/null 2>&1 && pwd`
+    FENXI_SCRIPTS=$FENXI_HOME/scripts
+    export FABAN_HOME FENXI_HOME FENXI_SCRIPTS
 fi
 
 
-XANADU_HOST=localhost
-export XANADU_HOST
+FENXI_HOST=localhost
+export FENXI_HOST
 
-LOG_FILE=/net/romulus.sfbay/export/home/xanadu2/usage-log/log
+LOG_FILE=/net/romulus.sfbay/export/home/fenxi2/usage-log/log
 
 if [ -w $LOG_FILE ] ; then
     who am i | awk '{print $3, $4, $5, $1};' >> $LOG_FILE
@@ -53,54 +53,54 @@ if [ $1 = "import" ] ; then
     done
 fi
 
-# perl -w $XANADU_SCRIPTS/xanadu.pl $*
-# ksh -x $XANADU_SCRIPTS/process $*
+# perl -w $FENXI_SCRIPTS/fenxi.pl $*
+# ksh -x $FENXI_SCRIPTS/process $*
 
 #DIR=${0%/*}
 #PROG=${0##*/}
 
-PROG=$XANADU_SCRIPTS/process
+PROG=$FENXI_SCRIPTS/process
 
-chmod a+rx $XANADU_HOME/txt2db/*
+chmod a+rx $FENXI_HOME/txt2db/*
 
 if [ $# -ne 3 ]; then
         echo "usage: $PROG rawdir htmldir runID" 2>&1
         exit 2
 fi
 
-#XANADU_HOME=${XANADU_HOME:-$DIR/..}
+#FENXI_HOME=${FENXI_HOME:-$DIR/..}
 
-PERL5LIB=$XANADU_HOME/txt2db
+PERL5LIB=$FENXI_HOME/txt2db
 
 CLASSPATH=\
-$XANADU_HOME/WEB-INF/lib/spark.jar:\
-$XANADU_HOME/WEB-INF/classes:\
-$XANADU_HOME/WEB-INF/lib/derby.jar:\
-$XANADU_HOME/WEB-INF/lib/jfreechart.jar:\
-$XANADU_HOME/WEB-INF/lib/jcommon.jar:\
-$XANADU_HOME/WEB-INF/lib/jruby.jar
+$FENXI_HOME/WEB-INF/lib/spark.jar:\
+$FENXI_HOME/WEB-INF/classes:\
+$FENXI_HOME/WEB-INF/lib/derby.jar:\
+$FENXI_HOME/WEB-INF/lib/jfreechart.jar:\
+$FENXI_HOME/WEB-INF/lib/jcommon.jar:\
+$FENXI_HOME/WEB-INF/lib/jruby.jar
 
 export PERL5LIB CLASSPATH
 
 rm -rf txt
 mkdir txt
 
-java -mx756m \
+java -Xmx756m \
         -Dderby.storage.pageReservedSpace=0 \
         -Dderby.language.logQueryPlan=true \
         -Dderby.storage.rowLocking=false \
-        -Dxanadu.basedir=$XANADU_HOME \
-        -Dxanadu.profile=default_profile \
+        -Dfenxi.basedir=$FENXI_HOME \
+        -Dfenxi.profile=default_profile \
         -Djava.awt.headless=true \
         -Dsun.java2d.pmoffscreen=false \
-        org.xanadu.cmd.process.ProcessRun "$@"
+        org.fenxi.cmd.process.ProcessRun "$@"
 
-# TODO: This is a hack put in for Xanadu 3 for the time being.
-# Need to remove when Xanadu 3 is fixed.
+# TODO: This is a hack put in for FenXi for the time being.
+# Need to remove when FenXi is fixed.
 
 editXan() {
-    sed 's%http://pae.sfbay/twiki/pub/TWiki/NSunSkin%/xanadu/html%g' ${1} > ${1}.1
-    sed 's%http://pae.sfbay/~neel%/xanadu/html%g' ${1}.1 > ${1}
+    sed 's%FenXi.jpg%/fenxi/html/FenXi.jpg%g' ${1} > ${1}.1
+    sed 's%/xanadu/html%/fenxi/html%g' ${1}.1 > ${1}
     rm ${1}.1
 }
 

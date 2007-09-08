@@ -17,13 +17,14 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DeployUtil.java,v 1.9 2007/06/29 08:36:45 akara Exp $
+ * $Id: DeployUtil.java,v 1.10 2007/09/08 01:21:13 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.util;
 
 import com.sun.faban.common.Command;
+import com.sun.faban.common.Utilities;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.engine.RunQ;
@@ -118,7 +119,7 @@ public class DeployUtil {
                         classpath += File.pathSeparator + benchLib +
                                      File.separator + jarFiles[i];
 
-                String ddCmd = FileHelper.getJavaHome() + File.separator +
+                String ddCmd = Utilities.getJavaHome() + File.separator +
                                "bin" + File.separator + "java -classpath " +
                                classpath + " -Dbenchmark.config=" + configFile +
                                " -Dbenchmark.ddfile=faban.xml" +

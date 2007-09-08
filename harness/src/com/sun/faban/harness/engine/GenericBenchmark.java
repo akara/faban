@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.20 2007/08/21 17:48:57 noahcampbell Exp $
+ * $Id: GenericBenchmark.java,v 1.21 2007/09/08 01:21:13 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -380,60 +380,24 @@ public class GenericBenchmark {
         // Create the dir for storing Xanadu XMLs
         String outDir = run.getOutDir();
 
-        String xanaduDir = outDir + File.separator + Config.XML_STATS_DIR;
-        if(!(new File(xanaduDir)).mkdirs())
+        String fenxiDir = outDir + File.separator + Config.XML_STATS_DIR;
+        if(!(new File(fenxiDir)).mkdirs())
             return false;
 
-		// Process the text using Xanadu3.
-		Command xanadu = new Command ("xanadu " + outDir + " " + outDir + " " +
+		// Process the text using FenXi.
+		Command fenxi = new Command ("fenxi " + outDir + " " + outDir + " " +
                                                                 run.getRunId());
+        fenxi.setWorkingDirectory(Config.FABAN_HOME + "logs");
+
 		try {
-            CommandHandle handle = cmds.execute(xanadu);
+            CommandHandle handle = cmds.execute(fenxi);
             if (handle.exitValue() != 0)
-                logger.severe("Xanadu process command " + xanadu + " Failed");
+                logger.severe("FenXi process command " + fenxi + " Failed");
         } catch(Exception e) {
-            logger.log(Level.SEVERE, "Xanadu process command " + xanadu +
+            logger.log(Level.SEVERE, "FenXi process command " + fenxi +
                     " failed.", e);
             return false;
         }
-
-/*	
-        // Text => xml
-        Command xanadu = new Command("xanadu import " + outDir + " " +
-                xanaduDir + " " + run.getRunId());
-
-        try {
-            CommandHandle handle = cmds.execute(xanadu);
-            if (handle.exitValue() != 0)
-                logger.severe("Xanadu Import command " + xanadu + " Failed");
-        } catch(Exception e) {
-            logger.log(Level.SEVERE, "Xanadu Import command " + xanadu +
-                    " failed.", e);
-            return false;
-        }
-
-        // TODO: Once detail.xan is well tested, remove the detail.xml copy
-        // Move detail file to xanadu directory for postprocessing
-        File detailFile = new File(outDir, "detail.xml");
-        File detailDest = new File(xanaduDir, "detail.xml");
-        if (detailFile.exists())
-            if (!FileHelper.copyFile(detailFile.getAbsolutePath(),
-                                     detailDest.getAbsolutePath(), false))
-                logger.warning("Cannot copy detail file to Xanadu directory");
-
-        // xml => html + graphs
-        xanadu = new Command("xanadu export " + xanaduDir + " " + outDir);
-
-        try {
-            CommandHandle handle = cmds.execute(xanadu);
-            if (handle.exitValue() != 0)
-                logger.severe("Xanadu Export command " + xanadu + " Failed");
-        } catch(Exception e) {
-            logger.log(Level.SEVERE, "Xanadu Export command " + xanadu +
-                    " failed.", e);
-            return false;
-        }
-*/
         return true;
     }
 }

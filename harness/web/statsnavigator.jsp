@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: statsnavigator.jsp,v 1.5 2006/08/29 20:16:33 akara Exp $
+ * $Id: statsnavigator.jsp,v 1.6 2007/09/08 01:21:15 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -82,7 +82,7 @@
         // Process the real stats files.
         } else {
             int logIdx = fileName.indexOf(".log.");
-            if (logIdx == -1) // New xanadu files need to be .xan.
+            if (logIdx == -1) // New FenXi files need to be .xan.
                 logIdx = fileName.indexOf(".xan.");
             if (logIdx == -1)
                 continue;

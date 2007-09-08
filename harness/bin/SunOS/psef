@@ -1,0 +1,19 @@
+#!/bin/sh
+
+echo "ps output at : `date`"
+ps -eafcP
+
+sleep 600
+
+echo "`date` : ps output after 600 sec from the start of the run\n"
+ps -eafcP
+
+sleep 400
+
+echo "`date` : ps output after 400 sec after previous snapshot \n"
+ps -eafcP
+
+sleep 400
+
+echo "`date` : ps output after 400 sec after previous snapshot \n"
+ps -eafcP

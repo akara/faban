@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ContentReader.java,v 1.3 2006/10/24 05:24:22 akara Exp $
+ * $Id: ContentReader.java,v 1.4 2007/09/08 01:21:14 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -84,6 +84,13 @@ public class ContentReader extends HttpServlet {
             resource = Config.ANALYSIS_DIR + resource;
         } else if ("/bench_downloads".equals(path)) {
             resource = Config.BENCHMARK_DIR + resource;
+        } else if ("/benchmarks".equals(path)) {
+            // This is the form /benchmarks/<bench_name>/resource
+            // It maps to public_html under the benchmark.
+            int idx1 = resource.indexOf('/');
+            String benchName = resource.substring(0, idx1);
+            resource = Config.BENCHMARK_DIR + benchName + "/public_html/" +
+                                                resource.substring(idx1 + 1);
         } else {
             String msg = "Routing of path " + path + " not implemented.";
             out.println(msg);

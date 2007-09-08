@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.17 2007/06/30 04:20:15 akara Exp $
+ * $Id: CmdService.java,v 1.18 2007/09/08 01:21:13 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -1084,7 +1084,7 @@ final public class CmdService { 	// The final keyword prevents clones
             logger.log(Level.FINE, "Exception", ie);
             return(false);
         }
-        return(true);
+        return true;
     }
 
     public synchronized boolean move(String srcmachine, String destmachine,
@@ -1150,7 +1150,7 @@ final public class CmdService { 	// The final keyword prevents clones
                 logger.severe("CmdService: Could not delete " + srcmachine +
                         ":" + srcfile);
             logger.log(Level.FINE, "Exception", ie);
-            return(false);
+            return false;
         }
     }
 
@@ -1168,9 +1168,6 @@ final public class CmdService { 	// The final keyword prevents clones
                                              OutputStream stream) {
         FileService srcfilep = null;
         byte[] buf = null;
-
-        //logger.info("CmdService: Copying " + srcfile + " to " + destfile);
-        //logger.info("CmdService: Copying from " + srcmachine + " to " + destmachine);
 
         FileAgent srcf = findFileAgent(srcmachine);
         try {
@@ -1289,5 +1286,53 @@ final public class CmdService { 	// The final keyword prevents clones
 
     Registry getRegistry() {
         return registry;
+    }
+
+    /**
+     * Checks whether the given remote file exists.
+     * @param hostName The host name to check.
+     * @param fileName The file name to test.
+     * @return true if exists, false otherwise.
+     */
+    public boolean doesFileExist(String hostName, String fileName) {
+        try {
+            return findFileAgent(hostName).doesFileExist(fileName);
+        } catch (Exception ie) {
+                logger.log(Level.SEVERE, "CmdService: Could not check " +
+                        hostName + ":" + fileName, ie);
+            return false;
+        }
+    }
+
+    /**
+     * Checks whether the given remote file exists and is a normal file.
+     * @param hostName The host name to check.
+     * @param fileName The file name to test.
+     * @return true if file is a normal file, false otherwise.
+     */
+    public boolean isFile(String hostName, String fileName) {
+        try {
+            return findFileAgent(hostName).isFile(fileName);
+        } catch (Exception ie) {
+                logger.log(Level.SEVERE, "CmdService: Could not check " +
+                        hostName + ":" + fileName, ie);
+            return false;
+        }
+    }
+
+    /**
+     * Checks whether the given remote file exists and is a directory.
+     * @param hostName The host name to check.
+     * @param fileName The file name to test.
+     * @return true if file is a directory, false otherwise.
+     */
+    public boolean isDirectory(String hostName, String fileName) {
+        try {
+            return findFileAgent(hostName).isDirectory(fileName);
+        } catch (Exception ie) {
+                logger.log(Level.SEVERE, "CmdService: Could not check " +
+                        hostName + ":" + fileName, ie);
+            return false;
+        }
     }
 }

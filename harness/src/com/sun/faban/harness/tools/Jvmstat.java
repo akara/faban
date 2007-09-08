@@ -17,13 +17,14 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Jvmstat.java,v 1.3 2006/10/06 23:24:19 akara Exp $
+ * $Id: Jvmstat.java,v 1.4 2007/09/08 01:21:13 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.tools;
 
 import com.sun.faban.common.Command;
+import com.sun.faban.common.Utilities;
 import com.sun.faban.harness.agent.CmdAgent;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.util.FileHelper;
@@ -55,7 +56,7 @@ public class Jvmstat extends GenericTool {
     public void configure(String tool, List argList, String path, String outDir,
                           String host, String masterhost, CmdAgent cmdAgent) {
         this.argList = argList;
-        path = FileHelper.getJavaHome() + File.separator + "bin" + File.separator;
+        path = Utilities.getJavaHome() + File.separator + "bin" + File.separator;
         tool = "java";
         argList.add(0, "-jar");
         argList.add(1, Config.LIB_DIR + "jvmps.jar");
