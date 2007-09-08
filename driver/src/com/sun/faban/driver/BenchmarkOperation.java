@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: BenchmarkOperation.java,v 1.4 2007/09/08 03:53:33 akara Exp $
+ * $Id: BenchmarkOperation.java,v 1.5 2007/09/08 04:19:24 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -49,6 +49,8 @@ public @interface BenchmarkOperation {
 
     /**
      * The unit of time for the max90th attribute.
+     * Note that this is not yet supported, but will be soon. The current
+     * unit is fixed to seconds.
      */
     TimeUnit units() default TimeUnit.SECONDS;
     
