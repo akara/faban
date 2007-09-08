@@ -4,7 +4,7 @@
     <runConfig definition="sample.driver.WebDriver">
         <!-- The hostConfig section is used by the harness to control hosts -->
         <hostConfig>
-            <host>brazilian.sfbay</host>
+            <host>sucharitakul</host>
         </hostConfig>
         <!-- The scale of the benchmark run, the driver definition
         defines the number of threads for each driver scale
@@ -74,16 +74,16 @@
                 values are supported, but only one name  -->
                 <property>
                     <name>path1</name>
-                    <value>~akara</value>
+                    <value>~akara/</value>
                 </property>
                 <!-- The second way is a little more compact while preserving
                 the ability to set multiple values for a name -->
                 <property name="path2">
-                    <value>external</value>
+                    <value>external/</value>
                 </property>
                 <!-- The third way is very compact but you can only use one
                 value. This is adequate for most applications. -->
-                <property name="path3">spidermark</property>
+                <property name="path3">spidermark/</property>
             </properties>
             <operationMix>
                 <name>MyOperation1</name>
