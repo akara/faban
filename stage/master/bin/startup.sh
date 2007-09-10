@@ -2,7 +2,7 @@
 # -----------------------------------------------------------------------------
 # Start Script for the CATALINA Server
 #
-# $Id: startup.sh,v 1.6 2007/03/15 23:29:18 akara Exp $
+# $Id: startup.sh,v 1.7 2007/09/10 16:14:39 akara Exp $
 # -----------------------------------------------------------------------------
 
 # Allow JAVA_HOME env setting before starting...
@@ -58,7 +58,7 @@ echo "Starting Faban Server"
 cd "$PRGDIR"/../webapps
 
 # Avoid version conflicts - re-unjar faban.war before each start.
-rm -rf faban xanadu
+rm -rf faban fenxi xanadu xanadu.war
 mkdir faban
 cd faban
 $JAVA_HOME/bin/jar xf ../faban.war
