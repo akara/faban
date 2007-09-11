@@ -19,11 +19,11 @@ public interface TraceRegistry<T, K> {
 	 * 
 	 * @param payload
 	 * @return id The identifier for tracking the payload across the SUT.
-	 * @throws DyingException
+	 * @throws DyeingException
 	 * 
 	 * @see {@link #acknowledge(String, Object)}
 	 */
-	Trace<K> registerAndDye(K payload) throws DyingException;
+	Trace<K> registerAndDye(K payload) throws DyeingException;
 	
 	/**
 	 * {@link #acknowledge(String, Object)} the response message associated with a specific traceid.

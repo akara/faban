@@ -95,11 +95,11 @@ public class JMSPointToPoint<T> implements AsynchronousTransport<T, Message>, Me
 	 * @throws JMSException
 	 * @throws InterruptedException
 	 * @throws ExecutionException
-	 * @throws DyingException 
+	 * @throws DyeingException 
 	 */
 	@SuppressWarnings("unchecked") 
 	private T sendMessage(Message msg, int time, TimeUnit unit) throws JMSException,
-			InterruptedException, ExecutionException, DyingException {
+			InterruptedException, ExecutionException, DyeingException {
 		
 		Trace<Message> trace = traceRegistry.registerAndDye(msg);
 		
@@ -177,11 +177,11 @@ public class JMSPointToPoint<T> implements AsynchronousTransport<T, Message>, Me
 	 * @return 
 	 * @throws InterruptedException 
 	 * @throws ExecutionException 
-	 * @throws DyingException 
+	 * @throws DyeingException 
 	 * @see com.sun.faban.driver.transport.asynchronous.AsynchronousTransport#putAndWait(java.lang.Object, int, java.util.concurrent.TimeUnit)
 	 */
 	public T putAndWait(Message payload, int time, TimeUnit unit)
-			throws InterruptedException, ExecutionException, DyingException {
+			throws InterruptedException, ExecutionException, DyeingException {
 		
 		
 		if( (payload instanceof ObjectMessage) || 

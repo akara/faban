@@ -108,10 +108,10 @@ public class MessageCacheTraceRegistry<T, K extends Message> implements TraceReg
 	/**
 	 * @param payload The message payload
 	 * @return trace A trace object
-	 * @throws DyingException 
+	 * @throws DyeingException 
 	 * @see com.sun.faban.driver.transport.asynchronous.TraceRegistry#registerAndDye(java.lang.Object)
 	 */
-	public Trace<K> registerAndDye(K payload) throws DyingException {
+	public Trace<K> registerAndDye(K payload) throws DyeingException {
 		try {
 			String correlationId = payload.getJMSCorrelationID();
 			// set the JMSCorrelationID if it's not set.
@@ -123,7 +123,7 @@ public class MessageCacheTraceRegistry<T, K extends Message> implements TraceReg
 			} 
 			return new MessageTrace(correlationId, payload);
 		} catch (Exception e) {
-			throw new DyingException(e);
+			throw new DyeingException(e);
 		}
 	}
 

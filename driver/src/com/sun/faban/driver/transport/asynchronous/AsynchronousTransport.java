@@ -34,11 +34,11 @@ public interface AsynchronousTransport<T, K> {
 	 * @return response The response for the specific request or null. 
 	 * @throws InterruptedException 
 	 * @throws ExecutionException  
-	 * @throws DyingException 
+	 * @throws DyeingException 
 	 * @throws Exception
 	 */
 	T putAndWait(K payload, int time, TimeUnit unit)
-			throws InterruptedException, ExecutionException, DyingException;
+			throws InterruptedException, ExecutionException, DyeingException;
 	
 	/**
 	 * @param payload
