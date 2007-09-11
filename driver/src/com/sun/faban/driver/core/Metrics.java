@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.10 2007/09/08 02:43:14 akara Exp $
+ * $Id: Metrics.java,v 1.11 2007/09/11 04:24:37 noahcampbell Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -890,6 +890,9 @@ public class Metrics implements Serializable, Cloneable {
         return maxBucketId;
     }
 
+    /**
+     * @param b
+     */
     public void printDetail(StringBuilder b)  {
         printGraph(b, "Throughput", graphBucketSize / 1000d,
                 "%.0f", "%.2f", thruputGraph, graphBucketSize / 1000d);
