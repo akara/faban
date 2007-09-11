@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="ehcache.xsd">
+
+	    <diskStore path="java.io.tmpdir"/>
+	
+	    <cacheManagerEventListenerFactory class="" properties=""/>
+	
+	    <cacheManagerPeerProviderFactory
+	            class="net.sf.ehcache.distribution.RMICacheManagerPeerProviderFactory"
+	            properties="peerDiscovery=automatic,
+	                        multicastGroupAddress=230.0.0.1,
+	                        multicastGroupPort=4446, timeToLive=1"
+	            propertySeparator=","
+	            />
+	
+	    <cacheManagerPeerListenerFactory
+	            class="net.sf.ehcache.distribution.RMICacheManagerPeerListenerFactory"/>
+	
+	 
+	    <defaultCache
+	            maxElementsInMemory="10000"
+	            eternal="false"
+	            timeToIdleSeconds="120"
+	            timeToLiveSeconds="120"
+	            overflowToDisk="true"
+	            diskSpoolBufferSizeMB="30"
+	            maxElementsOnDisk="10000000"
+	            diskPersistent="false"
+	            diskExpiryThreadIntervalSeconds="120"
+	            memoryStoreEvictionPolicy="LRU"
+	            />
+	    <cache name="JMSDriverDistributedCache"
+           maxElementsInMemory="10000"
+           eternal="false"
+           timeToIdleSeconds="100"
+           timeToLiveSeconds="100"
+           overflowToDisk="true"
+           diskSpoolBufferSizeMB="20"
+           memoryStoreEvictionPolicy="LFU">
+        	<cacheEventListenerFactory
+                class="net.sf.ehcache.distribution.RMICacheReplicatorFactory"
+                properties="replicateAsynchronously=true, replicatePuts=true,
+                            replicateUpdates=true, replicateUpdatesViaCopy=true,
+                            replicateRemovals=false, asynchronousReplicationIntervalMillis=10"/>
+    </cache>
+</ehcache>
