@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: UIDriver.java,v 1.4 2007/05/12 06:59:10 akara Exp $
+ * $Id: UIDriver.java,v 1.5 2007/10/12 01:35:34 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -76,7 +76,7 @@ public class UIDriver {
         http = new HttpTransport();
         logger = ctx.getLogger();
         random = ctx.getRandom();
-        String host = ctx.getXPathValue("/fabanLoad/serverConfig/hostConfig/host");
+        String host = ctx.getXPathValue("/fabanLoad/serverConfig/fa:hostConfig/fa:host");
         String port = ctx.getXPathValue("/fabanLoad/serverConfig/port");
         realSubmit = Boolean.parseBoolean(ctx.getProperty("realSubmit"));
         baseURL = "http://" + host + ':' + port + '/';
