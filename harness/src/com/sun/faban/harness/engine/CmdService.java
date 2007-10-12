@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.19 2007/10/12 01:32:11 akara Exp $
+ * $Id: CmdService.java,v 1.20 2007/10/12 07:33:23 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -1002,16 +1002,16 @@ final public class CmdService { 	// The final keyword prevents clones
             cmdp.clear();
             filep.clear();
         } catch (Exception e) {
-            logger.severe("Kill Failed for CmdAgent@" + machinesList.get(i));
-            logger.log(Level.FINE, "Exception", e);
+            logger.log(Level.SEVERE, "Kill Failed for CmdAgent@" +
+                    machinesList.get(i), e);
         } finally {
             //Exiting Registry
             if (registryCmd != null) {
                 int retry = 0;
-                for (; retry < 10; retry++)
+                for (; retry < 20; retry++)
                     try {
                         registryCmd.destroy();
-                        registryCmd.waitFor(5000);
+                        Thread.sleep(1000);
                         int exitValue = registryCmd.exitValue();
                         logger.finer("Registry exited with exit value " +
                                 exitValue + '.');
@@ -1024,13 +1024,13 @@ final public class CmdService { 	// The final keyword prevents clones
                         logger.log(Level.SEVERE, "Caught RemoteException on " +
                                 "local CommandHandle destroy for Registry. " +
                                 "Please report bug.", e);
-                    } catch (IllegalStateException e) {
-                        logger.log(Level.WARNING,
+                    } catch (IllegalThreadStateException e) {
+                        logger.log(Level.FINER,
                                 "Registry did not terminate! ", e);
                     }
-                if (retry == 10)
+                if (retry == 20)
                     logger.severe("Registry did not terminate " +
-                                "after 10 termination attempts, giving up! " +
+                                "after 20 termination attempts, giving up! " +
                                 "Subsequent runs may have problems.");
 
             }

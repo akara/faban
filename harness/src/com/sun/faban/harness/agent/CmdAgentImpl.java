@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgentImpl.java,v 1.10 2007/10/12 01:32:10 akara Exp $
+ * $Id: CmdAgentImpl.java,v 1.11 2007/10/12 07:33:22 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -72,7 +72,8 @@ public class CmdAgentImpl extends UnicastRemoteObject
     // ident based executions.
     private Map processMap = Collections.synchronizedMap(new HashMap());
 
-    private List handleList = Collections.synchronizedList(new ArrayList());
+    private List<CommandHandle> handleList = Collections.synchronizedList(
+                                                new ArrayList<CommandHandle>());
 
     private String[] baseClassPath;
     Map<String, String> binMap;
@@ -602,13 +603,60 @@ public class CmdAgentImpl extends UnicastRemoteObject
         }
 
         // Now iterate the handle list and kill'em all.
-        for (Iterator iter = handleList.iterator(); iter.hasNext();) {
-            CommandHandle handle = (CommandHandle) iter.next();
+        for (CommandHandle handle : handleList) {
             try {
                 handle.destroy();
             } catch (RemoteException e) {
-                // These handles are local. RemoteException should not occur.
+                logger.log(Level.SEVERE, "Caught RemoteException on " +
+                        "local CommandHandle destroy. " +
+                        "Please report bug.", e);
             }
+        }
+
+        for (int retries = 0; handleList.size() > 0 && retries < 20; retries++){
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                logger.log(Level.WARNING, "Sleep Interrupted. Strange!", e);
+            }
+
+            // We need to use iterator instead of foreach loop as we need to
+            // remove handles from the list while going through it.
+            Iterator<CommandHandle> iter = handleList.iterator();
+            while (iter.hasNext()) {
+                CommandHandle handle = iter.next();
+                boolean terminated = false;
+                try {
+                    int exitValue = handle.exitValue();
+                    logger.finer("Command exited with exit value " +
+                            exitValue + '.');
+                    terminated = true;
+                } catch (RemoteException e) {
+                    logger.log(Level.SEVERE, "Caught RemoteException on " +
+                            "local CommandHandle exitValue. " +
+                            "Please report bug.", e);
+                } catch (IllegalThreadStateException e) {
+                    logger.log(Level.FINER, "Registry did not terminate! ", e);
+                }
+
+                if (terminated)
+                    iter.remove();
+                else
+                    try { // kill again...
+                        handle.destroy();
+                    } catch (RemoteException e) {
+                        logger.log(Level.SEVERE, "Caught RemoteException on " +
+                                "local CommandHandle destroy. " +
+                                "Please report bug.", e);
+                    }
+            }
+        }
+
+        int leftover = handleList.size();
+        if (leftover > 0) {
+            logger.warning("Process termination/cleanup unsuccessful after " +
+                    "20 attempts. " + leftover + " processes remaining. This " +
+                    "may affect subsequent runs.");
             handleList.clear();
         }
 
