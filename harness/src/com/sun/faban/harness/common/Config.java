@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.26 2007/06/29 17:20:23 akara Exp $
+ * $Id: Config.java,v 1.27 2007/10/12 01:32:10 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -115,6 +115,9 @@ public class Config {
 
     // The default RMI port
     public static int RMI_PORT = 9998;
+
+    // The default Agent port
+    public static int AGENT_PORT = 9981;
 
     public static final String PROFILE_SIGNAL = "PROF";
 
@@ -239,8 +242,9 @@ public class Config {
             // Only for the server, we need to set URL
             FABAN_URL = System.getProperty("faban.url");
         } else {
-            String fabanHome = System.getProperty("faban.home", userHome +
-                    "faban" + File.separator);
+            String fabanHome = System.getProperty("faban.home");
+            if (fabanHome == null)
+                fabanHome = System.getenv("FABAN_HOME");
             // Make sure it ends with '/'
             if (fabanHome.endsWith(File.separator))
                 FABAN_HOME = fabanHome;
@@ -467,12 +471,20 @@ public class Config {
                         RMI_PORT = Integer.parseInt(v);
                     }
                 }
+                v = xPath.evaluate("agentPort", root);
+                if (v != null) {
+                    v = v.trim();
+                    if (v.length() > 0) {
+                        AGENT_PORT = Integer.parseInt(v);
+                    }
+                }
             } catch (Exception e) {
                 logger.log(Level.SEVERE,
                         "Error reading Faban harness configuration.", e);
             }
         else
-            logger.warning("Configuration file " + Config.CONFIG_FILE +
-                    " does not exist. Using default settings.");
+            logger.fine("Configuration file " + Config.CONFIG_FILE +
+                    " does not exist. Probably on client. " +
+                    "Using default settings.");
     }
 }

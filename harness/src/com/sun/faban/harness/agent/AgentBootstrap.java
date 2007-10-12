@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentBootstrap.java,v 1.1 2007/05/24 01:04:36 akara Exp $
+ * $Id: AgentBootstrap.java,v 1.2 2007/10/12 01:32:10 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,12 +25,22 @@ package com.sun.faban.harness.agent;
 
 import com.sun.faban.common.Registry;
 import com.sun.faban.common.RegistryLocator;
+import com.sun.faban.common.Utilities;
 import com.sun.faban.harness.common.Config;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.UnknownHostException;
 import java.rmi.RMISecurityManager;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
 import java.rmi.server.RMISocketFactory;
+import java.util.HashSet;
 import java.util.logging.Logger;
 
 /**
@@ -38,8 +48,14 @@ import java.util.logging.Logger;
  */
 public class AgentBootstrap {
 
+    private static int daemonPort = 9981;
+
     private static Logger logger =
                             Logger.getLogger(AgentBootstrap.class.getName());
+    static AgentSocketFactory socketFactory;
+    static String progName;
+    static boolean daemon = false;
+    static boolean agentsAreUp = false;
     static String host;
     static String ident;
     static String master;
@@ -47,121 +63,227 @@ public class AgentBootstrap {
     static String javaHome;
     // Initialize it to make sure it doesn't end up a 'null'
     static String jvmOptions = " ";
-    static CmdAgent cmd;
+    static CmdAgentImpl cmd;
+    static FileAgentImpl file;
+    static HashSet<String> registeredNames = new HashSet<String>();
 
     public static void main(String[] args) {
         System.setSecurityManager (new RMISecurityManager());
 
-        if (args.length < 4) {
-            String usage = "Usage: AgentBootstrap <cmdagent_machine_name> " +
-                    "<master_host_interface_name> <master_local_hostname> " +
-                    "<java_home> <optional_jvm_arguments>";
-            logger.severe(usage);
+        progName = System.getProperty("faban.cli.command");
+        String usage = "Usage: " + progName + " [port]";
+
+        if (args.length < 2) {
+            if (args.length == 1) {
+                if ("-h".equals(args[0]) || "--help".equals(args) ||
+                                            "-?".equals(args)) {
+                    System.err.println(usage);
+                    System.exit(0);
+                } else {
+                    daemonPort = Integer.parseInt(args[0]);
+                }
+            }
+            startDaemon();
+        } else if (args.length > 3) {
+            try {
+                startAgents(args);
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.exit(-1);
+            }
+        } else {
+            // We do not expose the start params for agent mode as that
+            // is not supposed to be called by the user. The daemon mode
+            // has only one optional param - port.
+            logger.info(usage);
             System.err.println(usage);
             System.exit(-1);
         }
+    }
 
+    private static void startDaemon() {
+        daemon = true;
+        /* Note that the daemon is not designed to accept any concurrency at
+         * all and hence the accept/dispatch is not threaded. This is not a
+         * bug. It should only receive one and only one connection request per
+         * run. Requests to start an agent while one is running will return
+         * with an error. We don't care if a concurrent request has to wait.
+         * Simplicity is the goal here.
+         */
         try {
-            String hostname = args[0];
-            master = args[1];
-            String masterLocal = args[2];
-            javaHome = args[3];
-
-            String downloadURL = null;
-            String benchName = null;
-            // There may be optional JVM args
-            if(args.length > 4) {
-                for(int i = 4; i < args.length; i++)
-                    if(args[i].startsWith("faban.download")) {
-                        downloadURL = args[i].substring(
-                                args[i].indexOf('=') + 1);
-                    }else if (args[i].startsWith("faban.benchmarkName")) {
-                        benchName = args[i].substring(args[i].indexOf('=') + 1);
-                    } else if (args[i].indexOf("faban.logging.port") != -1) {
-                        jvmOptions = jvmOptions + ' ' + args[i];
-                        Config.LOGGING_PORT = Integer.parseInt(
-                                args[i].substring(args[i].indexOf("=") + 1));
-                    } else if(args[i].indexOf("faban.registry.port") != -1) {
-                        jvmOptions = jvmOptions + " " + args[i];
-                        Config.RMI_PORT = Integer.parseInt(
-                                args[i].substring(args[i].indexOf("=") + 1));
-                    } else {
-                        jvmOptions = jvmOptions + ' ' + args[i];
+            ServerSocket serverSocket = new ServerSocket(daemonPort);
+            for (;;) {
+                Socket socket = serverSocket.accept();
+                InputStream in = socket.getInputStream();
+                OutputStream out = socket.getOutputStream();
+                byte[] buffer = new byte[8192];
+                int length = in.read(buffer);
+                if (agentsAreUp)
+                    out.write("ERROR: Agents already running.".getBytes());
+                if (length > 0) {
+                    String argLine = new String(buffer, 0, length);
+                    String[] args = argLine.split(" ");
+                    if (args.length < 4) {
+                       out.write("ERROR: Inadequate params.".getBytes());
                     }
-            }
-            logger.finer("JVM options for child processes:" + jvmOptions);
-
-            RMISocketFactory.setSocketFactory(
-                                new AgentSocketFactory(master, masterLocal));
-            // Get hold of the registry
-            registry = RegistryLocator.getRegistry(master, Config.RMI_PORT);
-            logger.fine("Succeeded obtaining registry.");
-
-            // host and ident will be unique
-            host = InetAddress.getLocalHost().getHostName();
-
-            // Sometimes we get the host name with the whole domain baggage.
-            // The host name is widely used in result files, tools, etc. We
-            // do not want that baggage. So we make sure to crop it off.
-            // i.e. brazilian.sfbay.Sun.COM should just show as brazilian.
-            int dotIdx = host.indexOf('.');
-            if (dotIdx > 0)
-                host = host.substring(0, dotIdx);
-
-            ident = Config.CMD_AGENT + "@" + host;
-
-            // Make sure there is only one agent running in a machine
-            CmdAgent agent = (CmdAgent)registry.getService(ident);
-
-            if((agent != null) && (!host.equals(hostname))){
-                // re-register the agents with the 'hostname'
-                registry.register(Config.CMD_AGENT + "@" + hostname, agent);
-                logger.fine("Succeeded re-registering " + Config.CMD_AGENT +
-                                                            "@" + hostname);
-                FileAgent f = (FileAgent)registry.getService(Config.FILE_AGENT +
-                                                            "@" + host);
-                registry.register(Config.FILE_AGENT + "@" + hostname, f);
-                logger.fine("Succeeded re-registering " + Config.FILE_AGENT +
-                                                            "@" + hostname);
-            }
-            else {
-                new BenchmarkLoader().loadBenchmark(benchName, downloadURL);
-                cmd = new CmdAgentImpl(benchName);
-
-                registry.register(ident, cmd);
-
-                logger.fine("Succeeded registering " + ident);
-
-                // Register it with the 'hostname' also if host != hostname
-                if(!host.equals(hostname))
-                    registry.register(Config.CMD_AGENT + "@" + hostname, cmd);
-
-                if(host.equals(master)) {
-                    ident = Config.CMD_AGENT;
-                    registry.register(ident, cmd);
-                } else if (sameHost(host, master)) {
-                    ident = Config.CMD_AGENT;
-                    registry.register(ident, cmd);
+                    try {
+                        startAgents(args);
+                        out.write("OK".getBytes());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        agentsAreUp = false;
+                        out.write(("ERROR: " + e.getMessage()).getBytes());
+                    }
                 }
-
-                // Create and register FileAgent
-                FileAgent f = new FileAgentImpl();
-                registry.register(Config.FILE_AGENT + "@" + host, f);
-                logger.fine("Succeeded registering " +
-                        Config.FILE_AGENT + "@" + host);
-
-                // Register it with the 'hostname' also if host != hostname
-                if(!host.equals(hostname))
-                    registry.register(Config.FILE_AGENT + "@" + hostname, f);
-
-                // Register a blank Config.FILE_AGENT for the master's
-                // file agent.
-                if (sameHost(host, master))
-                    registry.register(Config.FILE_AGENT, f);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(-1);
+        } catch (IOException e) {
+            e.printStackTrace();  // We don't use logger here 'cause we don't
+            // know the harness at this time.
+            // The logger may not be configured properly.
+            System.exit(1);
+        }
+
+    }
+
+    private static void startAgents(String[] args) throws Exception {
+        agentsAreUp = true;
+
+        String hostname = args[0];
+        master = args[1];
+        String masterLocal = args[2];
+        javaHome = args[3];
+
+        String downloadURL = null;
+        String benchName = null;
+        // There may be optional JVM args
+        if(args.length > 4) {
+            for(int i = 4; i < args.length; i++)
+                if(args[i].startsWith("faban.download")) {
+                    downloadURL = args[i].substring(
+                            args[i].indexOf('=') + 1);
+                }else if (args[i].startsWith("faban.benchmarkName")) {
+                    benchName = args[i].substring(args[i].indexOf('=') + 1);
+                } else if (args[i].indexOf("faban.logging.port") != -1) {
+                    jvmOptions = jvmOptions + ' ' + args[i];
+                    Config.LOGGING_PORT = Integer.parseInt(
+                            args[i].substring(args[i].indexOf("=") + 1));
+                } else if(args[i].indexOf("faban.registry.port") != -1) {
+                    jvmOptions = jvmOptions + " " + args[i];
+                    Config.RMI_PORT = Integer.parseInt(
+                            args[i].substring(args[i].indexOf("=") + 1));
+                } else {
+                    jvmOptions = jvmOptions + ' ' + args[i];
+                }
+        }
+
+        // Ensure proper JAVA_HOME, defaulting to this one.
+        File java = new File(javaHome + File.separator + "bin", "java");
+        if (!java.exists()) {
+            String newJavaHome = Utilities.getJavaHome();
+            logger.warning("JAVA_HOME " + javaHome + " does not exist. Using " +
+                                                    newJavaHome + " instead.");
+            javaHome = newJavaHome;
+        }
+
+        logger.finer("JVM options for child processes:" + jvmOptions);
+
+        // We cannot set the socket factory twice. So we need to reconfigure it.
+        if (socketFactory == null) {
+            socketFactory = new AgentSocketFactory(master, masterLocal);
+            RMISocketFactory.setSocketFactory(socketFactory);
+        } else {
+            socketFactory.setMaster(master, masterLocal);
+        }
+
+        // Get hold of the registry
+        registry = RegistryLocator.getRegistry(master, Config.RMI_PORT);
+        logger.fine("Succeeded obtaining registry.");
+
+        // host and ident will be unique
+        host = InetAddress.getLocalHost().getHostName();
+
+        // Sometimes we get the host name with the whole domain baggage.
+        // The host name is widely used in result files, tools, etc. We
+        // do not want that baggage. So we make sure to crop it off.
+        // i.e. brazilian.sfbay.Sun.COM should just show as brazilian.
+        int dotIdx = host.indexOf('.');
+        if (dotIdx > 0)
+            host = host.substring(0, dotIdx);
+
+        ident = Config.CMD_AGENT + "@" + host;
+
+        // Make sure there is only one agent running in a machine
+        CmdAgent agent = (CmdAgent)registry.getService(ident);
+
+        if((agent != null) && (!host.equals(hostname))){
+            // re-register the agents with the 'hostname'
+            register(Config.CMD_AGENT + "@" + hostname, agent);
+            logger.fine("Succeeded re-registering " + Config.CMD_AGENT +
+                    "@" + hostname);
+            FileAgent f = (FileAgent)registry.getService(Config.FILE_AGENT +
+                    "@" + host);
+            register(Config.FILE_AGENT + "@" + hostname, f);
+            logger.fine("Succeeded re-registering " + Config.FILE_AGENT +
+                    "@" + hostname);
+        }
+        else {
+            new BenchmarkLoader().loadBenchmark(benchName, downloadURL);
+            if (cmd == null)
+                cmd = new CmdAgentImpl(benchName);
+            else
+                cmd.setBenchName(benchName);
+
+            register(ident, cmd);
+
+            logger.fine("Succeeded registering " + ident);
+
+            // Register it with the 'hostname' also if host != hostname
+            if(!host.equals(hostname))
+                register(Config.CMD_AGENT + "@" + hostname, cmd);
+
+            if(host.equals(master)) {
+                ident = Config.CMD_AGENT;
+                register(ident, cmd);
+            } else if (sameHost(host, master)) {
+                ident = Config.CMD_AGENT;
+                register(ident, cmd);
+            }
+
+            // Create and register FileAgent
+            if (file == null)
+                file = new FileAgentImpl();
+            register(Config.FILE_AGENT + "@" + host, file);
+            logger.fine("Succeeded registering " +
+                    Config.FILE_AGENT + "@" + host);
+
+            // Register it with the 'hostname' also if host != hostname
+            if(!host.equals(hostname))
+                register(Config.FILE_AGENT + "@" + hostname, file);
+
+            // Register a blank Config.FILE_AGENT for the master's
+            // file agent.
+            if (sameHost(host, master))
+                register(Config.FILE_AGENT, file);
+        }
+    }
+
+    private static void register(String name, Remote service)
+            throws RemoteException {
+        if (registeredNames.add(name)) {
+            registry.register(name, service);
+        }
+    }
+
+    static void deregisterAgents() throws RemoteException {
+        for (String name : registeredNames) {
+            registry.unregister(name);
+        }
+    }
+
+    static void terminateAgents() {
+        agentsAreUp = false;
+        if (!daemon) {
+            System.exit(0);
         }
     }
 

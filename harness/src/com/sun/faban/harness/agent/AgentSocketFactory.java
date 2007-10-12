@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentSocketFactory.java,v 1.2 2006/06/29 19:38:40 akara Exp $
+ * $Id: AgentSocketFactory.java,v 1.3 2007/10/12 01:32:10 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -60,10 +60,20 @@ public class AgentSocketFactory extends RMISocketFactory implements RMIClientSoc
      * @param masterLocal - this is the name of the master machine
      *        by which it knows itself.
      */
-    public AgentSocketFactory(String masterMachine, String masterLocal) {
+    AgentSocketFactory(String masterMachine, String masterLocal) {
         super();
         this.masterMachine = masterMachine;
         this.masterLocal = masterLocal;
+    }
+
+    /**
+     * Reconfigures the factory for a different Faban master.
+     * @param machine The new master machine name or ip address
+     * @param localName The master host name i.e. from uname -n
+     */
+    void setMaster(String machine, String localName) {
+        masterMachine = machine;
+        masterLocal = localName;
     }
 
     /**

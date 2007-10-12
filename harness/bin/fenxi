@@ -99,9 +99,11 @@ java -Xmx756m \
 # Need to remove when FenXi is fixed.
 
 editXan() {
-    sed 's%FenXi.jpg%/fenxi/html/FenXi.jpg%g' ${1} > ${1}.1
-    sed 's%/xanadu/html%/fenxi/html%g' ${1}.1 > ${1}
-    rm ${1}.1
+    if [ -f "${1}" ] ; then
+        sed 's%FenXi.jpg%/fenxi/html/FenXi.jpg%g' ${1} > ${1}.1
+        sed 's%/xanadu/html%/fenxi/html%g' ${1}.1 > ${1}
+        rm ${1}.1
+    fi
 }
 
 cd $2

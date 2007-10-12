@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgentImpl.java,v 1.9 2007/05/24 01:04:36 akara Exp $
+ * $Id: CmdAgentImpl.java,v 1.10 2007/10/12 01:32:10 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -116,11 +116,15 @@ public class CmdAgentImpl extends UnicastRemoteObject
             }
             LogManager.getLogManager().readConfiguration(new FileInputStream(
                     Config.CONFIG_DIR + "logging.properties"));
-            baseClassPath = getBaseClassPath(benchName);
-            binMap = CmdMap.getCmdMap(benchName);            
+            setBenchName(benchName);
         } catch(Exception e) {
             logger.log(Level.SEVERE, "Failed to initialize CmdAgent.", e);
         }
+    }
+
+    void setBenchName(String benchName) throws Exception {
+        baseClassPath = getBaseClassPath(benchName);
+        binMap = CmdMap.getCmdMap(benchName);
     }
 
     // CmdAgent implementation
@@ -605,16 +609,15 @@ public class CmdAgentImpl extends UnicastRemoteObject
             } catch (RemoteException e) {
                 // These handles are local. RemoteException should not occur.
             }
+            handleList.clear();
         }
 
         /* Exit application */
         try {
-            AgentBootstrap.registry.unregister(AgentBootstrap.ident);
-            if (AgentBootstrap.host.equals(AgentBootstrap.master)) {
-                AgentBootstrap.registry.unregister(Config.CMD_AGENT);
-            }
+            AgentBootstrap.deregisterAgents();
+        } catch (RemoteException re){
+            logger.log(Level.WARNING, re.getMessage(), re);
         }
-        catch (RemoteException re){}
 
         logger.fine("Killing itself");
 
@@ -626,9 +629,8 @@ public class CmdAgentImpl extends UnicastRemoteObject
             public void run() {
                 try {
                     Thread.sleep(5000);
-                    System.exit(0);
-                }
-                catch(Exception e) {}
+                    AgentBootstrap.terminateAgents();
+                } catch (Exception e) {}
             }
         };
         exitThread.start();

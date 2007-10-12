@@ -10,12 +10,27 @@ fi
 
 cd $FABAN_HOME/logs
 
-# If we can't locate JAVA_HOME then we use the default
-JAVA_HOME=$4
-if [ ! -f "$JAVA_HOME/bin/java" ] ; then
-    JAVA_HOME=/usr/java
+# Use the provided JAVA_HOME, if available and JAVA found.
+if [ "$#" -ge 4 ] ; then
+    JAVA_HOME="$4"
 fi
 
+if [ -x "$JAVA_HOME/bin/java" ] ; then
+    JAVA="$JAVA_HOME/bin/java"
+fi
+
+# If JAVA is not defined, we try our best to locate it.
+if [ -z "$JAVA" ] ; then
+
+    # Check that Java is reachable at all.
+    JAVA_BIN=`which java`
+    if [ -z "$JAVA_BIN" ] ; then
+        echo "Could not find java. Please make sure the JDK is installed \
+and set JAVA_HOME or PATH accordingly." >&2
+        exit 1
+    fi
+    JAVA=$JAVA_BIN
+fi
 
 CLASSPATH=$FABAN_HOME/lib/fabancommon.jar:$FABAN_HOME/lib/fabanagents.jar
 export CLASSPATH
@@ -23,7 +38,11 @@ export CLASSPATH
 PATH=$JAVA_HOME/bin:/bin:/usr/bin:/usr/local/bin:/usr/ucb:/usr/sbin:$FABAN_HOME/bin
 export PATH
 
-$JAVA_HOME/bin/java -server -classpath $CLASSPATH -Dfaban.home=$FABAN_HOME \
+$JAVA -server -classpath $CLASSPATH \
+-Dfaban.cli.command=$0 -Dfaban.home=$FABAN_HOME \
 -Djava.security.policy=$FABAN_HOME"/config/faban.policy" \
-com.sun.faban.harness.agent.AgentBootstrap $* >>cmdagent.log 2>&1 &
+com.sun.faban.harness.agent.AgentBootstrap $* >>agent.log 2>&1 &
 
+if [ "$#" -lt "4" ] ; then
+    echo "Agent started in daemon mode. Output is redirected to ${FABAN_HOME}/logs/agent.log"
+fi

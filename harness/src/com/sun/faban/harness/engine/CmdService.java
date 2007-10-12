@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.18 2007/09/08 01:21:13 akara Exp $
+ * $Id: CmdService.java,v 1.19 2007/10/12 01:32:11 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -36,10 +36,7 @@ import com.sun.faban.harness.RemoteCallable;
 import com.sun.faban.harness.FabanHostUnknownException;
 
 import java.io.*;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.net.URL;
-import java.net.SocketException;
+import java.net.*;
 import java.rmi.RemoteException;
 import java.util.*;
 import java.util.logging.Level;
@@ -90,7 +87,7 @@ final public class CmdService { 	// The final keyword prevents clones
     private Registry registry;
     private String master;	// Name of faban master machine
     private String masterAddress; // ip of faban master machine
-    private CommandHandle rmi;
+    private CommandHandle registryCmd;
     private String javaHome;
     private String jvmOptions;
     private HashMap<String, String> binMap = new HashMap<String, String>();
@@ -222,7 +219,7 @@ final public class CmdService { 	// The final keyword prevents clones
             Command rmiCmd = new Command(cmd);
             rmiCmd.setSynchronous(false);
             rmiCmd.setLogLevel(Command.STDOUT, Level.WARNING);
-            rmi = rmiCmd.execute();
+            registryCmd = rmiCmd.execute();
 
         } catch(Exception e) {
             logger.log(Level.SEVERE, "Couldn't start Registry. " +
@@ -487,33 +484,71 @@ final public class CmdService { 	// The final keyword prevents clones
 
         hostInterfaces.setProperty(mach, interfaceAddress);
         String cmdarray;
-        try {
-            if (mach.equals(master)) {
-                cmdarray = agent + mach + ' ' + interfaceAddress + ' ' +
+
+        String agentParams = mach + ' ' + interfaceAddress + ' ' +
                         masterAddress + ' ' + javaHome + ' ' + jvmOptions +
                         " faban.benchmarkName=" + benchName;
+        try {
+            if (mach.equals(master)) {
+                cmdarray = agent + agentParams;
+                logger.fine("Executing " + cmdarray);
+                Command cmdAgent = new Command(cmdarray);
+                cmdAgent.setSynchronous(false);
+                cmdAgent.setLogLevel(Command.STDOUT, Level.WARNING);
+                cmdAgent.execute();
             } else { // if the machine is not the master machine, we need to
                 // do an rsh and pass download instructions
                 // Many times, the FABAN_URL cannot be reached by the benchmark
                 // downloader. So it is better to change the URL to access
                 // the master via the best interface, by ip address instead of
                 // host name.
+
                 URL fabanURL = new URL(Config.FABAN_URL);
                 URL downloadURL = new URL(fabanURL.getProtocol(),
                         interfaceAddress, fabanURL.getPort(),
                         fabanURL.getFile());
-                cmdarray = rsh + ' ' + mach + ' ' + agent + mach + ' ' +
-                        interfaceAddress + ' ' + masterAddress + ' ' +
-                        javaHome + ' ' + jvmOptions +
-                        " faban.benchmarkName=" + benchName +
-                        " faban.download=" + downloadURL.toString();
-            }
+                agentParams += " faban.download=" + downloadURL.toString();
 
-            logger.fine("Executing " + cmdarray);
-            Command cmdAgent = new Command(cmdarray);
-            cmdAgent.setSynchronous(false);
-            cmdAgent.setLogLevel(Command.STDOUT, Level.WARNING);
-            cmdAgent.execute();
+                boolean agentStarted = false;
+
+                try { // See first whether we have an agent daemon.
+                    Socket socket = new Socket(mach, Config.AGENT_PORT);
+                    OutputStream socketOut = socket.getOutputStream();
+                    InputStream socketIn = socket.getInputStream();
+                    byte[] buffer = new byte[1024];
+                    socketOut.write(agentParams.getBytes());
+                    socketOut.close();
+                    int length = socketIn.read(buffer);
+                    socketIn.close();
+                    socket.close();
+                    String response = new String(buffer, 0, length);
+                    if ("OK".equals(response)) {
+                        agentStarted = true;
+                        logger.fine("Found Agend(daemon)@" + mach +
+                                                    ". Registering agent.");
+                    } else {
+                        logger.log(Level.WARNING, "Agent(daemon)@" + mach +
+                                                            ": " + response);
+                    }
+                } catch (ConnectException e) {
+                    // We should get a ConnectException if the agent was not
+                    // started in daemon mode. This should take no time.
+                    logger.log(Level.FINE, "Agent(daemon)@" + mach + ": " +
+                                                            e.getMessage(), e);
+                } catch (IOException e) {
+                    logger.log(Level.WARNING, "Agent(daemon)@" + mach + ": " +
+                                                            e.getMessage(), e);
+                }
+
+                if (!agentStarted) {
+                    cmdarray = rsh + ' ' + mach + ' ' + agent + agentParams;
+                    logger.fine("Executing " + cmdarray);
+                    Command cmdAgent = new Command(cmdarray);
+                    cmdAgent.setSynchronous(false);
+                    cmdAgent.setLogLevel(Command.STDOUT, Level.WARNING);
+                    cmdAgent.execute();
+                }
+            }
             return true;
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Could not execute " + agent +
@@ -969,16 +1004,37 @@ final public class CmdService { 	// The final keyword prevents clones
         } catch (Exception e) {
             logger.severe("Kill Failed for CmdAgent@" + machinesList.get(i));
             logger.log(Level.FINE, "Exception", e);
-        }
+        } finally {
+            //Exiting Registry
+            if (registryCmd != null) {
+                int retry = 0;
+                for (; retry < 10; retry++)
+                    try {
+                        registryCmd.destroy();
+                        registryCmd.waitFor(5000);
+                        int exitValue = registryCmd.exitValue();
+                        logger.finer("Registry exited with exit value " +
+                                exitValue + '.');
+                        break;
+                    } catch (InterruptedException e) {
+                        logger.log(Level.WARNING, "Interrupted waiting for " +
+                                "registry to terminate. " +
+                                "Cannot verify termination status.", e);
+                    } catch (RemoteException e) {
+                        logger.log(Level.SEVERE, "Caught RemoteException on " +
+                                "local CommandHandle destroy for Registry. " +
+                                "Please report bug.", e);
+                    } catch (IllegalStateException e) {
+                        logger.log(Level.WARNING,
+                                "Registry did not terminate! ", e);
+                    }
+                if (retry == 10)
+                    logger.severe("Registry did not terminate " +
+                                "after 10 termination attempts, giving up! " +
+                                "Subsequent runs may have problems.");
 
-        //Exiting RMI registry and Registry
-        if (rmi != null)
-            try {
-                rmi.destroy();
-            } catch (RemoteException e) {
-                logger.log(Level.SEVERE, "Caught RemoteException on local " +
-                        "CommandHandle destroy. Please report bug.",e);
             }
+        }
     }
 
     /**
