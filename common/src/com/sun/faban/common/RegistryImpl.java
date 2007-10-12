@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RegistryImpl.java,v 1.4 2007/05/24 01:06:40 akara Exp $
+ * $Id: RegistryImpl.java,v 1.5 2007/10/12 07:34:01 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -31,6 +31,7 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * This class implements the Registry interface
@@ -113,13 +114,12 @@ public class RegistryImpl extends UnicastRemoteObject implements Registry {
             new HashMap<String, Remote>();
     private HashMap<String, HashMap<String, Remote>> servicesTypeTable =
             new HashMap<String, HashMap<String, Remote>>();
-    private String className;
-    private Logger logger;
+//    private String className;
+    private static Logger logger =
+            Logger.getLogger(RegistryImpl.class.getName());
 
-    RegistryImpl() throws RemoteException {
+    private RegistryImpl() throws RemoteException {
         super();
-        className = getClass().getName();
-        logger=Logger.getLogger(className);
     }
 
 
@@ -287,8 +287,7 @@ public class RegistryImpl extends UnicastRemoteObject implements Registry {
             s = getClientHost();
         }
         catch (Exception e) {
-            logger.severe(e.getMessage());
-            logger.throwing(className, "getCaller", e);
+            logger.log(Level.SEVERE, e.getMessage(), e);
         }
 
         return s;
@@ -350,11 +349,10 @@ public class RegistryImpl extends UnicastRemoteObject implements Registry {
         java.rmi.registry.Registry rmiRegistry = null;
         try {
             rmiRegistry = LocateRegistry.createRegistry(rmiPort);
-            System.out.println("Registry listening on port " +
+            logger.fine("Registry listening on port " +
                     rmiPort + ".");
         } catch (Exception e) {
-            System.err.println("Exception starting registry:");
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Exception starting registry.", e);
             System.exit(-1);
         }
 
@@ -365,7 +363,7 @@ public class RegistryImpl extends UnicastRemoteObject implements Registry {
 //            debug.println(3, "Binding registry to " + s);
             // If the debug level is set to too high and if this is not
             // printed driver will hang !!!!
-            System.out.println("Registry bound.");
+            logger.info("Registry started.");
         }
         catch (Exception e) {
             e.printStackTrace();
