@@ -20,7 +20,7 @@ fi
 INTERFACE=`ping -R -c1 "${TARGET}" | grep RR | awk '{ print $2 }'`
 
 if [ -z "${INTERFACE}" ] ; then
-    echo "Cannot contace ${TARGET}" >&2
+    echo "Cannot contact ${TARGET}" >&2
     exit 1
 fi
 

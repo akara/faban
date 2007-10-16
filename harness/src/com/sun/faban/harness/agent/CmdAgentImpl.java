@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgentImpl.java,v 1.11 2007/10/12 07:33:22 akara Exp $
+ * $Id: CmdAgentImpl.java,v 1.12 2007/10/16 09:25:39 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -99,24 +99,6 @@ public class CmdAgentImpl extends UnicastRemoteObject
         super();
 
         try {
-            // Update the logging.properties file in config dir
-            Properties log = new Properties();
-            FileInputStream in = new FileInputStream(Config.CONFIG_DIR + "logging.properties");
-            log.load(in);
-            in.close();
-
-            // Update if it has changed.
-            if(!(log.getProperty("java.util.logging.SocketHandler.host").equals(AgentBootstrap.master) &&
-                 log.getProperty("java.util.logging.SocketHandler.port").equals(String.valueOf(Config.LOGGING_PORT)))){
-                logger.fine("Updating " + Config.CONFIG_DIR + "logging.properties");
-                log.setProperty("java.util.logging.SocketHandler.host", AgentBootstrap.master);
-                log.setProperty("java.util.logging.SocketHandler.port", String.valueOf(Config.LOGGING_PORT));
-                FileOutputStream out = new FileOutputStream(new File(Config.CONFIG_DIR + "logging.properties"));
-                log.store(out, "Faban logging properties");
-                out.close();
-            }
-            LogManager.getLogManager().readConfiguration(new FileInputStream(
-                    Config.CONFIG_DIR + "logging.properties"));
             setBenchName(benchName);
         } catch(Exception e) {
             logger.log(Level.SEVERE, "Failed to initialize CmdAgent.", e);

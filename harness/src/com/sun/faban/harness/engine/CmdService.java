@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.20 2007/10/12 07:33:23 akara Exp $
+ * $Id: CmdService.java,v 1.21 2007/10/16 09:25:40 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -91,6 +91,8 @@ final public class CmdService { 	// The final keyword prevents clones
     private String javaHome;
     private String jvmOptions;
     private HashMap<String, String> binMap = new HashMap<String, String>();
+    private Map<String, String> ifMap;
+
     private String rsh, agent;
 
 
@@ -101,6 +103,8 @@ final public class CmdService { 	// The final keyword prevents clones
         try {
             master = (InetAddress.getLocalHost()).getHostName();
             masterAddress = (InetAddress.getLocalHost()).getHostAddress();
+            logger.config("InetAddress master Host = " + master);
+            logger.config("InetAddress master address = " + masterAddress);
         } catch (Exception e) {
             logger.severe("CmdService <init> failed " + e);
             logger.log(Level.FINE, "Exception", e);
@@ -129,6 +133,25 @@ final public class CmdService { 	// The final keyword prevents clones
         return master;
     }
 
+
+    /**
+     * Returns the ip address of the master.
+     * @return The ip address of the master
+     */
+    public String getMasterIP() {
+        return masterAddress;
+    }
+
+    /**
+     * Returns the ip address of the master's interface best used for
+     * communicating with the target host.
+     * @param agentHost The target host
+     * @return The ip address of the master
+     */
+    public String getMasterIP(String agentHost) {
+        return ifMap.get(agentHost);
+    }
+
     /**
      *
      * This method is called after every run to re-initialize the data
@@ -155,7 +178,6 @@ final public class CmdService { 	// The final keyword prevents clones
                          String home, String options) {
 
         javaHome = home;
-        Config.FABAN_HOME.replace('\\', '/');
         // We need to be careful to escape properties having '\\' on win32
         String escapedHome = Config.FABAN_HOME.replace("\\", "\\\\");
         String fs = File.separatorChar == '\\' ? "\\\\" : File.separator;
@@ -331,7 +353,6 @@ final public class CmdService { 	// The final keyword prevents clones
             ifScript = new File(scriptPath.trim());
         }
 
-        Map<String, String> ifMap = null;
         if (ifScript.exists()) {
             ifMap = getIfMap(remoteMachines, ifScript);
         } else {
@@ -437,7 +458,6 @@ final public class CmdService { 	// The final keyword prevents clones
             }
 
             logger.config("Interface Address = " + interfaceAddress);
-            logger.config("InetAddress local Host = " + masterAddress);
         }
         return ifMap;
     }
@@ -497,7 +517,8 @@ final public class CmdService { 	// The final keyword prevents clones
                 cmdAgent.setLogLevel(Command.STDOUT, Level.WARNING);
                 cmdAgent.execute();
             } else { // if the machine is not the master machine, we need to
-                // do an rsh and pass download instructions
+                // do an rsh or talk to the agent daemon and pass download
+                // instructions.
                 // Many times, the FABAN_URL cannot be reached by the benchmark
                 // downloader. So it is better to change the URL to access
                 // the master via the best interface, by ip address instead of
@@ -517,14 +538,14 @@ final public class CmdService { 	// The final keyword prevents clones
                     InputStream socketIn = socket.getInputStream();
                     byte[] buffer = new byte[1024];
                     socketOut.write(agentParams.getBytes());
-                    socketOut.close();
                     int length = socketIn.read(buffer);
                     socketIn.close();
+                    socketOut.close();
                     socket.close();
                     String response = new String(buffer, 0, length);
                     if ("OK".equals(response)) {
                         agentStarted = true;
-                        logger.fine("Found Agend(daemon)@" + mach +
+                        logger.fine("Found Agent(daemon)@" + mach +
                                                     ". Registering agent.");
                     } else {
                         logger.log(Level.WARNING, "Agent(daemon)@" + mach +

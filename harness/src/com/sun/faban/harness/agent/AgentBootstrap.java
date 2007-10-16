@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentBootstrap.java,v 1.2 2007/10/12 01:32:10 akara Exp $
+ * $Id: AgentBootstrap.java,v 1.3 2007/10/16 09:25:39 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -28,10 +28,7 @@ import com.sun.faban.common.RegistryLocator;
 import com.sun.faban.common.Utilities;
 import com.sun.faban.harness.common.Config;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -41,7 +38,11 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.server.RMISocketFactory;
 import java.util.HashSet;
+import java.util.Properties;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
+import java.util.logging.LogManager;
 
 /**
  * Bootstrap class for the CmdAgent and FileAgent
@@ -66,6 +67,7 @@ public class AgentBootstrap {
     static CmdAgentImpl cmd;
     static FileAgentImpl file;
     static HashSet<String> registeredNames = new HashSet<String>();
+    static Properties origLogProperties = new Properties();
 
     public static void main(String[] args) {
         System.setSecurityManager (new RMISecurityManager());
@@ -95,7 +97,6 @@ public class AgentBootstrap {
             // We do not expose the start params for agent mode as that
             // is not supposed to be called by the user. The daemon mode
             // has only one optional param - port.
-            logger.info(usage);
             System.err.println(usage);
             System.exit(-1);
         }
@@ -112,16 +113,18 @@ public class AgentBootstrap {
          */
         try {
             ServerSocket serverSocket = new ServerSocket(daemonPort);
+            byte[] buffer = new byte[8192];
             for (;;) {
                 Socket socket = serverSocket.accept();
                 InputStream in = socket.getInputStream();
                 OutputStream out = socket.getOutputStream();
-                byte[] buffer = new byte[8192];
                 int length = in.read(buffer);
                 if (agentsAreUp)
                     out.write("ERROR: Agents already running.".getBytes());
                 if (length > 0) {
                     String argLine = new String(buffer, 0, length);
+                    System.out.println("Agent(Daemon) starting agent with options: " +
+                                                                    argLine);
                     String[] args = argLine.split(" ");
                     if (args.length < 4) {
                        out.write("ERROR: Inadequate params.".getBytes());
@@ -155,6 +158,17 @@ public class AgentBootstrap {
 
         String downloadURL = null;
         String benchName = null;
+
+        // Setup the basic jvmOptions for this environment which may not
+        // be the same as passed down from the master.
+        // We need to be careful to escape properties having '\\' on win32
+        String escapedHome = Config.FABAN_HOME.replace("\\", "\\\\");
+        String fs = File.separatorChar == '\\' ? "\\\\" : File.separator;
+        jvmOptions = "-Dfaban.home=" + escapedHome +
+                " -Djava.security.policy=" + escapedHome + "config" + fs +
+                "faban.policy -Djava.util.logging.config.file=" + escapedHome +
+                "config" + fs + "logging.properties";
+
         // There may be optional JVM args
         if(args.length > 4) {
             for(int i = 4; i < args.length; i++)
@@ -167,14 +181,25 @@ public class AgentBootstrap {
                     jvmOptions = jvmOptions + ' ' + args[i];
                     Config.LOGGING_PORT = Integer.parseInt(
                             args[i].substring(args[i].indexOf("=") + 1));
-                } else if(args[i].indexOf("faban.registry.port") != -1) {
-                    jvmOptions = jvmOptions + " " + args[i];
+                } else if (args[i].indexOf("faban.registry.port") != -1) {
+                    jvmOptions = jvmOptions + ' ' + args[i];
                     Config.RMI_PORT = Integer.parseInt(
                             args[i].substring(args[i].indexOf("=") + 1));
+                } else if ("-server".equals(args[i]) ||
+                        "-client".equals(args[i])) { // prepend these options
+                    jvmOptions = args[i] + ' ' + jvmOptions;
+                } else if (args[i].startsWith("-Dfaban.home=") ||
+                        args[i].startsWith("-Djava.security.policy=") ||
+                        args[i].startsWith("-Djava.util.logging.config.file=")){
+                    // These are sometimes passed down from the master.
+                    // Ignore these. Use our local settings instead.
+                    // NOOP
                 } else {
                     jvmOptions = jvmOptions + ' ' + args[i];
                 }
         }
+
+        setLogger();
 
         // Ensure proper JAVA_HOME, defaulting to this one.
         File java = new File(javaHome + File.separator + "bin", "java");
@@ -235,8 +260,6 @@ public class AgentBootstrap {
 
             register(ident, cmd);
 
-            logger.fine("Succeeded registering " + ident);
-
             // Register it with the 'hostname' also if host != hostname
             if(!host.equals(hostname))
                 register(Config.CMD_AGENT + "@" + hostname, cmd);
@@ -253,8 +276,6 @@ public class AgentBootstrap {
             if (file == null)
                 file = new FileAgentImpl();
             register(Config.FILE_AGENT + "@" + host, file);
-            logger.fine("Succeeded registering " +
-                    Config.FILE_AGENT + "@" + host);
 
             // Register it with the 'hostname' also if host != hostname
             if(!host.equals(hostname))
@@ -271,6 +292,7 @@ public class AgentBootstrap {
             throws RemoteException {
         if (registeredNames.add(name)) {
             registry.register(name, service);
+            logger.fine("Succeeded registering " + name);
         }
     }
 
@@ -278,10 +300,12 @@ public class AgentBootstrap {
         for (String name : registeredNames) {
             registry.unregister(name);
         }
+        registeredNames.clear();
     }
 
     static void terminateAgents() {
         agentsAreUp = false;
+        resetLogger();
         if (!daemon) {
             System.exit(0);
         }
@@ -309,5 +333,56 @@ public class AgentBootstrap {
             }
         }
         return false;
+    }
+
+    private static void setLogger() {
+        try {
+            // Update the logging.properties file in config dir
+            Properties log = new Properties();
+            FileInputStream in = new FileInputStream(Config.CONFIG_DIR +
+                                                    "logging.properties");
+            log.load(in);
+            in.close();
+
+            // Make a copy of the properties
+            Set<Map.Entry<Object, Object>> entrySet = log.entrySet();
+            for (Map.Entry entry : entrySet)
+                origLogProperties.setProperty((String) entry.getKey(),
+                                                (String) entry.getValue());
+
+            // Update if it has changed.
+            if(!(log.getProperty("java.util.logging.SocketHandler.host").
+                    equals(master) &&
+                 log.getProperty("java.util.logging.SocketHandler.port").
+                    equals(String.valueOf(Config.LOGGING_PORT)))){
+
+                logger.fine("Updating " + Config.CONFIG_DIR +
+                                                        "logging.properties");
+                log.setProperty("java.util.logging.SocketHandler.host", master);
+                log.setProperty("java.util.logging.SocketHandler.port",
+                                        String.valueOf(Config.LOGGING_PORT));
+                FileOutputStream out = new FileOutputStream(
+                        new File(Config.CONFIG_DIR + "logging.properties"));
+                log.store(out, "Faban logging properties");
+                out.close();
+            }
+            LogManager.getLogManager().readConfiguration(new FileInputStream(
+                    Config.CONFIG_DIR + "logging.properties"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void resetLogger() {
+        try {
+            FileOutputStream out = new FileOutputStream(
+                    new File(Config.CONFIG_DIR + "logging.properties"));
+            origLogProperties.store(out, "Faban logging properties");
+            out.close();
+            LogManager.getLogManager().readConfiguration(new FileInputStream(
+                    Config.CONFIG_DIR + "logging.properties"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

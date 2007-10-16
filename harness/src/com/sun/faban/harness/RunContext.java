@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunContext.java,v 1.9 2007/09/08 01:21:14 akara Exp $
+ * $Id: RunContext.java,v 1.10 2007/10/16 09:25:40 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -217,6 +217,24 @@ public class RunContext {
      */
     public static String getMaster() {
         return CmdService.getHandle().getMaster();
+    }
+
+    /**
+     * Returns the ip address of the master.
+     * @return The ip address of the master
+     */
+    public static String getMasterIP() {
+        return CmdService.getHandle().getMasterIP();
+    }
+
+    /**
+     * Returns the ip address of the master's interface best used for
+     * communicating with the target host.
+     * @param agentHost The target host
+     * @return The ip address of the master
+     */
+    public static String getMasterIP(String agentHost) {
+        return CmdService.getHandle().getMasterIP(agentHost);
     }
 
     /**
