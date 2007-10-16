@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RegistryLocator.java,v 1.2 2006/06/29 19:38:35 akara Exp $
+ * $Id: RegistryLocator.java,v 1.3 2007/10/16 09:18:14 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -77,8 +77,10 @@ public class RegistryLocator {
     public static Registry getRegistry()
             throws RemoteException, NotBoundException {
 
+        int port = getPort();
+        logger.fine("Obtaining registry at localhost:" + port);
         java.rmi.registry.Registry rmiRegistry =
-                                LocateRegistry.getRegistry(getPort());
+                                LocateRegistry.getRegistry(port);
         return (Registry) rmiRegistry.lookup(BIND_NAME);
     }
 
@@ -93,8 +95,10 @@ public class RegistryLocator {
     public static Registry getRegistry(String master)
             throws RemoteException, NotBoundException {
 
+        int port = getPort();
+        logger.fine("Obtaining registry at " + master + ':' + port);
         java.rmi.registry.Registry rmiRegistry =
-                                LocateRegistry.getRegistry(master, getPort());
+                                LocateRegistry.getRegistry(master, port);
         return (Registry) rmiRegistry.lookup(BIND_NAME);
     }
 
@@ -109,6 +113,7 @@ public class RegistryLocator {
     public static Registry getRegistry(int port)
             throws RemoteException, NotBoundException {
 
+        logger.fine("Obtaining registry at localhost:" + port);
         java.rmi.registry.Registry rmiRegistry =
                                 LocateRegistry.getRegistry(port);
         return (Registry) rmiRegistry.lookup(BIND_NAME);
@@ -126,6 +131,7 @@ public class RegistryLocator {
     public static Registry getRegistry(String master, int port)
             throws RemoteException, NotBoundException {
 
+        logger.fine("Obtaining registry at " + master + ':' + port);
         java.rmi.registry.Registry rmiRegistry =
                                 LocateRegistry.getRegistry(master, port);
         return (Registry) rmiRegistry.lookup(BIND_NAME);
