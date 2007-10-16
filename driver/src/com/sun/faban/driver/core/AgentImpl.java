@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentImpl.java,v 1.7 2007/09/08 02:43:14 akara Exp $
+ * $Id: AgentImpl.java,v 1.8 2007/10/16 09:18:55 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -195,7 +195,7 @@ public class AgentImpl extends UnicastRemoteObject
         // is still too time consuming, we abort the whole thing.
         if (retries >= 5) {
                 logger.log(Level.SEVERE, "Roundtrip to master took " + diff +
-                        " secs. Too high latency!");
+                        " ms. Too high latency!");
                 master.abortRun();
         }
 
