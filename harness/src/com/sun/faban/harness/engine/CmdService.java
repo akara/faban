@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.21 2007/10/16 09:25:40 akara Exp $
+ * $Id: CmdService.java,v 1.22 2007/10/19 05:24:01 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -293,7 +293,18 @@ final public class CmdService { 	// The final keyword prevents clones
         outer:
         for (int j = 0; j < hosts.length; j++) {
             String[] machines = hosts[j];
-            for (int i = 0; i < machines.length; i++)
+            for (int i = 0; i < machines.length; i++) {
+
+                // Check for no localhost, we don't allow it.
+                if (machines[i].startsWith("localhost")) {
+                    if (machines[i].length() == 9 ||    // localhost
+                        machines[i].charAt(9) == '.') { // localhost.domain
+                        logger.severe("Host names must not be localhost. " +
+                                "Please use real host names or IP addresses " +
+                                "instead. Terminating run!");
+                        return false;
+                    }
+                }
                 try {
                     InetAddress[] machineIps =
                             InetAddress.getAllByName(machines[i]);
@@ -311,6 +322,7 @@ final public class CmdService { 	// The final keyword prevents clones
                 } catch (UnknownHostException e) {
                     logger.log(Level.WARNING, machines[i] + " is unknown.", e);
                 }
+            }
         }
 
         // Next we use the command map to get the right
