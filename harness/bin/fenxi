@@ -85,15 +85,35 @@ export PERL5LIB CLASSPATH
 rm -rf txt
 mkdir txt
 
-java -Xmx756m \
-        -Dderby.storage.pageReservedSpace=0 \
-        -Dderby.language.logQueryPlan=true \
-        -Dderby.storage.rowLocking=false \
-        -Dfenxi.basedir=$FENXI_HOME \
-        -Dfenxi.profile=default_profile \
-        -Djava.awt.headless=true \
-        -Dsun.java2d.pmoffscreen=false \
+JAVA_ARGS="\
+-Xmx756m \
+-Dderby.storage.pageReservedSpace=0 \
+-Dderby.language.logQueryPlan=true \
+-Dderby.storage.rowLocking=false \
+-Dfenxi.basedir=$FENXI_HOME \
+-Djava.awt.headless=true \
+-Dsun.java2d.pmoffscreen=false \
+-Dfenxi.profile=default_profile \
+"
+case $1 in
+'process' )
+    shift
+    # Now do the "process"
+    java $JAVA_ARGS \
         org.fenxi.cmd.process.ProcessRun "$@"
+    ;;
+
+'compare' )
+    shift
+    # Now do the "compare"
+    exec java $JAVA_ARGS \
+        org.fenxi.cmd.compare.CompareDBinMemory "$@"
+    # NOTREACHED
+    ;;
+* )
+    ;;
+esac
+
 
 # TODO: This is a hack put in for FenXi for the time being.
 # Need to remove when FenXi is fixed.
