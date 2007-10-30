@@ -3,7 +3,7 @@ BINDIR=`dirname $0`
 
 if [ -n "$BINDIR" ]
 then
-   FABAN_HOME=`cd $BINDIR/.. > /dev/null 2>&1 && pwd`
+    FABAN_HOME=`cd $BINDIR/.. > /dev/null 2>&1 && pwd`
     export FABAN_HOME
 fi
 
