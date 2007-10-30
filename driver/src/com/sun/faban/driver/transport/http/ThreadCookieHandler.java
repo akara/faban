@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ThreadCookieHandler.java,v 1.6 2007/09/06 02:19:32 noahcampbell Exp $
+ * $Id: ThreadCookieHandler.java,v 1.7 2007/10/30 07:35:35 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -399,20 +399,25 @@ public class ThreadCookieHandler {
                     // Old Netscape cookie spec, we translate to maxAge
                     long expires = -1;
                     if (h.dateParser == null) {
+                        // The Netscape cookie spec takes this format:
+                        // "EEE, d-MMM-yyyy HH:mm:ss z" but we've seen cases of
+                        // "EEE, d MMM yyyy HH:mm:ss z". Due to ease of
+                        // conversion, we replace the '-' with ' ' and parse
+                        // the format without the '-'.
 						h.dateParser = new SimpleDateFormat(
-                                "EEE, d-MMM-yyyy HH:mm:ss z");
+                                "EEE, d MMM yyyy HH:mm:ss z");
 					}
                     try {
                         if (token.startsWith("\"") && token.endsWith("\"")) {
-							expires = h.dateParser.parse(token.substring(1,
-                                    token.length() - 1).trim()).getTime();
-						} else {
-							expires = h.dateParser.parse(token).getTime();
+                            token = token.substring(1, token.length() - 1).
+                                            trim();
 						}
+                        token = token.replace('-', ' ');
+                        expires = h.dateParser.parse(token).getTime();
                     } catch (ParseException e) {
                         throw new IllegalArgumentException(e);
                     }
-                    long maxAge = expires - System.currentTimeMillis();
+                    long maxAge = expires - cookie.timeStamp;
                     if (maxAge <= 0) {
                         cookie.maxAge = 0;
                     } else {
@@ -884,11 +889,10 @@ public class ThreadCookieHandler {
 
                 // 2. Max age selection.
                 // We do this first to purge all timed-out cookies.
-                if (cookie.maxAge * 1000l + cookie.timeStamp >=
-                        System.currentTimeMillis()) {
+                if (System.currentTimeMillis() >=
+                        cookie.maxAge * 1000l + cookie.timeStamp) {
                     store.remove(cookie.path);
                     if (store.size() == 0) {
-                        store = null; // let it be reclaimed.
                         return null;
                     }
                 }

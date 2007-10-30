@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: URLStreamHandlerFactory.java,v 1.4 2007/09/06 02:19:32 noahcampbell Exp $
+ * $Id: URLStreamHandlerFactory.java,v 1.5 2007/10/30 07:35:35 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -27,10 +27,8 @@ import java.net.URL;
 import java.net.URLStreamHandler;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.logging.Logger;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -53,6 +51,10 @@ class KeepAliveCache extends sun.net.www.http.KeepAliveCache {
 	 * SerialVersionUID
 	 */
 	private static final long serialVersionUID = 1L;
+
+    private static Logger logger =
+            Logger.getLogger(KeepAliveCache.class.getName());
+    
 	/** The thread local cache */
     static ThreadLocal<Map<KeepAliveKey, List<HttpClient>>> localHash = new ThreadLocal<Map<KeepAliveKey, List<HttpClient>>>() {
         @Override
@@ -75,10 +77,12 @@ class KeepAliveCache extends sun.net.www.http.KeepAliveCache {
         List<HttpClient> clientVector = map.get(dkak);
         int cvIdx = 0;
         if (clientVector == null || (cvIdx = clientVector.size()) == 0) {
+            logger.fine("No connection in cache for " + url + ".");
             return null;
         }
         HttpClient ret = clientVector.get(--cvIdx);
         clientVector.remove(cvIdx);
+        logger.finest("Obtained " + ret + " from cache.");
         return ret;
     }
 
@@ -90,6 +94,7 @@ class KeepAliveCache extends sun.net.www.http.KeepAliveCache {
      */
     @Override
 	public void put(URL url, Object obj, HttpClient http) {
+        logger.finest("Putting " + http + "in cache for URL " + url);
         if (http != null) {
             Map<KeepAliveKey, List<HttpClient>> map = localHash.get();
             KeepAliveKey dkak = new KeepAliveKey(url);

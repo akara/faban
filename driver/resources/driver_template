@@ -1,5 +1,6 @@
-import java.util.StringTokenizer;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.StringTokenizer;
 
 import com.sun.faban.driver.*;
 import com.sun.faban.driver.util.ContentSizeStats;
@@ -34,16 +35,21 @@ private static String doEncode(String s) {
     StringBuilder results = new StringBuilder();
     boolean isFirst = true;
     while (tok.hasMoreTokens()) {
-	StringTokenizer param = new StringTokenizer(tok.nextToken(), "=");
-	String name = param.nextToken();
-	String value = param.nextToken();
-	if (!isFirst) {
-	    results.append("&");
-	}
-	else isFirst = false;
-	results.append(URLEncoder.encode(name));
-	results.append("=");
-	results.append(URLEncoder.encode(value));
+        StringTokenizer param = new StringTokenizer(tok.nextToken(), "=");
+	    String name = param.nextToken();
+	    String value = param.nextToken();
+	    if (!isFirst) {
+	        results.append("&");
+	    } else {
+	        isFirst = false;
+	    }
+	    try {
+	        results.append(URLEncoder.encode(name, "UTF-8"));
+	        results.append("=");
+	        results.append(URLEncoder.encode(value, "UTF-8"));
+	    } catch (UnsupportedEncodingException e) {
+	        e.printStackTrace();
+	    }
     }
     return results.toString();
 }
