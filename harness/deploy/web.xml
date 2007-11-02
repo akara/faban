@@ -84,6 +84,11 @@
     </servlet-mapping>
 
     <servlet-mapping>
+        <servlet-name>ContentReader</servlet-name>
+        <url-pattern>/benchmarks/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
         <servlet-name>Deployer</servlet-name>
         <url-pattern>/deploy</url-pattern>
     </servlet-mapping>
