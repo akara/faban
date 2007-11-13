@@ -2,7 +2,7 @@
 # -----------------------------------------------------------------------------
 # Start Script for the CATALINA Server
 #
-# $Id: startup.sh,v 1.7 2007/09/10 16:14:39 akara Exp $
+# $Id: startup.sh,v 1.8 2007/11/13 07:17:02 akara Exp $
 # -----------------------------------------------------------------------------
 
 # Allow JAVA_HOME env setting before starting...
@@ -16,8 +16,10 @@ if [ ! -x "${JAVA_HOME}/bin/java" ] ; then
     exit 1
 fi
 
-JAVA_VERSION=`${JAVA_HOME}/bin/java -version 2>&1 | \
-              awk '/java version/{ print substr($3, 2, length($3) - 2)}'`
+JAVA_VER_STRING=`${JAVA_HOME}/bin/java -version 2>&1`
+
+JAVA_VERSION=`echo $JAVA_VER_STRING | \
+               awk '{ print substr($3, 2, length($3) - 2)}'`
 
 case $JAVA_VERSION in
     1.5*);;
@@ -28,9 +30,6 @@ case $JAVA_VERSION in
        exit 1;;
 esac
 
-JAVA_OPTS="-Xms64m -Xmx1024m -Djava.awt.headless=true"
-export JAVA_OPTS
-
 # resolve links - $0 may be a softlink
 PRGDIR=`dirname $0`
 
@@ -38,6 +37,40 @@ if [ -n "$PRGDIR" ]
 then
    PRGDIR=`cd $PRGDIR > /dev/null 2>&1 && pwd`
 fi
+
+# The IBM JVM does not want the contents of the endorsed dir, others do.
+unendorse() {
+    cd "$PRGDIR"/../common/endorsed
+    FILECOUNT=`ls | wc -l`
+    if [ "$FILECOUNT" -gt 0 ] ; then
+        cd ..
+        rm -rf unendorsed
+        mv endorsed unendorsed
+        mkdir endorsed
+    fi
+}
+
+endorse() {
+    cd "$PRGDIR"/../common/endorsed
+    FILECOUNT=`ls | wc -l`
+    if [ "$FILECOUNT" -eq 0 ] ; then
+        cd ..
+        if [ -d unendorsed ] ; then
+            rmdir endorsed
+            mv unendorsed endorsed
+        else
+            echo "WARNING: Cannot find endorsed jars!" >&2
+        fi
+    fi
+}
+
+case $JAVA_VER_STRING in
+    *IBM*) unendorse;;
+    *)     endorse;;
+esac
+
+JAVA_OPTS="-Xms64m -Xmx1024m -Djava.awt.headless=true"
+export JAVA_OPTS
 
 EXECUTABLE=catalina.sh
 
