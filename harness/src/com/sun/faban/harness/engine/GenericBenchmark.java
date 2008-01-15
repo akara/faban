@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.21 2007/09/08 01:21:13 akara Exp $
+ * $Id: GenericBenchmark.java,v 1.22 2008/01/15 08:02:52 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -33,6 +33,7 @@ import com.sun.faban.harness.common.Run;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -131,6 +132,16 @@ public class GenericBenchmark {
 
                 cmds = CmdService.getHandle();
                 cmds.init();
+
+                // We need to place a marker into the Benchmark's META-INF
+                // directory so if it is shared, download won't happen.
+                FileWriter runIdFile = new FileWriter(Config.BENCHMARK_DIR +
+                                run.getBenchmarkName() + File.separator +
+                                "META-INF" + File.separator + "RunID");
+                runIdFile.write(run.getRunId());
+                runIdFile.close();
+
+
 
                 String javaHome = par.getParameter("fh:jvmConfig/fh:javaHome");
                 if(!(new File(javaHome)).isDirectory()) {
@@ -298,6 +309,14 @@ public class GenericBenchmark {
         } finally { // Ensure we kill the processes in any case.
             postProcess();
             _kill();
+            // We need to place a marker into the Benchmark's META-INF directory
+            // so if it is shared, download won't happen.
+            File runIdFile = new File(Config.BENCHMARK_DIR +
+                                run.getBenchmarkName() + File.separator +
+                                "META-INF" + File.separator + "RunID");
+            if (runIdFile.exists())
+                runIdFile.delete();
+
             RunFacade.clearInstance();
         }
     }

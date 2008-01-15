@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AccessController.java,v 1.6 2006/10/26 00:07:50 akara Exp $
+ * $Id: AccessController.java,v 1.7 2008/01/15 08:02:52 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -231,10 +231,10 @@ public class AccessController {
     }
 
     /**
-     * Checks whether the user is allowed to delete the run from the queue.
+     * Checks whether the user is allowed to kill the run.
      * @param user The user in question
      * @param resource The run id of the run in the queue
-     * @return True, if allowed to remove the run from the queue, false otherwise
+     * @return True if allowed to remove the run from the queue, false otherwise
      */
     public static boolean isKillAllowed(Subject user, String resource) {
         if (!Config.SECURITY_ENABLED)
@@ -249,5 +249,20 @@ public class AccessController {
         // So split get the benchmark name.
         String benchName = new RunId(resource).getBenchName();
         return isManageAllowed(user, benchName);
+    }
+
+    /**
+     * Checks whether the CLI user (no subject) us allowed to kill tge run.
+     * @param cliUser The user name of the CLI user
+     * @param resource The referenced resource
+     * @return True if allowed, false otherwise
+     */
+    public static boolean isKillAllowed(String cliUser, String resource) {
+        if (!Config.SECURITY_ENABLED)
+            return true;
+        if (cliUser == null)
+            return false;
+
+         return cliUser.equals(Submitter.getSubmitter(resource));
     }
 }

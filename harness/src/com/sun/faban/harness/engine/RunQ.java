@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunQ.java,v 1.21 2007/07/20 22:16:30 akara Exp $
+ * $Id: RunQ.java,v 1.22 2008/01/15 08:02:52 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -478,8 +478,10 @@ public class RunQ {
             String seqIntStr = runSeq.substring(0, length - 1);
             int seqInt = Integer.parseInt(seqIntStr);
             switch (seqChar) {
-                case 'z' : ++seqInt; seqChar = 'A'; break;
-                case 'Z' : seqChar = 'a'; break;
+                case 'z' : // old installs will still use lower case up to the
+                           // next number switch. This fix is for win32
+                           // compatibility. It is not case sensitive.
+                case 'Z' : ++seqInt; seqChar = 'A'; break;
                 default  : ++seqChar;
             }
 

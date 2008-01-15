@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.22 2007/10/19 05:24:01 akara Exp $
+ * $Id: CmdService.java,v 1.23 2008/01/15 08:02:52 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -41,6 +41,7 @@ import java.rmi.RemoteException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.text.SimpleDateFormat;
 
 /**
  * This file contains the class that implements the Command service API.
@@ -365,17 +366,23 @@ final public class CmdService { 	// The final keyword prevents clones
             ifScript = new File(scriptPath.trim());
         }
 
+        ifMap = new HashMap<String, String>();
+        boolean ifMapComplete = false;
+
         if (ifScript.exists()) {
-            ifMap = getIfMap(remoteMachines, ifScript);
+            ifMapComplete = getIfMap(remoteMachines, ifScript, ifMap);
         } else {
             logger.finer("Could not find interface script at " +
                     ifScript.getAbsolutePath());
             ifScript = null;
+        }
 
-            // If we have no interface script, we'll resort to the probe.
-            // Most reliable when run as root, but buggy in parallel mode.
-            // Also the interface probe needs JDK1.6 or later.
-            if ("1.6".compareTo(System.getProperty("java.version")) > 0) {
+        // If we have no interface script or the interface script did not
+        // do a complete job, we'll resort to the probe.
+        // Most reliable when run as root, but buggy in parallel mode.
+        // Also the interface probe needs JDK1.6 or later.
+        if (!ifMapComplete) {
+            if("1.6".compareTo(System.getProperty("java.version")) > 0) {
                 logger.severe("Could not find a way to check the interface!");
                 return false;
             }
@@ -383,12 +390,13 @@ final public class CmdService { 	// The final keyword prevents clones
             InterfaceProbe iProbe = null;
             try {
                 iProbe = new InterfaceProbe(Config.THREADPOOL);
-                ifMap = iProbe.getIfMap(remoteMachines);
+                iProbe.getIfMap(remoteMachines, ifMap);
             } catch (SocketException e) {
                 logger.log(Level.SEVERE,
-                            "Could not find a way to check the interface!", e);
+                        "Could not find a way to check the interface!", e);
             }
         }
+
 
         // cycles through benchmark machines starting up agents and
         // configuring them
@@ -419,13 +427,13 @@ final public class CmdService { 	// The final keyword prevents clones
         for (int i = 0; i < machinesList.size(); i++)
             if (!getCmdAgent((String) machinesList.get(i)))
                 return false;
+        setClocks();
         return true;
     }
 
-    private Map<String, String> getIfMap(Collection<String> hosts,
-                                         File ifScript) {
-
-        HashMap<String, String> ifMap = new HashMap<String, String>();
+    private boolean getIfMap(Collection<String> hosts, File ifScript,
+                             Map<String, String> ifMap) {
+        boolean complete = true;
 
         for (String host: hosts) {
             String interfaceAddress = null;
@@ -441,7 +449,12 @@ final public class CmdService { 	// The final keyword prevents clones
                 interfaceAddress = bufR.readLine();
                 if (interfaceAddress != null) {
                     interfaceAddress = interfaceAddress.trim();
-                    ifMap.put(host, interfaceAddress);
+                    if ("127.0.0.1".equals(interfaceAddress)) {
+                        complete = false;
+                        ifMap.put(host, "");
+                    } else {
+                        ifMap.put(host, interfaceAddress);
+                    }
                 }
 
                 int exitValue = -1;
@@ -453,12 +466,15 @@ final public class CmdService { 	// The final keyword prevents clones
                     if (exitValue != 0) {
                         logger.warning("interface: Cannot reach system " +
                                 host);
+                        complete = false;
+                        ifMap.put(host, "");
                         continue;
                     }
                 } else { // Nothing read, check stderr
                     bufR = new BufferedReader(
                             new InputStreamReader(p.getErrorStream()));
                     logger.severe(bufR.readLine());
+                    ifMap.put(host, "");
                     continue;
                 }
             }
@@ -471,7 +487,7 @@ final public class CmdService { 	// The final keyword prevents clones
 
             logger.config("Interface Address = " + interfaceAddress);
         }
-        return ifMap;
+        return complete;
     }
 
     private boolean getCmdAgent(String mach) {
@@ -494,7 +510,7 @@ final public class CmdService { 	// The final keyword prevents clones
 
             cmdp.add(c);
             logger.fine("CmdService: Configuring " + s);
-            // Added by Ramesh to get the real hotnames of the servers
+            // Added by Ramesh to get the real hostnames of the servers
             logger.info("CmdService: Configured " + s + " on server " + c.getHostName());
             s = Config.FILE_AGENT + "@" + mach;
             logger.fine("CmdService: Connecting to " + s);
@@ -555,14 +571,26 @@ final public class CmdService { 	// The final keyword prevents clones
                     socketOut.close();
                     socket.close();
                     String response = new String(buffer, 0, length);
-                    if ("OK".equals(response)) {
-                        agentStarted = true;
-                        logger.fine("Found Agent(daemon)@" + mach +
-                                                    ". Registering agent.");
-                    } else {
-                        logger.log(Level.WARNING, "Agent(daemon)@" + mach +
-                                                            ": " + response);
+                    int rcode = Integer.parseInt(response.substring(0, 3));
+                    switch (rcode) {
+                        case 200 : agentStarted = true;
+                                   logger.fine("Found Agent(daemon)@" + mach +
+                                               ". Registering agent.");
+                                   break;
+                        case 500 : logger.warning("Agent(daemon)@" + mach +
+                                              ": " + response +
+                                              " Please report the issue " +
+                                              "and provide logs from " + mach +
+                                              ":FABAN_HOME/logs/agent.log");
+                                   break;
+                        case 409 : logger.severe("Agent(daemon)@" + mach +
+                                                 ": " + response);
+                                   // We do not fall back in the conflict case.
+                                   return false;
+                        default  : logger.warning("Agent(daemon)@" + mach +
+                                                  ": " + response);
                     }
+
                 } catch (ConnectException e) {
                     // We should get a ConnectException if the agent was not
                     // started in daemon mode. This should take no time.
@@ -598,6 +626,96 @@ final public class CmdService { 	// The final keyword prevents clones
             }
         }
         return false;
+    }
+
+    private void setClocks() {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MMddHHmmyyyy.ss");
+        dateFormat.setTimeZone(new SimpleTimeZone(0, "GMT")); // Use GMT.
+        String sampleTime = dateFormat.format(new Date());
+        HashSet<String> hostSet = new HashSet<String>();
+        for (Object o : cmdp) {
+            CmdAgent agent = (CmdAgent) o;
+            String hostName = null;
+            try {
+                hostName = agent.getHostName();
+                if (hostSet.add(hostName))
+                    setClock(agent, hostName, dateFormat, sampleTime);
+            } catch (RemoteException e) {
+                logger.log(Level.SEVERE,
+                        "Cannot communicate to agent to set time.", e);
+            } catch (InterruptedException e) {
+                logger.log(Level.SEVERE, "Interrupted trying to set time on " +
+                        hostName + '.');
+            }
+        }
+    }
+
+    private void setClock(CmdAgent agent, String hostName,
+                          SimpleDateFormat dateFormat, String sampleTime)
+            throws RemoteException, InterruptedException {
+
+        // 1. If we're within 5ms, don't set the clock
+        long timeDiff = agent.getTime() - System.currentTimeMillis();
+        if (timeDiff < 5l && timeDiff > -5l)
+            return;
+
+        // 2. Ping agent 100 times to find avg latency
+        long sumLatency = 0;
+        for (int i = 0; i < 100; i++) {
+            long ms1 = System.currentTimeMillis();
+            agent.probeLatency(sampleTime);
+            long ms2 = System.currentTimeMillis();
+            sumLatency += ms2 - ms1;
+        }
+        // Lag is half the latency, rounded up.
+        int lag = (int) Math.ceil(sumLatency / 200d);
+
+        int wakeBefore = 20;
+        // 3. Wait till we're latency/2 from second boundary
+        // Find next second boundary.
+        long nextSec;
+        String nextSecString;
+        long callTime;
+        for (;;) {
+            long ms = System.currentTimeMillis();
+            nextSec = (long) Math.ceil(ms / 1000d);
+            // We should be 100 ms from the boundary, at least.
+            if (nextSec * 1000 - ms < 100) // If not, we go to the next sec.
+                ++nextSec;
+
+            // Convert nextSec back to millis
+            nextSec *= 1000l;
+            callTime = nextSec - lag;
+
+            nextSecString = dateFormat.format(new Date(nextSec));
+
+            // Now, sleep and wake up 20ms before the wanted second boundary.
+            // This is to avoid late calls as sleep may have up to 10ms wakeup
+            // delay.
+            Thread.sleep(callTime - wakeBefore - System.currentTimeMillis());
+            if (System.currentTimeMillis() >= callTime - 2) {
+                wakeBefore += wakeBefore;
+                continue;
+            }
+            break;
+        }
+
+        // We're now within 20ms from the call time, wait in a tight loop.
+        for (;;)
+            if (System.currentTimeMillis() == callTime)
+                break;
+
+        // 4. Call agent to set time
+        agent.setTime(nextSecString);
+
+        // 5. Verify that time has been set properly.
+        timeDiff = agent.getTime() - System.currentTimeMillis();
+        if (timeDiff < 5l && timeDiff > -5l)
+            logger.info("Setting time succeeded for " + hostName +
+                                    ". Time difference is " + timeDiff + ".");
+        else
+            logger.warning("Too large time difference of " + timeDiff +
+                            " ms to " + hostName + ". Only 5 ms are allowed.");
     }
 
     /**

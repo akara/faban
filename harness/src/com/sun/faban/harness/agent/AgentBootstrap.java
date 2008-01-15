@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentBootstrap.java,v 1.3 2007/10/16 09:25:39 akara Exp $
+ * $Id: AgentBootstrap.java,v 1.4 2008/01/15 08:02:51 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -27,6 +27,7 @@ import com.sun.faban.common.Registry;
 import com.sun.faban.common.RegistryLocator;
 import com.sun.faban.common.Utilities;
 import com.sun.faban.harness.common.Config;
+import com.sun.faban.harness.util.CmdMap;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -37,10 +38,7 @@ import java.rmi.RMISecurityManager;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.server.RMISocketFactory;
-import java.util.HashSet;
-import java.util.Properties;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Logger;
 import java.util.logging.LogManager;
 
@@ -64,6 +62,7 @@ public class AgentBootstrap {
     static String javaHome;
     // Initialize it to make sure it doesn't end up a 'null'
     static String jvmOptions = " ";
+    static ArrayList<String> extClassPath = new ArrayList<String>();
     static CmdAgentImpl cmd;
     static FileAgentImpl file;
     static HashSet<String> registeredNames = new HashSet<String>();
@@ -120,23 +119,31 @@ public class AgentBootstrap {
                 OutputStream out = socket.getOutputStream();
                 int length = in.read(buffer);
                 if (agentsAreUp)
-                    out.write("ERROR: Agents already running.".getBytes());
+                    out.write("409 ERROR: Agents already running.".getBytes());
                 if (length > 0) {
                     String argLine = new String(buffer, 0, length);
                     System.out.println("Agent(Daemon) starting agent with options: " +
                                                                     argLine);
                     String[] args = argLine.split(" ");
                     if (args.length < 4) {
-                       out.write("ERROR: Inadequate params.".getBytes());
+                       out.write("400 ERROR: Inadequate params.".getBytes());
                     }
                     try {
                         startAgents(args);
-                        out.write("OK".getBytes());
+                        out.write("200 OK".getBytes());
                     } catch (Exception e) {
                         e.printStackTrace();
                         agentsAreUp = false;
-                        out.write(("ERROR: " + e.getMessage()).getBytes());
+                        out.write(("500 ERROR: " + e.getMessage()).getBytes());
                     }
+                }
+                try {
+                    in.close();
+                } catch (IOException e) {
+                }
+                try {
+                    out.close();
+                } catch (IOException e) {
                 }
             }
         } catch (IOException e) {
@@ -170,6 +177,7 @@ public class AgentBootstrap {
                 "config" + fs + "logging.properties";
 
         // There may be optional JVM args
+        boolean isClassPath = false;
         if(args.length > 4) {
             for(int i = 4; i < args.length; i++)
                 if(args[i].startsWith("faban.download")) {
@@ -194,6 +202,15 @@ public class AgentBootstrap {
                     // These are sometimes passed down from the master.
                     // Ignore these. Use our local settings instead.
                     // NOOP
+                } else if ("-cp".equals(args[i])) {
+                    isClassPath = true;
+                } else if ("-classpath".equals(args[i])) {
+                    isClassPath = true;
+                } else if (isClassPath) {
+                    String[] cp = args[i].split("[;:]");
+                    for (String cpElement : cp)
+                        extClassPath.add(cpElement);
+                    isClassPath = false;
                 } else {
                     jvmOptions = jvmOptions + ' ' + args[i];
                 }
@@ -201,13 +218,39 @@ public class AgentBootstrap {
 
         setLogger();
 
-        // Ensure proper JAVA_HOME, defaulting to this one.
-        File java = new File(javaHome + File.separator + "bin", "java");
-        if (!java.exists()) {
+        // Ensure proper JAVA_HOME by searching for the java executable.
+        File java = null;
+        File javaBin = new File(javaHome, "bin");
+        if (javaBin.isDirectory()) {
+            String[] pathExts = CmdMap.getPathExt();
+            if (pathExts != null) {
+                for (String ext : pathExts) {
+                    ext = ext.trim();
+                    if (ext == null || ext.length() == 0)
+                        continue;
+                    File javaPath = new File(javaBin, "java" + ext);
+                    if (javaPath.exists()) {
+                        java = javaPath;
+                        break;
+                    }
+                }
+            }
+            if (java == null) {
+                java = new File(javaBin, "java");
+                if (!java.exists()) {
+                    java = null;
+                }
+            }
+        }
+
+        // If not found, just use the process' JAVA_HOME instead.
+        if (java == null) {
             String newJavaHome = Utilities.getJavaHome();
-            logger.warning("JAVA_HOME " + javaHome + " does not exist. Using " +
-                                                    newJavaHome + " instead.");
-            javaHome = newJavaHome;
+            if (!newJavaHome.equals(javaHome)) {
+                logger.warning("JAVA_HOME " + javaHome +
+                        " does not exist. Using " + newJavaHome + " instead.");
+                javaHome = newJavaHome;
+            }
         }
 
         logger.finer("JVM options for child processes:" + jvmOptions);

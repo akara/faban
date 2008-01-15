@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RecordHandler.java,v 1.2 2006/06/29 19:38:44 akara Exp $
+ * $Id: RecordHandler.java,v 1.3 2008/01/15 08:02:53 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -36,7 +36,7 @@ import java.io.IOException;
  *
  * @author Akara Sucharitakul
  */
-class RecordHandler extends LogReader.LogHandler {
+class RecordHandler extends LogParseHandler {
 
     LogRecordDetail detail = new LogRecordDetail();
     ExceptionRecord exception = new ExceptionRecord();
@@ -205,25 +205,5 @@ class RecordHandler extends LogReader.LogHandler {
             out.println("</tbody></table>");
         }
         out.println("</body></html>");
-    }
-
-    /**
-     * LogRecordDetail contains all the remaining fields of a logRecord.
-     */
-    static class LogRecordDetail {
-        String millis;
-        String sequence;
-        String logger;
-    }
-
-    static class ExceptionRecord {
-        String message;
-        StackFrame[] stackFrames;
-    }
-
-    static class StackFrame {
-        String clazz;
-        String method;
-        String line;
     }
 }

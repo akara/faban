@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DeployUtil.java,v 1.10 2007/09/08 01:21:13 akara Exp $
+ * $Id: DeployUtil.java,v 1.11 2008/01/15 08:02:53 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -114,6 +114,10 @@ public class DeployUtil {
                 String benchLib = benchDir + "lib";
                 File benchLibDir = new File(benchLib);
                 jarFiles = benchLibDir.list();
+                if (jarFiles == null)
+                    throw new IOException("Benchmark lib directory " +
+                                        benchLib + " empty or non-existent");
+
                 for (int i = 0; i < jarFiles.length; i++)
                     if (jarFiles[i].endsWith(".jar"))
                         classpath += File.pathSeparator + benchLib +

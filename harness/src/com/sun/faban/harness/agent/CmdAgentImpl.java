@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgentImpl.java,v 1.12 2007/10/16 09:25:39 akara Exp $
+ * $Id: CmdAgentImpl.java,v 1.13 2008/01/15 08:02:51 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -863,8 +863,14 @@ public class CmdAgentImpl extends UnicastRemoteObject
         buf.append(" -cp ");
 
         boolean falseEnding = false;
-        for (int i = 0; i < baseClassPath.length; i++) {
-            buf.append(baseClassPath[i]);
+        // Externally specified classpath takes precedence.
+        for (String pathElement : AgentBootstrap.extClassPath) {
+            buf.append(pathElement);
+            buf.append(File.pathSeparator);
+            falseEnding = true;
+        }
+        for (String pathElement : baseClassPath) {    ;
+            buf.append(pathElement);
             buf.append(File.pathSeparator);
             falseEnding = true;
         }
@@ -896,6 +902,58 @@ public class CmdAgentImpl extends UnicastRemoteObject
         String[] baseClassPath = new String[libList.size()];
         baseClassPath = (String[]) libList.toArray(baseClassPath);
         return baseClassPath;
+    }
+
+    /**
+     * This method is for measuring the latency communicating from master
+     * to client and back for setting time. The implementation should
+     * call the OS command to get the time to have some realistic latency.
+     *
+     * @param sampleArg Included arg to really measure latency.
+     */
+    public void probeLatency(String sampleArg)  {
+        Command c = new Command("date");
+        c.setLogLevel(Command.STDOUT, Level.FINE);
+        c.setLogLevel(Command.STDERR, Level.WARNING);
+        try {
+            if (c.execute(this).exitValue() != 0)
+                logger.log(Level.WARNING, "Error executing \"date\".");
+        } catch (IOException e) {
+            logger.log(Level.WARNING, "Error executing date.", e);
+        } catch (InterruptedException e) {
+            logger.log(Level.WARNING, "Interrupted executing date.", e);
+        }
+    }
+
+    /**
+     * Sets the time on the agent host, in GMT. The time string
+     * must be in the format MMddHHmmyyyy.ss according to Unix date specs
+     * and must be in GMT time.
+     *
+     * @param gmtTimeString Time string in format
+     */
+    public void setTime(String gmtTimeString) {
+        Command c = new Command("date -u " + gmtTimeString);
+        c.setLogLevel(Command.STDOUT, Level.FINE);
+        c.setLogLevel(Command.STDERR, Level.WARNING);
+        try {
+            if (c.execute(this).exitValue() != 0);
+                logger.log(Level.WARNING, "Error on \"date\" command trying " +
+                                            "to set the date.");
+        } catch (IOException e) {
+            logger.log(Level.WARNING, "Error setting date.", e);
+        } catch (InterruptedException e) {
+            logger.log(Level.WARNING, "Interrupted setting date.", e);
+        }
+    }
+
+    /**
+     * Gets the time on the agent host, in millis.
+     *
+     * @return The time on the remote system.
+     */
+    public long getTime() {
+        return System.currentTimeMillis();
     }
 
     // The class which spawns a thread to read the stream of the process

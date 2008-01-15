@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: InterfaceProbe.java,v 1.1 2007/04/19 05:32:59 akara Exp $
+ * $Id: InterfaceProbe.java,v 1.2 2008/01/15 08:02:53 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -134,9 +134,21 @@ public class InterfaceProbe {
         return ifAInfos;
     }
 
-    public Map<String, String> getIfMap(Collection<String> hosts) {
-        HashMap<String, String> ifMap = new HashMap<String, String>();
-        List<Route> routes = getRoutes(hosts);
+    public Map<String, String> getIfMap(Collection<String> hosts,
+                                        Map<String, String> ifMap) {
+
+        // Grab only the hosts without interfaces from ifMap.
+        HashSet<String> hostsToProbe = new HashSet<String>();
+        for (String host : hosts) {
+            String iface = ifMap.get(host);
+            if (iface == null || iface.length() == 0)
+                hostsToProbe.add(host);
+        }
+
+        // Obtain the routes
+        List<Route> routes = getRoutes(hostsToProbe);
+
+        // Complete the ifMap
         for (Route route : routes)
             ifMap.put(route.host, route.nifAddress);
         return ifMap;

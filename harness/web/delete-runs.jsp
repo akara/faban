@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: delete-runs.jsp,v 1.2 2006/06/29 19:38:44 akara Exp $
+ * $Id: delete-runs.jsp,v 1.3 2008/01/15 08:02:53 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -31,9 +31,12 @@
   <meta name="Description" content="JSP to Delete selected runs"/>
   <title>Failed</title>
   <link rel="icon" type="image/gif" href=img/faban.gif">
-  <%@ page language="java" import="java.io.Reader, com.sun.faban.harness.engine.RunQ" %>
+  <%@ page language="java" import="java.io.Reader, com.sun.faban.harness.engine.RunQ,
+                                   com.sun.faban.harness.security.AccessController" %>
   <%@ page session="true" %>
   <%@ page errorPage="error.jsp" %>
+  <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
+
 </head>
 <body>
 <br/>
@@ -44,11 +47,18 @@
 The following run/s have be removed
 <br>
 <%
-        for(int i = 0; i < runs.length; i++) {
-%>
-<b><%=    runs[i] %> <%= RunQ.getHandle().deleteRun(runs[i]) ? "   Done " : "   Failed "%></b>
-<br>
-<%      }
+        RunQ runQ = RunQ.getHandle();
+        for(String runId : runs) {
+            if (AccessController.isKillAllowed(usrEnv.getSubject(), runId)) {
+                if (runQ.deleteRun(runId)) {
+                    out.println("<b>" + runId + "   Done </b></br>");
+                } else {
+                    out.println("<b>" + runId + "   Failed </b></br>");
+                }
+            } else {
+                out.print("<b>" + runId + "   Denied </b></br>");
+            }
+        }
     }
     else {
 %>

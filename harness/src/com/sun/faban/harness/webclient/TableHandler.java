@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TableHandler.java,v 1.2 2006/06/29 19:38:44 akara Exp $
+ * $Id: TableHandler.java,v 1.3 2008/01/15 08:02:53 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -33,7 +33,7 @@ import java.io.IOException;
  *
  * @author Akara Sucharitakul
  */
-class TableHandler extends LogReader.LogHandler {
+class TableHandler extends LogParseHandler {
 
     LogBuffer logBuffer = new LogBuffer(20);
     boolean displayEnd = false;
@@ -49,11 +49,11 @@ class TableHandler extends LogReader.LogHandler {
 
     public void processRecord() {
 
-        LogReader.LogRecord oldLog = logBuffer.add(logRecord);
+        LogRecord oldLog = logBuffer.add(logRecord);
 
         // Recycle the old records.
         if (oldLog == null)
-            logRecord = new LogReader.LogRecord();
+            logRecord = new LogRecord();
         else {
             logRecord = oldLog;
             logRecord.clear();
@@ -132,7 +132,7 @@ class TableHandler extends LogReader.LogHandler {
         out.println("</body></html>");
     }
 
-    private void printRow(LogReader.LogRecord record, ServletOutputStream out,
+    private void printRow(LogRecord record, ServletOutputStream out,
                           String requestBase)
             throws IOException {
         out.println("<tr>");
@@ -176,16 +176,16 @@ class TableHandler extends LogReader.LogHandler {
     }
 
     static class LogBuffer {
-        LogReader.LogRecord[] buffer = null;
+        LogRecord[] buffer = null;
         int bufPtr = 0;
         boolean wrapped = false;
 
         public LogBuffer(int size) {
-            buffer = new LogReader.LogRecord[size];
+            buffer = new LogRecord[size];
         }
 
-        public LogReader.LogRecord add(LogReader.LogRecord record) {
-            LogReader.LogRecord oldRecord = buffer[bufPtr];
+        public LogRecord add(LogRecord record) {
+            LogRecord oldRecord = buffer[bufPtr];
             buffer[bufPtr++] = record;
             if (bufPtr >= buffer.length) {
                 bufPtr = 0;
@@ -194,7 +194,7 @@ class TableHandler extends LogReader.LogHandler {
             return oldRecord;
         }
 
-        public LogReader.LogRecord get(int id) {
+        public LogRecord get(int id) {
             if (wrapped)
                 id += bufPtr;
             if (id >= buffer.length)

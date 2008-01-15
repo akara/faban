@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdMap.java,v 1.5 2007/05/24 01:04:38 akara Exp $
+ * $Id: CmdMap.java,v 1.6 2008/01/15 08:02:53 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -143,6 +143,26 @@ public class CmdMap {
     }
 
     /**
+     * Obtains a list of path extensions valid in this environment.
+     * @return A string array of valid path extensions
+     */
+    public static String[] getPathExt() {
+        String pathExt = System.getProperty("faban.pathext");
+        if (pathExt == null)
+            return null;
+        pathExt = pathExt.trim();
+        if (pathExt.length() == 0)
+            return null;
+
+        // Ensure each of the exts are lowercase.
+        String[] pathExts = pathExt.split(File.pathSeparator);
+        for (int i = 0; i < pathExts.length; i++) {
+            pathExts[i] = pathExts[i].toLowerCase();
+        }
+        return pathExts;
+    }
+
+    /**
      * The mapPathExt modifies the binMap according to the Win32
      * conventions. For example, faban.cmd can be called with just faban.
      * But calling it with faban.cmd also works. The PATHEXT needs to be
@@ -154,21 +174,12 @@ public class CmdMap {
      */
     private static void mapPathExt(Map<String, String> binMap) {
 
-        String pathExt = System.getProperty("faban.pathext");
-        if (pathExt == null)
-            return;
-        pathExt = pathExt.trim();
-        if (pathExt.length() == 0)
+        String[] pathExts = getPathExt();
+        if (pathExts == null)
             return;
 
         // Use a separate map so we don't modify binmap while iterating
         HashMap<String, String> pathExtMap = new HashMap<String, String>();
-
-        // Ensure each of the exts are lowercase.
-        String[] pathExts = pathExt.split(File.pathSeparator);
-        for (int i = 0; i < pathExts.length; i++) {
-            pathExts[i] = pathExts[i].toLowerCase();
-        }
 
         Set<String> binKeys = binMap.keySet();
 

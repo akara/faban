@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: BenchmarkLoader.java,v 1.2 2006/06/29 19:38:40 akara Exp $
+ * $Id: BenchmarkLoader.java,v 1.3 2008/01/15 08:02:51 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -69,6 +69,13 @@ public class BenchmarkLoader {
         }
         dir = new File(dir, benchmarkName);
         if (dir.exists()) {
+            File runIdFile = new File(dir, "META-INF");
+            runIdFile = new File(runIdFile, "RunID");
+            if (runIdFile.exists() && (System.currentTimeMillis() -
+                    runIdFile.lastModified()) <= 60000)
+                return; // Recent RunID file means the directory is shared.
+                        // Don't download.
+
             FileHelper.recursiveDelete(dir);
         }
         URL url = new URL(context + Config.DOWNLOAD_PATH + benchmarkName + '/');

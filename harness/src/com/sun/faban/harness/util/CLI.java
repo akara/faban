@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CLI.java,v 1.2 2007/04/19 06:54:37 akara Exp $
+ * $Id: CLI.java,v 1.3 2008/01/15 08:02:52 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -28,6 +28,7 @@ import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.MultipartPostMethod;
+import org.apache.commons.httpclient.methods.PostMethod;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -118,20 +119,53 @@ public class CLI {
         try {
             if ("pending".equals(action)) {
                 cli.doGet(master + "pending");
-            }
-            if ("status".equals(action)) {
+            } else if ("status".equals(action)) {
                 if (argList.size() > 1)
                     cli.doGet(master + "status/" + argList.get(1));
                 else
                     printUsage();
-            }
-            if ("submit".equals(action)) {
+            } else if ("submit".equals(action)) {
                 if (argList.size() > 3) {
-                    cli.doPost(master, user, password, argList);
+                    cli.doPostSubmit(master, user, password, argList);
                 } else {
                     printUsage();
                     System.exit(1);
                 }
+            } else if ("kill".equals(action)) {
+                if (argList.size() > 1) {
+                    cli.doPostKill(master, user, password, argList);
+                } else {
+                    printUsage();
+                    System.exit(1);
+                }
+            } else if ("wait".equals(action)) {
+                if (argList.size() > 1) {
+                    cli.pollStatus(master + "status/" + argList.get(1));
+                } else {
+                    printUsage();
+                    System.exit(1);
+                }
+            } else if ("showlogs".equals(action)) {
+                StringBuilder url = new StringBuilder();
+                if (argList.size() > 1) {
+                    url.append(master).append("logs/");
+                    url.append(argList.get(1));
+                } else {
+                    printUsage();
+                }
+                for (int i = 2; i < argList.size(); i++) {
+                    if ("-t".equals(argList.get(i)))
+                        url.append("/tail");
+                    if ("-f".equals(argList.get(i)))
+                        url.append("/follow");
+                    if ("-ft".equals(argList.get(i)))
+                        url.append("/tail/follow");
+                    if ("-tf".equals(argList.get(i)))
+                        url.append("/tail/follow");
+                }
+                cli.doGet(url.toString());
+            } else {
+                printUsage();
             }
         } catch (IOException e) {
             System.err.println(e.getMessage());
@@ -147,6 +181,9 @@ public class CLI {
         System.err.println(cmd + "pending");
         System.err.println(cmd + "status runId");
         System.err.println(cmd + "submit benchmark profile configfile");
+        System.err.println(cmd + "kill runId");
+        System.err.println(cmd + "wait runId");
+        System.err.println(cmd + "showlogs runId [-ft]");
         System.exit(1);
     }
 
@@ -156,7 +193,25 @@ public class CLI {
 
     }
 
-    private void doPost(String master, String user, String password,
+    private void pollStatus(String url) throws IOException {
+        GetMethod get = new GetMethod(url);
+        for (;;) {
+            String status = makeStringRequest(get);
+            if ( "COMPLETED".equals(status) ||
+                    "FAILED".equals(status) ||
+                    "KILLED".equals(status) ) {
+                System.out.println(status);
+            } else {
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private void doPostSubmit(String master, String user, String password,
                        ArrayList<String> argList) throws IOException {
         String url = master + argList.get(0) + '/' + argList.get(1) + '/' +
                      argList.get(2);
@@ -180,6 +235,19 @@ public class CLI {
         makeRequest(post);
     }
 
+    private void doPostKill(String master, String user, String password,
+                            ArrayList<String> argList) throws IOException {
+        String url = master + argList.get(0) + '/' + argList.get(1);
+        PostMethod post = new PostMethod(url);
+        if (user == null)
+            user = "";
+        if (password == null)
+            password = "";
+        post.addParameter("sun", user);
+        post.addParameter("sp", password);
+        makeRequest(post);
+    }
+
     private void makeRequest(HttpMethodBase method) throws IOException {
         HttpClient client = new HttpClient();
         client.setConnectionTimeout(5000);
@@ -188,16 +256,45 @@ public class CLI {
 
         InputStream response = method.getResponseBodyAsStream();
 
-        if (response != null) {
+        if (status == HttpStatus.SC_NOT_FOUND) {
+            System.err.println("Not found!");
+            return;
+        } else if (status == HttpStatus.SC_NO_CONTENT) {
+            System.err.println("Empty!");
+            return;
+        } else if (response != null) {
             BufferedReader reader = new BufferedReader(
                     new InputStreamReader(response, enc));
             String line = null;
             while ((line = reader.readLine()) != null)
                 System.out.println(line);
-        }
-        if (status == HttpStatus.SC_NO_CONTENT)
+        } else if (status != HttpStatus.SC_OK)
+            throw new IOException(HttpStatus.getStatusText(status));
+    }
+
+    private String makeStringRequest(HttpMethodBase method) throws IOException {
+        HttpClient client = new HttpClient();
+        client.setConnectionTimeout(5000);
+        int status = client.executeMethod(method);
+        String enc = method.getResponseCharSet();
+
+        InputStream response = method.getResponseBodyAsStream();
+        StringBuilder buffer = new StringBuilder();
+        if (status == HttpStatus.SC_NOT_FOUND) {
+            System.err.println("Not found!");
+            return buffer.toString();
+        } else if (status == HttpStatus.SC_NO_CONTENT) {
             System.err.println("Empty!");
+            return buffer.toString();
+        } else if (response != null) {
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(response, enc));
+            String line = null;
+            while ((line = reader.readLine()) != null)
+                buffer.append(line).append('\n');
+        }
         else if (status != HttpStatus.SC_OK)
             throw new IOException(HttpStatus.getStatusText(status));
+        return buffer.toString();
     }
 }

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Submitter.java,v 1.2 2006/08/22 22:19:15 akara Exp $
+ * $Id: Submitter.java,v 1.3 2008/01/15 08:02:52 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -55,7 +55,7 @@ public class Submitter {
         return false;
     }
 
-    private static String getSubmitter(String resource) {
+    static String getSubmitter(String resource) {
         File submitterFile;
         Entry entry;
         synchronized (submitterMap) {

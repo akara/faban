@@ -120,7 +120,17 @@
 
     <servlet-mapping>
         <servlet-name>CLI</servlet-name>
+        <url-pattern>/logs/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>CLI</servlet-name>
         <url-pattern>/submit/*</url-pattern>        
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>CLI</servlet-name>
+        <url-pattern>/kill/*</url-pattern>        
     </servlet-mapping>
 
     <session-config>
