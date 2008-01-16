@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CommandHandleImpl.java,v 1.6 2007/09/08 01:10:07 akara Exp $
+ * $Id: CommandHandleImpl.java,v 1.7 2008/01/16 07:21:06 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -134,6 +134,7 @@ public class CommandHandleImpl implements CommandHandle {
     /**
      * Obtains the stdout or stderr of the command.
      * @param streamId Command.STDOUT or Command.STDERR
+     * @return The output from stdout or stderr, or null if there is no output
      * @throws IOException There is an error getting the output
      */
     public byte[] fetchOutput(int streamId) throws IOException {
