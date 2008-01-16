@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CLIServlet.java,v 1.3 2008/01/15 08:02:53 akara Exp $
+ * $Id: CLIServlet.java,v 1.4 2008/01/16 07:18:55 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -36,6 +36,7 @@ import org.xml.sax.SAXParseException;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -43,7 +44,10 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -172,7 +176,8 @@ public class CLIServlet extends HttpServlet {
         return pendingL;
     }
 
-    private void sendStatus(String[] reqC, HttpServletResponse response) throws IOException {
+    private void sendStatus(String[] reqC, HttpServletResponse response)
+            throws IOException {
         if (reqC.length < 2) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST,
                                         "Missing RunId.");
@@ -242,7 +247,7 @@ public class CLIServlet extends HttpServlet {
                     if (status == null) {
                         status = "QUEUED";
                         out.println(status);
-
+                        response.flushBuffer();
                     }
                     queued = true;
                     try {
@@ -284,7 +289,7 @@ public class CLIServlet extends HttpServlet {
             }
         }
 
-        LogOutputHandler handler = new LogOutputHandler(out, options);
+        LogOutputHandler handler = new LogOutputHandler(response, options);
         InputStream logInput;
         if (options[FOLLOW]) {
             // The XMLInputStream reads streaming XML and does not EOF.
@@ -305,8 +310,6 @@ public class CLIServlet extends HttpServlet {
                     "load-external-dtd", false);
             SAXParser parser = sFact.newSAXParser();
             parser.parse(logInput, handler);
-            if (options[TAIL] && !options[FOLLOW]) // tail not yet printed
-                handler.eof();
             handler.xmlComplete = true; // If we get here, the XML is good.
         } catch (ParserConfigurationException e) {
             throw new ServletException(e);
@@ -323,8 +326,10 @@ public class CLIServlet extends HttpServlet {
             }
         } catch (SAXException e) {
             throw new ServletException(e);
+        } finally {
+            if (options[TAIL] && !options[FOLLOW]) // tail not yet printed
+                handler.eof();
         }
-
     }
 
     private void doKill(String[] reqC, HttpServletRequest request,
@@ -560,6 +565,7 @@ public class CLIServlet extends HttpServlet {
     private static class LogOutputHandler extends LogParseHandler
             implements XMLInputStream.EOFListener {
 
+        private ServletResponse response;
         private PrintWriter out;
         private boolean[] options;
 
@@ -574,6 +580,23 @@ public class CLIServlet extends HttpServlet {
             this.options = options;
             if (options[TAIL])
                 recordBuffer = new CircularBuffer<LogRecord>(10);
+        }
+
+        LogOutputHandler(ServletResponse response, boolean[] options)
+                throws IOException {
+            this(response.getWriter(), options);
+            this.response = response;
+        }
+
+        private void flush() {
+            if (response != null)
+                try {
+                    response.flushBuffer();
+                } catch (IOException e) {
+                    // Noop. If a client socket closes, we just don't care.
+                }
+            else
+                out.flush();
         }
 
         /**
@@ -674,6 +697,7 @@ public class CLIServlet extends HttpServlet {
                 options[TAIL] = false;
                 recordBuffer = null;
             }
+            flush();
         }
 
         private void printRecord(LogRecord r) {
