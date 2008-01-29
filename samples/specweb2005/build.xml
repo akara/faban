@@ -79,6 +79,7 @@
               <jvmarg value="-XX:+DisableExplicitGC"/>
               <jvmarg value="-Djava.security.policy=security/driver.policy"/>
               <jvmarg value="-Djava.util.logging.config.file=logging.properties"/>
+              <jvmarg value="-Dfaban.driver.base=.."/>
               <jvmarg value="-Dbenchmark.config=../deploy/run.xml"/>
         </java>
     </target>
@@ -106,6 +107,7 @@
               <jvmarg value="-XX:+DisableExplicitGC"/>
               <jvmarg value="-Djava.security.policy=security/driver.policy"/>
               <jvmarg value="-Djava.util.logging.config.file=logging.properties"/>
+              <jvmarg value="-Dfaban.driver.base=."/>                    
               <arg value="${driver.name}"/>
               <arg value="${driver.id}"/>
               <arg value="${master.host}"/>
