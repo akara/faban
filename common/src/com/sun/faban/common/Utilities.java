@@ -17,13 +17,14 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Utilities.java,v 1.3 2007/09/08 01:10:07 akara Exp $
+ * $Id: Utilities.java,v 1.4 2008/01/29 22:28:53 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.common;
 
 import java.io.File;
+import java.net.URL;
 
 /**
  * Common utilities, usually accessible via static import.
@@ -91,5 +92,34 @@ public class Utilities {
             javaHome = javaHome.substring(0, javaHome.length() -
                        suffix.length());
         return javaHome;
-    }    
+    }
+
+
+    /**
+     * Obtains the jar file that contains the class in question.
+     * @param clazz The given class
+     * @return The jar file containing the class, or null if the class is not
+     *         local or not loaded from a jar file
+     */
+    public static File getJarFile(Class clazz) {
+        String resName = clazz.getName();
+        resName = "/" + resName.replace('.', '/') + ".class";
+        // Sample URL: jar:file:/opt/faban/benchmarks/web101/lib/web101.jar!/sample/driver/WebDriver.class
+        URL classURL = clazz.getResource(resName);
+        if (classURL == null)
+            return null;
+        String jarHeader = "jar:file:";
+        String urlString = classURL.toString();
+
+        if (!urlString.startsWith(jarHeader))
+            return null;
+
+        int bangIdx = urlString.indexOf('!', jarHeader.length());
+        String jarPath = urlString.substring(jarHeader.length(), bangIdx);
+        File jarFile = new File(jarPath);
+        if (!jarFile.exists())
+            return null;
+
+        return jarFile;
+    }
 }
