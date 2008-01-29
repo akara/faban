@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentBootstrap.java,v 1.4 2008/01/15 08:02:51 akara Exp $
+ * $Id: AgentBootstrap.java,v 1.5 2008/01/29 23:19:31 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -193,6 +193,11 @@ public class AgentBootstrap {
                     jvmOptions = jvmOptions + ' ' + args[i];
                     Config.RMI_PORT = Integer.parseInt(
                             args[i].substring(args[i].indexOf("=") + 1));
+                } else if (args[i].startsWith("-Dfaban.command.buffer=")) {
+                    String[] prop = args[i].substring(2).split("=");
+                    System.setProperty(prop[0], prop[1]);
+                    // Pass it along, too.
+                    jvmOptions += ' ' + args[i];
                 } else if ("-server".equals(args[i]) ||
                         "-client".equals(args[i])) { // prepend these options
                     jvmOptions = args[i] + ' ' + jvmOptions;
@@ -212,7 +217,7 @@ public class AgentBootstrap {
                         extClassPath.add(cpElement);
                     isClassPath = false;
                 } else {
-                    jvmOptions = jvmOptions + ' ' + args[i];
+                    jvmOptions += ' ' + args[i];
                 }
         }
 
