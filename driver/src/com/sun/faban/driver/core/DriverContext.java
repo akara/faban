@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DriverContext.java,v 1.9 2008/01/16 21:44:49 akara Exp $
+ * $Id: DriverContext.java,v 1.10 2008/01/29 22:33:46 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -38,6 +38,7 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.util.HashMap;
 import java.util.logging.Logger;
+import java.io.File;
 
 /**
  * DriverContext is the point of communication between the
@@ -553,5 +554,24 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
          * Pause Time.
          */
         public int pauseTime = 0;
+    }
+
+    /**
+     * Obtains the base directory where the benchmark currently being run
+     * is installed.
+     *
+     * @return The benchmark's base directory
+     */
+    public String getBaseDir() {
+        return agentThread.agent.driverBase;
+    }
+
+    /**
+     * Obtains the resource directory used for this benchmark, if exists.
+     *
+     * @return
+     */
+    public String getResourceDir() {
+        return agentThread.agent.driverBase + File.separator + "resources";
     }
 }

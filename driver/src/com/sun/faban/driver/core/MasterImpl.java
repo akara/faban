@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MasterImpl.java,v 1.14 2007/09/08 02:43:14 akara Exp $
+ * $Id: MasterImpl.java,v 1.15 2008/01/29 22:33:46 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -287,8 +287,10 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 			seqDir = System.getProperty("user.home");
 		}
 
-        String seqFileName = seqDir + fs +
-                benchDef.name.toLowerCase() + ".seq";
+        String seqFileName = System.getProperty("faban.sequence.file");
+        if (seqFileName == null)
+            seqFileName = benchDef.name.toLowerCase() + ".seq";
+        seqFileName = seqDir + fs + seqFileName;
         File seqFile = new File(seqFileName);
         if (seqFile.exists()) {
             FileReader bufIn = null;

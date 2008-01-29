@@ -17,15 +17,17 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentImpl.java,v 1.8 2007/10/16 09:18:55 akara Exp $
+ * $Id: AgentImpl.java,v 1.9 2008/01/29 22:33:45 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver.core;
 
 import com.sun.faban.common.RegistryLocator;
+import com.sun.faban.common.Utilities;
 import com.sun.faban.driver.util.Timer;
 
+import java.io.File;
 import java.io.Serializable;
 import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
@@ -59,6 +61,7 @@ public class AgentImpl extends UnicastRemoteObject
     String agentType;
     Metrics results[] = null;
     int numThreads;
+    String driverBase;
     private Logger logger;
     private String agentName;
     private String agentId;
@@ -119,6 +122,13 @@ public class AgentImpl extends UnicastRemoteObject
         this.runInfo = runInfo;
         this.driverType = driverType;
         this.timer = timer;
+        File driverJar = Utilities.getJarFile(runInfo.driverConfig.driverClass);
+
+        // driverBase most accurate is if faban.driver.base is provided.
+        driverBase = System.getProperty("faban.driver.base");
+        if (driverBase == null)
+            driverBase = driverJar.getParentFile().getParent(); // jarpath/..
+
         threadStartLatch = new CountDownLatch(runInfo.agentInfo.threads);
         timeSetLatch = new CountDownLatch(1);
         if (runInfo.agentInfo.startThreadNumber == 0) { // first agent

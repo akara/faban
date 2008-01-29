@@ -17,21 +17,19 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: NullContext.java,v 1.5 2007/09/07 15:49:05 noahcampbell Exp $
+ * $Id: NullContext.java,v 1.6 2008/01/29 22:33:46 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver.core;
 
-import com.sun.faban.driver.DriverContext;
 import com.sun.faban.driver.CustomMetrics;
+import com.sun.faban.driver.DriverContext;
 import com.sun.faban.driver.util.Random;
-
-import java.util.logging.Logger;
-
 import org.w3c.dom.Element;
 
 import javax.xml.xpath.XPathExpressionException;
+import java.util.logging.Logger;
 
 /**
  * The null context is used for testing driver code for the Faban driver
@@ -49,7 +47,6 @@ public class NullContext extends DriverContext {
     /**
      * @see com.sun.faban.driver.DriverContext#getScale()
      */
-    @Override
 	public int getScale() {
         return 0;
     }
@@ -57,7 +54,6 @@ public class NullContext extends DriverContext {
     /**
      * @see com.sun.faban.driver.DriverContext#getThreadId()
      */
-    @Override
 	public int getThreadId() {
         return 0;
     }
@@ -66,7 +62,6 @@ public class NullContext extends DriverContext {
     /**
      * @see com.sun.faban.driver.DriverContext#getAgentId()
      */
-    @Override
 	public int getAgentId() {
         return 0;
     }
@@ -75,7 +70,6 @@ public class NullContext extends DriverContext {
     /**
      * @see com.sun.faban.driver.DriverContext#getDriverName()
      */
-    @Override
 	public String getDriverName() {
         return "DriverTestNullContext";
     }
@@ -83,7 +77,6 @@ public class NullContext extends DriverContext {
     /**
      * @see com.sun.faban.driver.DriverContext#getLogger()
      */
-    @Override
 	public Logger getLogger() {
         if (logger == null) {
 			logger = Logger.getLogger("faban.test");
@@ -94,7 +87,6 @@ public class NullContext extends DriverContext {
     /**
      * @see com.sun.faban.driver.DriverContext#attachMetrics(com.sun.faban.driver.CustomMetrics)
      */
-    @Override
 	public void attachMetrics(CustomMetrics metrics) {
         // Noop.
     }
@@ -102,7 +94,6 @@ public class NullContext extends DriverContext {
     /**
      * @see com.sun.faban.driver.DriverContext#getCurrentOperation()
      */
-    @Override
 	public String getCurrentOperation() {
         return "DriverTestNullContext";
     }
@@ -110,7 +101,6 @@ public class NullContext extends DriverContext {
     /**
      * @see com.sun.faban.driver.DriverContext#getOperationId()
      */
-    @Override
 	public int getOperationId() {
         return 0;
     }
@@ -119,7 +109,6 @@ public class NullContext extends DriverContext {
     /**
      * @see com.sun.faban.driver.DriverContext#getOperationCount()
      */
-    @Override
 	public int getOperationCount() {
         return 1;
     }
@@ -127,7 +116,6 @@ public class NullContext extends DriverContext {
     /**
      * @see com.sun.faban.driver.DriverContext#getRandom()
      */
-    @Override
 	public Random getRandom() {
         if (random == null) {
 			random = new Random();
@@ -138,7 +126,6 @@ public class NullContext extends DriverContext {
     /**
      * @see com.sun.faban.driver.DriverContext#recordTime()
      */
-    @Override
 	public void recordTime() {
         // Noop
     }
@@ -146,7 +133,6 @@ public class NullContext extends DriverContext {
     /**
      * @see com.sun.faban.driver.DriverContext#pauseTime()
      */
-    @Override
 	public void pauseTime() {
         //Noop
     }
@@ -154,7 +140,6 @@ public class NullContext extends DriverContext {
     /**
      * @see com.sun.faban.driver.DriverContext#getTime()
      */
-    @Override
 	public int getTime() {
         return (int) (System.currentTimeMillis() - baseTime);
     }
@@ -162,7 +147,6 @@ public class NullContext extends DriverContext {
     /**
      * @see com.sun.faban.driver.DriverContext#getSteadyStateStart()
      */
-    @Override
 	public int getSteadyStateStart() {
         return (int) (System.currentTimeMillis() - baseTime + 5000l);
     }
@@ -170,7 +154,6 @@ public class NullContext extends DriverContext {
     /**
      * @see com.sun.faban.driver.DriverContext#getRampUp()
      */
-    @Override
 	public int getRampUp() {
         return 0;
     }
@@ -178,7 +161,6 @@ public class NullContext extends DriverContext {
     /**
      * @see com.sun.faban.driver.DriverContext#getSteadyState()
      */
-    @Override
 	public int getSteadyState() {
         // Just provide a very high number.
         return Integer.MAX_VALUE / 2;
@@ -187,7 +169,6 @@ public class NullContext extends DriverContext {
     /**
      * @see com.sun.faban.driver.DriverContext#getRampDown()
      */
-    @Override
 	public int getRampDown() {
         return 0;
     }
@@ -195,7 +176,6 @@ public class NullContext extends DriverContext {
     /**
      * @see com.sun.faban.driver.DriverContext#resetMix()
      */
-    @Override
 	public void resetMix() {
         //noop
     }
@@ -203,14 +183,12 @@ public class NullContext extends DriverContext {
     /**
      * @see com.sun.faban.driver.DriverContext#isTxSteadyState()
      */
-    @Override
 	public boolean isTxSteadyState() {
         return true;
     }
     /**
      * @see com.sun.faban.driver.DriverContext#getProperty(java.lang.String)
      */
-    @Override
 	public String getProperty(String name) {
         return System.getProperty(name);
     }
@@ -218,7 +196,6 @@ public class NullContext extends DriverContext {
     /**
      * @see com.sun.faban.driver.DriverContext#getPropertyValues(java.lang.String)
      */
-    @Override
 	public String[] getPropertyValues(String name) {
         return new String[0];
     }
@@ -226,7 +203,6 @@ public class NullContext extends DriverContext {
     /**
      * @see com.sun.faban.driver.DriverContext#getPropertiesNode()
      */
-    @Override
 	public Element getPropertiesNode() {
         return null;
     }
@@ -236,8 +212,30 @@ public class NullContext extends DriverContext {
      * @see com.sun.faban.driver.DriverContext#getXPathValue(java.lang.String)
      */
     @SuppressWarnings("unused")
-	@Override
 	public String getXPathValue(String xPath) throws XPathExpressionException {
         return null;
+    }
+
+
+    /**
+     * Obtains the base directory where the benchmark currently being run
+     * is installed.
+     *
+     * @return The benchmark's base directory
+     */
+    public String getBaseDir() {
+        return System.getProperty("faban.driver.base");
+    }
+
+    /**
+     * Obtains the resource directory used for this benchmark, if exists.
+     *
+     * @return
+     */
+    public String getResourceDir() {
+        String driverBase = System.getProperty("faban.driver.base");
+        if (driverBase == null)
+            return null;
+        return driverBase + "/resources";
     }
 }

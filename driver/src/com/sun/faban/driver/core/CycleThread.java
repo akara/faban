@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CycleThread.java,v 1.6 2007/09/07 15:49:05 noahcampbell Exp $
+ * $Id: CycleThread.java,v 1.7 2008/01/29 22:33:46 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -39,7 +39,6 @@ public class CycleThread extends AgentThread {
      * Allocates and initializes the timing structures which is specific
      * to the pseudo-thread dimensions.
      */
-    @Override
 	void initTimes() {
         delayTime = new int[1];
         startTime = new int[1];
@@ -64,19 +63,22 @@ public class CycleThread extends AgentThread {
    	 * which is returned to the Agent via the getResult() method.
      * @see Metrics
      */
-    @Override
 	void doRun() {
         driverContext = new DriverContext(this, timer);
 
         try {
             driver = driverClass.newInstance();
-        } catch (Exception e) {
+        } catch (Throwable t) {
+            Throwable cause = t.getCause();
+            while (cause != null) {
+                t = cause;
+                cause = t.getCause();
+            }
             logger.log(Level.SEVERE, name +
-                    ": Error initializing driver object.", e);
+                    ": Error initializing driver object.", t);
             agent.abortRun();
-            return;
+            return; // Terminate this thread immediately
         }
-
         // Call the preRun.
         preRun();
 
@@ -182,7 +184,6 @@ public class CycleThread extends AgentThread {
      * method only reads the stats.
      * @return True if the last operation is in steady state, false otherwise.
      */
-    @Override
 	boolean isSteadyState() {
         if (!startTimeSet) {
 			return false;
@@ -207,7 +208,6 @@ public class CycleThread extends AgentThread {
      * @param end   The end of a time span
      * @return true if this time span is in steady state, false otherwise.
      */
-    @Override
 	boolean isSteadyState(int start, int end) {
         return isSteadyState();
     }
@@ -216,7 +216,6 @@ public class CycleThread extends AgentThread {
      * Checks whether the last operation is in the ramp-up or ramp-down or
      * not. Updates the inRamp parameter accordingly.
      */
-    @Override
 	void checkRamp() {
         // Note: in cycle runs without simultaneous start, the startTimeSet
         // flag is only set once the start time has reached. Unlike time runs

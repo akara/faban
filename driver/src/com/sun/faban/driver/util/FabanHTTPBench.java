@@ -17,15 +17,18 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FabanHTTPBench.java,v 1.1 2007/06/29 08:35:17 akara Exp $
+ * $Id: FabanHTTPBench.java,v 1.2 2008/01/29 22:33:46 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver.util;
 
 import com.sun.faban.driver.core.RunInfo;
+import com.sun.faban.common.TextTable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -34,6 +37,10 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -92,9 +99,11 @@ public class FabanHTTPBench {
         if (!outputDirectory.endsWith(File.separator))
             outputDirectory += File.separatorChar;
         outputDirectory += "fhb";
-
         parseArgs(args);
-        makeRunXml();
+
+        if (runXmlFileName == null)
+            makeRunXml();
+
         run();
         reportResults();
         cleanUp();
@@ -236,6 +245,7 @@ public class FabanHTTPBench {
             IllegalAccessException, InvocationTargetException {
         System.setProperty("benchmark.config", runXmlFileName);
         System.setProperty("faban.sequence.path", outputDirectory);
+        System.setProperty("faban,sequence.file", "fhb.seq");
         Class c = com.sun.faban.driver.core.MasterImpl.class;
         Class[] arg = new Class[1];
         arg[0] = String[].class;
@@ -247,8 +257,8 @@ public class FabanHTTPBench {
         m.invoke(null, args);
     }
 
-    private static void reportResults() throws IOException,
-            ParserConfigurationException, SAXException {
+    private static void reportResults() throws IOException, SAXException,
+            ParserConfigurationException,  XPathExpressionException {
         BufferedReader fr =
                 new BufferedReader(new FileReader(
                         new File(outputDirectory, "fhb.seq")));
@@ -260,19 +270,53 @@ public class FabanHTTPBench {
                 System.getProperty("file.separator") +
                 seq, "summary.xml");
         Document doc = factory.newDocumentBuilder().parse(f);
-        System.out.println("ops/sec: " + getValue(doc, "metric"));
-        int successes = Integer.parseInt(getValue(doc, "successes"));
-        int fails = Integer.parseInt(getValue(doc, "failures"));
+        XPathFactory xf = XPathFactory.newInstance();
+        XPath xPath = xf.newXPath();
+        String metricName = xPath.evaluate("//metric@unit", doc);
+        String metricValue = xPath.evaluate("//metric", doc);
+
+        System.out.println(metricName +": " + metricValue);
+        int successes = sumValues(xPath, doc, "//successes");
+        int fails = sumValues(xPath, doc, "//failures");
         int total = successes + fails;
         double errors =
                 (1 - ((((double) total - fails) / (double) total))) * 100.;
         System.out.println("% errors: " + errors);
-        System.out.println("avg. time: " + getValue(doc, "avg"));
-        System.out.println("max time: " + getValue(doc, "max"));
-        String p90th = getValue(doc, "p90th");
-        System.out.println("90th %: " + p90th);
-        if (Double.parseDouble(p90th) > ninetyPct)
-            System.out.println("ERROR: Missed target 90% of " + ninetyPct);
+
+        NodeList nodeList = (NodeList) xPath.evaluate(
+                "//responseTimes/operation", doc, XPathConstants.NODESET);
+        int txCount = nodeList.getLength();
+        if (txCount <= 1) {
+            System.out.println("avg. time: " + getValue(doc, "avg"));
+            System.out.println("max time: " + getValue(doc, "max"));
+            String p90th = getValue(doc, "p90th");
+            System.out.println("90th %: " + p90th);
+            if (Double.parseDouble(p90th) > ninetyPct)
+                System.out.println("ERROR: Missed target 90% of " + ninetyPct);
+        } else {
+            TextTable table = new TextTable(txCount, 5);
+            table.setHeader(0, "Response Times");
+            table.setHeader(1, "Avg");
+            table.setHeader(2, "Max");
+            table.setHeader(3, "90th%");
+            table.setHeader(4, "");
+
+            for (int i = 0; i < txCount; i++) {
+                Node opNode = nodeList.item(i);
+                table.setField(i, 0, xPath.evaluate("@name", opNode));
+                table.setField(i, 1, xPath.evaluate("avg", opNode));
+                table.setField(i, 2, xPath.evaluate("max", opNode));
+                table.setField(i, 3, xPath.evaluate("p90th", opNode));
+                boolean passed = Boolean.parseBoolean(
+                                    xPath.evaluate("passed", opNode));
+                if (passed)
+                    table.setField(i, 4, "PASSED");
+                else
+                    table.setField(i, 4, "FAILED");
+            }
+            table.format(System.out);
+        }
+
         int users = Integer.parseInt(getValue(doc, "users"));
         double rt = Double.parseDouble(getValue(doc, "rtXtps"));
         if (users * .975 > rt)
@@ -284,6 +328,19 @@ public class FabanHTTPBench {
         if (Math.abs(aa - ta)/ta > (CYCLE_DEVIATION / 100d))
             System.out.println("ERROR: Think time deviation is too high; " +
                     "requested " + thinkTime + "; actual is " + (aa * 1000));
+    }
+
+    private static int sumValues(XPath xPath, Document doc, String expression)
+            throws XPathExpressionException {
+        NodeList nodeList = (NodeList) xPath.evaluate(expression, doc,
+                                                    XPathConstants.NODESET);
+        int sum = 0;
+        int length = nodeList.getLength();
+        for (int i = 0; i < length; i++) {
+            Node node = nodeList.item(i);
+            sum += Integer.parseInt(node.getFirstChild().getNodeValue());
+        }
+        return sum;
     }
 
     private static String getValue(Document doc, String s) {
@@ -325,6 +382,9 @@ public class FabanHTTPBench {
                     outputDirectory =
                             c.length > 2 ? args[i].substring(2) : args[++i];
                     break;
+                case 'f':
+                    runXmlFileName =
+                            c.length > 2 ? args[i].substring(2) : args[++i];
                 case 'n':
                     System.err.println("numRequests not supported");
                     System.err.println("Please specify rampup/steady times " +
@@ -401,6 +461,9 @@ public class FabanHTTPBench {
                                                             "for jvm options");
         }
         System.err.println("\t-D directory : Use directory for temporary files");
+        System.err.println("\t-f file : Use run configuration file");
+        System.err.println("\t\tRun configuration file supercedes all " +
+                                            "following command line options");
         System.err.println("\t-r rampup/steady/rampDown :");
         System.err.println("\t\tRun for given ramup, steady state, and " +
                                                             "rampdown seconds");

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DriverContext.java,v 1.4 2007/06/09 07:13:01 akara Exp $
+ * $Id: DriverContext.java,v 1.5 2008/01/29 22:33:47 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -226,4 +226,17 @@ public abstract class DriverContext {
      */
     public abstract String getXPathValue(String xPath)
             throws XPathExpressionException;
+
+    /**
+     * Obtains the base directory where the benchmark currently being run
+     * is installed.
+     * @return The benchmark's base directory
+     */
+    public abstract String getBaseDir();
+
+    /**
+     * Obtains the resource directory used for this benchmark, if exists.
+     * @return
+     */ 
+    public abstract String getResourceDir();
 }
