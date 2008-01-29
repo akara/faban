@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CommandHandleImpl.java,v 1.7 2008/01/16 07:21:06 akara Exp $
+ * $Id: CommandHandleImpl.java,v 1.8 2008/01/29 23:18:22 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -171,6 +171,8 @@ public class CommandHandleImpl implements CommandHandle {
         FileOutputStream outStream = null;
         Command command = null;
         String cmdString;
+        boolean bufferOutput = Boolean.parseBoolean(
+                            System.getProperty("faban.command.buffer", "true"));
         boolean matched = true;
         boolean abandoned = false;
         Logger logger;
@@ -306,15 +308,15 @@ public class CommandHandleImpl implements CommandHandle {
             while (length != -1) {
                 match(buffer, offset, length);
                 offset += length;
-                // buffer full, flush it
-                if (offset == buffer.length) {
+                // buffer full or not buffering, flush it
+                if (!bufferOutput || offset == buffer.length) {
                     // Open file if not yet opened.
                     if (outStream == null) {
                         logger.finest("Writing " + Command.STREAM_NAME[streamId]
                                 + " to " + outputFile);
                         outStream = new FileOutputStream(outputFile);
                     }
-                    outStream.write(buffer);
+                    outStream.write(buffer, 0, offset);
                     offset = 0;
                 }
                 length = command.stream[streamId]
