@@ -84,7 +84,7 @@
                     <xsl:call-template name="assembleRepeatClasses">
                         <xsl:with-param name="repeat-id" select="$repeat-id"/>
                         <xsl:with-param name="pos" select="$pos"/>
-                        <xsl:with-param name="classes" select="'value'"/>
+                        <xsl:with-param name="classes" select="'value-wide'"/>
                     </xsl:call-template>
                     <xsl:if test="$scripted='true'">
                         <xsl:attribute name="onchange">javascript:setXFormsValue('
@@ -257,7 +257,7 @@
             <xsl:call-template name="assembleRepeatClasses">
                 <xsl:with-param name="repeat-id" select="$repeat-id"/>
                 <xsl:with-param name="pos" select="$pos"/>
-                <xsl:with-param name="classes" select="'value'"/>
+                <xsl:with-param name="classes" select="'value-wide'"/>
             </xsl:call-template>
             <xsl:if test="$scripted='true'">
                 <xsl:attribute name="onchange">javascript:setXFormsValue('
@@ -472,7 +472,7 @@
             <xsl:call-template name="assembleRepeatClasses">
                 <xsl:with-param name="repeat-id" select="$repeat-id"/>
                 <xsl:with-param name="pos" select="$pos"/>
-                <xsl:with-param name="classes" select="'value'"/>
+                <xsl:with-param name="classes" select="'value-wide'"/>
             </xsl:call-template>
             <xsl:if test="$scripted='true'">
                 <xsl:attribute name="onchange">javascript:setXFormsValue('
@@ -626,7 +626,7 @@
                     <xsl:call-template name="assembleRepeatClasses">
                         <xsl:with-param name="repeat-id" select="$repeat-id"/>
                         <xsl:with-param name="pos" select="$pos"/>
-                        <xsl:with-param name="classes" select="'value'"/>
+                        <xsl:with-param name="classes" select="'value-wide'"/>
                     </xsl:call-template>
 
                     <!-- Content types accepted, from mediatype xforms:upload attribute

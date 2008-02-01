@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.23 2008/01/15 08:02:52 akara Exp $
+ * $Id: CmdService.java,v 1.24 2008/02/01 22:53:56 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -39,6 +39,7 @@ import java.io.*;
 import java.net.*;
 import java.rmi.RemoteException;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.text.SimpleDateFormat;
@@ -78,13 +79,13 @@ final public class CmdService { 	// The final keyword prevents clones
     public static final int SEQUENTIAL = 1;	/* Sequential flag in FG mode*/
     public static final int PARALLEL = 2;	/* parallel flag in FG mode*/
 
+    private static Logger logger = Logger.getLogger(CmdService.class.getName());
     private static CmdService cmds;
 
     private ArrayList<CmdAgent> cmdp;
     private ArrayList<FileAgent> filep;
     private ArrayList<String> machinesList;	// list of all machines
     private Properties hostInterfaces;
-    private Logger logger;
     private Registry registry;
     private String master;	// Name of faban master machine
     private String masterAddress; // ip of faban master machine
@@ -98,8 +99,6 @@ final public class CmdService { 	// The final keyword prevents clones
 
 
     private CmdService() {
-        String className = getClass().getName();
-        logger = Logger.getLogger(className);
 
         try {
             master = (InetAddress.getLocalHost()).getHostName();
@@ -631,91 +630,145 @@ final public class CmdService { 	// The final keyword prevents clones
     private void setClocks() {
         SimpleDateFormat dateFormat = new SimpleDateFormat("MMddHHmmyyyy.ss");
         dateFormat.setTimeZone(new SimpleTimeZone(0, "GMT")); // Use GMT.
-        String sampleTime = dateFormat.format(new Date());
         HashSet<String> hostSet = new HashSet<String>();
+        ArrayList<Future<Boolean>> tasks = new ArrayList<Future<Boolean>>();
+        hostSet.add(master); // Don't try to set clock for master.
         for (Object o : cmdp) {
             CmdAgent agent = (CmdAgent) o;
             String hostName = null;
             try {
                 hostName = agent.getHostName();
-                if (hostSet.add(hostName))
-                    setClock(agent, hostName, dateFormat, sampleTime);
+                if (hostSet.add(hostName)) {
+                    tasks.add(Config.THREADPOOL.submit(
+                            new setClockTask(agent, hostName, dateFormat)));
+                }
+                for (Future<Boolean> future : tasks)
+                    try {
+                        future.get(5, TimeUnit.MINUTES);
+                    } catch (Throwable t) {
+                        Throwable cause = t.getCause();
+                        while (cause != null) {
+                            t = cause;
+                            cause = t.getCause();
+                        }
+                        logger.log(Level.SEVERE, t.getMessage(), t);
+                    }
             } catch (RemoteException e) {
                 logger.log(Level.SEVERE,
                         "Cannot communicate to agent to set time.", e);
-            } catch (InterruptedException e) {
-                logger.log(Level.SEVERE, "Interrupted trying to set time on " +
-                        hostName + '.');
             }
         }
     }
 
-    private void setClock(CmdAgent agent, String hostName,
-                          SimpleDateFormat dateFormat, String sampleTime)
-            throws RemoteException, InterruptedException {
+    static class setClockTask implements Callable<Boolean> {
 
-        // 1. If we're within 5ms, don't set the clock
-        long timeDiff = agent.getTime() - System.currentTimeMillis();
-        if (timeDiff < 5l && timeDiff > -5l)
-            return;
+        CmdAgent agent;
+        String hostName;
+        SimpleDateFormat dateFormat;
 
-        // 2. Ping agent 100 times to find avg latency
-        long sumLatency = 0;
-        for (int i = 0; i < 100; i++) {
-            long ms1 = System.currentTimeMillis();
-            agent.probeLatency(sampleTime);
-            long ms2 = System.currentTimeMillis();
-            sumLatency += ms2 - ms1;
+        setClockTask(CmdAgent agent, String hostName,
+                     SimpleDateFormat dateFormat) {
+            this.agent = agent;
+            this.hostName = hostName;
+            this.dateFormat = dateFormat;
         }
-        // Lag is half the latency, rounded up.
-        int lag = (int) Math.ceil(sumLatency / 200d);
 
-        int wakeBefore = 20;
-        // 3. Wait till we're latency/2 from second boundary
-        // Find next second boundary.
-        long nextSec;
-        String nextSecString;
-        long callTime;
-        for (;;) {
-            long ms = System.currentTimeMillis();
-            nextSec = (long) Math.ceil(ms / 1000d);
-            // We should be 100 ms from the boundary, at least.
-            if (nextSec * 1000 - ms < 100) // If not, we go to the next sec.
-                ++nextSec;
+        public Boolean call() throws RemoteException, InterruptedException {
 
-            // Convert nextSec back to millis
-            nextSec *= 1000l;
-            callTime = nextSec - lag;
+            logger.info("Trying to set clock for host: " + hostName);
+            // 1. If we're within 5ms, don't set the clock
+            long timeDiff = agent.getTime() - System.currentTimeMillis();
+            if (timeDiff < 5l && timeDiff > -5l)
+                return true;
 
-            nextSecString = dateFormat.format(new Date(nextSec));
+            int lag = 100; // Start with 100ms latency.
+            int wakeBefore = 20;
 
-            // Now, sleep and wake up 20ms before the wanted second boundary.
-            // This is to avoid late calls as sleep may have up to 10ms wakeup
-            // delay.
-            Thread.sleep(callTime - wakeBefore - System.currentTimeMillis());
-            if (System.currentTimeMillis() >= callTime - 2) {
-                wakeBefore += wakeBefore;
-                continue;
+            // 2. Wait till we're latency/2 from second boundary
+            // Find next second boundary.
+            long nextSec;
+            String nextSecString = "";
+            long callTime;
+
+            for (int i = 0;; i++) {
+                if (i >= 20) {
+                    logger.warning(hostName + "cannot accurately set remote " +
+                            "time after " + i + " attempts. There is still a " +
+                            "difference of " + timeDiff + " ms. Giving up.");
+                    return false;
+                }
+                findBoundaryLoop:
+                for (int j = 0;; j++) {
+                    if (j >= 20) {
+                        logger.warning(hostName + "Cannot scan time to set " +
+                                "clock after " + j + " retries. Giving up " +
+                                "setting clock. System may be overloaded or " +
+                                "JVM doing too much garbage collections.");
+                        return false;
+                    }
+                    logger.finer("Lag time: " + lag + "ms");
+                    for (;;) {
+                        long ms = System.currentTimeMillis();
+                        nextSec = (long) Math.ceil(ms / 1000d);
+                        // We should be 100 ms from the boundary, at least.
+                        if (nextSec * 1000 - ms < 100)
+                            ++nextSec; // If not, we go to the next sec.
+
+                        // Convert nextSec back to millis
+                        nextSec *= 1000l;
+                        callTime = nextSec - lag;
+
+                        nextSecString = dateFormat.format(new Date(nextSec));
+
+                        // Now, sleep and wake up 20ms before the wanted second
+                        // boundary. This is to avoid late calls as sleep may
+                        // have up to 10ms wakeup delay.
+                        Thread.sleep(callTime - wakeBefore -
+                                                    System.currentTimeMillis());
+                        if (System.currentTimeMillis() >= callTime - 2) {
+                            wakeBefore += wakeBefore;
+                            continue;
+                        }
+                        break;
+                    }
+
+                    // Now within 20ms from the call, wait in a tight loop.
+                    for (;;) {
+                        long currentTime = System.currentTimeMillis();
+                        if (currentTime == callTime) {
+                            break findBoundaryLoop;
+                        } else if (currentTime > callTime) {
+                            logger.finer(hostName + "missed preset callTime " +
+                                    "of " + callTime + ". Current time is " +
+                                    currentTime + ".");
+                            continue findBoundaryLoop; // Missed second boundary
+                        }
+                    }
+                }
+
+                // 3. Call agent to set time
+                long ms = System.currentTimeMillis();
+                agent.setTime(nextSecString);
+                logger.finer("Actual setTime took " +
+                        (System.currentTimeMillis() - ms) + " ms.");
+
+                // 4. Verify that time has been set properly.
+                ms = System.currentTimeMillis();
+                timeDiff = -agent.getTime() +
+                        (System.currentTimeMillis() + ms) / 2;
+                if (timeDiff < 10l && timeDiff > -10l) {
+                    logger.info("Setting time succeeded for " + hostName +
+                            " after " + i + " retries. Time difference is " +
+                            timeDiff + " ms.");
+                    break;
+                } else {
+                    logger.finer("Too large time difference of " + timeDiff +
+                            " ms to " + hostName + ". Only 10 ms are allowed.");
+                    lag += timeDiff;
+                }
             }
-            break;
+            return true;
         }
-
-        // We're now within 20ms from the call time, wait in a tight loop.
-        for (;;)
-            if (System.currentTimeMillis() == callTime)
-                break;
-
-        // 4. Call agent to set time
-        agent.setTime(nextSecString);
-
-        // 5. Verify that time has been set properly.
-        timeDiff = agent.getTime() - System.currentTimeMillis();
-        if (timeDiff < 5l && timeDiff > -5l)
-            logger.info("Setting time succeeded for " + hostName +
-                                    ". Time difference is " + timeDiff + ".");
-        else
-            logger.warning("Too large time difference of " + timeDiff +
-                            " ms to " + hostName + ". Only 5 ms are allowed.");
     }
 
     /**

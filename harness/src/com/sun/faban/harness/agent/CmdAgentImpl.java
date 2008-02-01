@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgentImpl.java,v 1.13 2008/01/15 08:02:51 akara Exp $
+ * $Id: CmdAgentImpl.java,v 1.14 2008/02/01 22:53:55 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -905,27 +905,6 @@ public class CmdAgentImpl extends UnicastRemoteObject
     }
 
     /**
-     * This method is for measuring the latency communicating from master
-     * to client and back for setting time. The implementation should
-     * call the OS command to get the time to have some realistic latency.
-     *
-     * @param sampleArg Included arg to really measure latency.
-     */
-    public void probeLatency(String sampleArg)  {
-        Command c = new Command("date");
-        c.setLogLevel(Command.STDOUT, Level.FINE);
-        c.setLogLevel(Command.STDERR, Level.WARNING);
-        try {
-            if (c.execute(this).exitValue() != 0)
-                logger.log(Level.WARNING, "Error executing \"date\".");
-        } catch (IOException e) {
-            logger.log(Level.WARNING, "Error executing date.", e);
-        } catch (InterruptedException e) {
-            logger.log(Level.WARNING, "Interrupted executing date.", e);
-        }
-    }
-
-    /**
      * Sets the time on the agent host, in GMT. The time string
      * must be in the format MMddHHmmyyyy.ss according to Unix date specs
      * and must be in GMT time.
@@ -933,13 +912,16 @@ public class CmdAgentImpl extends UnicastRemoteObject
      * @param gmtTimeString Time string in format
      */
     public void setTime(String gmtTimeString) {
-        Command c = new Command("date -u " + gmtTimeString);
-        c.setLogLevel(Command.STDOUT, Level.FINE);
+        String cmdLine = "date -u " + gmtTimeString;
+        Command c = new Command(cmdLine);
+        c.setLogLevel(Command.STDOUT, Level.FINER);
         c.setLogLevel(Command.STDERR, Level.WARNING);
         try {
-            if (c.execute(this).exitValue() != 0);
-                logger.log(Level.WARNING, "Error on \"date\" command trying " +
-                                            "to set the date.");
+            int exitValue = c.execute(this).exitValue();
+            if (exitValue != 0)
+                logger.log(Level.WARNING, "Error on \"" + cmdLine +
+                        "\" command trying to set the date. Exit value: " +
+                        exitValue);
         } catch (IOException e) {
             logger.log(Level.WARNING, "Error setting date.", e);
         } catch (InterruptedException e) {

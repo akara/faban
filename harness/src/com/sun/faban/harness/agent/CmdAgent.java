@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgent.java,v 1.5 2008/01/15 08:02:51 akara Exp $
+ * $Id: CmdAgent.java,v 1.6 2008/02/01 22:53:55 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -221,14 +221,6 @@ public interface CmdAgent extends Remote {
      * @param ident identifier associated with command in 'start' call
      */
     public boolean wait (String ident) throws RemoteException, Exception;
-
-    /**
-     * This method is for measuring the latency communicating from master
-     * to client and back for setting time. The implementation should
-     * call the OS command to get the time to have some realistic latency.
-     * @param sampleArg Included arg to really measure latency.
-     */
-    void probeLatency(String sampleArg) throws RemoteException;
 
     /**
      * Sets the time on the agent host, in GMT.

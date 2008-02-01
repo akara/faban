@@ -48,7 +48,7 @@
                     .action-panel {margin:5pt; text-align:center; vertical-align:middle;}
                     .action-button {color:#000000; background-color:#C5D5A9; font-family:Verdana,Arial,Helvetica; font-size:10pt; border-color:#7F7800; border-width:1pt; border-style:solid; margin:5pt;}
                     .alert {color:#FF0000; text-align:left; vertical-align:top; padding-top:2pt; padding-bottom:2pt; width:70%;}
-                    .value {width:80%;}
+                    .value-wide {width:80%;}
                 </xsl:comment>
             </style>
         </head>
