@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.24 2008/02/01 22:53:56 akara Exp $
+ * $Id: CmdService.java,v 1.25 2008/02/01 22:58:56 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -718,7 +718,12 @@ final public class CmdService { 	// The final keyword prevents clones
                         nextSec *= 1000l;
                         callTime = nextSec - lag;
 
-                        nextSecString = dateFormat.format(new Date(nextSec));
+                        // DateFormat got passed to us and gets shared between
+                        // multiple threads. So we need to sync.
+                        synchronized (dateFormat) {
+                            nextSecString = dateFormat.format(
+                                    new Date(nextSec));
+                        }
 
                         // Now, sleep and wake up 20ms before the wanted second
                         // boundary. This is to avoid late calls as sleep may
