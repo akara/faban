@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.29 2008/02/02 06:40:51 akara Exp $
+ * $Id: CmdService.java,v 1.30 2008/02/02 07:29:20 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -775,7 +775,8 @@ final public class CmdService { 	// The final keyword prevents clones
                     break;
                 } else {
                     logger.finer("Too large time difference of " + timeDiff +
-                            " ms to " + hostName + ". Only 10 ms are allowed.");
+                            " ms to " + hostName + ". Only " + ACCURACY +
+                            " ms are allowed.");
                     lag += timeDiff;
                 }
             }
