@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.26 2008/02/02 05:37:28 akara Exp $
+ * $Id: CmdService.java,v 1.27 2008/02/02 06:08:49 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -677,7 +677,9 @@ final public class CmdService { 	// The final keyword prevents clones
 
             logger.info("Trying to set clock for host: " + hostName);
             // 1. If we're within accuracy, don't set the clock
-            long timeDiff = agent.getTime() - System.currentTimeMillis();
+            long ms = System.currentTimeMillis();
+            long timeDiff = -agent.getTime() +
+                            ms + (System.currentTimeMillis() - ms) / 2;
             if (timeDiff < ACCURACY && timeDiff > -ACCURACY)
                 return true;
 
@@ -708,7 +710,7 @@ final public class CmdService { 	// The final keyword prevents clones
                     }
                     logger.finer("Lag time: " + lag + "ms");
                     for (;;) {
-                        long ms = System.currentTimeMillis();
+                        ms = System.currentTimeMillis();
                         nextSec = (long) Math.ceil(ms / 1000d);
                         // We should be 100 ms from the boundary, at least.
                         if (nextSec * 1000 - ms < 100)
@@ -752,7 +754,7 @@ final public class CmdService { 	// The final keyword prevents clones
                 }
 
                 // 3. Call agent to set time
-                long ms = System.currentTimeMillis();
+                ms = System.currentTimeMillis();
                 agent.setTime(nextSecString);
                 logger.finer("Actual setTime took " +
                         (System.currentTimeMillis() - ms) + " ms.");
@@ -760,7 +762,7 @@ final public class CmdService { 	// The final keyword prevents clones
                 // 4. Verify that time has been set properly.
                 ms = System.currentTimeMillis();
                 timeDiff = -agent.getTime() +
-                        (System.currentTimeMillis() + ms) / 2;
+                            ms + (System.currentTimeMillis() - ms) / 2;
                 if (timeDiff < ACCURACY && timeDiff > -ACCURACY) {
                     logger.info("Setting time succeeded for " + hostName +
                             " after " + i + " retries. Time difference is " +
