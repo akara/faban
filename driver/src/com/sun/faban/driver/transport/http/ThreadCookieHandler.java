@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ThreadCookieHandler.java,v 1.7 2007/10/30 07:35:35 akara Exp $
+ * $Id: ThreadCookieHandler.java,v 1.8 2008/02/02 05:36:44 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -889,8 +889,14 @@ public class ThreadCookieHandler {
 
                 // 2. Max age selection.
                 // We do this first to purge all timed-out cookies.
-                if (System.currentTimeMillis() >=
+                long currentTime;
+                if (cookie.maxAge != -1 &&
+                        (currentTime = System.currentTimeMillis()) >=
                         cookie.maxAge * 1000l + cookie.timeStamp) {
+                    logger.fine("Current time: " + currentTime + ", " +
+                            "purging timed out cookie " + cookie.name + '=' +
+                            cookie.value + ", timestamp: " + cookie.timeStamp +
+                            ", ,max-age: " + cookie.maxAge);
                     store.remove(cookie.path);
                     if (store.size() == 0) {
                         return null;
