@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.28 2008/02/02 06:28:24 akara Exp $
+ * $Id: CmdService.java,v 1.29 2008/02/02 06:40:51 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -686,7 +686,7 @@ final public class CmdService { 	// The final keyword prevents clones
             }
 
             logger.info("Time difference to host " + hostName + " is " +
-                    timeDiff + ". Attempting to set clock.");
+                    timeDiff + " ms. Attempting to set clock.");
 
             int lag = 100; // Start with 100ms latency.
             int wakeBefore = 20;
