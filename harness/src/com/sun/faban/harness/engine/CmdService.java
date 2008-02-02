@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.25 2008/02/01 22:58:56 akara Exp $
+ * $Id: CmdService.java,v 1.26 2008/02/02 05:37:28 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -661,7 +661,7 @@ final public class CmdService { 	// The final keyword prevents clones
     }
 
     static class setClockTask implements Callable<Boolean> {
-
+        public static final long ACCURACY = 10l; // plus-minus 10ms.
         CmdAgent agent;
         String hostName;
         SimpleDateFormat dateFormat;
@@ -676,9 +676,9 @@ final public class CmdService { 	// The final keyword prevents clones
         public Boolean call() throws RemoteException, InterruptedException {
 
             logger.info("Trying to set clock for host: " + hostName);
-            // 1. If we're within 5ms, don't set the clock
+            // 1. If we're within accuracy, don't set the clock
             long timeDiff = agent.getTime() - System.currentTimeMillis();
-            if (timeDiff < 5l && timeDiff > -5l)
+            if (timeDiff < ACCURACY && timeDiff > -ACCURACY)
                 return true;
 
             int lag = 100; // Start with 100ms latency.
@@ -761,7 +761,7 @@ final public class CmdService { 	// The final keyword prevents clones
                 ms = System.currentTimeMillis();
                 timeDiff = -agent.getTime() +
                         (System.currentTimeMillis() + ms) / 2;
-                if (timeDiff < 10l && timeDiff > -10l) {
+                if (timeDiff < ACCURACY && timeDiff > -ACCURACY) {
                     logger.info("Setting time succeeded for " + hostName +
                             " after " + i + " retries. Time difference is " +
                             timeDiff + " ms.");
