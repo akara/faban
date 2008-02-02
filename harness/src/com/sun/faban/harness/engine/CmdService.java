@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.27 2008/02/02 06:08:49 akara Exp $
+ * $Id: CmdService.java,v 1.28 2008/02/02 06:28:24 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -675,13 +675,18 @@ final public class CmdService { 	// The final keyword prevents clones
 
         public Boolean call() throws RemoteException, InterruptedException {
 
-            logger.info("Trying to set clock for host: " + hostName);
             // 1. If we're within accuracy, don't set the clock
             long ms = System.currentTimeMillis();
             long timeDiff = -agent.getTime() +
                             ms + (System.currentTimeMillis() - ms) / 2;
-            if (timeDiff < ACCURACY && timeDiff > -ACCURACY)
+            if (timeDiff < ACCURACY && timeDiff > -ACCURACY) {
+                logger.fine("Time difference of " + timeDiff +
+                        " ms already in range. No need to set clock.");
                 return true;
+            }
+
+            logger.info("Time difference to host " + hostName + " is " +
+                    timeDiff + ". Attempting to set clock.");
 
             int lag = 100; // Start with 100ms latency.
             int wakeBefore = 20;
