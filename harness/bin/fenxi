@@ -63,8 +63,8 @@ PROG=$FENXI_SCRIPTS/process
 
 chmod a+rx $FENXI_HOME/txt2db/*
 
-if [ $# -ne 3 ]; then
-        echo "usage: $PROG rawdir htmldir runID" 2>&1
+if [ $# -ne 4 ]; then
+        echo "usage: $0 [process|compare] rawdir htmldir runID" 2>&1
         exit 2
 fi
 

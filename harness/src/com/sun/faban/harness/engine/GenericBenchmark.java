@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.22 2008/01/15 08:02:52 akara Exp $
+ * $Id: GenericBenchmark.java,v 1.23 2008/02/04 22:55:12 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -404,8 +404,8 @@ public class GenericBenchmark {
             return false;
 
 		// Process the text using FenXi.
-		Command fenxi = new Command ("fenxi " + outDir + " " + outDir + " " +
-                                                                run.getRunId());
+		Command fenxi = new Command ("fenxi process " + outDir + " " + outDir +
+                                                        " " + run.getRunId());
         fenxi.setWorkingDirectory(Config.FABAN_HOME + "logs");
 
 		try {

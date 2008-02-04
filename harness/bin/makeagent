@@ -1,0 +1,31 @@
+#!/bin/sh
+BINDIR=`dirname $0`
+
+if [ -n "$BINDIR" ]
+then
+    FABAN_HOME=`cd $BINDIR/.. > /dev/null 2>&1 && pwd`
+    export FABAN_HOME
+fi
+
+JAVA=""
+
+# If JAVA_HOME is not defined, we try our best to locate it.
+if [ -z "$JAVA_HOME" ] ; then
+
+    # Check that Java is reachable at all.
+    JAVA_BIN=`which java`
+    if [ -z "$JAVA_BIN" ] ; then
+        echo "Could not find java. Please make sure the JDK is installed \
+and set JAVA_HOME or PATH accordingly." >&2
+        exit 1
+    fi
+    JAVA=$JAVA_BIN
+else
+    JAVA=$JAVA_HOME/bin/java
+fi
+
+cd $FABAN_HOME
+
+$JAVA -client -cp master/common/lib/ant-launcher.jar \
+      -Dkit.dir=/tmp \
+      org.apache.tools.ant.launch.Launcher package-agent
