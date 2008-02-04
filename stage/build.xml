@@ -19,7 +19,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: build.xml,v 1.9 2007/06/30 04:25:41 akara Exp $
+* $Id: build.xml,v 1.10 2008/02/04 21:44:54 akara Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 -->
@@ -150,12 +150,19 @@
             dest="master/webapps/faban"/>
     </target>
 
-    <patternset id="client.bin">
+    <target name="make-release">
+        <copy file="release.template"
+              tofile="release" overwrite="true" verbose="true"/>
+        <replace file="release" token="@@build.date@@" value="${build.date}"/>
+    </target>
+
+    <patternset id="agent.bin">
         <include name="bin/**"/>
     </patternset>
 
     <patternset id="server.bin">
-        <patternset refid="client.bin"/>
+        <patternset refid="agent.bin"/>
+        <include name="bin/makeagent*"/>
         <include name="master/bin/*.sh"/>
         <include name="samples/**/bin/**" unless="faban.bundled"/>
         <include name="samples/**/sbin/**" unless="faban.bundled"/>
@@ -168,6 +175,7 @@
     </patternset>
 
     <patternset id="package.excludes">
+        <exclude name="release.template"/>
         <exclude name="**/.nfs*"/>
         <exclude name="**/*.iml"/>
         <exclude name=".*.swap"/>
@@ -207,7 +215,7 @@
         <exclude name="samples/**" if="faban.bundled"/>
     </patternset>
 
-    <patternset id="client.excludes">
+    <patternset id="agent.excludes">
         <patternset refid="server.excludes"/>
         <exclude name="README.*"/>
         <exclude name="*.zip"/>
@@ -234,7 +242,7 @@
 
     <target name="package-bundle" unless="faban.bundled"
         description="Package bundle for re-shipping with benchmark">
-        <tar destfile="${kit.dir}/${package.name}-bundle-${build.date}.tar.gz"
+        <tar destfile="${kit.dir}/${package.name}-kit-${build.date}.tar.gz"
             longfile="warn" compression="gzip">
             <tarfileset dir="." prefix="${package.name}" mode="755" dirmode="755">
                 <patternset refid="package.bin"/>
@@ -268,15 +276,16 @@
         </tar>
     </target>
 
-    <target name="package-client"
-        description="Package client/agent install image">
-        <tar destfile="${kit.dir}/${package.name}-client-${build.date}.tar.gz"
+    <target name="package-agent"
+        description="Package agent install image">
+        <tar destfile="${kit.dir}/${package.name}-agent.tar.gz"
             longfile="warn" compression="gzip">
             <tarfileset dir="." prefix="${package.name}" mode="755" dirmode="755">
-                <patternset refid="client.bin"/>
+                <patternset refid="agent.bin"/>
+                <exclude name="bin/makeagent*"/>                
             </tarfileset>
             <tarfileset dir="." prefix="${package.name}">
-                <patternset refid="client.excludes"/>
+                <patternset refid="agent.excludes"/>
             </tarfileset>
         </tar>
     </target>
@@ -319,11 +328,11 @@
     </target>
 
     <target name="package-faban"
-        depends="build-faban, javadoc, package-src, package-bundle"
+        depends="build-faban, javadoc, make-release, package-src, package-bundle"
         unless="faban.bundled"
         description="Package the Faban kit only packages."/>
 
-    <target name="all" depends="package-faban, package-server, package-client"
+    <target name="all" depends="package-faban"
         description="Create all packages."/>
 
     <target name="clean-master"
