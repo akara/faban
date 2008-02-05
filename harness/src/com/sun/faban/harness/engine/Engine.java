@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Engine.java,v 1.6 2008/02/01 22:53:56 akara Exp $
+ * $Id: Engine.java,v 1.7 2008/02/05 07:33:42 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -62,7 +62,8 @@ public class Engine {
     }
 
     public static void initIfNotInited(ServletContext ctx,
-                                       HttpServletRequest request) {
+                                       HttpServletRequest request)
+            throws IOException {
         if (INITIALIZED.compareAndSet(false, true)) {
             instance = new Engine();
             instance.init(ctx, request);
@@ -74,7 +75,8 @@ public class Engine {
             instance.terminate();
     }
 
-    private void init(ServletContext ctx, HttpServletRequest request) {
+    private void init(ServletContext ctx, HttpServletRequest request)
+            throws IOException {
         String path = ctx.getRealPath("");
         if(path == null)
             path = ctx.getRealPath(".");
@@ -100,15 +102,12 @@ public class Engine {
         runQ = RunQ.getHandle();
         logger.fine("RunQ created");
 
-        try {
-            logServer = new LogServer(new LogConfig());
+        logServer = new LogServer(new LogConfig());
 
-            // Share the thread pool for other uses, too.
-            Config.THREADPOOL = logServer.config.threadPool;
-            logServer.start();
-        } catch (IOException e) {
-            logger.log(Level.SEVERE,  "Error starting log server", e);
-        }
+        // Share the thread pool for other uses, too.
+        Config.THREADPOOL = logServer.config.threadPool;
+
+        logServer.start();
     }
 
     private void terminate() {

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: InitFilter.java,v 1.2 2006/06/29 19:38:41 akara Exp $
+ * $Id: InitFilter.java,v 1.3 2008/02/05 07:33:42 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,7 +25,10 @@ package com.sun.faban.harness.engine;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * Filter to ensure proper initialization of the Faban system on first request
@@ -44,8 +47,21 @@ public class InitFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response,
                          FilterChain chain)
             throws IOException, ServletException {
-        Engine.initIfNotInited(ctx, (HttpServletRequest) request);
-        chain.doFilter(request, response);
+        HttpServletResponse resp = null;
+        try {
+            resp = (HttpServletResponse) response;
+            HttpServletRequest req = (HttpServletRequest) request;
+            Engine.initIfNotInited(ctx, req);
+            chain.doFilter(request, response);
+        } catch (Throwable e) {
+            Logger.getLogger(this.getClass().getName()).
+                                        log(Level.SEVERE, e.getMessage(), e);
+            if (resp != null) {
+                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                                e.getMessage());
+                resp.flushBuffer();
+            }
+        }
     }
 
     public void destroy() {

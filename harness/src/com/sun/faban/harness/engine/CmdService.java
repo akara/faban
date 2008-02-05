@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.30 2008/02/02 07:29:20 akara Exp $
+ * $Id: CmdService.java,v 1.31 2008/02/05 07:33:41 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -644,7 +644,7 @@ final public class CmdService { 	// The final keyword prevents clones
                 }
                 for (Future<Boolean> future : tasks)
                     try {
-                        future.get(5, TimeUnit.MINUTES);
+                        future.get(300, TimeUnit.SECONDS);
                     } catch (Throwable t) {
                         Throwable cause = t.getCause();
                         while (cause != null) {
