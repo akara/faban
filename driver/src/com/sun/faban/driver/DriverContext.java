@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DriverContext.java,v 1.5 2008/01/29 22:33:47 akara Exp $
+ * $Id: DriverContext.java,v 1.6 2008/02/06 21:33:54 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -60,6 +60,13 @@ public abstract class DriverContext {
      * @return the current run's scaling rate
      */
     public abstract int getScale();
+
+    /**
+     * Obtains the number of client threads in this agent.
+     *
+     * @return the number of client threads
+     */
+    public abstract int getClientsInAgent();
 
     /**
      * Obtains the global agent thread id for this context's thread.

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: NullContext.java,v 1.6 2008/01/29 22:33:46 akara Exp $
+ * $Id: NullContext.java,v 1.7 2008/02/06 21:33:54 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -48,6 +48,15 @@ public class NullContext extends DriverContext {
      * @see com.sun.faban.driver.DriverContext#getScale()
      */
 	public int getScale() {
+        return 0;
+    }
+
+    /**
+     * Obtains the number of client threads in this agent.
+     *
+     * @return the number of client threads
+     */
+    public int getClientsInAgent() {
         return 0;
     }
 
