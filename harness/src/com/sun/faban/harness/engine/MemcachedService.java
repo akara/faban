@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MemcachedService.java,v 1.1 2008/01/09 18:57:01 shanti_s Exp $
+ * $Id: MemcachedService.java,v 1.2 2008/02/07 17:39:14 shanti_s Exp $
  *
  * Copyright 2007 Sun Microsystems Inc. All Rights Reserved
  */
@@ -134,6 +134,7 @@ final public class MemcachedService {
             startCmd.setLogLevel(Command.STDERR, Level.INFO);
             try {
                 // Run the command in the background
+                logger.fine("Starting memcached on " + server + " with: " + startCmd);
                 memcacheHandles[i] = RunContext.exec(server, startCmd);
             } catch (Exception e) {
                 logger.severe("Failed to start memcached server on " +
@@ -181,6 +182,7 @@ final public class MemcachedService {
 
         for (int i = 0; i < myServers.length; i++) {
             Integer retVal = 0;
+			if (memcacheHandles[i] != null) {
             try {
                 int exit = memcacheHandles[i].exitValue();
                 logger.warning("Memcached on " + myServers[i] +
@@ -199,6 +201,7 @@ final public class MemcachedService {
                 logger.log(Level.FINE, "Exception", re);
                 success = false;
             }
+			}
         }
         memcacheHandles = null;
         return (success);

@@ -17,9 +17,9 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ApacheHttpdService.java,v 1.2 2008/02/07 17:39:14 shanti_s Exp $
+ * $Id: LighttpdService.java,v 1.1 2008/02/07 17:39:14 shanti_s Exp $
  *
- * Copyright 2007 Sun Microsystems Inc. All Rights Reserved
+ * Copyright 2008 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.engine;
 
@@ -33,6 +33,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.rmi.RemoteException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Level;
@@ -40,27 +41,27 @@ import java.util.logging.Logger;
 
 /**
  *
- * This class implements the service to start/stop ApacheHttpd instances.
- * It also provides functionality to transfer the portion of the apache
- * error_log for a run to the run output directory.
- * It can be used by any Apache benchmark to manage apache servers and
+ * This class implements the service to start/stop lighttpd instances.
+ * It also provides functionality to transfer the portion of the lighttpd
+ * error.log for a run to the run output directory.
+ * It can be used by any lighttpd benchmark to manage lighttpd servers and
  * perform these operations remotely using this Service.
  *
  * @author Shanti Subramanyam
  */
-final public class ApacheHttpdService implements WebServerService {
+final public class LighttpdService implements WebServerService {
 
-    private static ApacheHttpdService service = null;
+    private static LighttpdService service = null;
     private String[] myServers = new String[1];
     private Logger logger;
-    private static String apachectlCmd,  errlogFile,  acclogFile;
-
+    private static String lightyCmd,  errlogFile,  acclogFile, confFile, pidFile;
+    private CommandHandle[] ch;
     /**
      *
      * Private Constructor for a singleton object.
      *
      */
-    private ApacheHttpdService() {
+    private LighttpdService() {
         logger = Logger.getLogger(this.getClass().getName());
         logger.fine(this.getClass().getName() + " Created");
     }
@@ -69,11 +70,11 @@ final public class ApacheHttpdService implements WebServerService {
      *
      * Get the reference to the singleton object.
      * Use this method to get access to the service.
-	 * @return ApacheHttpdService - service object handle
+	 * @return LighttpdService - service object handle
      */
-    public static ApacheHttpdService getHandle() {
+    public static LighttpdService getHandle() {
         if (service == null) {
-            service = new ApacheHttpdService();
+            service = new LighttpdService();
         }
 
         return service;
@@ -83,18 +84,20 @@ final public class ApacheHttpdService implements WebServerService {
      * The setup method is called to set up a benchmark run. 
      * It is assumed that all servers have the same installation directory
      *
-     * @param serverMachines - array specifying the apache server machines. 
-     * @param binDir - Apache binaries location
-     * @param logsDir - Apache logs location
-     * @param confDir - Apache httpd.conf file location
+     * @param serverMachines - array specifying the web server machines. 
+     * @param binDir - lighttpd binary location
+     * @param logsDir - lighttpd logs location
+     * @param confDir - lighttpd conf file location
      */
     public void setup(String[] serverMachines, String binDir, String logsDir, String confDir) {
         myServers = serverMachines;
 
-        apachectlCmd = binDir + File.separator + "apachectl ";
-        errlogFile = logsDir + File.separator + "error_log";
-        acclogFile = logsDir + File.separator + "access_log";
-        logger.info("ApacheHttpdService setup complete.");
+        lightyCmd = binDir + File.separator + "lighttpd ";
+        errlogFile = logsDir + File.separator + "error.log";
+        acclogFile = logsDir + File.separator + "access.log";
+        confFile = confDir + File.separator + "lighttpd.conf";
+        pidFile = logsDir + File.separator + "lighttpd.pid";
+        logger.info("LighttpdService setup complete.");
 
     }
 
@@ -104,66 +107,48 @@ final public class ApacheHttpdService implements WebServerService {
      */
     public boolean startServers() {
         Integer success = 0;
-        String cmd = apachectlCmd + "start";
+        String cmd = lightyCmd + "-f " + confFile;
         Command startCmd = new Command(cmd);
         startCmd.setLogLevel(Command.STDOUT, Level.FINE);
         startCmd.setLogLevel(Command.STDERR, Level.FINE);
-
+        ch = new CommandHandle[myServers.length];
         for (int i = 0; i < myServers.length; i++) {
             String server = myServers[i];
             try {
                 // Run the command in the foreground and wait for the start
-                CommandHandle ch = RunContext.exec(server, startCmd);
-                /*
-                 * Read the log file to make sure the server has started.
-                 * We do this by running the code block on the server via
-                 * RemoteCallable
-                 */
+                ch[i] = RunContext.exec(server, startCmd);
+                
                 if (checkServerStarted(server)) {
-                    logger.fine("Completed apache httpd startup successfully on " + server);
+                    logger.fine("Completed lightttpd startup successfully on " + server);
                 } else {
-                    logger.severe("Failed to find start message in " + errlogFile +
-                            " on " + server);
+                    logger.severe("Failed to find " + pidFile + " on " + server);
                     return (false);
                 }
 
             } catch (Exception e) {
-                logger.warning("Failed to start apache server with " + e.toString());
+                logger.warning("Failed to start lighttpd server with " + e.toString());
                 logger.log(Level.FINE, "Exception", e);
                 return (false);
             }
         }
-        logger.info("Completed apache httpd server(s) startup");
+        logger.info("Completed lighttpd server(s) startup");
         return (true);
     }
 
     /*
-	 * Check if apache server started by looking in the error_log
-	 */
+     * Check if lighttpd server started by looking for pidfile
+     */
     private static boolean checkServerStarted(String hostName) throws Exception {
-        Integer val = 0;
-        final String err = errlogFile;
-        val = RunContext.exec(hostName, new RemoteCallable<Integer>() {
-
-            public Integer call() throws Exception {
-                Integer retVal = 0;
-                String msg = "resuming normal operations";
-
-                FileInputStream is = new FileInputStream(err);
-                BufferedReader bufR = new BufferedReader(new InputStreamReader(is));
-
+        boolean val = false;
+        
                 // Just to make sure we don't wait for ever.
                 // We try to read the msg 120 times before we give up
                 // Sleep 1 sec between each try. So wait for 1 min
                 int attempts = 60;
                 while (attempts > 0) {
-                    // make sure we don't block
-                    if (bufR.ready()) {
-                        String s = bufR.readLine();
-                        if ((s != null) && (s.indexOf(msg) != -1)) {
-                            retVal = 1;
-                            break;
-                        }
+                    if (RunContext.isFile(hostName, pidFile)) {
+                        val = true;
+                        break;
                     } else {
                         // Sleep for some time
                         try {
@@ -174,15 +159,8 @@ final public class ApacheHttpdService implements WebServerService {
                         }
                     }
                 }
-                bufR.close();
-                return (retVal);
-            }
-        });
-        if (val == 1) {
-            return (true);
-        } else {
-            return (false);
-        }
+                return (val);
+
     }
 
     /**
@@ -193,12 +171,12 @@ final public class ApacheHttpdService implements WebServerService {
      */
     public boolean restartServers() {
 
-        logger.info("Restarting Apache server(s). Please wait ... ");
+        logger.info("Restarting lighttpd server(s). Please wait ... ");
         // We first stop and clear the logs
         this.stopServers();
         this.clearLogs();
 
-        // Now start the apache servers
+        // Now start the servers
         if (!startServers()) {
             // cleanup and return
             stopServers();
@@ -215,91 +193,23 @@ final public class ApacheHttpdService implements WebServerService {
     public boolean stopServers() {
         boolean success = true;
         for (int i = 0; i < myServers.length; i++) {
-            Integer retVal = 0;
             try {
-                String cmd = apachectlCmd + "stop";
-                Command stopCmd = new Command(cmd);
-                stopCmd.setLogLevel(Command.STDOUT, Level.FINE);
-                stopCmd.setLogLevel(Command.STDERR, Level.FINE);
-
-                // Run the command in the foreground
-                CommandHandle ch = RunContext.exec(myServers[i], stopCmd);
-                
-                // Check if the server was even running before stop was issued
-                // If not running, apachectl will print that on stdout
-                byte[] output = ch.fetchOutput(Command.STDOUT);
-
-                if (output != null)
-                    if ((output.toString()).indexOf("not running") != -1) {
-                       continue;
-                    }
-                retVal = checkServerStopped(myServers[i]);
-                if (retVal == 0) {
-                    logger.warning("Could not find expected message  'shutting down' in " +
-                            errlogFile + " on " + myServers[i]);
-                    success = false;
-                    continue;
-                }
-            } catch (Exception ie) {
-                logger.log(Level.WARNING, "Failed to stop ApacheHttpd on " +
-                        myServers[i] + "with " + ie);
-                logger.log(Level.FINE, "apachectl stop Exception", ie);                
+                if (ch[i] != null) {
+                    ch[i].destroy();
+                }                
+            } catch (RemoteException re) {
+                logger.log(Level.WARNING, "Failed to stop lighttpd on " +
+                        myServers[i] + " with " + re);
+                logger.log(Level.FINE, "lighttpd stop Exception", re);                
                 success = false;
             }
         }         
         return (success);
     }
 
-    /*
-	 * Check if apache server stopped by scanning error_log
-	 */
-    private static Integer checkServerStopped(String hostName) throws Exception {
-        Integer val = 0;
-        final String err = errlogFile;
-        val = RunContext.exec(hostName, new RemoteCallable<Integer>() {
-
-            public Integer call() throws Exception {
-                Integer retVal = 0;
-                // Read the log file to make sure the server has shutdown
-                String msg = "shutting down";
-                FileInputStream is = new FileInputStream(err);
-                BufferedReader bufR = new BufferedReader(new InputStreamReader(is));
-
-                // Just to make sure we don't wait for ever.
-                // We try to read the msg 60 times before we give up
-                // Sleep 1 sec between each try. So wait for about 1 min
-                int attempts = 60;
-                while (attempts > 0) {
-                    // make sure we don't block
-                    if (bufR.ready()) {
-                        String s = bufR.readLine();
-                        if ((s != null) && (s.indexOf(msg) != -1)) {
-                            retVal = 1;
-                            break;
-                        }
-
-                    } else {
-                        // Sleep for some time
-                        try {
-                            Thread.sleep(1000);
-                            attempts--;
-
-                        } catch (Exception e) {
-                            break;
-                        }
-
-                    }
-                }
-                bufR.close();
-                return (retVal);
-            }
-        });
-        return (val);
-    }
-
     /**
-     * clear apache logs and session files
-	 * It assumes that session files are in /tmp/sess*
+     * clear server logs and session files
+     * It assumes that session files are in /tmp/sess*
      * @return true if operation succeeded, else fail
      */
     public boolean clearLogs() {
@@ -316,6 +226,13 @@ final public class ApacheHttpdService implements WebServerService {
             if (RunContext.isFile(myServers[i], acclogFile)) {
                 if (!RunContext.deleteFile(myServers[i], acclogFile)) {
                     logger.log(Level.WARNING, "Delete of " + acclogFile +
+                            " failed on " + myServers[i]);
+                    return (false);
+                }
+            }
+           if (RunContext.isFile(myServers[i], pidFile)) {
+                if (!RunContext.deleteFile(myServers[i], pidFile)) {
+                    logger.log(Level.WARNING, "Delete of " + pidFile +
                             " failed on " + myServers[i]);
                     return (false);
                 }
@@ -338,7 +255,7 @@ final public class ApacheHttpdService implements WebServerService {
 
     /**
      * transfer log files
-	 * This method copies over the error_log to the run output directory
+	 * This method copies over the error log to the run output directory
 	 * and keeps only the portion of the log relevant for this run
 	 * @param totalRunTime - the time in seconds for this run
      */
@@ -371,7 +288,7 @@ final public class ApacheHttpdService implements WebServerService {
                         beginDate + "\"" + " \"" + endDate + "\" " +
                         outFile);
 				****/
-                Command parseCommand = new Command("apache_trunc_errorlog.sh " +
+                Command parseCommand = new Command("lighttpd_trunc_errorlog.sh " +
                         beginDate + " " + endDate + " " + outFile);
                 CommandHandle ch = RunContext.exec(parseCommand);
 
@@ -400,11 +317,11 @@ final public class ApacheHttpdService implements WebServerService {
 
     /**
      *
-     * Kill all ApacheHttpd servers
+     * Kill all servers
      * We simply stop them instead of doing a hard kill
      */
     public void kill() {
         stopServers();
-        logger.info("Killed all ApacheHttpd servers");
+        logger.info("Killed all lighttpd servers");
     }
 }
