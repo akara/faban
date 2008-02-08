@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: selectprofile.jsp,v 1.4 2006/08/22 07:13:09 akara Exp $
+ * $Id: selectprofile.jsp,v 1.5 2008/02/08 18:27:51 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -102,20 +102,17 @@ function updateProfile() {
       <tr>
         <td>Profile</td>
         <td>
-          <input type="text" name="profile" size="10"
-            <% if(profile != null) { %>
-              value= <%=profile %>
-            <% }
-               else {
-                 if((profiles != null) && (profiles.length > 0)) {
-            %>
-              value= <%=profiles[0] %>
-            <%   }
-               }
-            %>
-          >
           <% if((profiles != null) && (profiles.length > 0)) { %>
-            <select name="profilelist" ONCHANGE="updateProfile()">
+            <input type="text" title="Please select profile or enter new profile name"
+                name="profile" size="10"
+                <% if (profile != null) { %>
+                    value=<%=profile %>
+                <% } else { %>
+                    value=<%=profiles[0] %>
+                <% } %>
+            >
+            <select name="profilelist" title="Please select profile or enter new profile name"
+                ONCHANGE="updateProfile()">
               <% for(int i = 0; i < profiles.length; i++) { %>
                 <option
                   <% if(((profile != null) && profiles[i].equals(profile)) ||
@@ -126,6 +123,13 @@ function updateProfile() {
                 </option>
               <% } %>
             </select>
+          <% } else { %>
+            <input type="text" title="Please enter new profile name for your runs"
+                name="profile" size="10"
+                <% if(profile != null) { %>
+                    value= <%=profile %>
+                <% } %>
+            >
           <% } %>
         </td>
       </tr>
@@ -135,7 +139,7 @@ function updateProfile() {
         <tr>
           <td>Benchmark</td>
           <td>
-            <select name="benchmark">
+            <select name="benchmark" title="Please select benchmark to run">
               <% for (int i = 0; i < benchmarks.length; i++) { %>
               <option
                   <% if(benchmarks[i].equals(benchmark)) { %>
