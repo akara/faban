@@ -38,11 +38,13 @@ export CLASSPATH
 PATH=$JAVA_HOME/bin:/bin:/usr/bin:/usr/local/bin:/usr/ucb:/usr/sbin:$FABAN_HOME/bin
 export PATH
 
+HOSTNAME=`uname -n`
+
 $JAVA -server -classpath $CLASSPATH \
 -Dfaban.cli.command=$0 -Dfaban.home=$FABAN_HOME \
 -Djava.security.policy=$FABAN_HOME"/config/faban.policy" \
-com.sun.faban.harness.agent.AgentBootstrap $* >>agent.log 2>&1 &
+com.sun.faban.harness.agent.AgentBootstrap $* >>agent.${HOSTNAME}.log 2>&1 &
 
 if [ "$#" -lt "4" ] ; then
-    echo "Agent started in daemon mode. Output is redirected to ${FABAN_HOME}/logs/agent.log"
+    echo "Agent started in daemon mode. Output is redirected to ${FABAN_HOME}/logs/agent.${HOSTNAME}.log"
 fi
