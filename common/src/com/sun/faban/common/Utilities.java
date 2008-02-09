@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Utilities.java,v 1.4 2008/01/29 22:28:53 akara Exp $
+ * $Id: Utilities.java,v 1.5 2008/02/09 07:50:42 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,6 +25,12 @@ package com.sun.faban.common;
 
 import java.io.File;
 import java.net.URL;
+import java.util.List;
+import java.util.Set;
+import java.util.LinkedHashSet;
+import java.util.ArrayList;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 /**
  * Common utilities, usually accessible via static import.
@@ -121,5 +127,108 @@ public class Utilities {
             return null;
 
         return jarFile;
+    }
+
+    /**
+     * Parses the host:port string and puts the list of host:port pairs
+     * into a list.
+     * @param hostPorts The host:port string
+     * @return list of host and ports
+     */
+    public static List<NameValuePair<Integer>> parseHostPorts(String hostPorts){
+
+        ArrayList<NameValuePair<Integer>> hostPortList =
+                                    new ArrayList<NameValuePair<Integer>>();
+
+        _parseHostPorts(hostPorts, hostPortList, null);
+
+        return hostPortList;
+    }
+
+    /**
+     * Parses the host:port string and puts the list of host:port pairs
+     * into the hostPortList
+     * @param hostPorts The host:port string
+     * @param hostPortList The list to insert the host:port pairs
+     * @param hostSet The set to insert host names, null if not needed
+     * @return list of host names, space separated
+     */
+    public static String parseHostPorts(String hostPorts,
+                          List<NameValuePair<Integer>> hostPortList,
+                          Set<String> hostSet) {
+
+        if (hostSet == null)
+            hostSet = new LinkedHashSet<String>();
+
+        _parseHostPorts(hostPorts, hostPortList, hostSet);
+
+        // Now extract the unique hosts
+        StringBuffer hosts = new StringBuffer();
+        for (String host : hostSet) {
+            hosts.append(host);
+            hosts.append(' ');
+        }
+        return hosts.toString();
+    }
+
+    private static void _parseHostPorts(String hostPorts,
+                               List<NameValuePair<Integer>> hostPortList,
+                               Set<String> hostSet) {
+        // replacing all the newline characters and other white space
+        // characters with a blank space
+
+        hostPorts = hostPorts.replaceAll("\\s", " ");
+
+        // Find the patterns that have either hostname or hostname:port values
+        Pattern p1 = Pattern.compile("([a-zA-Z_0-9-]+):?(\\w*)\\s*");
+        Matcher m1 = p1.matcher(hostPorts + ' '); // add a whitespace at end
+
+        //  Fill up the hosts set with names of all the hosts
+        for (boolean found = m1.find(); found; found = m1.find()) {
+            NameValuePair<Integer> hostPort = new NameValuePair<Integer>();
+            hostPort.name = m1.group(1);
+            String port = m1.group(2);
+            if (port != null && port.length() > 1)
+                hostPort.value = new Integer(port);
+            if (hostSet != null)
+                hostSet.add(hostPort.name);
+            hostPortList.add(hostPort);
+        }
+    }
+
+    /**
+     * Simple, but frequently used utility function to determine which bucket
+     * or group the current value belongs to, providing the total and the number
+     * of buckets the values get divided into. If there is a remainder in the
+     * division, the remainder is spread equally to the lower numbered buckets.
+     * Those buckets will be one value larger than the higher numbered buckets.
+     * @param current The current value
+     * @param total The total count
+     * @param buckets The number of buckets to divide the set into.
+     * @return The bucket number of the current value, starting with 0
+     */
+    public static int selectBucket(int current, int total, int buckets) {
+        int[] selector = new int[buckets];
+
+        int base = total / buckets;
+        int remainder = total % buckets;
+
+        // Assign the bucket size to the selector
+        for (int i = 0; i < selector.length; i++) {
+            selector[i] = base;
+            if (i < remainder)
+                ++selector[i];
+        }
+
+        // Accumulate the selector value
+        for (int i = 1; i < selector.length; i++)
+            selector[i] += selector[i - 1];
+
+
+        int bucket = 0;
+        for (; bucket < selector.length; bucket++)
+            if (current < selector[bucket])
+                break;
+        return bucket;
     }
 }
