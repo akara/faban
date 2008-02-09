@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DriverContext.java,v 1.11 2008/02/06 21:33:54 akara Exp $
+ * $Id: DriverContext.java,v 1.12 2008/02/09 07:52:29 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -122,6 +122,15 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      */
     public int getClientsInAgent() {
         return agentThread.runInfo.agentInfo.threads;
+    }
+
+    /**
+     * Obtains the total number of clients threads for this driver.
+     *
+     * @return the number of client threads for this driver
+     */
+    public int getClientsInDriver() {
+        return agentThread.runInfo.driverConfig.numThreads;
     }
 
     /**
