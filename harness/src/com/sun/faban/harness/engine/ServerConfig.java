@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ServerConfig.java,v 1.6 2007/06/29 08:36:44 akara Exp $
+ * $Id: ServerConfig.java,v 1.7 2008/02/09 07:56:45 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -31,10 +31,7 @@ import com.sun.faban.common.CommandHandle;
 
 import java.io.*;
 import java.text.DateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -309,7 +306,8 @@ class ServerConfig {
 
         String sysfile = run.getOutDir() + "system.report";
         PrintStream syslog = null;
-        DateFormat df = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.LONG);
+        DateFormat df = DateFormat.getDateTimeInstance(
+                            DateFormat.MEDIUM, DateFormat.LONG, Locale.US);
         String start = df.format(new Date(startTime));
         String end = df.format(new Date(endTime));
 

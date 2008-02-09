@@ -17,13 +17,14 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ParamRepository.java,v 1.6 2007/09/08 01:21:14 akara Exp $
+ * $Id: ParamRepository.java,v 1.7 2008/02/09 07:56:46 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness;
 
 import com.sun.faban.harness.util.XMLReader;
+import com.sun.faban.common.NameValuePair;
 
 import java.util.List;
 import java.util.StringTokenizer;
@@ -47,6 +48,7 @@ public class ParamRepository {
      */
     public ParamRepository(String file, boolean warnDeprecated) {
         reader = new XMLReader(file, true, warnDeprecated);
+        reader.processHostPorts(); //Pre-scan the hosts:ports fields
     }
 
     /**
@@ -150,6 +152,17 @@ public class ParamRepository {
             list.add(l.toArray(new String[1]));
         }
         return list;
+    }
+
+        /**
+     * Obtains the host:port name value pair list from the element
+     * matching this XPath.
+     * @param xPathExpr
+     * @return The list of host:port elements, or null if the XPath does
+     * not exist or does not point to a host:port node.
+     */
+    public List<NameValuePair<Integer>> getHostPorts(String xPathExpr) {
+        return reader.getHostPorts(xPathExpr);
     }
 
     /**

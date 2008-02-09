@@ -17,34 +17,38 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: XMLReader.java,v 1.7 2007/07/20 22:16:30 akara Exp $
+ * $Id: XMLReader.java,v 1.8 2008/02/09 07:56:46 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.util;
 
+import com.sun.faban.common.NameValuePair;
+import com.sun.faban.common.ParamReader;
+import com.sun.faban.common.Utilities;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.w3c.dom.Element;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.dom.DOMSource;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import com.sun.faban.common.ParamReader;
 
 public class XMLReader {
 
@@ -53,6 +57,7 @@ public class XMLReader {
     private XPath xPath;
     private String file;
     private boolean updated = false;
+    private HashMap<Node, ArrayList<NameValuePair<Integer>>> hostPortsTable;
 
     public XMLReader(String file) {
         initLocal(file);
@@ -262,6 +267,105 @@ public class XMLReader {
         return true;
     }
 
+    /**
+     * Scans the XML for specific entries matching
+     * "//fa:hostConfig/fa:hostPorts" and processes them for later retrieval.
+     */
+    public void processHostPorts() {
+        String xPathExpr = "//fa:hostConfig/fa:hostPorts";
+        hostPortsTable = new HashMap<Node, ArrayList<NameValuePair<Integer>>>();
+        try {
+            NodeList nodeList = (NodeList) xPath.evaluate(xPathExpr, doc,
+                                                        XPathConstants.NODESET);
+            int entries = nodeList.getLength();
+            for (int i = 0; i < entries; i++) {
+                processHostPorts(nodeList.item(i));
+            }
+
+        } catch (XPathExpressionException e) {
+            logger.log(Level.WARNING, "Error processing XPath expression: " +
+                                                                xPathExpr, e);
+        }
+    }
+
+    private void processHostPorts(Node hostPortNode) {
+
+        Node hostConfig = hostPortNode.getParentNode();
+        Node firstChild = hostConfig.getFirstChild();
+        Node hostsNode = firstChild;
+        if (hostsNode.getNodeType() != Node.ELEMENT_NODE ||
+                !"host".equals(hostsNode.getNodeName()) ||
+                !ParamReader.FABANURI.equals(hostsNode.getNamespaceURI())) {
+            hostsNode = null;
+            NodeList hostConfigNodes = hostConfig.getChildNodes();
+            int length = hostConfigNodes.getLength();
+            for (int i = 0; i < length; i++) {
+                Node pHost = hostConfigNodes.item(i);
+                if (pHost.getNodeType() == Node.ELEMENT_NODE &&
+                "host".equals(pHost.getNodeName()) &&
+                ParamReader.FABANURI.equals(pHost.getNamespaceURI())) {
+                    hostsNode = pHost;
+                }
+            }
+        }
+
+        LinkedHashSet<String> hostsSet = new LinkedHashSet<String>();
+
+        if (hostsNode != null) {
+            Node textNode = hostsNode.getFirstChild();
+            if (textNode != null && textNode.getNodeType() == Node.TEXT_NODE) {
+                String[] hostList = textNode.getNodeValue().split("\\s");
+                for (String hostName : hostList) {
+                    hostsSet.add(hostName);
+                }
+            }
+        }
+
+        Node clientsNode = hostPortNode.getFirstChild();
+        String clients = clientsNode.getNodeValue();
+
+        ArrayList<NameValuePair<Integer>> hostsPorts =
+                                    new ArrayList<NameValuePair<Integer>>();
+
+        String hosts = Utilities.parseHostPorts(clients, hostsPorts, hostsSet);
+
+        if (hostsNode == null) {
+            hostsNode = doc.createElementNS(ParamReader.FABANURI, "host");
+            hostsNode.appendChild(doc.createTextNode(hosts.toString()));
+            hostConfig.insertBefore(hostsNode, firstChild);
+        } else {
+            Node textNode = hostsNode.getFirstChild();
+            textNode.setNodeValue(hosts.toString());
+        }
+        hostPortsTable.put(hostPortNode, hostsPorts);
+    }
+
+    /**
+     * Obtains the host:port name value pair list from the element
+     * matching this XPath.
+     * @param xPathExpr
+     * @return The list of host:port elements, or null if the XPath does
+     * not exist or does not point to a host:port node.
+     */
+    public List<NameValuePair<Integer>> getHostPorts(String xPathExpr) {
+        ArrayList<NameValuePair<Integer>> hostsPorts = null;
+        if(xPathExpr.charAt(0) != '/')
+            xPathExpr = "//" + xPathExpr;
+        else    //the JXPathContext expects 'params' which is the variable name returned by XMLFile
+            xPathExpr = "params" + xPathExpr;
+
+        try {
+            Node hostPortNode = (Node) xPath.evaluate(xPathExpr,
+                                                doc, XPathConstants.NODE);
+            if (hostPortNode != null)
+                hostsPorts = hostPortsTable.get(hostPortNode);
+
+        } catch (XPathExpressionException e) {
+            logger.log(Level.WARNING, "Error processing XPath expression: " +
+                                                                xPathExpr, e);
+        }
+        return hostsPorts;
+    }
 
     public static void main(String[] args) throws Exception {
         if(args.length < 3)
