@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TimeThread.java,v 1.7 2008/01/29 22:33:46 akara Exp $
+ * $Id: TimeThread.java,v 1.8 2008/02/12 03:26:38 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -141,6 +141,10 @@ public class TimeThread extends AgentThread {
             if (startTimeSet && invokeTime >= endRampDown) {
 				break driverLoop;
 			}
+
+            logger.finest(name + ": Invoking " + op.name + " at time " +
+                            invokeTime + ". Ramp down ends at time " +
+                            endRampDown + '.');
 
             driverContext.setInvokeTime(invokeTime);
 

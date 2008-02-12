@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.11 2007/09/11 04:24:37 noahcampbell Exp $
+ * $Id: Metrics.java,v 1.12 2008/02/12 03:26:38 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -714,7 +714,7 @@ public class Metrics implements Serializable, Cloneable {
             }
             double max90 = driver.operations[i].max90th;
             space(12, buffer);
-            formatter.format("<operation name=\"%s%s\" r90th=\"%4.2f\">\n",
+            formatter.format("<operation name=\"%s%s\" r90th=\"%5.3f\">\n",
                     txNames[i], nameModifier, max90);
             if (txCntStdy[i] > 0) {
                 boolean pass90 = true;
@@ -734,7 +734,7 @@ public class Metrics implements Serializable, Cloneable {
                 }
                 resp90 = (j + 1) * respBucketSize / 1000d;
                 space(16, buffer);
-                formatter.format("<p90th>%4.2f</p90th>\n", resp90);
+                formatter.format("<p90th>%5.3f</p90th>\n", resp90);
                 if (resp90 > max90) {
                     pass90 = false;
                     success = false;

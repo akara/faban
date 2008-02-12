@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TimedSocket.java,v 1.3 2007/09/05 23:23:38 noahcampbell Exp $
+ * $Id: TimedSocket.java,v 1.4 2008/02/12 03:26:38 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -236,6 +236,7 @@ public class TimedSocket extends Socket {
         if (ctx != null)
             ctx.recordStartTime();
         super.connect(endpoint, timeout);
+        setSoTimeout(30000); // 30 second socket timeout.       
     }
 
     /**
