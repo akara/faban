@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TimedSocket.java,v 1.4 2008/02/12 03:26:38 akara Exp $
+ * $Id: TimedSocket.java,v 1.5 2008/02/12 17:34:09 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -214,8 +214,8 @@ public class TimedSocket extends Socket {
 
     /**
      * Connects this socket to the server with a specified timeout value.
-     * A timeout of zero is interpreted as an infinite timeout. The connection
-     * will then block until established or an error occurs.
+     * A timeout of zero or negative values default to 30,000 (30 seconds).
+     * The connection will then block until established or an error occurs.
      * 
      * @param	endpoint the <code>SocketAddress</code>
      * @param	timeout the timeout value to be used in milliseconds.     
@@ -235,8 +235,10 @@ public class TimedSocket extends Socket {
         DriverContext ctx = DriverContext.getContext();
         if (ctx != null)
             ctx.recordStartTime();
+        if (timeout <= 0)
+            timeout = 30000; // 30 second connect timeout.
         super.connect(endpoint, timeout);
-        setSoTimeout(30000); // 30 second socket timeout.       
+        setSoTimeout(30000); // 30 second socket read timeout.
     }
 
     /**
