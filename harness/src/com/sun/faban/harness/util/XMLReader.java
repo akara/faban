@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: XMLReader.java,v 1.8 2008/02/09 07:56:46 akara Exp $
+ * $Id: XMLReader.java,v 1.9 2008/02/12 03:27:40 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -331,11 +331,12 @@ public class XMLReader {
 
         if (hostsNode == null) {
             hostsNode = doc.createElementNS(ParamReader.FABANURI, "host");
-            hostsNode.appendChild(doc.createTextNode(hosts.toString()));
+            hostsNode.setPrefix("fa");
+            hostsNode.appendChild(doc.createTextNode(hosts.toString().trim()));
             hostConfig.insertBefore(hostsNode, firstChild);
         } else {
             Node textNode = hostsNode.getFirstChild();
-            textNode.setNodeValue(hosts.toString());
+            textNode.setNodeValue(hosts.toString().trim());
         }
         hostPortsTable.put(hostPortNode, hostsPorts);
     }
