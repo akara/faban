@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: XMLReader.java,v 1.9 2008/02/12 03:27:40 akara Exp $
+ * $Id: XMLReader.java,v 1.10 2008/02/12 06:54:14 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -294,17 +294,19 @@ public class XMLReader {
         Node firstChild = hostConfig.getFirstChild();
         Node hostsNode = firstChild;
         if (hostsNode.getNodeType() != Node.ELEMENT_NODE ||
-                !"host".equals(hostsNode.getNodeName()) ||
+                hostsNode.getNodeName().endsWith(":host") ||
                 !ParamReader.FABANURI.equals(hostsNode.getNamespaceURI())) {
             hostsNode = null;
             NodeList hostConfigNodes = hostConfig.getChildNodes();
             int length = hostConfigNodes.getLength();
             for (int i = 0; i < length; i++) {
                 Node pHost = hostConfigNodes.item(i);
+                String nodeName = pHost.getNodeName();
                 if (pHost.getNodeType() == Node.ELEMENT_NODE &&
-                "host".equals(pHost.getNodeName()) &&
+                pHost.getNodeName().endsWith(":host") &&
                 ParamReader.FABANURI.equals(pHost.getNamespaceURI())) {
                     hostsNode = pHost;
+                    break;
                 }
             }
         }
@@ -336,7 +338,11 @@ public class XMLReader {
             hostConfig.insertBefore(hostsNode, firstChild);
         } else {
             Node textNode = hostsNode.getFirstChild();
-            textNode.setNodeValue(hosts.toString().trim());
+            if (textNode != null)
+                textNode.setNodeValue(hosts.toString().trim());
+            else
+                hostsNode.appendChild(doc.createTextNode(
+                        hosts.toString().trim()));                        
         }
         hostPortsTable.put(hostPortNode, hostsPorts);
     }
@@ -372,7 +378,8 @@ public class XMLReader {
         if(args.length < 3)
             System.out.println("Usage : java XMLReader <XML File> <XPath exp>");
 
-        XMLReader util = new XMLReader(args[0]);
+        XMLReader util = new XMLReader(args[0], true, false);
+        util.processHostPorts();
 
         System.out.println("File : " + args[0]);
         System.out.println("XPath : " + args[1]);
