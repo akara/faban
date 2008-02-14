@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DriverContext.java,v 1.12 2008/02/09 07:52:29 akara Exp $
+ * $Id: DriverContext.java,v 1.13 2008/02/14 21:55:20 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -449,7 +449,7 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
     /**
      * Obtains the configured ramp up time.
      *
-     * @return The configured ramp up time, in milliseconds
+     * @return The configured ramp up time, in seconds
      */
 	public int getRampUp() {
         return agentThread.runInfo.rampUp;
@@ -458,7 +458,7 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
     /**
      * Obtains the configured steady state time.
      *
-     * @return The configured steady state time, in milliseconds
+     * @return The configured steady state time, in seconds
      */
 	public int getSteadyState() {
         return agentThread.runInfo.stdyState;
@@ -467,7 +467,7 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
     /**
      * Obtains the configured ramp down time.
      *
-     * @return The configured ramp down time, in milliseconds
+     * @return The configured ramp down time, in seconds
      */
 	public int getRampDown() {
         return agentThread.runInfo.rampDown;

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DriverContext.java,v 1.7 2008/02/09 07:52:30 akara Exp $
+ * $Id: DriverContext.java,v 1.8 2008/02/14 21:55:20 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -186,19 +186,19 @@ public abstract class DriverContext {
 
     /**
      * Obtains the configured ramp up time.
-     * @return The configured ramp up time, in milliseconds
+     * @return The configured ramp up time, in seconds
      */
     public abstract int getRampUp();
 
     /**
      * Obtains the configured steady state time.
-     * @return The configured steady state time, in milliseconds
+     * @return The configured steady state time, in seconds
      */
     public abstract int getSteadyState();
 
     /**
      * Obtains the configured ramp down time.
-     * @return The configured ramp down time, in milliseconds
+     * @return The configured ramp down time, in seconds
      */
     public abstract int getRampDown();
 
