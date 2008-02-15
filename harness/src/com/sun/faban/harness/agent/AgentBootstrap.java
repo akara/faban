@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentBootstrap.java,v 1.5 2008/01/29 23:19:31 akara Exp $
+ * $Id: AgentBootstrap.java,v 1.6 2008/02/15 23:08:49 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -399,9 +399,9 @@ public class AgentBootstrap {
                                                 (String) entry.getValue());
 
             // Update if it has changed.
-            if(!(log.getProperty("java.util.logging.SocketHandler.host").
+            if(!(log.getProperty("java.util.logging.SocketHandler.host","").
                     equals(master) &&
-                 log.getProperty("java.util.logging.SocketHandler.port").
+                 log.getProperty("java.util.logging.SocketHandler.port", "").
                     equals(String.valueOf(Config.LOGGING_PORT)))){
 
                 logger.fine("Updating " + Config.CONFIG_DIR +
