@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: LighttpdService.java,v 1.1 2008/02/07 17:39:14 shanti_s Exp $
+ * $Id: LighttpdService.java,v 1.2 2008/02/21 19:49:26 shanti_s Exp $
  *
  * Copyright 2008 Sun Microsystems Inc. All Rights Reserved
  */
@@ -55,7 +55,8 @@ final public class LighttpdService implements WebServerService {
     private String[] myServers = new String[1];
     private Logger logger;
     private static String lightyCmd,  errlogFile,  acclogFile, confFile, pidFile;
-    private CommandHandle[] ch;
+    private CommandHandle[] ch = null;
+
     /**
      *
      * Private Constructor for a singleton object.
@@ -192,6 +193,12 @@ final public class LighttpdService implements WebServerService {
      */
     public boolean stopServers() {
         boolean success = true;
+
+        // First check if servers were started
+        // If there weren't started, simply return
+        if (ch == null || ch.length == 0) {
+            return (success);
+        }
         for (int i = 0; i < myServers.length; i++) {
             try {
                 if (ch[i] != null) {
