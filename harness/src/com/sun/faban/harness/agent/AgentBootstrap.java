@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentBootstrap.java,v 1.6 2008/02/15 23:08:49 akara Exp $
+ * $Id: AgentBootstrap.java,v 1.7 2008/02/22 16:30:48 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -288,29 +288,17 @@ public class AgentBootstrap {
         // Make sure there is only one agent running in a machine
         CmdAgent agent = (CmdAgent)registry.getService(ident);
 
-        if((agent != null) && (!host.equals(hostname))){
-            // re-register the agents with the 'hostname'
-            register(Config.CMD_AGENT + "@" + hostname, agent);
-            logger.fine("Succeeded re-registering " + Config.CMD_AGENT +
-                    "@" + hostname);
-            FileAgent f = (FileAgent)registry.getService(Config.FILE_AGENT +
-                    "@" + host);
-            register(Config.FILE_AGENT + "@" + hostname, f);
-            logger.fine("Succeeded re-registering " + Config.FILE_AGENT +
-                    "@" + hostname);
-        }
-        else {
+        if (agent == null) { // If not found, register new agent.
+
             new BenchmarkLoader().loadBenchmark(benchName, downloadURL);
             if (cmd == null)
                 cmd = new CmdAgentImpl(benchName);
             else
                 cmd.setBenchName(benchName);
 
-            register(ident, cmd);
+            agent = cmd;
 
-            // Register it with the 'hostname' also if host != hostname
-            if(!host.equals(hostname))
-                register(Config.CMD_AGENT + "@" + hostname, cmd);
+            register(ident, cmd);
 
             if(host.equals(master)) {
                 ident = Config.CMD_AGENT;
@@ -325,14 +313,24 @@ public class AgentBootstrap {
                 file = new FileAgentImpl();
             register(Config.FILE_AGENT + "@" + host, file);
 
-            // Register it with the 'hostname' also if host != hostname
-            if(!host.equals(hostname))
-                register(Config.FILE_AGENT + "@" + hostname, file);
-
             // Register a blank Config.FILE_AGENT for the master's
             // file agent.
             if (sameHost(host, master))
                 register(Config.FILE_AGENT, file);
+
+        }
+
+        // Only if the 'hostname' is an interface name and not equal
+        // the actual host name, we re-register the agents with the 'hostname'
+        if (!host.equals(hostname)) {
+            register(Config.CMD_AGENT + "@" + hostname, agent);
+            logger.fine("Succeeded re-registering " + Config.CMD_AGENT +
+                    "@" + hostname);
+            FileAgent f = (FileAgent) registry.getService(Config.FILE_AGENT +
+                    "@" + host);
+            register(Config.FILE_AGENT + "@" + hostname, f);
+            logger.fine("Succeeded re-registering " + Config.FILE_AGENT +
+                    "@" + hostname);
         }
     }
 
