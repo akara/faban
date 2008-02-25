@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ApacheHttpdService.java,v 1.2 2008/02/07 17:39:14 shanti_s Exp $
+ * $Id: ApacheHttpdService.java,v 1.3 2008/02/25 20:41:22 shanti_s Exp $
  *
  * Copyright 2007 Sun Microsystems Inc. All Rights Reserved
  */
@@ -87,8 +87,10 @@ final public class ApacheHttpdService implements WebServerService {
      * @param binDir - Apache binaries location
      * @param logsDir - Apache logs location
      * @param confDir - Apache httpd.conf file location
+     * @param pidDir - Apache httpd.pid file location
      */
-    public void setup(String[] serverMachines, String binDir, String logsDir, String confDir) {
+    public void setup(String[] serverMachines, String binDir, String logsDir, 
+            String confDir, String pidDir) {
         myServers = serverMachines;
 
         apachectlCmd = binDir + File.separator + "apachectl ";

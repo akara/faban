@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: WebServerService.java,v 1.1 2008/02/07 17:39:14 shanti_s Exp $
+ * $Id: WebServerService.java,v 1.2 2008/02/25 20:41:22 shanti_s Exp $
  *
  * Copyright 2008 Sun Microsystems Inc. All Rights Reserved
  */
@@ -41,8 +41,10 @@ public interface WebServerService {
      * @param binDir - webserver binary location
      * @param logsDir - webserver logs location
      * @param confDir - webserver configuration file location
+     * @param pidDir - webserver pidfile location
      */
-    public void setup(String[] serverMachines, String binDir, String logsDir, String confDir);
+    public void setup(String[] serverMachines, String binDir, String logsDir, 
+            String confDir, String pidDir);
     
     /**
      * Start all web servers on configured hosts

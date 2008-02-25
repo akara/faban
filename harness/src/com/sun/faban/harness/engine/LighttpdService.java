@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: LighttpdService.java,v 1.2 2008/02/21 19:49:26 shanti_s Exp $
+ * $Id: LighttpdService.java,v 1.3 2008/02/25 20:41:22 shanti_s Exp $
  *
  * Copyright 2008 Sun Microsystems Inc. All Rights Reserved
  */
@@ -89,15 +89,17 @@ final public class LighttpdService implements WebServerService {
      * @param binDir - lighttpd binary location
      * @param logsDir - lighttpd logs location
      * @param confDir - lighttpd conf file location
+     * @param pidDir - lighttpd.pid file location
      */
-    public void setup(String[] serverMachines, String binDir, String logsDir, String confDir) {
+    public void setup(String[] serverMachines, String binDir, String logsDir, 
+            String confDir, String pidDir) {
         myServers = serverMachines;
 
         lightyCmd = binDir + File.separator + "lighttpd ";
         errlogFile = logsDir + File.separator + "error.log";
         acclogFile = logsDir + File.separator + "access.log";
         confFile = confDir + File.separator + "lighttpd.conf";
-        pidFile = logsDir + File.separator + "lighttpd.pid";
+        pidFile = pidDir + File.separator + "lighttpd.pid";
         logger.info("LighttpdService setup complete.");
 
     }
@@ -110,6 +112,7 @@ final public class LighttpdService implements WebServerService {
         Integer success = 0;
         String cmd = lightyCmd + "-f " + confFile;
         Command startCmd = new Command(cmd);
+        startCmd.setSynchronous(false);
         startCmd.setLogLevel(Command.STDOUT, Level.FINE);
         startCmd.setLogLevel(Command.STDERR, Level.FINE);
         ch = new CommandHandle[myServers.length];
@@ -174,14 +177,14 @@ final public class LighttpdService implements WebServerService {
 
         logger.info("Restarting lighttpd server(s). Please wait ... ");
         // We first stop and clear the logs
-        this.stopServers();
-        this.clearLogs();
+        if (this.stopServers())
+            this.clearLogs();
 
         // Now start the servers
         if (!startServers()) {
             // cleanup and return
-            stopServers();
-            clearLogs();
+            if (stopServers())
+                clearLogs();
             return false;
         }
         return (true);
@@ -282,7 +285,7 @@ final public class LighttpdService implements WebServerService {
                 GregorianCalendar calendar = getGregorianCalendar(myServers[i]);
 
                 //format the end date
-                SimpleDateFormat df = new SimpleDateFormat("MMM,dd,HH:mm:ss");
+                SimpleDateFormat df = new SimpleDateFormat("MM,dd,HH:mm:ss");
                 String endDate = df.format(calendar.getTime());
 
                 calendar.add(Calendar.SECOND, (totalRunTime * (-1)));
