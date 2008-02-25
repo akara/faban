@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FabanHTTPBench.java,v 1.2 2008/01/29 22:33:46 akara Exp $
+ * $Id: FabanHTTPBench.java,v 1.3 2008/02/25 23:18:18 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -272,10 +272,28 @@ public class FabanHTTPBench {
         Document doc = factory.newDocumentBuilder().parse(f);
         XPathFactory xf = XPathFactory.newInstance();
         XPath xPath = xf.newXPath();
-        String metricName = xPath.evaluate("//metric@unit", doc);
-        String metricValue = xPath.evaluate("//metric", doc);
 
+        // Grab the metric name and value.
+        String metricName = "ops/sec";
+        String metricValue = null;
+        Node metricNode = (Node) xPath.evaluate("//metric", doc,
+                                                        XPathConstants.NODE);
+        Node n = metricNode.getAttributes().getNamedItem("unit");
+        if (n != null)
+            metricName = n.getNodeValue();
+
+        NodeList metricNodeList = metricNode.getChildNodes();
+        int length = metricNodeList.getLength();
+        for (int i = 0; i < length; i++) {
+            n = metricNodeList.item(i);
+            if (Node.TEXT_NODE == n.getNodeType()) {
+                metricValue = n.getNodeValue();
+                break;
+            }
+        }
         System.out.println(metricName +": " + metricValue);
+
+        // All the others are quite straightforward.
         int successes = sumValues(xPath, doc, "//successes");
         int fails = sumValues(xPath, doc, "//failures");
         int total = successes + fails;
@@ -385,6 +403,7 @@ public class FabanHTTPBench {
                 case 'f':
                     runXmlFileName =
                             c.length > 2 ? args[i].substring(2) : args[++i];
+                    break;
                 case 'n':
                     System.err.println("numRequests not supported");
                     System.err.println("Please specify rampup/steady times " +
@@ -462,8 +481,8 @@ public class FabanHTTPBench {
         }
         System.err.println("\t-D directory : Use directory for temporary files");
         System.err.println("\t-f file : Use run configuration file");
-        System.err.println("\t\tRun configuration file supercedes all " +
-                                            "following command line options");
+        System.err.println("\t\tRun configuration file supercedes other " +
+                                    "applicable\n\t\tcommand line options");
         System.err.println("\t-r rampup/steady/rampDown :");
         System.err.println("\t\tRun for given ramup, steady state, and " +
                                                             "rampdown seconds");

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentImpl.java,v 1.9 2008/01/29 22:33:45 akara Exp $
+ * $Id: AgentImpl.java,v 1.10 2008/02/25 23:18:18 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -122,12 +122,16 @@ public class AgentImpl extends UnicastRemoteObject
         this.runInfo = runInfo;
         this.driverType = driverType;
         this.timer = timer;
-        File driverJar = Utilities.getJarFile(runInfo.driverConfig.driverClass);
 
-        // driverBase most accurate is if faban.driver.base is provided.
+        // driverBase most accurate if faban.driver.base is provided.
         driverBase = System.getProperty("faban.driver.base");
-        if (driverBase == null)
-            driverBase = driverJar.getParentFile().getParent(); // jarpath/..
+        if (driverBase == null) {
+            File driverJar = Utilities.getJarFile(
+                                    runInfo.driverConfig.driverClass);
+            if (driverJar != null)
+                // Else find with jarpath/..
+                driverBase = driverJar.getParentFile().getParent();
+        }
 
         threadStartLatch = new CountDownLatch(runInfo.agentInfo.threads);
         timeSetLatch = new CountDownLatch(1);
