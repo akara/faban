@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<runConfig>
-    <scale>10</scale>
-    <runControl unit="time">
-        <rampUp>60</rampUp>
-        <steadyState>120</steadyState>
-        <rampDown>60</rampDown>
-    </runControl>
+<fa:runConfig xmlns:fa="http://faban.sunsource.net/ns/faban"
+              xmlns="http://faban.sunsource.net/ns/fabandriver">
+    <fa:scale>10</fa:scale>
+    <fa:runControl unit="time">
+        <fa:rampUp>60</fa:rampUp>
+        <fa:steadyState>120</fa:steadyState>
+        <fa:rampDown>60</fa:rampDown>
+    </fa:runControl>
     <benchmarkDefinition>
         <name>my_http_driver</name>
         <version>1.0a</version>
@@ -97,7 +98,7 @@
             </property>            
         </properties>
     </driverConfig>
-</runConfig>
+</fa:runConfig>
 
 
 
