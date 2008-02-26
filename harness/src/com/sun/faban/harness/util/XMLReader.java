@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: XMLReader.java,v 1.10 2008/02/12 06:54:14 akara Exp $
+ * $Id: XMLReader.java,v 1.11 2008/02/26 19:28:21 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -301,7 +301,6 @@ public class XMLReader {
             int length = hostConfigNodes.getLength();
             for (int i = 0; i < length; i++) {
                 Node pHost = hostConfigNodes.item(i);
-                String nodeName = pHost.getNodeName();
                 if (pHost.getNodeType() == Node.ELEMENT_NODE &&
                 pHost.getNodeName().endsWith(":host") &&
                 ParamReader.FABANURI.equals(pHost.getNamespaceURI())) {
