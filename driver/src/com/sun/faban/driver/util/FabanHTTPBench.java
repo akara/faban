@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FabanHTTPBench.java,v 1.4 2008/02/26 19:27:42 akara Exp $
+ * $Id: FabanHTTPBench.java,v 1.5 2008/02/26 22:00:52 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -546,7 +546,7 @@ public class FabanHTTPBench {
         System.err.println("\t-f file : Use run configuration file");
         System.err.println("\t\tRun configuration file supercedes other " +
                                     "applicable\n\t\tcommand line options " +
-                                    "except -s");
+                                    "except -D");
         System.err.println("\t-r rampup/steady/rampDown :");
         System.err.println("\t\tRun for given ramup, steady state, and " +
                                                             "rampdown seconds");
