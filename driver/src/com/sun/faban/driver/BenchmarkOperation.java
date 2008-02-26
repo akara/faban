@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: BenchmarkOperation.java,v 1.5 2007/09/08 04:19:24 akara Exp $
+ * $Id: BenchmarkOperation.java,v 1.6 2008/02/26 02:48:19 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -61,4 +61,10 @@ public @interface BenchmarkOperation {
      * timing.
      */
     Timing timing()   default Timing.AUTO;
+
+    /**
+     * Whether this operation gets counted toward the final metric.
+     * The default is true. 
+     */
+    boolean countToMetric() default true;
 }

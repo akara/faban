@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.12 2008/02/12 03:26:38 akara Exp $
+ * $Id: Metrics.java,v 1.13 2008/02/26 02:48:18 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -592,7 +592,7 @@ public class Metrics implements Serializable, Cloneable {
     @SuppressWarnings("boxing")
     public boolean printSummary(StringBuilder buffer,
                                 BenchmarkDefinition benchDef) {
-
+        int metricTxCnt = 0;
         int sumTxCnt = 0;
         int sumFgTxCnt = 0;
         mixRatio = new double[txTypes];
@@ -616,6 +616,8 @@ public class Metrics implements Serializable, Cloneable {
 
         for (int i = 0; i < txTypes; i++) {
             sumTxCnt += txCntStdy[i];
+            if (driver.operations[i].countToMetric)
+                metricTxCnt += txCntStdy[i];
 		}
 
         for (int i = 0; i < fgTxTypes; i++) {
@@ -624,7 +626,7 @@ public class Metrics implements Serializable, Cloneable {
 
         int sumBgTxCnt = sumTxCnt - sumFgTxCnt;
 
-        metric = sumTxCnt / (double) runInfo.stdyState;
+        metric = metricTxCnt / (double) runInfo.stdyState;
         if (sumFgTxCnt > 0) {
             for (int i = 0; i < fgTxTypes; i++) {
 				mixRatio[i] = txCntStdy[i] / (double) sumFgTxCnt;

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: BenchmarkDefinition.java,v 1.8 2007/09/07 15:49:05 noahcampbell Exp $
+ * $Id: BenchmarkDefinition.java,v 1.9 2008/02/26 02:48:18 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -346,6 +346,7 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
                 op.max90th = benchOp.max90th();
                 op.units = benchOp.units();
                 op.timing = benchOp.timing();
+                op.countToMetric = benchOp.countToMetric();
                 op.m = m;
                 operationMap.put(op.name, op);
             }
@@ -376,6 +377,7 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
                 op.max90th = benchOp.max90th();
                 op.units = benchOp.units();
                 op.timing = benchOp.timing();
+                op.countToMetric = benchOp.countToMetric();
                 op.m = m;
                 operationList.add(op);
             }
@@ -718,8 +720,9 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
         double max90th;
         TimeUnit units;
         Timing timing;
+        boolean countToMetric;
         Cycle cycle;
-        
+
         transient Method m;
 
         /**
