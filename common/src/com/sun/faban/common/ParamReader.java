@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ParamReader.java,v 1.2 2007/07/20 22:16:55 akara Exp $
+ * $Id: ParamReader.java,v 1.3 2008/02/26 19:26:41 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -140,7 +140,9 @@ public class ParamReader {
     private void checkAndUpgrade() throws XPathExpressionException {
 
         Node runConfig = null;
-        if ("runConfig".equals(root.getTagName()))
+        String rootTag = root.getTagName();
+        if ("runConfig".equals(rootTag) || (rootTag.endsWith(":runConfig") &&
+                FABANURI.equals(root.getNamespaceURI())))
             runConfig = root;
         else
             runConfig = (Node) xPath.evaluate(
