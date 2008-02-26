@@ -17,14 +17,16 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FabanHTTPBench.java,v 1.3 2008/02/25 23:18:18 akara Exp $
+ * $Id: FabanHTTPBench.java,v 1.4 2008/02/26 19:27:42 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver.util;
 
 import com.sun.faban.driver.core.RunInfo;
+import com.sun.faban.driver.ConfigurationException;
 import com.sun.faban.common.TextTable;
+import com.sun.faban.common.ParamReader;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -94,15 +96,28 @@ public class FabanHTTPBench {
     private static String thinkTime = "0";
     private static final int CYCLE_DEVIATION = 1;
 
+    private static final String DEFAULT_OUTPUT_DIR = defaultOutput();
+
+    private static String defaultOutput() {
+        String outDir = System.getProperty("java.io.tmpdir");
+        if (!outDir.endsWith(File.separator))
+            outDir += File.separatorChar;
+        outDir += "fhb";
+        return outDir;
+    }
+
     public static void main(String[] args) throws Exception {
-        outputDirectory = System.getProperty("java.io.tmpdir");
-        if (!outputDirectory.endsWith(File.separator))
-            outputDirectory += File.separatorChar;
-        outputDirectory += "fhb";
+
         parseArgs(args);
 
-        if (runXmlFileName == null)
-            makeRunXml();
+        Document doc;
+        if (runXmlFileName == null) {
+            doc = makeRunXml();
+        } else {
+            doc = editRunXml();
+        }
+
+        saveRunXml(doc);
 
         run();
         reportResults();
@@ -110,10 +125,7 @@ public class FabanHTTPBench {
         System.exit(0);
     }
 
-    private static void makeRunXml()
-            throws ParserConfigurationException,
-            TransformerConfigurationException,
-            TransformerException {
+    private static Document makeRunXml() throws ParserConfigurationException {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(true);
         DocumentBuilder builder = factory.newDocumentBuilder();
@@ -149,6 +161,9 @@ public class FabanHTTPBench {
         tmp.appendChild(doc.createTextNode("ops/sec"));
         def.appendChild(tmp);
         root.appendChild(def);
+
+        if (outputDirectory == null)
+            outputDirectory = DEFAULT_OUTPUT_DIR;
 
         Element out = doc.createElementNS(RunInfo.DRIVERURI, "outputDir");
         out.setPrefix("");
@@ -231,11 +246,57 @@ public class FabanHTTPBench {
         dc.appendChild(om);
         root.appendChild(dc);
         doc.appendChild(root);
+        return doc;
+    }
+
+    private static Document editRunXml() throws Exception {
+        ParamReader reader = new ParamReader(runXmlFileName, true);
+        Document doc = reader.getDocument();
+        XPath xPath = reader.getXPath();
+        Node n = (Node) xPath.evaluate("//fa:runConfig/fd:outputDir", doc,
+                                                    XPathConstants.NODE);
+        if (n == null)
+            throw new ConfigurationException(
+                    "Element fa:runConfig/fd:outputDir not found.");
+
+        Node textNode = n.getFirstChild(); // Fetch it's child - the text node.
+        if (textNode == null) {
+            if (outputDirectory == null) {
+                outputDirectory = DEFAULT_OUTPUT_DIR;
+                n.appendChild(doc.createTextNode(outputDirectory));
+            } else {
+                String nodeValue = textNode.getNodeValue().trim();
+                if (nodeValue.length() == 0) {
+                    if (outputDirectory == null)
+                        outputDirectory = DEFAULT_OUTPUT_DIR;
+                    textNode.setNodeValue(outputDirectory);
+                } else {
+                    outputDirectory = nodeValue;
+                }
+            }
+        }
+        return doc;
+    }
+
+    private static void saveRunXml(Document doc) throws TransformerException {
+
+        String configFileName = "run.xml";
+
+        if (runXmlFileName != null) {
+            File f = new File(runXmlFileName);
+            configFileName = f.getName();
+        }
+
+        File f = new File(outputDirectory);
+        if (!f.exists() && !f.mkdirs())
+            throw new IllegalArgumentException(
+                            "Can't create temp directory " + outputDirectory);
+
 
         TransformerFactory tf = TransformerFactory.newInstance();
         Transformer t = tf.newTransformer();
         Source src = new DOMSource(doc);
-        File f = new File(outputDirectory, "run.xml");
+        f = new File(f, configFileName);
         runXmlFileName = f.getPath();
         Result dest = new StreamResult(f);
         t.transform(src, dest);
@@ -245,7 +306,7 @@ public class FabanHTTPBench {
             IllegalAccessException, InvocationTargetException {
         System.setProperty("benchmark.config", runXmlFileName);
         System.setProperty("faban.sequence.path", outputDirectory);
-        System.setProperty("faban,sequence.file", "fhb.seq");
+        System.setProperty("faban.sequence.file", "fhb.seq");
         Class c = com.sun.faban.driver.core.MasterImpl.class;
         Class[] arg = new Class[1];
         arg[0] = String[].class;
@@ -444,23 +505,24 @@ public class FabanHTTPBench {
                     break;
             }
         }
-        if (i == args.length)
-            usage();
-        URL u = new URL(args[i]);
-        String proto = u.getProtocol();
-        if (!proto.equals("http") && !(proto.equals("https")))
-            throw new IllegalArgumentException("Unsupported protocol " + proto);
-        path = proto + "://" + u.getAuthority() + u.getPath();
-        if (!postRequest) {
-            String q = u.getQuery();
-            if (q == null)
-                queryString = "";
-            else queryString = "?" + q;
+        if (runXmlFileName == null) {
+            if (i == args.length)
+                usage();
+            URL u = new URL(args[i]);
+            String proto = u.getProtocol();
+            if (!proto.equals("http") && !(proto.equals("https")))
+                throw new IllegalArgumentException(
+                                            "Unsupported protocol " + proto);
+            path = proto + "://" + u.getAuthority() + u.getPath();
+            if (!postRequest) {
+                String q = u.getQuery();
+                if (q == null)
+                    queryString = "";
+                else queryString = "?" + q;
+            }
         }
-        File f = new File(outputDirectory);
-        if (!f.exists() && !f.mkdirs())
-            throw new IllegalArgumentException("Can't create temp directory " +
-                    outputDirectory);
+
+
     }
 
     private static void usage() {
@@ -472,6 +534,7 @@ public class FabanHTTPBench {
                                         "jvm options");
         } else {
             System.err.println("usage: " + cmd + " [program options] URL");
+            System.err.println("       " + cmd + " -f file");
         }
         System.err.println("Suported program options are: ");
         if (cmd != null) {
@@ -482,7 +545,8 @@ public class FabanHTTPBench {
         System.err.println("\t-D directory : Use directory for temporary files");
         System.err.println("\t-f file : Use run configuration file");
         System.err.println("\t\tRun configuration file supercedes other " +
-                                    "applicable\n\t\tcommand line options");
+                                    "applicable\n\t\tcommand line options " +
+                                    "except -s");
         System.err.println("\t-r rampup/steady/rampDown :");
         System.err.println("\t\tRun for given ramup, steady state, and " +
                                                             "rampdown seconds");
