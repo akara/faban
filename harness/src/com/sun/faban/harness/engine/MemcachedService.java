@@ -17,29 +17,20 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MemcachedService.java,v 1.2 2008/02/07 17:39:14 shanti_s Exp $
+ * $Id: MemcachedService.java,v 1.3 2008/02/26 18:22:28 akara Exp $
  *
  * Copyright 2007 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.engine;
 
 import com.sun.faban.common.Command;
-
 import com.sun.faban.common.CommandHandle;
-import com.sun.faban.harness.RemoteCallable;
 import com.sun.faban.harness.RunContext;
-import com.sun.faban.harness.common.Config;
-import com.sun.faban.harness.util.FileHelper;
-import java.io.BufferedReader;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
-import java.io.Serializable;
-import java.text.SimpleDateFormat;
+import java.rmi.RemoteException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.rmi.RemoteException;
 
 /**
  *
@@ -181,7 +172,6 @@ final public class MemcachedService {
         }
 
         for (int i = 0; i < myServers.length; i++) {
-            Integer retVal = 0;
 			if (memcacheHandles[i] != null) {
             try {
                 int exit = memcacheHandles[i].exitValue();
