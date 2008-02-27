@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Engine.java,v 1.8 2008/02/27 23:13:12 akara Exp $
+ * $Id: Engine.java,v 1.9 2008/02/27 23:24:20 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -71,6 +71,9 @@ public class Engine {
             } catch (IOException e) {
                 INITIALIZED.set(false);
                 throw e;
+            } catch (Throwable t) {
+                INITIALIZED.set(false);
+                throw new IOException(t.getMessage(), t);
             }
         }
     }
