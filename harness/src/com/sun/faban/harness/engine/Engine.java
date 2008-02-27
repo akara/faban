@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Engine.java,v 1.9 2008/02/27 23:24:20 akara Exp $
+ * $Id: Engine.java,v 1.10 2008/02/27 23:42:34 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -119,14 +119,19 @@ public class Engine {
     }
 
     private void terminate() {
+        // Stop the run daemon.
          try {
-             // Remove RunDaemon
              runQ.exit();
-             // Shutdown logServer
-             logServer.shutdown();
-         } catch (Exception e ) {
-             logger.severe("Error " + e);
-             logger.log(Level.FINE, "Exception", e);
+         } catch (Throwable t) {
+             logger.log(Level.SEVERE, "Error shutting down run daemon", t);
          }
+
+        // Shutdown the log server.
+        try {
+            logServer.shutdown();            
+        }  catch (Throwable t) {
+             logger.log(Level.SEVERE, "Error shutting down log server", t);
+         }
+
     }
 }
