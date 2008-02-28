@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.31 2008/02/05 07:33:41 akara Exp $
+ * $Id: CmdService.java,v 1.32 2008/02/28 02:24:51 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -593,11 +593,11 @@ final public class CmdService { 	// The final keyword prevents clones
                 } catch (ConnectException e) {
                     // We should get a ConnectException if the agent was not
                     // started in daemon mode. This should take no time.
-                    logger.log(Level.FINE, "Agent(daemon)@" + mach + ": " +
-                                                            e.getMessage(), e);
+                    logger.log(Level.FINER, "Agent(daemon)@" + mach + ": " +
+                        e.getMessage() + ". Will try remote shell instead.", e);
                 } catch (IOException e) {
                     logger.log(Level.WARNING, "Agent(daemon)@" + mach + ": " +
-                                                            e.getMessage(), e);
+                        e.getMessage() + ". Will try remote shell instead.", e);
                 }
 
                 if (!agentStarted) {
