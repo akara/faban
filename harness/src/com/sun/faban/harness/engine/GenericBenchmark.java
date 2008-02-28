@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.23 2008/02/04 22:55:12 akara Exp $
+ * $Id: GenericBenchmark.java,v 1.24 2008/02/28 03:53:35 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -121,8 +121,8 @@ public class GenericBenchmark {
 
             try {
                 bm.validate();
-            } catch (Exception e) {
-                logger.log(Level.SEVERE, "Benchmark validation failed.", e);
+            } catch (Throwable t) {
+                logger.log(Level.SEVERE, "Benchmark validation failed.", t);
                 return;
             }
 
@@ -260,8 +260,8 @@ public class GenericBenchmark {
             try {
                 bm.configure();
                 logger.fine("Configured benchmark " + benchDesc.name);
-            } catch (Exception e) {
-                logger.log(Level.SEVERE, "Run configuration failed!", e);
+            } catch (Throwable t) {
+                logger.log(Level.SEVERE, "Run configuration failed!", t);
                 return;
             }
 
@@ -269,8 +269,8 @@ public class GenericBenchmark {
             try {
                 bm.start();
                 logger.fine("Started benchmark " + benchDesc.name);
-            } catch (Exception e) {
-                logger.log(Level.SEVERE, "Run start failed!", e);
+            } catch (Throwable t) {
+                logger.log(Level.SEVERE, "Run start failed!", t);
                 return;
             }
 
@@ -286,8 +286,8 @@ public class GenericBenchmark {
             // Wait and end the benchmark
             try {
                 bm.end();
-            } catch (Exception e) {
-                logger.log(Level.SEVERE, "Run end failed!", e);
+            } catch (Throwable t) {
+                logger.log(Level.SEVERE, "Run end failed!", t);
                 return;
             }
 
@@ -380,8 +380,8 @@ public class GenericBenchmark {
             logger.info("Killing benchmark");
             try {
                 bm.kill();
-            } catch (Exception e) {
-                logger.log(Level.WARNING, "Exceptions killing benchmark.", e);
+            } catch (Throwable t) {
+                logger.log(Level.WARNING, "Exceptions killing benchmark.", t);
             }
         }
 
