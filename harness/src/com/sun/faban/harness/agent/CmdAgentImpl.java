@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgentImpl.java,v 1.14 2008/02/01 22:53:55 akara Exp $
+ * $Id: CmdAgentImpl.java,v 1.15 2008/02/29 01:33:39 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -163,10 +163,8 @@ public class CmdAgentImpl extends UnicastRemoteObject
      */
     public CommandHandle execute(Command c)
             throws IOException, InterruptedException {
-        CommandHandle handle = c.execute(this);
-        if (!c.isSynchronous())
-            handleList.add(handle);
-        return handle;
+        c.register(handleList);
+        return c.execute(this);
     }
 
     /**
@@ -178,10 +176,8 @@ public class CmdAgentImpl extends UnicastRemoteObject
      */
     public CommandHandle java(Command c)
             throws IOException, InterruptedException {
-        CommandHandle handle = c.executeJava(this);
-        if (!c.isSynchronous())
-            handleList.add(handle);
-        return handle;
+        c.register(handleList);
+        return c.executeJava(this);
     }
 
     /**

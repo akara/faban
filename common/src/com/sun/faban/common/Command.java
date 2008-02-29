@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Command.java,v 1.6 2007/09/08 01:10:07 akara Exp $
+ * $Id: Command.java,v 1.7 2008/02/29 01:31:36 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -29,6 +29,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.Map;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 /**
  * Represents a command that can be sent to execute on any machine. It
@@ -91,6 +92,7 @@ public class Command implements Serializable {
     boolean daemon = false;
     byte[] input;
     String inputFile;
+    List<CommandHandle> handleList;
 
     /**
      * Constructs a command with default settings. Please use the accessor
@@ -179,6 +181,10 @@ public class Command implements Serializable {
 
         process = Runtime.getRuntime().exec(command, envStrings,
                 this.dir == null ? null : new File(this.dir));
+        
+        if (handleList != null)
+            handleList.add(handle);
+
         stream[STDOUT] = process.getInputStream();
         stream[STDERR] = process.getErrorStream();
         String tmpName = System.getProperty("java.io.tmpdir") + "/cmd" +
@@ -209,10 +215,13 @@ public class Command implements Serializable {
             }
         }
 
-        if (synchronous)
+        if (synchronous) {
             handle.waitFor();
-        else
+            if (handleList != null)
+                handleList.remove(handle);
+        } else {
             handle.waitMatch();
+        }
         return handle;
     }
 
@@ -386,6 +395,18 @@ public class Command implements Serializable {
      */
     public String getInputFile() {
         return inputFile;
+    }
+
+    /**
+     * Registers the command handle resulting from this command into a list
+     * of command handles. The handle list can be used to track down running
+     * commands in case they need to be terminated. This is used by Faban's
+     * CmdAgent to ensure we kill off all the commands at the end of the run.
+     *
+     * @param handleList The list of command handles
+     */
+    public void register(List<CommandHandle> handleList) {
+        this.handleList = handleList;
     }
 
     /**
