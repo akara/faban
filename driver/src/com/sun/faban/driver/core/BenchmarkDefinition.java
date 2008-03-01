@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: BenchmarkDefinition.java,v 1.9 2008/02/26 02:48:18 akara Exp $
+ * $Id: BenchmarkDefinition.java,v 1.10 2008/03/01 08:36:40 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -198,9 +198,11 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
      */
     public static void printFabanDD(String defClassName) {
         Logger logger = Logger.getLogger(BenchmarkDefinition.class.getName());
+        logger.fine("Generating Faban DD.");
         Class<?> defClass = null;
         try {
             defClass = Class.forName(defClassName);
+            logger.fine("Found benchmark definition class " + defClassName);
         } catch (ClassNotFoundException e) {
             ConfigurationException ce = new ConfigurationException(e);
             logger.log(Level.SEVERE, e.getMessage(), ce);
@@ -217,7 +219,7 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
 
         com.sun.faban.driver.BenchmarkDefinition benchDefAnnotation = defClass.
                 getAnnotation(com.sun.faban.driver.BenchmarkDefinition.class);
-
+        logger.fine("Start building XML.");
         StringBuilder b = new StringBuilder(2048);
         b.append("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n");
         b.append("<!-- Generated Faban Driver Framework DD, please do not " +
@@ -239,10 +241,12 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
 
         String outputFile = System.getProperty("benchmark.ddfile");
         try {
+            logger.fine("Writing DD file " + outputFile);
             FileOutputStream out = new FileOutputStream(outputFile);
             out.write(b.toString().getBytes());
             out.flush();
             out.close();
+            logger.fine("Done writing " + outputFile);
         } catch (IOException e) {
             logger.severe(e.getMessage());
         }

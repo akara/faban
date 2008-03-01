@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DeployUtil.java,v 1.11 2008/01/15 08:02:53 akara Exp $
+ * $Id: DeployUtil.java,v 1.12 2008/03/01 08:36:10 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -127,6 +127,8 @@ public class DeployUtil {
                                "bin" + File.separator + "java -classpath " +
                                classpath + " -Dbenchmark.config=" + configFile +
                                " -Dbenchmark.ddfile=faban.xml" +
+                               " -Djava.util.logging.config.file=" +
+                               Config.CONFIG_DIR + "logging.properties" +
                                " com.sun.faban.driver.util.DDGenerator";
 
                 Command cmd = new Command(ddCmd);
