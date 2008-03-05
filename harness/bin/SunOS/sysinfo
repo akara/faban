@@ -19,6 +19,11 @@ echo "        <h3>Kernel on server ${HOSTNAME}</h3>"
 echo "        <pre>"
 uname -srvm
 echo "        </pre>"
+echo "        </pre>"
+echo "        <h3>Server ${HOSTNAME} SunOS release</h3>"
+echo "        <pre>"
+cat /etc/release
+echo "        </pre>"
 PRTDIAG=/usr/platform/`uname -m`/sbin/prtdiag
 if [ -x "${PRTDIAG}" ] ; then
     echo "        <h3>Prtdiag on server ${HOSTNAME}</h3>"

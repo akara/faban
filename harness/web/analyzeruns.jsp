@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: analyzeruns.jsp,v 1.4 2006/10/28 02:34:49 akara Exp $
+ * $Id: analyzeruns.jsp,v 1.5 2008/03/05 02:57:07 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -64,7 +64,10 @@
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, msg);
             return;
         }
-        
+
+        /* We should not need this based on the latest FenXi. It allows
+           comparing more than two runs.
+           
         if (type == RunAnalyzer.Type.COMPARE & runIds.length > 2) {
             String msg = "Compare no more than two runs. " +
                          runIds.length + " runs requested.";
@@ -72,6 +75,7 @@
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, msg);
             return;
         }
+        */
 
         String output = request.getParameter("output");
         if (output == null) {

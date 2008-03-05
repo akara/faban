@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgentImpl.java,v 1.15 2008/02/29 01:33:39 akara Exp $
+ * $Id: CmdAgentImpl.java,v 1.16 2008/03/05 02:57:07 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -263,7 +263,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
         try {
             Remote agent = (Remote)agentClass.newInstance();
             logger.info("Agent class " + agent.getClass().getName() + " created");
-            AgentBootstrap.registry.register(identifier, agent);
+            AgentBootstrap.registry.reregister(identifier, agent);
             logger.fine("Agent started and Registered as " + identifier);
         }catch(Exception e) {
             logger.log(Level.WARNING, "Failed to create " +

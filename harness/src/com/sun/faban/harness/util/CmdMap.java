@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdMap.java,v 1.6 2008/01/15 08:02:53 akara Exp $
+ * $Id: CmdMap.java,v 1.7 2008/03/05 02:57:07 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -95,11 +95,18 @@ public class CmdMap {
         // chmod is the way to make a file executable on Unix. Other platforms
         // like Win32 does not have it and uses a different mechanism. So
         // we'll run chmod only if it's there.
-        File chmodCmd = new File("/usr/bin/chmod");
+        File chmodCmd = new File("/bin/chmod");
+        if (!chmodCmd.exists()) {
+            chmodCmd = new File("/usr/bin/chmod");
+            if (!chmodCmd.exists())
+                chmodCmd = null;
+        }
+
         StringBuilder chmod = null;
-        if (chmodCmd.exists()) {
+        if (chmodCmd != null) {
             chmod = new StringBuilder();
-            chmod.append("/usr/bin/chmod +x ");
+            chmod.append(chmodCmd.getAbsolutePath());
+            chmod.append(" +x ");
         }
         File binDir = new File(Config.BENCHMARK_DIR + benchName + "/bin/");
         boolean emptyList = addExecMap(binDir, binMap, chmod);

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentBootstrap.java,v 1.7 2008/02/22 16:30:48 akara Exp $
+ * $Id: AgentBootstrap.java,v 1.8 2008/03/05 02:57:06 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -118,8 +118,6 @@ public class AgentBootstrap {
                 InputStream in = socket.getInputStream();
                 OutputStream out = socket.getOutputStream();
                 int length = in.read(buffer);
-                if (agentsAreUp)
-                    out.write("409 ERROR: Agents already running.".getBytes());
                 if (length > 0) {
                     String argLine = new String(buffer, 0, length);
                     System.out.println("Agent(Daemon) starting agent with options: " +
@@ -133,7 +131,6 @@ public class AgentBootstrap {
                         out.write("200 OK".getBytes());
                     } catch (Exception e) {
                         e.printStackTrace();
-                        agentsAreUp = false;
                         out.write(("500 ERROR: " + e.getMessage()).getBytes());
                     }
                 }
@@ -155,8 +152,8 @@ public class AgentBootstrap {
 
     }
 
-    private static void startAgents(String[] args) throws Exception {
-        agentsAreUp = true;
+    private static synchronized void startAgents(String[] args)
+            throws Exception {
 
         String hostname = args[0];
         master = args[1];
@@ -286,58 +283,75 @@ public class AgentBootstrap {
         ident = Config.CMD_AGENT + "@" + host;
 
         // Make sure there is only one agent running in a machine
-        CmdAgent agent = (CmdAgent)registry.getService(ident);
+        CmdAgent agent = (CmdAgent) registry.getService(ident);
 
-        if (agent == null) { // If not found, register new agent.
+        if (agent == null) { // If not found, reregister new agent.
 
-            new BenchmarkLoader().loadBenchmark(benchName, downloadURL);
             if (cmd == null)
                 cmd = new CmdAgentImpl(benchName);
             else
                 cmd.setBenchName(benchName);
 
-            agent = cmd;
+            if (register(ident, cmd)) { // Double check for race condition
+                agent = cmd;
 
-            register(ident, cmd);
+                new BenchmarkLoader().loadBenchmark(benchName, downloadURL);
 
-            if(host.equals(master)) {
-                ident = Config.CMD_AGENT;
-                register(ident, cmd);
-            } else if (sameHost(host, master)) {
-                ident = Config.CMD_AGENT;
-                register(ident, cmd);
+                if(host.equals(master)) {
+                    ident = Config.CMD_AGENT;
+                    reregister(ident, cmd);
+                } else if (sameHost(host, master)) {
+                    ident = Config.CMD_AGENT;
+                    reregister(ident, cmd);
+                }
+
+                // Create and reregister FileAgent
+                if (file == null)
+                    file = new FileAgentImpl();
+                reregister(Config.FILE_AGENT + "@" + host, file);
+
+                // Register a blank Config.FILE_AGENT for the master's
+                // file agent.
+                if (sameHost(host, master))
+                    reregister(Config.FILE_AGENT, file);
+            } else { // If we run into that, we just grab the agent again.
+                agent = (CmdAgent) registry.getService(ident);
             }
-
-            // Create and register FileAgent
-            if (file == null)
-                file = new FileAgentImpl();
-            register(Config.FILE_AGENT + "@" + host, file);
-
-            // Register a blank Config.FILE_AGENT for the master's
-            // file agent.
-            if (sameHost(host, master))
-                register(Config.FILE_AGENT, file);
-
         }
 
         // Only if the 'hostname' is an interface name and not equal
-        // the actual host name, we re-register the agents with the 'hostname'
+        // the actual host name, we re-reregister the agents with the 'hostname'
         if (!host.equals(hostname)) {
-            register(Config.CMD_AGENT + "@" + hostname, agent);
+            reregister(Config.CMD_AGENT + "@" + hostname, agent);
             logger.fine("Succeeded re-registering " + Config.CMD_AGENT +
                     "@" + hostname);
             FileAgent f = (FileAgent) registry.getService(Config.FILE_AGENT +
                     "@" + host);
-            register(Config.FILE_AGENT + "@" + hostname, f);
+            reregister(Config.FILE_AGENT + "@" + hostname, f);
             logger.fine("Succeeded re-registering " + Config.FILE_AGENT +
                     "@" + hostname);
         }
     }
 
-    private static void register(String name, Remote service)
+    private static boolean register(String name, Remote service)
+            throws RemoteException {
+        boolean success = false;
+        if (registeredNames.add(name)) {
+            success = registry.register(name, service);
+            if (success) {
+                logger.fine("Succeeded registering " + name);
+            } else {
+                logger.fine("Failed registering " + name +
+                                        ". Entry already exists.");
+            }
+        }
+        return success;
+    }
+
+    private static void reregister(String name, Remote service)
             throws RemoteException {
         if (registeredNames.add(name)) {
-            registry.register(name, service);
+            registry.reregister(name, service);
             logger.fine("Succeeded registering " + name);
         }
     }
@@ -350,7 +364,6 @@ public class AgentBootstrap {
     }
 
     static void terminateAgents() {
-        agentsAreUp = false;
         resetLogger();
         if (!daemon) {
             System.exit(0);
