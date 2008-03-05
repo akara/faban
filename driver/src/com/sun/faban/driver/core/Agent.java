@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Agent.java,v 1.3 2007/09/07 15:49:04 noahcampbell Exp $
+ * $Id: Agent.java,v 1.4 2008/03/05 02:50:26 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -31,7 +31,7 @@ import java.rmi.RemoteException;
 
 /**
  * The methods in this interface are the public face of all benchmark
- * agents. The agents register with the Registry on startup.
+ * agents. The agents reregister with the Registry on startup.
  * The Master gets a reference to all the agents from the Registry
  * and can then communicate with them using this (the Agent) interface.
  * @author Shanti Subrmanyam

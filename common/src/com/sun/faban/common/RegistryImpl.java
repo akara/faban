@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RegistryImpl.java,v 1.5 2007/10/12 07:34:01 akara Exp $
+ * $Id: RegistryImpl.java,v 1.6 2008/03/05 02:49:51 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -36,7 +36,7 @@ import java.util.logging.Level;
 /**
  * This class implements the Registry interface
  * The Registry is the single remote object that runs on the master
- * machine and with which all other instances of remote servers register.
+ * machine and with which all other instances of remote servers reregister.
  * A remote reference to any remote service is obtained by the GUI as
  * well as the Engine through the registry. There is only one remote
  * server object (the Registry) that is known by rmiregistry running
@@ -122,17 +122,81 @@ public class RegistryImpl extends UnicastRemoteObject implements Registry {
         super();
     }
 
+    /**
+     * Registers service with Registry.
+     * The service driverName is of the form <driverName>@<host>
+     * For example, a CmdAgent will reregister itself as CmdAgent@<host>
+     * so all CmdAgents on different machines can be uniquely
+     * identified by driverName.
+     *
+     * @param name    public driverName of service
+     * @param service Remote reference to service
+     * @return true if registration succeeded, false if there is already
+     *         an object registered by this name.
+     */
+    public synchronized boolean register(String name, Remote service)
+            throws RemoteException {
+
+        logger.fine("Registry: Registering " + name +
+                " on machine " + getCaller());
+        if (servicesTable.get(name) == null) {
+            servicesTable.put(name, service);
+            return true;
+        } else {
+            logger.fine("Failed registering. Service " + name +
+                        " already exists");
+            return false;
+        }
+    }
 
     /**
-      * register service with Registry
+     * Registers service with Registry.
+     * The service driverName is of the form <driverName>@<host>
+     * For example, a CmdAgent will reregister itself as CmdAgent@<host>
+     * so all CmdAgents on different machines can be uniquely
+     * identified by driverName.
+     *
+     * @param type    of service
+     * @param name    of service
+     * @param service Remote reference to service
+     * @return true if registration succeeded, false if there is already
+     *         an object registered by this name.
+     */
+    public synchronized boolean register(String type, String name,
+                                         Remote service)
+            throws RemoteException {
+
+        if (service == null)
+            throw new NullPointerException("Type: " + type + ", Name: " +
+                    name + "| Service reference is null");
+        // First check if the type of service exists
+        HashMap<String, Remote> h = servicesTypeTable.get(type);
+
+        if (h == null) {
+            h = new HashMap<String, Remote>();
+            servicesTypeTable.put(type, h);
+        } else if (h.get(name) != null) {
+            logger.fine("Failed registering. Service " + name +
+                        " already exists");
+            return false;
+        }
+        logger.fine("Registry: Registering " + name +
+                " on machine " + getCaller());
+        h.put(name, service);
+        return true;
+    }
+
+
+    /**
+      * Re-registers service with Registry, replacing old entry if exists.
       * The service driverName is of the form &lt;driverName&gt;@&lt;host&gt;
-      * For example, a CmdAgent will register itself as CmdAgent@&lt;host&gt;
+      * For example, a CmdAgent will reregister itself as CmdAgent@&lt;host&gt;
       * so all CmdAgents on different machiens can be uniquely
       * identified by driverName.
       * @param name public driverName of service
       * @param service Remote reference to service
       */
-    public synchronized void register(String name, Remote service)
+    public synchronized void reregister(String name, Remote service)
     {
         logger.fine("Registry: Registering " + name +
                 " on machine " + getCaller());
@@ -140,16 +204,16 @@ public class RegistryImpl extends UnicastRemoteObject implements Registry {
     }
 
     /**
-      * register service with Registry
+      * Re-registers service with Registry, replacing old entry if exists.
       * The service driverName is of the form &lt;driverName&gt;@&lt;host&gt;
-      * For example, a CmdAgent will register itself as CmdAgent@&lt;host&gt;
+      * For example, a CmdAgent will reregister itself as CmdAgent@&lt;host&gt;
       * so all CmdAgents on different machiens can be uniquely
       * identified by driverName.
       * @param type of service
       * @param name of service
       * @param service Remote reference to service
       */
-    public synchronized void register(String type, String name, Remote service) {
+    public synchronized void reregister(String type, String name, Remote service) {
 
         if (service == null)
             throw new NullPointerException("Type: " + type + ", Name: " +

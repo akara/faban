@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentImpl.java,v 1.10 2008/02/25 23:18:18 akara Exp $
+ * $Id: AgentImpl.java,v 1.11 2008/03/05 02:50:26 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -82,7 +82,7 @@ public class AgentImpl extends UnicastRemoteObject
         this (driverName, agentId);
 
         RegistryLocator.getRegistry(master).
-                        register(agentType, agentName, this);
+                reregister(agentType, agentName, this);
 
         logger.fine(displayName + " started ...");
     }

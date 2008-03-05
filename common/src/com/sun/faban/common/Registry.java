@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Registry.java,v 1.2 2006/06/29 19:38:35 akara Exp $
+ * $Id: Registry.java,v 1.3 2008/03/05 02:49:51 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -30,7 +30,7 @@ import java.rmi.Remote;
 /**
  * The methods in this interface are the public face of Registry
  * The Registry is the single remote object that runs on the master
- * machine and with which all other instances of remote servers register.
+ * machine and with which all other instances of remote servers reregister.
  * A remote reference to any remote service is obtained by the GUI as 
  * well as the Engine through the registry. There is only one remote server
  * object (the Registry) that is on the master machine. Once a reference to
@@ -47,27 +47,57 @@ import java.rmi.Remote;
 public interface Registry extends Remote {
 
     /**
-     * register service with Registry
+     * Registers service with Registry.
      * The service driverName is of the form <driverName>@<host>
-     * For example, a CmdAgent will register itself as CmdAgent@<host>
-     * so all CmdAgents on different machiens can be uniquely
+     * For example, a CmdAgent will reregister itself as CmdAgent@<host>
+     * so all CmdAgents on different machines can be uniquely
+     * identified by driverName.
+     * @param name public driverName of service
+     * @param service Remote reference to service
+     * @return true if registration succeeded, false if there is already
+     *         an object registered by this name.
+     */
+    public boolean register(String name, Remote service) throws RemoteException;
+
+
+    /**
+     * Registers service with Registry.
+     * The service driverName is of the form <driverName>@<host>
+     * For example, a CmdAgent will reregister itself as CmdAgent@<host>
+     * so all CmdAgents on different machines can be uniquely
+     * identified by driverName.
+     * @param type of service
+     * @param name of service
+     * @param service Remote reference to service
+     * @return true if registration succeeded, false if there is already
+     *         an object registered by this name.
+     */
+    public boolean register(String type, String name, Remote service)
+            throws RemoteException;
+
+    /**
+     * Re-registers service with Registry, replacing old entry if exists.
+     * The service driverName is of the form <driverName>@<host>
+     * For example, a CmdAgent will reregister itself as CmdAgent@<host>
+     * so all CmdAgents on different machines can be uniquely
      * identified by driverName.
      * @param name public driverName of service
      * @param service Remote reference to service
      */
-    public void register(String name, Remote service) throws RemoteException;
+    public void reregister(String name, Remote service) throws RemoteException;
 
     /**
-           * register service with Registry
-           * The service driverName is of the form <driverName>@<host>
-           * For example, a CmdAgent will register itself as CmdAgent@<host>
-           * so all CmdAgents on different machiens can be uniquely
-           * identified by driverName.
-           * @param type of service
-           * @param name of service
-           * @param service Remote reference to service
-           */
-    public void register(String type, String name, Remote service) throws RemoteException;
+     * Re-registers service with Registry, replacing old entry if exists.
+     * The service driverName is of the form <driverName>@<host>
+     * For example, a CmdAgent will reregister itself as CmdAgent@<host>
+     * so all CmdAgents on different machines can be uniquely
+     * identified by driverName.
+     * @param type of service
+     * @param name of service
+     * @param service Remote reference to service
+     */
+    public void reregister(String type, String name, Remote service)
+            throws RemoteException;
 
     /**
      * unregister service from Registry

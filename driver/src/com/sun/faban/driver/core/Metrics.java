@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.13 2008/02/26 02:48:18 akara Exp $
+ * $Id: Metrics.java,v 1.14 2008/03/05 02:50:26 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -276,6 +276,15 @@ public class Metrics implements Serializable, Cloneable {
         endTime = timingInfo.respondTime;
         int responseTime = endTime - timingInfo.invokeTime -
                            timingInfo.pauseTime;
+        if (responseTime < 0) {
+            thread.logger.warning(thread.name +
+                    ":Pause time too large - invoke : " +
+                    timingInfo.invokeTime + ", respond : " + endTime +
+                    ", pause : " + timingInfo.pauseTime);
+            responseTime = 0; // Set it to 0 in this case so it does not
+                              // destroy the whole run.
+        }
+
         int elapsedTime = endTime - RunInfo.getInstance().benchStartTime;
 
         if(elapsedTime > 0) {
