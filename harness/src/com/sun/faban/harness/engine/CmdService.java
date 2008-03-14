@@ -17,32 +17,33 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.32 2008/02/28 02:24:51 akara Exp $
+ * $Id: CmdService.java,v 1.33 2008/03/14 06:47:40 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.engine;
 
-import com.sun.faban.common.Command;
-import com.sun.faban.common.CommandHandle;
-import com.sun.faban.common.Registry;
-import com.sun.faban.common.RegistryLocator;
-import com.sun.faban.harness.agent.*;
-import com.sun.faban.harness.common.Config;
-import com.sun.faban.harness.util.FileHelper;
-import com.sun.faban.harness.util.CmdMap;
-import com.sun.faban.harness.util.InterfaceProbe;
-import com.sun.faban.harness.RemoteCallable;
+import com.sun.faban.common.*;
 import com.sun.faban.harness.FabanHostUnknownException;
+import com.sun.faban.harness.RemoteCallable;
+import com.sun.faban.harness.agent.CmdAgent;
+import com.sun.faban.harness.agent.FileAgent;
+import com.sun.faban.harness.agent.FileService;
+import com.sun.faban.harness.common.Config;
+import com.sun.faban.harness.util.CmdMap;
+
+import com.sun.faban.harness.util.InterfaceProbe;
 
 import java.io.*;
 import java.net.*;
 import java.rmi.RemoteException;
+import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.text.SimpleDateFormat;
 
 /**
  * This file contains the class that implements the Command service API.
@@ -82,10 +83,12 @@ final public class CmdService { 	// The final keyword prevents clones
     private static Logger logger = Logger.getLogger(CmdService.class.getName());
     private static CmdService cmds;
 
-    private ArrayList<CmdAgent> cmdp;
-    private ArrayList<FileAgent> filep;
-    private ArrayList<String> machinesList;	// list of all machines
-    private Properties hostInterfaces;
+    private ArrayList<CmdAgent> cmdp = new ArrayList<CmdAgent>();
+    private ArrayList<FileAgent> filep = new ArrayList<FileAgent>();
+
+    /** List of all machines */
+    private ArrayList<String> machinesList = new ArrayList<String>();	
+    private Properties hostInterfaces = new Properties();
     private Registry registry;
     private String master;	// Name of faban master machine
     private String masterAddress; // ip of faban master machine
@@ -109,8 +112,6 @@ final public class CmdService { 	// The final keyword prevents clones
             logger.severe("CmdService <init> failed " + e);
             logger.log(Level.FINE, "Exception", e);
         }
-
-        init();
     }
 
     /**
@@ -159,10 +160,10 @@ final public class CmdService { 	// The final keyword prevents clones
      *
      */
     public void init() {
-        machinesList = new ArrayList<String>();
-        cmdp = new ArrayList<CmdAgent>();
-        filep = new ArrayList<FileAgent>();
-        hostInterfaces = new Properties();
+        machinesList.clear();
+        cmdp.clear();
+        filep.clear();
+        hostInterfaces.clear();
     }
 
     /**
@@ -177,10 +178,21 @@ final public class CmdService { 	// The final keyword prevents clones
     public boolean setup(String benchName, String[][] hosts,
                          String home, String options) {
 
-        javaHome = home;
+        // It is common for java to be in C:\Program Files. This has a space
+        // inside the string and can cause havoc. We need to double quote this
+        // parameter as needed.
+        if (home.indexOf(' ') == -1)
+            javaHome = home;
+        else
+            javaHome = '"' + home + '"';
+
         // We need to be careful to escape properties having '\\' on win32
         String escapedHome = Config.FABAN_HOME.replace("\\", "\\\\");
         String fs = File.separatorChar == '\\' ? "\\\\" : File.separator;
+
+        // Again, we ensure FABAN_HOME to be quoted if there are spaces inside.
+        if (escapedHome.indexOf(' ') != -1)
+            escapedHome = '"' + escapedHome + '"';
         jvmOptions = "-Dfaban.home=" + escapedHome +
                 " -Djava.security.policy=" + escapedHome + "config" + fs +
                 "faban.policy -Djava.util.logging.config.file=" + escapedHome +
@@ -735,8 +747,11 @@ final public class CmdService { 	// The final keyword prevents clones
                         // Now, sleep and wake up 20ms before the wanted second
                         // boundary. This is to avoid late calls as sleep may
                         // have up to 10ms wakeup delay.
-                        Thread.sleep(callTime - wakeBefore -
-                                                    System.currentTimeMillis());
+                        long sleepTime = callTime - wakeBefore -
+                                                    System.currentTimeMillis();
+                        if (sleepTime > 0)
+                            Thread.sleep(sleepTime);
+
                         if (System.currentTimeMillis() >= callTime - 2) {
                             wakeBefore += wakeBefore;
                             continue;
@@ -1273,7 +1288,7 @@ final public class CmdService { 	// The final keyword prevents clones
                                         registry.getService(Config.CMD_AGENT);
                 String src = master.getHostName();
                 String dest = cmdp.get(didx).getHostName();
-                if (dest == src)
+                if (dest.equals(src))
                     return true;
             } catch (RemoteException e) {
                 logger.log(Level.SEVERE, "CmdService: Pushing - CmdAgent " +
@@ -1283,14 +1298,18 @@ final public class CmdService { 	// The final keyword prevents clones
         }
 
         FileAgent destf = filep.get(didx);
+        FileTransfer transfer = new FileTransfer(srcfile, destfile);
         try {
-            FileService destfilep = destf.open(destfile, FileAgent.WRITE);
-            byte[] content = FileHelper.getContent(srcfile);
-            destfilep.write(content);
-            destfilep.close();
-        } catch (FileServiceException e) {
+            if (destf.push(transfer) != transfer.getSize())
+                throw new IOException("Invalid transfer size");
+        } catch (RemoteException e) {
+            Throwable t = e;
+            Throwable cause = t.getCause();
+            while (cause != null)
+                t = cause;
+
             logger.log(Level.SEVERE, "CmdService: Pushing - " +
-                    "exception writing file " + destfile, e);
+                    "exception writing file " + destfile, t);
             return false;
         } catch (IOException e) {
             logger.log(Level.SEVERE, "CmdService: Pushing - " +
@@ -1299,6 +1318,58 @@ final public class CmdService { 	// The final keyword prevents clones
         }
         return true;
     }
+
+
+    /**
+     * Gets a remote file to the Faban master.
+     * @param srcmachine The source machine
+     * @param srcfile The source file name
+     * @param destfile The destination file name
+     * @return true if successful, false otherwise
+     */
+    public synchronized boolean get(String srcmachine, String srcfile,
+                                     String destfile) {
+        int sidx = machinesList.indexOf(srcmachine);
+        if (sidx == -1)
+            throw new FabanHostUnknownException(
+                    "Host " + srcmachine + " not found!");
+        if (srcfile.equals(destfile)){
+            try {
+                CmdAgent master = (CmdAgent)
+                                        registry.getService(Config.CMD_AGENT);
+                String src = cmdp.get(sidx).getHostName();
+                String dest = master.getHostName();
+                if (dest.equals(src))
+                    return true;
+            } catch (RemoteException e) {
+                logger.log(Level.SEVERE, "CmdService: Getting - CmdAgent " +
+                           "getHostName exception", e);
+                return false;
+            }
+        }
+
+        FileAgent srcf = filep.get(sidx);
+        try {
+            FileTransfer transfer = srcf.get(srcfile, destfile);
+            if (transfer.getSize() <= 0)
+                throw new IOException("Invalid transfer size");
+        } catch (RemoteException e) {
+            Throwable t = e;
+            Throwable cause = t.getCause();
+            while (cause != null)
+                t = cause;
+
+            logger.log(Level.SEVERE, "CmdService: Getting - " +
+                    "exception reading file " + srcfile, t);
+            return false;
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "CmdService: Getting - " +
+                    "exception reading " + srcfile, e);
+            return false;
+        }
+        return true;
+    }
+
     /**
      * Copy a file from one remote machine to another
      * This method essentially does the work of 'rcp'
