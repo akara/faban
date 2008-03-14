@@ -17,22 +17,22 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Wlp2.java,v 1.2 2006/06/29 19:38:43 akara Exp $
+ * $Id: Wlp2.java,v 1.3 2008/03/14 06:38:21 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.tools;
 
-import com.sun.faban.harness.agent.*;
+import com.sun.faban.common.FileTransfer;
+import com.sun.faban.harness.agent.CmdAgent;
+import com.sun.faban.harness.agent.CmdAgentImpl;
+import com.sun.faban.harness.agent.FileAgent;
 import com.sun.faban.harness.common.Config;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.channels.FileChannel;
-import java.nio.ByteBuffer;
 
 /**
  * Wlp2 is an Oracle/TPC-E specific tool. So this class does not really belong here.
@@ -99,41 +99,7 @@ public class Wlp2 extends Statspack {
 
     private void xferWlpLog() {
         String logfile = this.logfile + "-wlp2";
-        if (!new File(logfile).exists())
-            return;
-
         String outfile = outDir + "wlp2.log." + host;
-        FileChannel channel = null;
-        try {
-            channel = (new FileInputStream(logfile)).getChannel();
-            long channelSize = channel.size();
-            if (channelSize >= Integer.MAX_VALUE)
-                throw new IOException("Cannot handle file size >= 2GB");
-            ByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY,
-                    0, channelSize);
-            byte[] content = new byte[(int) channelSize];
-            buffer.get(content);
-            logger.finer("Transferring log from " + logfile + " to " + outfile);
-            if(content.length > 0) {
-                // Use FileAgent on master machine to copy log
-                String s = Config.FILE_AGENT;
-                FileAgent fa = (FileAgent)CmdAgentImpl.getRegistry().getService(s);
-                FileService outfp = fa.open(outfile, FileAgent.WRITE);
-                outfp.writeBytes(content, 0, content.length);
-                outfp.close();
-            }
-        } catch (FileServiceException fe) {
-            logger.severe("Error in creating file " + outfile);
-        } catch (IOException ie) {
-            logger.severe("Error in reading file " + logfile);
-        } finally {
-            if (channel != null)
-                try {
-                    channel.close();
-                } catch (IOException e) {
-                    logger.log(Level.SEVERE, "Error closing file channel for " +
-                               logfile);
-                }
-        }
+        xferFile(logfile, outfile);
     }
 }

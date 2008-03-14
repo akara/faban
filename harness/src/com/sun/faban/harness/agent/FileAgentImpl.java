@@ -17,13 +17,14 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileAgentImpl.java,v 1.4 2007/09/08 01:21:12 akara Exp $
+ * $Id: FileAgentImpl.java,v 1.5 2008/03/14 06:38:19 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.agent;
 
 import com.sun.faban.harness.common.Config;
+import com.sun.faban.common.FileTransfer;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -239,6 +240,40 @@ public class FileAgentImpl extends UnicastRemoteObject
     public boolean isDirectory(String fileName) {
         File file = new File(fileName);
         return file.isDirectory();
+    }
+
+    /**
+     * Pushes a file, as encapsulated in the FileTransfer, from a the master
+     * to this agent. The serialization of the FileTransfer causes the file
+     * to be copied from src to dest over the wire.
+     *
+     * @param transfer The file transfer description
+     * @return The number of bytes transferred
+     * @throws java.rmi.RemoteException If there is an error in the transfer
+     */
+    public long push(FileTransfer transfer) throws RemoteException {
+        // This is all we need to do. The copy itself happens in
+        // FileTransfer.writeObject and FileTransfer.readObject.
+        // This is the most memory-efficient way to transfer large
+        // files over RMI.
+        return transfer.getSize();
+    }
+
+    /**
+     * Gets a file from the local system to the master. The serialization of
+     * the FileTransfer itself causes the file to be copied to the master.
+     *
+     * @param srcFile  The source file on the host the agent is running on
+     * @param destFile The destination file on the master
+     * @return The FileTransfer causing this transfer
+     * @throws java.rmi.RemoteException If there is an error in the transfer
+     */
+    public FileTransfer get(String srcFile, String destFile)
+            throws RemoteException {
+        // Copying happens in FileTransfer.writeObject and
+        // FileTransfer.readObject. This is the most memory-efficient way
+        // to transfer large files over RMI.
+        return new FileTransfer(srcFile, destFile);
     }
 
     /**

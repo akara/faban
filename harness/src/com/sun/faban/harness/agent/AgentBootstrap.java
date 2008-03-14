@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentBootstrap.java,v 1.8 2008/03/05 02:57:06 akara Exp $
+ * $Id: AgentBootstrap.java,v 1.9 2008/03/14 06:38:19 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -38,6 +38,7 @@ import java.rmi.RMISecurityManager;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.server.RMISocketFactory;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.logging.LogManager;
@@ -65,7 +66,8 @@ public class AgentBootstrap {
     static ArrayList<String> extClassPath = new ArrayList<String>();
     static CmdAgentImpl cmd;
     static FileAgentImpl file;
-    static HashSet<String> registeredNames = new HashSet<String>();
+    static Set<String> registeredNames =
+                    Collections.synchronizedSet(new HashSet<String>());
     static Properties origLogProperties = new Properties();
 
     public static void main(String[] args) {
@@ -286,11 +288,15 @@ public class AgentBootstrap {
         CmdAgent agent = (CmdAgent) registry.getService(ident);
 
         if (agent == null) { // If not found, reregister new agent.
-
-            if (cmd == null)
+            boolean agentCreated = false;
+            if (cmd == null) {
                 cmd = new CmdAgentImpl(benchName);
-            else
+                agentCreated = true;
+                logger.fine(hostname + "(Realname: " + host +
+                                                ") created CmdAgentImpl");
+            } else {
                 cmd.setBenchName(benchName);
+            }
 
             if (register(ident, cmd)) { // Double check for race condition
                 agent = cmd;
@@ -315,6 +321,12 @@ public class AgentBootstrap {
                 if (sameHost(host, master))
                     reregister(Config.FILE_AGENT, file);
             } else { // If we run into that, we just grab the agent again.
+                if (agentCreated) {
+                    UnicastRemoteObject.unexportObject(cmd, true);
+                    agentCreated = false;
+                    logger.fine(hostname + "(Realname: " + host +
+                                                ") unexported CmdAgentImpl");
+                }
                 agent = (CmdAgent) registry.getService(ident);
             }
         }
@@ -323,13 +335,9 @@ public class AgentBootstrap {
         // the actual host name, we re-reregister the agents with the 'hostname'
         if (!host.equals(hostname)) {
             reregister(Config.CMD_AGENT + "@" + hostname, agent);
-            logger.fine("Succeeded re-registering " + Config.CMD_AGENT +
-                    "@" + hostname);
             FileAgent f = (FileAgent) registry.getService(Config.FILE_AGENT +
                     "@" + host);
             reregister(Config.FILE_AGENT + "@" + hostname, f);
-            logger.fine("Succeeded re-registering " + Config.FILE_AGENT +
-                    "@" + hostname);
         }
     }
 
@@ -352,15 +360,17 @@ public class AgentBootstrap {
             throws RemoteException {
         if (registeredNames.add(name)) {
             registry.reregister(name, service);
-            logger.fine("Succeeded registering " + name);
+            logger.fine("Succeeded re-gistering " + name);
         }
     }
 
     static void deregisterAgents() throws RemoteException {
-        for (String name : registeredNames) {
-            registry.unregister(name);
+        synchronized(registeredNames) {
+            for (String name : registeredNames)
+                registry.unregister(name);
+
+            registeredNames.clear();
         }
-        registeredNames.clear();
     }
 
     static void terminateAgents() {

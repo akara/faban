@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: OracleTool.java,v 1.4 2006/11/20 06:52:36 akara Exp $
+ * $Id: OracleTool.java,v 1.5 2008/03/14 06:38:21 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,14 +25,14 @@ package com.sun.faban.harness.tools;
 
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
-import com.sun.faban.harness.agent.*;
+import com.sun.faban.common.FileTransfer;
+import com.sun.faban.harness.agent.CmdAgent;
+import com.sun.faban.harness.agent.CmdAgentImpl;
+import com.sun.faban.harness.agent.FileAgent;
 import com.sun.faban.harness.common.Config;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.File;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
+import java.io.IOException;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
@@ -69,12 +69,11 @@ public abstract class OracleTool implements Tool {
 
     Thread toolThread = null;
 
-    Logger logger;
+    static Logger logger = Logger.getLogger(OracleTool.class.getName());
 
     // GenericTool implementation
     public OracleTool(){
         toolObj = this;
-        logger = Logger.getLogger(this.getClass().getName());
     }
 
     /**
@@ -317,37 +316,26 @@ public abstract class OracleTool implements Tool {
      * Transfers the log files to the output file in the results directory.
      */
     protected void xferLog() {
-        FileChannel channel = null;
+        xferFile(logfile, outfile);
+    }
+
+    protected static void xferFile(String srcFile, String destFile) {
+        if (!new File(srcFile).exists()) {
+            logger.log(Level.SEVERE,
+                    "Transfer file " + srcFile + " not found.");
+            return;
+        }
         try {
-            channel = (new FileInputStream(logfile)).getChannel();
-            long channelSize = channel.size();
-            if (channelSize >= Integer.MAX_VALUE)
-                throw new IOException("Cannot handle file size >= 2GB");
-            ByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY,
-                    0, channelSize);
-            byte[] content = new byte[(int) channelSize];
-            buffer.get(content);
-            logger.finer("Transferring log from " + logfile + " to " + outfile);
-            if(content.length > 0) {
-                // Use FileAgent on master machine to copy log
-                String s = Config.FILE_AGENT;
-                FileAgent fa = (FileAgent)CmdAgentImpl.getRegistry().getService(s);
-                FileService outfp = fa.open(outfile, FileAgent.WRITE);
-                outfp.writeBytes(content, 0, content.length);
-                outfp.close();
-            }
-        } catch (FileServiceException fe) {
-                logger.severe("Error in creating file " + outfile);
-        } catch (IOException ie) {
-                logger.severe("Error in reading file " + logfile);
-        } finally {
-            if (channel != null)
-                try {
-                    channel.close();
-                } catch (IOException e) {
-                    logger.log(Level.SEVERE, "Error closing file channel for " +
-                               logfile);
-                }
+            FileTransfer transfer = new FileTransfer(srcFile, destFile);
+            logger.finer("Transferring log from " + srcFile + " to " + destFile);
+            // Use FileAgent on master machine to copy log
+            String s = Config.FILE_AGENT;
+            FileAgent fa = (FileAgent)CmdAgentImpl.getRegistry().getService(s);
+            if (fa.push(transfer) != transfer.getSize())
+                logger.log(Level.SEVERE, "Invalid transfer size");
+
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Error transferring " + srcFile, e);
         }
     }
 }

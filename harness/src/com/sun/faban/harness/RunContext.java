@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunContext.java,v 1.10 2007/10/16 09:25:40 akara Exp $
+ * $Id: RunContext.java,v 1.11 2008/03/14 06:38:21 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -289,10 +289,8 @@ public class RunContext {
                                   String localFileName) {
         File dest = new File(localFileName);
         if (!dest.isAbsolute())
-            localFileName = getOutDir() + localFileName;
-        CmdService cs = CmdService.getHandle();
-        return cs.copy(hostName, cs.getMaster(), fileName, localFileName,
-                       false);
+            localFileName = getOutDir() + localFileName;        
+        return CmdService.getHandle().get(hostName, fileName, localFileName);
     }
 
     /**

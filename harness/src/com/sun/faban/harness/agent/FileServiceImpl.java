@@ -17,18 +17,17 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileServiceImpl.java,v 1.3 2006/09/15 18:51:28 akara Exp $
+ * $Id: FileServiceImpl.java,v 1.4 2008/03/14 06:38:20 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.agent;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
@@ -46,8 +45,8 @@ import java.rmi.server.UnicastRemoteObject;
 class FileServiceImpl extends UnicastRemoteObject
         implements FileService {
 
-    private ByteBuffer inBuffer;
     private long inSize;
+    private long offset = 0l;
     private FileInputStream in = null;
     private FileOutputStream out = null;
     private String filename;
@@ -64,14 +63,9 @@ class FileServiceImpl extends UnicastRemoteObject
         try {
             filehost = "FileService@" + (InetAddress.getLocalHost()).getHostName();
             if (mode == FileAgent.READ) {
-                in = new FileInputStream(file);
-                FileChannel channel = in.getChannel();
-                inSize = channel.size();
-                if (inSize >= Integer.MAX_VALUE)
-                    throw new FileServiceException("Cannot handle file size >= 2GB");
-                inBuffer = channel.map(FileChannel.MapMode.READ_ONLY,
-                                0, inSize);
-
+                File inFile = new File(file);
+                inSize = inFile.length();
+                in = new FileInputStream(inFile);
             }
             else if (mode == FileAgent.WRITE) {
                 out = new FileOutputStream(file);
@@ -90,22 +84,48 @@ class FileServiceImpl extends UnicastRemoteObject
     }
 
     /**
-     * This method is responsible for reading a file
+     * This method is responsible for reading a whole file or a whole remainder
+     * of the file. Up to 2GB are read at a time.
      */
     public byte[] read() throws FileServiceException {
-        byte[] content = new byte[(int) inSize];
-        inBuffer.position(0);
-        inBuffer.get(content);
-        return content;
+        long remainder = inSize - offset;
+        int readSize;
+        if (remainder > Integer.MAX_VALUE)
+            readSize = Integer.MAX_VALUE;
+        else
+            readSize = (int) remainder;
+
+        return verifiedReadBytes(readSize);
     }
 
 
-    public byte[] readBytes(int count) throws FileServiceException {
-        int remain = inBuffer.remaining();
-        if (count > remain)
-            count = remain;
-        byte[] content = new byte[count];
-        inBuffer.get(content);
+    public byte[] readBytes(int readSize) throws FileServiceException {
+        long remainder = inSize - offset;
+        if (readSize > remainder) {
+            readSize = (int) remainder;
+        }
+
+        return verifiedReadBytes(readSize);
+    }
+
+    private byte[] verifiedReadBytes(int readSize) throws FileServiceException {
+
+        byte[] content = new byte[readSize];
+        try {
+            int position = 0;
+            while (position < readSize) {
+                int c = in.read(content, position, readSize - position);
+                if (c >= 0) {
+                    position += c;
+                    offset += c;
+                } else { // Prematurely ran into eof
+                    throw new FileServiceException(
+                                                filehost + ": Unexpected EOF!");
+                }
+            }
+        } catch (IOException e) {
+            throw new FileServiceException(filehost + ": Error reading file.");
+        }
         return content;
     }
 
@@ -141,7 +161,6 @@ class FileServiceImpl extends UnicastRemoteObject
     public void close() {
         try {
             if (in != null) {
-                inBuffer = null;
                 in.close();
                 in = null;
             }

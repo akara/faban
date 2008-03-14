@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericTool.java,v 1.8 2007/04/27 21:33:28 akara Exp $
+ * $Id: GenericTool.java,v 1.9 2008/03/14 06:38:20 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,6 +25,7 @@ package com.sun.faban.harness.tools;
 
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
+import com.sun.faban.common.FileTransfer;
 import com.sun.faban.harness.agent.*;
 import com.sun.faban.harness.common.Config;
 
@@ -251,21 +252,17 @@ public class GenericTool implements Tool {
 
     protected void xferLog() {
         try {
-            byte[] buf = tool.fetchOutput(Command.STDOUT);
+            FileTransfer transfer = tool.fetchOutput(Command.STDOUT, outfile);
             logger.finer("Transferring log from " + logfile + " to " + outfile);
-            if(buf != null && buf.length > 0) {
+            if(transfer != null) {
                 // Use FileAgent on master machine to copy log
                 String s = Config.FILE_AGENT;
                 FileAgent fa = (FileAgent)CmdAgentImpl.getRegistry().getService(s);
-                FileService outfp = fa.open(outfile, FileAgent.WRITE);
-                outfp.writeBytes(buf, 0, buf.length);
-                outfp.close();
+                if (fa.push(transfer) != transfer.getSize())
+                    logger.log(Level.SEVERE, "Invalid transfer size");
             }
-        } catch (FileServiceException e) {
-                logger.log(Level.SEVERE, "Error in creating file " +
-                                         outfile, e);
         } catch (IOException e) {
-                logger.log(Level.SEVERE, "Error in reading file " + logfile, e);
+            logger.log(Level.SEVERE, "Error transferring " + logfile, e);
         }
     }
 }

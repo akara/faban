@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ServerConfig.java,v 1.7 2008/02/09 07:56:45 akara Exp $
+ * $Id: ServerConfig.java,v 1.8 2008/03/14 06:38:20 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -227,7 +227,7 @@ class ServerConfig {
                     logger.fine("Getting cpus");
                     cmds.start(machines[j], buf, CmdService.SEQUENTIAL, Config.DEFAULT_PRIORITY);
 
-                    if (cmds.copy(machines[j], master, tmpFile, tmpFile, false)) {
+                    if (cmds.get(machines[j], tmpFile, tmpFile)) {
                         BufferedReader in = new BufferedReader(new FileReader(tmpFile));
 
                         ArrayList cpuList = new ArrayList();

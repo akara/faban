@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgentImpl.java,v 1.16 2008/03/05 02:57:07 akara Exp $
+ * $Id: CmdAgentImpl.java,v 1.17 2008/03/14 06:38:19 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -632,9 +632,25 @@ public class CmdAgentImpl extends UnicastRemoteObject
 
         int leftover = handleList.size();
         if (leftover > 0) {
-            logger.warning("Process termination/cleanup unsuccessful after " +
-                    "20 attempts. " + leftover + " processes remaining. This " +
-                    "may affect subsequent runs.");
+            StringBuilder msg = new StringBuilder();
+            msg.append("Process termination/cleanup unsuccessful after ");
+            msg.append("20 attempts. ");
+            msg.append(leftover);
+            msg.append(" processes remaining. This may affect subsequent runs:");
+            synchronized(handleList) {
+                for (CommandHandle handle : handleList) {
+                    msg.append("<br>\n");
+                    try {
+                        msg.append(handle.getCommandString());
+                    } catch (RemoteException e) {
+                        logger.log(Level.SEVERE, "Caught RemoteException on " +
+                                "local CommandHandle.getCommandString(). " +
+                                "Please report bug.", e);
+                    }
+                }
+            }
+
+            logger.warning(msg.toString());
             handleList.clear();
         }
 

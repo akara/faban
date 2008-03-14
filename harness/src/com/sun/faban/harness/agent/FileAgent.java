@@ -17,11 +17,13 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileAgent.java,v 1.3 2007/09/08 01:21:12 akara Exp $
+ * $Id: FileAgent.java,v 1.4 2008/03/14 06:38:19 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.agent;
+import com.sun.faban.common.FileTransfer;
+
 import java.rmi.RemoteException;
 import java.rmi.Remote;
 import java.io.*;
@@ -108,4 +110,24 @@ public interface FileAgent extends Remote {
      * @return true if file is a directory, false otherwise.
      */
     boolean isDirectory(String fileName) throws RemoteException;
+
+    /**
+     * Pushes a file, as encapsulated in the FileTransfer, from a the master
+     * to this agent. The serialization of the FileTransfer causes the file
+     * to be copied from src to dest over the wire.
+     * @param transfer The file transfer description
+     * @return The number of bytes transferred
+     * @throws RemoteException If there is an error in the transfer
+     */
+    long push(FileTransfer transfer) throws RemoteException;
+
+    /**
+     * Gets a file from the local system to the master. The serialization of
+     * the FileTransfer itself causes the file to be copied to the master.
+     * @param srcFile The source file on the host the agent is running on
+     * @param destFile The destination file on the master
+     * @return The FileTransfer causing this transfer
+     * @throws RemoteException If there is an error in the transfer
+     */
+    FileTransfer get(String srcFile, String destFile) throws RemoteException;
 }
