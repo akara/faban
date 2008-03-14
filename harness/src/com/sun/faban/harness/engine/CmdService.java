@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.33 2008/03/14 06:47:40 akara Exp $
+ * $Id: CmdService.java,v 1.34 2008/03/14 19:42:21 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -520,13 +520,28 @@ final public class CmdService { 	// The final keyword prevents clones
             }
 
             cmdp.add(c);
-            logger.fine("CmdService: Configuring " + s);
-            // Added by Ramesh to get the real hostnames of the servers
-            logger.info("CmdService: Configured " + s + " on server " + c.getHostName());
+            
             s = Config.FILE_AGENT + "@" + mach;
-            logger.fine("CmdService: Connecting to " + s);
-            filep.add((FileAgent) registry.getService(s));
+            logger.fine("FileService: Connecting to " + s);
+            retry = 1;
+            FileAgent f = (FileAgent) registry.getService(s);
+            for (; f == null && retry <= 20; retry++) {
+                Thread.sleep(500);
+                logger.warning("Retry obtaining file service from " + s +
+                                                ", count " + retry + '.');
+                f = (FileAgent) registry.getService(s);
+            }
+            if (f == null) {
+                logger.severe("Could not obtain file service from " + s);
+                return (false);
+            }
+            filep.add(f);
+
+            // Added by Ramesh to get the real hostnames of the servers
+            logger.info("CmdService: Configured " + s + " on server " +
+                                                        c.getHostName());
             return true;
+
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error accessing command agent on system "
                     + mach, e);
