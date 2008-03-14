@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CommandHandle.java,v 1.3 2006/11/18 05:21:05 akara Exp $
+ * $Id: CommandHandle.java,v 1.4 2008/03/14 06:31:33 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -34,6 +34,11 @@ import java.io.IOException;
  */
 public interface CommandHandle extends Remote {
 
+    /**
+     * Obtains the command string this command handle represents.
+     * @return The command string executed.
+     */
+    public String getCommandString() throws RemoteException;
 
     /**
      * Forfully terminates the command.
@@ -73,5 +78,18 @@ public interface CommandHandle extends Remote {
      */
     byte[] fetchOutput(int streamId) throws IOException, IllegalStateException,
             RemoteException;
+
+    /**
+     * Obtains the stdout or stderr of the command and put it into file.
+     * @param streamId Command.STDOUT or Command.STDERR
+     * @param destFile The destination file on the calling system
+     * @return The FileTransfer, if called from remote system, the file is saved
+     * @throws IOException There is an error getting the output
+     * @throws IllegalStateException The command is not yet terminated or
+     *                               does not record output
+     * @throws RemoteException A network error occurred
+     */
+    FileTransfer fetchOutput(int streamId, String destFile) throws IOException,
+            IllegalStateException, RemoteException;
 
 }

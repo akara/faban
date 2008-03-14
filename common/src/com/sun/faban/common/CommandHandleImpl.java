@@ -17,15 +17,16 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CommandHandleImpl.java,v 1.8 2008/01/29 23:18:22 akara Exp $
+ * $Id: CommandHandleImpl.java,v 1.9 2008/03/14 06:31:33 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.common;
 
-import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.logging.Level;
@@ -70,6 +71,15 @@ public class CommandHandleImpl implements CommandHandle {
     }
 
     /**
+     * Obtains the command string this command handle represents.
+     *
+     * @return The command string executed.
+     */
+    public String getCommandString() throws RemoteException {
+        return command.command;
+    }
+
+    /**
      * Forfully terminates the command.
      */
     public void destroy() {
@@ -111,14 +121,24 @@ public class CommandHandleImpl implements CommandHandle {
 
 
     static byte[] readFile(String fileName) throws IOException {
-        FileChannel channel = (new FileInputStream(fileName)).getChannel();
-        long channelSize = channel.size();
-        if (channelSize >= Integer.MAX_VALUE)
+        File f = new File(fileName);
+        long size = f.length();
+        if (size >= Integer.MAX_VALUE)
             throw new IOException("Cannot handle file size >= 2GB");
-        ByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY,
-                0, channelSize);
-        byte[] content = new byte[(int) channelSize];
-        buffer.get(content);
+
+        int readSize = (int) size;
+        FileInputStream in = new FileInputStream(f);
+        byte[] content = new byte[readSize];
+        int position = 0;
+        while (position < readSize) {
+            int c = in.read(content, position, readSize - position);
+            if (c >= 0) {
+                position += c;
+            } else { // Prematurely ran into eof
+                throw new IOException("Unexpected EOF reading file!");
+            }
+        }
+        in.close();
         return content;
     }
 
@@ -142,6 +162,26 @@ public class CommandHandleImpl implements CommandHandle {
             throw new IllegalStateException("Output not available if " +
                     "StreamHandling is TRICKLE_LOG");
         return readers[streamId].fetchOutput();
+    }
+
+    /**
+     * Obtains the stdout or stderr of the command and put it into file.
+     *
+     * @param streamId Command.STDOUT or Command.STDERR
+     * @param destFile The destination file on the calling system
+     * @return The FileTransfer, if called from remote system, the file is saved
+     * @throws java.io.IOException      There is an error getting the output
+     * @throws IllegalStateException    The command is not yet terminated or
+     *                                  does not record output
+     * @throws java.rmi.RemoteException A network error occurred
+     */
+    public FileTransfer fetchOutput(int streamId, String destFile) throws
+            IOException, IllegalStateException {
+        if (command.streamHandling[streamId] == Command.TRICKLE_LOG)
+            throw new IllegalStateException("Output not available if " +
+                    "StreamHandling is TRICKLE_LOG");
+        return readers[streamId].fetchOutput(destFile);
+
     }
 
     public void waitMatch() throws InterruptedException {
@@ -175,10 +215,9 @@ public class CommandHandleImpl implements CommandHandle {
                             System.getProperty("faban.command.buffer", "true"));
         boolean matched = true;
         boolean abandoned = false;
-        Logger logger;
+        static Logger logger = Logger.getLogger(ReaderThread.class.getName());
 
         ReaderThread(int streamId) {
-            logger = Logger.getLogger(getClass().getName());
             this.streamId = streamId;
             setDaemon(true);
             start();
@@ -374,6 +413,21 @@ public class CommandHandleImpl implements CommandHandle {
                 retBuffer = readFile(outputFile);
             }
             return retBuffer;
+        }
+
+        FileTransfer fetchOutput(String destFile) throws IOException {
+            logger.finest("Fetching output for " +
+                    Command.STREAM_NAME[streamId] + " to " + destFile);
+
+            FileTransfer transfer;
+            if (outStream == null) { // If everything is still in memory
+                if (offset == 0) // Nothing read
+                    return null;
+                transfer = new FileTransfer(buffer, 0, offset, destFile);
+            } else {
+                transfer = new FileTransfer(outputFile, destFile);
+            }
+            return transfer;
         }
 
         /**
