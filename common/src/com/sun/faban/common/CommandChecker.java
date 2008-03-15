@@ -17,11 +17,13 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CommandChecker.java,v 1.3 2006/07/28 07:30:20 akara Exp $
+ * $Id: CommandChecker.java,v 1.4 2008/03/15 07:26:38 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.common;
+
+import java.util.List;
 
 /**
  * An interface impolemented by the command agent allowing it to check the
@@ -37,12 +39,12 @@ public interface CommandChecker {
      * @param cmd The original command
      * @return The completed command
      */
-    public String checkCommand(String cmd);
+    public List<String> checkCommand(List<String> cmd);
 
     /**
      * Checks and completes the java command, if possible.
      * @param cmd The original command
      * @return The completed java command
      */
-    public String checkJavaCommand(String cmd);
+    public List<String> checkJavaCommand(List<String> cmd);
 }

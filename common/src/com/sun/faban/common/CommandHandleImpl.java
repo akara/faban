@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CommandHandleImpl.java,v 1.9 2008/03/14 06:31:33 akara Exp $
+ * $Id: CommandHandleImpl.java,v 1.10 2008/03/15 07:26:38 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -76,7 +76,7 @@ public class CommandHandleImpl implements CommandHandle {
      * @return The command string executed.
      */
     public String getCommandString() throws RemoteException {
-        return command.command;
+        return command.toString();
     }
 
     /**
@@ -240,7 +240,7 @@ public class CommandHandleImpl implements CommandHandle {
                 }
                 if (go)
                     try {
-                        cmdString = command.command;
+                        cmdString = command.toString();
                         logger.finest("Starting reading " + Command.
                                 STREAM_NAME[streamId] + " of " + cmdString);
 

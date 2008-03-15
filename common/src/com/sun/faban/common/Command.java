@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Command.java,v 1.7 2008/02/29 01:31:36 akara Exp $
+ * $Id: Command.java,v 1.8 2008/03/15 07:26:38 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -27,9 +27,7 @@ import java.io.*;
 import java.rmi.RemoteException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.Map;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * Represents a command that can be sent to execute on any machine. It
@@ -76,7 +74,7 @@ public class Command implements Serializable {
      */
     public static final int CAPTURE = 2;
 
-    String command;
+    List<String> command;
     String[] env = null;
     String dir = null;
     Process process;
@@ -95,12 +93,56 @@ public class Command implements Serializable {
     List<CommandHandle> handleList;
 
     /**
-     * Constructs a command with default settings. Please use the accessor
-     * methods to set non-default command behavior.
+     * Constructs a command from a command string with default settings.
+     * Using this constructor, the command will get parsed into command
+     * and arguments, honoring double quotes and backslash escapes.
+     * While we try our best at the parsing, it may not be as accurate as
+     * constructing the command from the constructor
+     * Command(List<String> command). Please use the accessor methods to
+     * set non-default command behavior.
      * @param command
      */
     public Command(String command) {
+        this.command = parseArgs(command);
+    }
+
+    /**
+     * Constructs a command from a pre-prepared list of command and arguments.
+     * @param command
+     */
+    public Command(List<String> command) {
         this.command = command;
+    }
+
+    /**
+     * Parses the command and/or arguments from a command string and puts into
+     * a list.
+     * @param command The command string.
+     * @return The list of commands and arguments.
+     */
+    public static List<String> parseArgs(String command) {
+        // TODO: Need to reimplement parseArgs to cover escape and double quote cases.
+        StringTokenizer t = new StringTokenizer(command);
+        ArrayList<String> c = new ArrayList<String>(t.countTokens());
+        while (t.hasMoreTokens())
+            c.add(t.nextToken());
+        return c;
+    }
+
+    private StringBuilder _toString(StringBuilder buffer) {
+        for (String arg : command)
+            buffer.append(arg).append(' ');
+        buffer.setLength(buffer.length() - 1);
+        return buffer;
+    }
+
+    /**
+     * Returns a string representation of this command.
+     *
+     * @return a string representation of the command.
+     */
+    @Override public String toString() {
+        return _toString(new StringBuilder()).toString();
     }
 
     /**
@@ -150,15 +192,21 @@ public class Command implements Serializable {
             return null;
         }
         Logger logger = Logger.getLogger(this.getClass().getName());
-        logger.fine("Executing " + command);
+
+        if (logger.isLoggable(Level.FINE)) {
+            StringBuilder msg = new StringBuilder();
+            msg.append("Executing: ");
+            _toString(msg);
+            logger.fine(msg.toString());
+        }
+
+        ProcessBuilder b = new ProcessBuilder(command);
 
         // We do not want to set all env. So we merge the given env with the
         // one that comes with the process.
-        String[] envStrings = null;
-        if (this.env != null) {
-            LinkedHashMap<String, String> env = // Copy the map...
-                    new LinkedHashMap<String, String>(System.getenv());
-            for (String envi : this.env) {
+        if (env != null) {
+            Map<String, String> environment = b.environment();
+            for (String envi : env) {
                 int eqIdx = envi.indexOf('=');
                 if (eqIdx < 1) {
                     logger.warning("Invalid env string: " + envi +
@@ -168,20 +216,17 @@ public class Command implements Serializable {
                 String name = envi.substring(0, eqIdx).trim();
                 String value = envi.substring(eqIdx + 1).trim();
                 if (value.length() > 0)
-                    env.put(name, value);
+                    environment.put(name, value);
                 else // No value, intentionally unset that variable.
-                    env.remove(name);
+                    environment.remove(name);
             }
-
-            envStrings = new String[env.size()];
-            int i = 0;
-            for (Map.Entry<String, String> entry : env.entrySet())
-                envStrings[i++] = entry.getKey() + '=' + entry.getValue();
         }
 
-        process = Runtime.getRuntime().exec(command, envStrings,
-                this.dir == null ? null : new File(this.dir));
-        
+        if (dir != null)
+            b.directory(new File(dir));
+
+        process = b.start();
+
         if (handleList != null)
             handleList.add(handle);
 
