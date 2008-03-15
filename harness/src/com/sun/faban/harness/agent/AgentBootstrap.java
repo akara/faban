@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentBootstrap.java,v 1.10 2008/03/15 07:31:43 akara Exp $
+ * $Id: AgentBootstrap.java,v 1.11 2008/03/15 08:36:26 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -337,9 +337,28 @@ public class AgentBootstrap {
         // the actual host name, we re-reregister the agents with the 'hostname'
         if (!host.equals(hostname)) {
             reregister(Config.CMD_AGENT + "@" + hostname, agent);
+
+            // The FileAgent registration may have a significant lag time
+            // from the CmdAgent registration due to downloads, etc.
+            // We just need to wait.
             FileAgent f = (FileAgent) registry.getService(
                                             Config.FILE_AGENT + "@" + host);
-            reregister(Config.FILE_AGENT + "@" + hostname, f);
+            int retry = 0;
+            while (f == null) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                }
+                f = (FileAgent) registry.getService(
+                        Config.FILE_AGENT + "@" + host);
+                if (++retry > 100)
+                    break;
+            }
+            if (f != null)
+                reregister(Config.FILE_AGENT + "@" + hostname, f);
+            else
+                logger.severe("Giving up re-registering file agent at " + host +
+                        " as " + hostname +" after " + retry + " retries.");
         }
     }
 
