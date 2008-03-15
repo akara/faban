@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdMap.java,v 1.7 2008/03/05 02:57:07 akara Exp $
+ * $Id: CmdMap.java,v 1.8 2008/03/15 07:31:45 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,6 +25,7 @@ package com.sun.faban.harness.util;
 
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.common.Command;
+import com.sun.faban.common.CommandHandle;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -118,7 +119,11 @@ public class CmdMap {
             try {
                 logger.fine("Changing mode for bin: " + chmod);
                 Command cmd = new Command(chmod.toString());
-                cmd.execute();
+                CommandHandle handle = cmd.execute();
+                int exitValue = handle.exitValue();
+                if (exitValue != 0)
+                    logger.severe("Failed to chmod bin files. Exit value is " +
+                                                                    exitValue);
             } catch (IOException e) {
                 logger.log(Level.SEVERE, "Cannot change mode on bin files", e);
             } catch (InterruptedException e) {

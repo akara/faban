@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgentImpl.java,v 1.18 2008/03/14 07:20:01 akara Exp $
+ * $Id: CmdAgentImpl.java,v 1.19 2008/03/15 07:31:43 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -77,6 +77,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
 
     private String[] baseClassPath;
     Map<String, String> binMap;
+    private ArrayList<String> javaCmd;
 
     static class CmdProcess {
         String ident;
@@ -95,14 +96,8 @@ public class CmdAgentImpl extends UnicastRemoteObject
 
 
     // This class must be created only through the main method.
-    CmdAgentImpl(String benchName) throws RemoteException {
+    CmdAgentImpl() throws RemoteException {
         super();
-
-        try {
-            setBenchName(benchName);
-        } catch(Exception e) {
-            logger.log(Level.SEVERE, "Failed to initialize CmdAgent.", e);
-        }
     }
 
     void setBenchName(String benchName) throws Exception {
@@ -217,8 +212,14 @@ public class CmdAgentImpl extends UnicastRemoteObject
                                 String[] classPath) throws Exception {
 
         Process p;
+        ArrayList<String> cmds = new ArrayList<String>();
+        cmds.add(AgentBootstrap.javaHome + File.separator + "bin" +
+                                            File.separator + "java");
+        cmds.addAll(AgentBootstrap.jvmOptions);
 
-        StringBuffer buf = new StringBuffer(" -cp ");
+        cmds.add("-cp");
+
+        StringBuilder buf = new StringBuilder();
         boolean falseEnding = false;
         if (classPath != null)
             for (int i = 0; i < classPath.length; i++) {
@@ -234,14 +235,14 @@ public class CmdAgentImpl extends UnicastRemoteObject
         if (falseEnding)
             buf.setLength(buf.length() - File.pathSeparator.length());
 
-        buf.append(' ');
-        String classpath = buf.toString();
+        cmds.add(buf.toString());
 
-        cmd = AgentBootstrap.javaHome + File.separator + "bin" + File.separator + "java " +
-                AgentBootstrap.jvmOptions + classpath + cmd;
+        cmds.addAll(Command.parseArgs(cmd));
+
         try {
             logger.fine("Starting Java " + cmd);
-            p = Runtime.getRuntime().exec(cmd, env);
+            ProcessBuilder b = new ProcessBuilder(cmds);
+            p = b.start();
         }
         catch (IOException e) {
             p = null;
@@ -710,22 +711,24 @@ public class CmdAgentImpl extends UnicastRemoteObject
 
     private Process createProcess(String cmd, int priority) throws Exception {
         Process p;
-        cmd = checkCommand(cmd);
-        String args[] = new String[7];
+        List<String> cmds = Command.parseArgs(cmd);
 
-        args[0] = "priocntl";
-        args[1] = "-e";
-        args[2] = "-c";
-        args[3] = (priority == Config.DEFAULT_PRIORITY) ? "TS" : "RT";
-        args[4] = "sh";
-        args[5] = "-c";
-        args[6] = cmd;
+        cmds = checkCommand(cmds);
+
+        ArrayList<String> args = new ArrayList<String>();
+        args.add("priocntl");
+        args.add("-e");
+        args.add("-c");
+        args.add(priority == Config.DEFAULT_PRIORITY ? "TS" : "RT");
+        args.add("sh");
+        args.add("-c");
+        args.addAll(cmds);
 
         try {
             logger.fine("Starting Command : " + cmd );
-            p = Runtime.getRuntime().exec(args);
-        }
-        catch (IOException ie) {
+            ProcessBuilder b = new ProcessBuilder(args);
+            p = b.start();
+        } catch (IOException ie) {
             p = null;
             logger.log(Level.WARNING, "Command " + cmd + " failed.", ie);
             throw ie;
@@ -843,26 +846,19 @@ public class CmdAgentImpl extends UnicastRemoteObject
     }
 
     /**
-     * Checks and completes the command, if possible.
-     * @param cmd The original command
-     * @return The completed command
+     * Checks and completes the command list, if possible.
+     * @param cmd The command and arg list
+     * @return The checked command
      */
-    public String checkCommand(String cmd) {
-        String bin;
-        int idx = cmd.indexOf(' ');
-        if (idx == -1)
-            bin = cmd;
-        else
-            bin = cmd.substring(0, idx);
-        if (bin.indexOf(File.separator) != -1)
-            // The path is part of the command, use it as is
-            return cmd;
-        String path = (String) binMap.get(bin);
-        if (path == null) // Don't find it, just try as is
-            return cmd;
-        if (idx == -1)
-            return path;
-        return path + cmd.substring(idx);
+    public List<String> checkCommand(List<String> cmd) {
+        String bin = cmd.get(0);
+        if (bin.indexOf(File.separator) == -1) {
+            // not an absolute path
+            String path = binMap.get(bin);
+            if (path != null) // Don't find it, just try as is
+                cmd.set(0, path);
+        }
+        return cmd;
     }
 
     /**
@@ -871,34 +867,45 @@ public class CmdAgentImpl extends UnicastRemoteObject
      * @param cmd The original command
      * @return The completed java command
      */
-    public String checkJavaCommand(String cmd) {
+    public List<String> checkJavaCommand(List<String> cmd) {
 
-        StringBuilder buf = new StringBuilder(AgentBootstrap.javaHome);
-        buf.append(File.separator);
-        buf.append("bin");
-        buf.append(File.separator);
-        buf.append("java ");
-        buf.append(AgentBootstrap.jvmOptions);
-        buf.append(" -cp ");
+        if (javaCmd == null) { // Initialize javaCmd if needed.
+            javaCmd = new ArrayList<String>();
 
-        boolean falseEnding = false;
-        // Externally specified classpath takes precedence.
-        for (String pathElement : AgentBootstrap.extClassPath) {
-            buf.append(pathElement);
-            buf.append(File.pathSeparator);
-            falseEnding = true;
+            StringBuilder buf = new StringBuilder(AgentBootstrap.javaHome);
+            buf.append(File.separator);
+            buf.append("bin");
+            buf.append(File.separator);
+            buf.append("java");
+            javaCmd.add(buf.toString());
+            buf.setLength(0);
+
+            javaCmd.addAll(AgentBootstrap.jvmOptions);
+
+            javaCmd.add("-cp");
+
+            boolean falseEnding = false;
+            // Externally specified classpath takes precedence.
+            for (String pathElement : AgentBootstrap.extClassPath) {
+                buf.append(pathElement);
+                buf.append(File.pathSeparator);
+                falseEnding = true;
+            }
+            for (String pathElement : baseClassPath) {
+                buf.append(pathElement);
+                buf.append(File.pathSeparator);
+                falseEnding = true;
+            }
+            if (falseEnding)
+                buf.setLength(buf.length() - File.pathSeparator.length());
+            javaCmd.add(buf.toString());
         }
-        for (String pathElement : baseClassPath) {    ;
-            buf.append(pathElement);
-            buf.append(File.pathSeparator);
-            falseEnding = true;
-        }
-        if (falseEnding)
-            buf.setLength(buf.length() - File.pathSeparator.length());
 
-        buf.append(' ');
-        buf.append(cmd);
-        return buf.toString();
+        ArrayList<String> tmp = new ArrayList<String>(cmd);
+        cmd.clear();
+        cmd.addAll(javaCmd);
+        cmd.addAll(tmp);
+        return cmd;
     }
 
     private static String[] getBaseClassPath(String benchName) {

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.34 2008/03/14 19:42:21 akara Exp $
+ * $Id: CmdService.java,v 1.35 2008/03/15 07:31:44 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -520,19 +520,28 @@ final public class CmdService { 	// The final keyword prevents clones
             }
 
             cmdp.add(c);
-            
+
+            /* Note the agent registration process:
+             * 1. Create and register the command agent.
+             * 2. Download benchmark code
+             * 3. Create the lib classpath
+             * 4. Create and register file agent
+             * So it may take quite some time between the registration of
+             * the command agent and the file agent. But we can be pretty
+             * sure it'll happen. So just wait. Timeout after 100 retries.             
+             */
             s = Config.FILE_AGENT + "@" + mach;
             logger.fine("FileService: Connecting to " + s);
             retry = 1;
             FileAgent f = (FileAgent) registry.getService(s);
-            for (; f == null && retry <= 20; retry++) {
-                Thread.sleep(500);
-                logger.warning("Retry obtaining file service from " + s +
+            for (; f == null && retry <= 100; retry++) {
+                Thread.sleep(1000);
+                logger.fine("Retry obtaining file service from " + s +
                                                 ", count " + retry + '.');
                 f = (FileAgent) registry.getService(s);
             }
             if (f == null) {
-                logger.severe("Could not obtain file service from " + s);
+                logger.severe("Timed out obtaining file service from " + s);
                 return (false);
             }
             filep.add(f);

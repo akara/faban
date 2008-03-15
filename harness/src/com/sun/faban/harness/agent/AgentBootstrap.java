@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentBootstrap.java,v 1.9 2008/03/14 06:38:19 akara Exp $
+ * $Id: AgentBootstrap.java,v 1.10 2008/03/15 07:31:43 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -62,7 +62,7 @@ public class AgentBootstrap {
     static Registry registry;
     static String javaHome;
     // Initialize it to make sure it doesn't end up a 'null'
-    static String jvmOptions = " ";
+    static ArrayList<String> jvmOptions = new ArrayList<String>();
     static ArrayList<String> extClassPath = new ArrayList<String>();
     static CmdAgentImpl cmd;
     static FileAgentImpl file;
@@ -170,10 +170,11 @@ public class AgentBootstrap {
         // We need to be careful to escape properties having '\\' on win32
         String escapedHome = Config.FABAN_HOME.replace("\\", "\\\\");
         String fs = File.separatorChar == '\\' ? "\\\\" : File.separator;
-        jvmOptions = "-Dfaban.home=" + escapedHome +
-                " -Djava.security.policy=" + escapedHome + "config" + fs +
-                "faban.policy -Djava.util.logging.config.file=" + escapedHome +
-                "config" + fs + "logging.properties";
+        jvmOptions.add("-Dfaban.home=" + escapedHome);
+        jvmOptions.add("-Djava.security.policy=" + escapedHome + "config" +
+                                                        fs + "faban.policy");
+        jvmOptions.add("-Djava.util.logging.config.file=" + escapedHome +
+                                        "config" + fs + "logging.properties");
 
         // There may be optional JVM args
         boolean isClassPath = false;
@@ -185,21 +186,21 @@ public class AgentBootstrap {
                 }else if (args[i].startsWith("faban.benchmarkName")) {
                     benchName = args[i].substring(args[i].indexOf('=') + 1);
                 } else if (args[i].indexOf("faban.logging.port") != -1) {
-                    jvmOptions = jvmOptions + ' ' + args[i];
+                    jvmOptions.add(args[i]);
                     Config.LOGGING_PORT = Integer.parseInt(
                             args[i].substring(args[i].indexOf("=") + 1));
                 } else if (args[i].indexOf("faban.registry.port") != -1) {
-                    jvmOptions = jvmOptions + ' ' + args[i];
+                    jvmOptions.add(args[i]);
                     Config.RMI_PORT = Integer.parseInt(
                             args[i].substring(args[i].indexOf("=") + 1));
                 } else if (args[i].startsWith("-Dfaban.command.buffer=")) {
                     String[] prop = args[i].substring(2).split("=");
                     System.setProperty(prop[0], prop[1]);
                     // Pass it along, too.
-                    jvmOptions += ' ' + args[i];
+                    jvmOptions.add(args[i]);
                 } else if ("-server".equals(args[i]) ||
                         "-client".equals(args[i])) { // prepend these options
-                    jvmOptions = args[i] + ' ' + jvmOptions;
+                    jvmOptions.add(0, args[i]);
                 } else if (args[i].startsWith("-Dfaban.home=") ||
                         args[i].startsWith("-Djava.security.policy=") ||
                         args[i].startsWith("-Djava.util.logging.config.file=")){
@@ -216,7 +217,7 @@ public class AgentBootstrap {
                         extClassPath.add(cpElement);
                     isClassPath = false;
                 } else {
-                    jvmOptions += ' ' + args[i];
+                    jvmOptions.add(args[i]);
                 }
         }
 
@@ -290,18 +291,19 @@ public class AgentBootstrap {
         if (agent == null) { // If not found, reregister new agent.
             boolean agentCreated = false;
             if (cmd == null) {
-                cmd = new CmdAgentImpl(benchName);
+                cmd = new CmdAgentImpl();
                 agentCreated = true;
                 logger.fine(hostname + "(Realname: " + host +
                                                 ") created CmdAgentImpl");
-            } else {
-                cmd.setBenchName(benchName);
             }
 
             if (register(ident, cmd)) { // Double check for race condition
                 agent = cmd;
 
+                // setBenchName scans all resources.
+                // Benchmark needs to be loaded first.
                 new BenchmarkLoader().loadBenchmark(benchName, downloadURL);
+                cmd.setBenchName(benchName);
 
                 if(host.equals(master)) {
                     ident = Config.CMD_AGENT;
@@ -335,8 +337,8 @@ public class AgentBootstrap {
         // the actual host name, we re-reregister the agents with the 'hostname'
         if (!host.equals(hostname)) {
             reregister(Config.CMD_AGENT + "@" + hostname, agent);
-            FileAgent f = (FileAgent) registry.getService(Config.FILE_AGENT +
-                    "@" + host);
+            FileAgent f = (FileAgent) registry.getService(
+                                            Config.FILE_AGENT + "@" + host);
             reregister(Config.FILE_AGENT + "@" + hostname, f);
         }
     }
