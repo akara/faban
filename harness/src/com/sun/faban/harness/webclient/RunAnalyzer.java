@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunAnalyzer.java,v 1.3 2007/09/08 01:21:14 akara Exp $
+ * $Id: RunAnalyzer.java,v 1.4 2008/03/17 21:07:22 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -138,8 +138,7 @@ public class RunAnalyzer {
         cmd.append(Config.BIN_DIR.trim()).append("fenxi ").
             append(type);
         for (String runId : runIdStrings)
-            cmd.append(' ').append(Config.OUT_DIR).append(runId).
-                    append(File.separator).append(Config.XML_STATS_DIR);
+            cmd.append(' ').append(Config.OUT_DIR).append(runId);
 
         cmd.append(' ').append(Config.ANALYSIS_DIR).append(output);
 
