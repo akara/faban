@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Command.java,v 1.8 2008/03/15 07:26:38 akara Exp $
+ * $Id: Command.java,v 1.9 2008/03/18 06:53:14 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -104,6 +104,12 @@ public class Command implements Serializable {
      */
     public Command(String command) {
         this.command = parseArgs(command);
+    }
+
+    public Command(String... command) {
+        this.command = new ArrayList<String>(command.length);
+        for (String arg : command)
+            this.command.add(arg);        
     }
 
     /**
