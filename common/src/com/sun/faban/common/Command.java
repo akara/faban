@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Command.java,v 1.9 2008/03/18 06:53:14 akara Exp $
+ * $Id: Command.java,v 1.10 2008/03/18 06:55:53 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -100,12 +100,17 @@ public class Command implements Serializable {
      * constructing the command from the constructor
      * Command(List<String> command). Please use the accessor methods to
      * set non-default command behavior.
-     * @param command
+     * @param command The command string
      */
     public Command(String command) {
         this.command = parseArgs(command);
     }
 
+    /**
+     * Constructs a command from a string array passed in as a variable
+     * argument list.
+     * @param command The command and arguments
+     */
     public Command(String... command) {
         this.command = new ArrayList<String>(command.length);
         for (String arg : command)
@@ -114,7 +119,7 @@ public class Command implements Serializable {
 
     /**
      * Constructs a command from a pre-prepared list of command and arguments.
-     * @param command
+     * @param command List containing the command and arguments
      */
     public Command(List<String> command) {
         this.command = command;
