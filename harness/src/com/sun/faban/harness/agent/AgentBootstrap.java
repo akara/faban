@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentBootstrap.java,v 1.11 2008/03/15 08:36:26 akara Exp $
+ * $Id: AgentBootstrap.java,v 1.12 2008/03/21 01:33:13 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -381,7 +381,7 @@ public class AgentBootstrap {
             throws RemoteException {
         if (registeredNames.add(name)) {
             registry.reregister(name, service);
-            logger.fine("Succeeded re-gistering " + name);
+            logger.fine("Succeeded re-registering " + name);
         }
     }
 
