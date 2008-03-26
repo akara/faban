@@ -19,7 +19,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: build.xml,v 1.13 2008/02/26 22:00:07 akara Exp $
+* $Id: build.xml,v 1.14 2008/03/26 05:14:39 akara Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 -->
@@ -116,7 +116,7 @@
             <fileset dir="${workspace.dir}/samples/ftp101"/>
         </copy>
 
-        <mkdir dir="samples/fabanload"/>
+        <mkdir dir="samples/fabanload/lib"/>
         <copy todir="samples/fabanload"
             overwrite="true" preservelastmodified="true"
             includeEmptyDirs="true" verbose="true">
@@ -130,7 +130,7 @@
             <fileset dir="${workspace.dir}/samples/fhb"/>
         </copy>
 
-        <mkdir dir="samples/specweb2005"/>
+        <mkdir dir="samples/specweb2005/lib"/>
         <copy todir="samples/specweb2005"
             overwrite="true" preservelastmodified="true"
             includeEmptyDirs="true" verbose="true">
