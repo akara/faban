@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ParamRepository.java,v 1.7 2008/02/09 07:56:46 akara Exp $
+ * $Id: ParamRepository.java,v 1.8 2008/04/02 07:24:50 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -29,6 +29,9 @@ import com.sun.faban.common.NameValuePair;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.ArrayList;
+
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Node;
 
 /**
  * The ParamRepository is the programmatic representation of the
@@ -154,7 +157,7 @@ public class ParamRepository {
         return list;
     }
 
-        /**
+    /**
      * Obtains the host:port name value pair list from the element
      * matching this XPath.
      * @param xPathExpr
@@ -163,6 +166,28 @@ public class ParamRepository {
      */
     public List<NameValuePair<Integer>> getHostPorts(String xPathExpr) {
         return reader.getHostPorts(xPathExpr);
+    }
+
+    public List<NameValuePair<String>> getHostTypes() {
+        String hostsXPath = "fa:hostConfig/fa:host";
+        ArrayList<NameValuePair<String>> hostTypeList =
+                new ArrayList<NameValuePair<String>>();
+        NodeList nodes = reader.getNodeList(hostsXPath);
+        int length = nodes.getLength();
+        for (int i = 0; i < length; i++) {
+            Node node = nodes.item(i);
+            Node typeNode = node.getParentNode().getParentNode();
+            String type = typeNode.getNodeName();
+            String hosts = node.getFirstChild().getNodeValue();
+            StringTokenizer st = new StringTokenizer(hosts, " ,");
+            while (st.hasMoreTokens()) {
+                NameValuePair<String> hostType = new NameValuePair<String>();
+                hostType.name = st.nextToken();
+                hostType.value = type;
+                hostTypeList.add(hostType);
+            }
+        }
+        return hostTypeList;
     }
 
     /**

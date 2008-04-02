@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunContext.java,v 1.11 2008/03/14 06:38:21 akara Exp $
+ * $Id: RunContext.java,v 1.12 2008/04/02 07:24:50 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -246,7 +246,7 @@ public class RunContext {
      * @return The true host name
      */
     public static String getHostName(String host) {
-        return CmdService.getHandle().getHostName(host);
+        return CmdService.getHandle().getHostTypes().getHostByAlias(host);
     }
 
     /**

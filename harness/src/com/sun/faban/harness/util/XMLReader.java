@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: XMLReader.java,v 1.11 2008/02/26 19:28:21 akara Exp $
+ * $Id: XMLReader.java,v 1.12 2008/04/02 07:24:49 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -371,6 +371,23 @@ public class XMLReader {
                                                                 xPathExpr, e);
         }
         return hostsPorts;
+    }
+
+    public NodeList getNodeList(String xPathExpr) {
+        NodeList nodes = null;
+        if(xPathExpr.charAt(0) != '/')
+            xPathExpr = "//" + xPathExpr;
+        else    //the JXPathContext expects 'params' which is the variable name returned by XMLFile
+            xPathExpr = "params" + xPathExpr;
+
+        try {
+            nodes = (NodeList) xPath.evaluate(xPathExpr,
+                                                doc, XPathConstants.NODESET);
+        } catch (XPathExpressionException e) {
+            logger.log(Level.WARNING, "Error processing XPath expression: " +
+                                                                xPathExpr, e);
+        }
+        return nodes;
     }
 
     public static void main(String[] args) throws Exception {

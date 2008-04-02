@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.35 2008/03/15 07:31:44 akara Exp $
+ * $Id: CmdService.java,v 1.36 2008/04/02 07:24:49 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -30,6 +30,7 @@ import com.sun.faban.harness.agent.CmdAgent;
 import com.sun.faban.harness.agent.FileAgent;
 import com.sun.faban.harness.agent.FileService;
 import com.sun.faban.harness.common.Config;
+import com.sun.faban.harness.common.HostTypes;
 import com.sun.faban.harness.util.CmdMap;
 
 import com.sun.faban.harness.util.InterfaceProbe;
@@ -99,6 +100,8 @@ final public class CmdService { 	// The final keyword prevents clones
     private Map<String, String> ifMap;
 
     private String rsh, agent;
+
+    HostTypes hostTypes;
 
 
     private CmdService() {
@@ -824,7 +827,15 @@ final public class CmdService { 	// The final keyword prevents clones
     }
 
     /**
-     * Return the hostname of this machine as known to this machine
+     * Obtains the cached HostType object. Note that this is not a public API.
+     * @return The cached HostType object;
+     */
+    public HostTypes getHostTypes() {
+        return hostTypes;
+    }
+
+    /**
+     * Returns the hostname of this machine as known to this machine
      * itself. This method is included in order to solve a Naming problem
      * related to the names of the tpcw result files to be transferred to the
      * the master machine.
