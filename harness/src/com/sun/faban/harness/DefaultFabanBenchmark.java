@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DefaultFabanBenchmark.java,v 1.12 2007/10/16 09:25:40 akara Exp $
+ * $Id: DefaultFabanBenchmark.java,v 1.13 2008/04/04 22:09:28 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -274,7 +274,7 @@ public class DefaultFabanBenchmark implements Benchmark {
                 logger.info("Starting " + agentType + "Agent[" + agentId +
                         "] on host " + hostName + '.');
                 Command agent = new Command("com.sun.faban.driver.core." +
-                        "AgentImpl " + agentType + " " + agentId + " " +
+                        "AgentImpl", agentType, String.valueOf(agentId),
                         getMasterIP());
                 agent.setSynchronous(false);
                 java(hostName, agent);
@@ -298,15 +298,16 @@ public class DefaultFabanBenchmark implements Benchmark {
         }
 
         // Start the master
-        c = new Command("-Dbenchmark.config=" + getParamFile() +
-                " -Dfaban.outputdir.unique=true com.sun.faban.driver.core.MasterImpl");
+        c = new Command("-Dbenchmark.config=" + getParamFile(),
+                "-Dfaban.outputdir.unique=true",
+                "com.sun.faban.driver.core.MasterImpl");
         c.setSynchronous(false);
 
         masterHandle = java(c);
 
         // Wait until the master gets to rampup before we give back control.
         // This will ensure the tools start at correct times.
-        java(new Command("com.sun.faban.driver.core.PingMaster RAMPUP"));
+        java(new Command("com.sun.faban.driver.core.PingMaster", "RAMPUP"));
         logger.info("Ramp up started");
     }
 

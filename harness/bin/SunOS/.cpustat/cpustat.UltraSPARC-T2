@@ -1,0 +1,72 @@
+RUNTIME=600
+
+if [ -n "${1}" ] ; then
+  RUNTIME=${1}
+fi
+
+/usr/sbin/cpustat \
+	-c pic0=Idle_strands,pic1=Instr_cnt \
+	-c pic0=Idle_strands,pic1=Instr_cnt,nouser,sys \
+	-c pic0=Idle_strands,pic1=Instr_cnt,sys \
+	-c pic0=Idle_strands,pic1=Instr_cnt,hpriv \
+	-c pic0=Instr_ld,pic1=Instr_cnt \
+	-c pic0=Instr_ld,pic1=Instr_cnt,nouser,sys \
+	-c pic0=Instr_ld,pic1=Instr_cnt,sys \
+	-c pic0=Instr_ld,pic1=Instr_cnt,hpriv \
+	-c pic0=Instr_st,pic1=Instr_cnt \
+	-c pic0=Instr_st,pic1=Instr_cnt,nouser,sys \
+	-c pic0=Instr_st,pic1=Instr_cnt,sys \
+	-c pic0=Instr_st,pic1=Instr_cnt,hpriv \
+	-c pic0=Instr_sw,pic1=Instr_cnt \
+	-c pic0=Instr_sw,pic1=Instr_cnt,nouser,sys \
+	-c pic0=Instr_sw,pic1=Instr_cnt,sys \
+	-c pic0=Instr_sw,pic1=Instr_cnt,hpriv \
+	-c pic0=Instr_other,pic1=Instr_cnt \
+	-c pic0=Instr_other,pic1=Instr_cnt,nouser,sys \
+	-c pic0=Instr_other,pic1=Instr_cnt,sys \
+	-c pic0=Instr_other,pic1=Instr_cnt,hpriv \
+	-c pic0=Br_completed,pic1=Instr_cnt \
+	-c pic0=Br_completed,pic1=Instr_cnt,nouser,sys \
+	-c pic0=Br_completed,pic1=Instr_cnt,sys \
+	-c pic0=Br_completed,pic1=Instr_cnt,hpriv \
+	-c pic0=Br_taken,pic1=Instr_cnt \
+	-c pic0=Br_taken,pic1=Instr_cnt,nouser,sys \
+	-c pic0=Br_taken,pic1=Instr_cnt,sys \
+	-c pic0=Br_taken,pic1=Instr_cnt,hpriv \
+	-c pic0=Instr_FGU_arithmetic,pic1=Instr_cnt \
+	-c pic0=Instr_FGU_arithmetic,pic1=Instr_cnt,nouser,sys \
+	-c pic0=Instr_FGU_arithmetic,pic1=Instr_cnt,sys \
+	-c pic0=Instr_FGU_arithmetic,pic1=Instr_cnt,hpriv \
+	-c pic0=ITLB_miss,pic1=DTLB_miss \
+	-c pic0=ITLB_miss,pic1=DTLB_miss,nouser,sys \
+	-c pic0=ITLB_miss,pic1=DTLB_miss,sys \
+	-c pic0=ITLB_miss,pic1=DTLB_miss,hpriv \
+	-c pic0=ITLB_HWTW_ref_L2,pic1=ITLB_HWTW_miss_L2 \
+	-c pic0=ITLB_HWTW_ref_L2,pic1=ITLB_HWTW_miss_L2,nouser,sys \
+	-c pic0=ITLB_HWTW_ref_L2,pic1=ITLB_HWTW_miss_L2,sys \
+	-c pic0=ITLB_HWTW_ref_L2,pic1=ITLB_HWTW_miss_L2,hpriv \
+	-c pic0=DTLB_HWTW_ref_L2,pic1=DTLB_HWTW_miss_L2 \
+	-c pic0=DTLB_HWTW_ref_L2,pic1=DTLB_HWTW_miss_L2,nouser,sys \
+	-c pic0=DTLB_HWTW_ref_L2,pic1=DTLB_HWTW_miss_L2,sys \
+	-c pic0=DTLB_HWTW_ref_L2,pic1=DTLB_HWTW_miss_L2,hpriv \
+	-c pic0=IC_miss,pic1=DC_miss \
+	-c pic0=IC_miss,pic1=DC_miss,nouser,sys \
+	-c pic0=IC_miss,pic1=DC_miss,sys \
+	-c pic0=IC_miss,pic1=DC_miss,hpriv \
+	-c pic0=L2_imiss,pic1=L2_dmiss_ld \
+	-c pic0=L2_imiss,pic1=L2_dmiss_ld,nouser,sys \
+	-c pic0=L2_imiss,pic1=L2_dmiss_ld,sys \
+	-c pic0=L2_imiss,pic1=L2_dmiss_ld,hpriv \
+	-c pic0=MMU_ld_to_PCX,pic1=CPU_ifetch_to_PCX \
+	-c pic0=MMU_ld_to_PCX,pic1=CPU_ifetch_to_PCX,nouser,sys \
+	-c pic0=MMU_ld_to_PCX,pic1=CPU_ifetch_to_PCX,sys \
+	-c pic0=MMU_ld_to_PCX,pic1=CPU_ifetch_to_PCX,hpriv \
+	-c pic0=Stream_ld_to_PCX,pic1=Stream_st_to_PCX \
+	-c pic0=Stream_ld_to_PCX,pic1=Stream_st_to_PCX,nouser,sys \
+	-c pic0=Stream_ld_to_PCX,pic1=Stream_st_to_PCX,sys \
+	-c pic0=Stream_ld_to_PCX,pic1=Stream_st_to_PCX,hpriv \
+	-c pic0=CPU_ld_to_PCX,pic1=CPU_st_to_PCX \
+	-c pic0=CPU_ld_to_PCX,pic1=CPU_st_to_PCX,nouser,sys \
+	-c pic0=CPU_ld_to_PCX,pic1=CPU_st_to_PCX,sys \
+	-c pic0=CPU_ld_to_PCX,pic1=CPU_st_to_PCX,hpriv 1 ${RUNTIME}
+#	-c pic0=CPU_ld_to_PCX,pic1=CPU_st_to_PCX,sys 1 672

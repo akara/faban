@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileHelper.java,v 1.12 2007/09/08 01:21:14 akara Exp $
+ * $Id: FileHelper.java,v 1.13 2008/04/04 22:09:27 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -316,8 +316,7 @@ public class FileHelper {
 
         String jarCmd = Utilities.getJavaHome() + File.separator + "bin" +
                 File.separator + "jar";
-        Command cmd = new Command(jarCmd + " cf " + jarPath +
-                ' ' + fileNames);
+        Command cmd = new Command(jarCmd, "cf", jarPath, fileNames);
         cmd.setWorkingDirectory(dir);
         try {
             CommandHandle handle = cmd.execute();
@@ -342,7 +341,7 @@ public class FileHelper {
         logger.fine("Unjar'ring " + jarPath + " to " + outputDir + '.');
         String jarCmd = Utilities.getJavaHome() + File.separator + "bin" +
                 File.separator + "jar";
-        Command cmd = new Command(jarCmd + " xf " + jarPath);
+        Command cmd = new Command(jarCmd, "xf", jarPath);
         cmd.setWorkingDirectory(outputDir);
         try {
             CommandHandle handle = cmd.execute();

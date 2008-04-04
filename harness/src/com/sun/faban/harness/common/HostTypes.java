@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: HostTypes.java,v 1.1 2008/04/02 07:24:49 akara Exp $
+ * $Id: HostTypes.java,v 1.2 2008/04/04 22:09:26 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -38,9 +38,9 @@ public class HostTypes {
 
     private static final String FS = "\t"; // Field Separator
 
-    HashMap<String, Type> typeMap = new HashMap<String, Type>();
-    HashMap<String, Host> hostMap = new HashMap<String, Host>();
-    HashMap<String, Alias> aliasMap = new HashMap<String, Alias>();
+    LinkedHashMap<String, Type> typeMap = new LinkedHashMap<String, Type>();
+    LinkedHashMap<String, Host> hostMap = new LinkedHashMap<String, Host>();
+    LinkedHashMap<String, Alias> aliasMap = new LinkedHashMap<String, Alias>();
 
     /**
      * Constructs the HostTypes at benchmark run time from the benchmark
@@ -50,49 +50,69 @@ public class HostTypes {
     public HostTypes(ParamRepository par) {
         CmdService cmds = CmdService.getHandle();
         List<NameValuePair<String>> hostTypes = par.getHostTypes();
+        ArrayList<String> drivers = new ArrayList<String>();
+
         for (NameValuePair<String> hostType : hostTypes) {
-            Alias a = aliasMap.get(hostType.name);
-            if (a == null) {
-                a = new Alias();
-                a.name = hostType.name;
-                aliasMap.put(hostType.name, a);
-            }
+
             // We need to map certain type names to be more understandable.
             String typeName = hostType.value;
-            if ("fa:runConfig".equals(typeName)) {
-                typeName = "Driver";
-            } else {
-                StringBuilder b = new StringBuilder(typeName);
-                if (typeName.endsWith("Config"))
-                    b.setLength(typeName.length() - "Config".length());
-                b.setCharAt(0, Character.toUpperCase(b.charAt(0)));
-                typeName = b.toString();
+            if (typeName.endsWith(":runConfig")) {
+                // Save the drivers for last. The result stats will be ordered
+                // this way and the drivers are least relevant in a run.
+                // In some cases, we have 60 driver systems and we don't want
+                // the user to wade through the 60 entries to find the
+                // SUT components last.
+                drivers.add(hostType.name);
+                continue;
             }
 
-            // Then we use this new name in our type map.
-            Type t = typeMap.get(typeName);
-            if (t == null) {
-                t = new Type();
-                t.name = typeName;
-                typeMap.put(typeName, t);
-            }
-            a.types.add(t);
-            t.aliases.add(a);
+            StringBuilder b = new StringBuilder(typeName);
+            if (typeName.endsWith("Config"))
+                b.setLength(typeName.length() - "Config".length());
+            b.setCharAt(0, Character.toUpperCase(b.charAt(0)));
+            typeName = b.toString();
 
-            String hostName = null;
-            if (a.host == null) {
-                hostName = cmds.getHostName(a.name);
-                a.host = hostMap.get(hostName);
-            }
-            if (a.host == null) {
-                a.host = new Host();
-                a.host.name = hostName;
-                hostMap.put(a.host.name, a.host);
-            }
-            a.host.aliases.add(a);
-            a.host.types.add(t);
-            t.hosts.add(a.host);
+            constructHostType(hostType.name, typeName, cmds);
+
         }
+
+        // Now process the drivers
+        for (String aliasName : drivers)
+            constructHostType(aliasName, "Driver", cmds);
+    }
+
+    private void constructHostType(String aliasName, String typeName,
+                                   CmdService cmds) {
+        Alias a = aliasMap.get(aliasName);
+        if (a == null) {
+            a = new Alias();
+            a.name = aliasName;
+            aliasMap.put(aliasName, a);
+        }
+
+        // Then we use this new name in our type map.
+        Type t = typeMap.get(typeName);
+        if (t == null) {
+            t = new Type();
+            t.name = typeName;
+            typeMap.put(typeName, t);
+        }
+        a.types.add(t);
+        t.aliases.add(a);
+
+        String hostName = null;
+        if (a.host == null) {
+            hostName = cmds.getHostName(a.name);
+            a.host = hostMap.get(hostName);
+        }
+        if (a.host == null) {
+            a.host = new Host();
+            a.host.name = hostName;
+            hostMap.put(a.host.name, a.host);
+        }
+        a.host.aliases.add(a);
+        a.host.types.add(t);
+        t.hosts.add(a.host);
     }
 
     /**
@@ -183,6 +203,18 @@ public class HostTypes {
     }
 
     /**
+     * Returns the list of hosts in the run in the order their aliases
+     * are referred to in the configuration file.
+     * @return The host list
+     */
+    public String[] getHostsInOrder() {
+        Set<String> hostSet = hostMap.keySet();
+        String[] hosts = new String[hostSet.size()];
+        hosts = hostSet.toArray(hosts);
+        return hosts;
+    }
+
+    /**
      * Obtains the hosts pertaining to a certain type or function in the
      * benchmark run.
      * @param type The type name.
@@ -254,6 +286,26 @@ public class HostTypes {
     }
 
     /**
+     * Obtains the aliases that are used for a certain host in a certain
+     * function.
+     * @param host The host name
+     * @param type The type name
+     * @return An array of applicable aliases
+     */
+    public String[] getAliasesByHostAndType(String host, String type) {
+        Host h = hostMap.get(host);
+        Type t = typeMap.get(type);
+        HashSet<Alias> aliasSet = new HashSet<Alias>(h.aliases);
+        aliasSet.retainAll(t.aliases); // Intersect between the two sets.
+        String[] aliases = new String[aliasSet.size()];
+        int i = 0;
+        for (Alias a : aliasSet) {
+            aliases[i++] = a.name;
+        }
+        return aliases;
+    }
+
+    /**
      * Obtains the real host name referred to by an alias.
      * @param alias The alias name
      * @return The real host name
@@ -283,10 +335,11 @@ public class HostTypes {
     }
 
 
+
     static class Type {
         public String name;
-        public HashSet<Host> hosts = new HashSet<Host>();
-        public HashSet<Alias> aliases = new HashSet<Alias>();
+        public LinkedHashSet<Host> hosts = new LinkedHashSet<Host>();
+        public LinkedHashSet<Alias> aliases = new LinkedHashSet<Alias>();
 
         @Override public boolean equals(Object obj) {
             boolean retVal = false;
@@ -305,8 +358,8 @@ public class HostTypes {
 
     static class Host {
         public String name;
-        public HashSet<Type> types = new HashSet<Type>();
-        public HashSet<Alias> aliases = new HashSet<Alias>();
+        public LinkedHashSet<Type> types = new LinkedHashSet<Type>();
+        public LinkedHashSet<Alias> aliases = new LinkedHashSet<Alias>();
 
         @Override public boolean equals(Object obj) {
             boolean retVal = false;
@@ -326,7 +379,7 @@ public class HostTypes {
     static class Alias {
         public String name;
         public Host host;
-        public HashSet<Type> types = new HashSet<Type>();
+        public LinkedHashSet<Type> types = new LinkedHashSet<Type>();
 
         @Override public boolean equals(Object obj) {
             boolean retVal = false;

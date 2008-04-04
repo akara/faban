@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: statsnavigator.jsp,v 1.6 2007/09/08 01:21:15 akara Exp $
+ * $Id: statsnavigator.jsp,v 1.7 2008/04/04 22:09:29 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -30,7 +30,8 @@
                                  java.io.File,
                                  com.sun.faban.harness.common.BenchmarkDescription,
                                  java.util.*,
-                                 com.sun.faban.harness.webclient.Result"%>
+                                 com.sun.faban.harness.webclient.Result,
+                                 com.sun.faban.harness.common.HostTypes"%>
 <%
     String runId = request.getParameter("runId");
 
@@ -62,7 +63,7 @@
 
         // Then proces the sysinfo files...
         if (fileName.startsWith("sysinfo.")) {
-            String toolName = "System&nbsp;Info";
+            String toolName = "SystemInfo";
             String hostName = fileName.substring(8, fileName.length() - 5);
 
             // drop the domain part of the host.
@@ -121,17 +122,70 @@
             toolFiles.add(fileName);
         }
     }
+
+    File hosttypes = new File(outDir, "META-INF");
+    hosttypes = new File(hosttypes, "hosttypes");
+    HostTypes hostTypes = null;
+    if (hosttypes.isFile()) {
+        hostTypes = new HostTypes(hosttypes.getAbsolutePath());
+    }
 %>
 <html>
     <head>
-        <title>JESMark Statistics for Run <%=runId%></title>
+        <title>Statistics for Run <%=runId%></title>
         <link rel="icon" type="image/gif" href="img/faban.gif">
         <% if (!finished) { %>
             <meta http-equiv="refresh" content="10">
         <% } %>
-
+        <%
+            String[] hosts;
+            if (hostTypes != null) { // If we know the types, order by relevance in that type.
+                hosts = hostTypes.getHostsInOrder();
+        %>
+        <link rel="stylesheet" type="text/css" href="css/balloontip.css" />
+        <script type="text/javascript" src="scripts/balloontip.js"/>
+        <!--
+   /***********************************************
+    * Rich HTML Balloon Tooltip- © Dynamic Drive DHTML code library (www.dynamicdrive.com)
+    * This notice MUST stay intact for legal use
+    * Visit Dynamic Drive at http://www.dynamicdrive.com/ for full source code
+    ***********************************************/
+         -->
+         <%
+            } else { // If we don't know the types, order by name
+                Set<String> hostSet = allHosts.keySet();
+                hosts = new String[hostSet.size()];
+                hosts = hostSet.toArray(hosts);
+            }
+         %>
     </head>
     <body>
+        <%
+            if (hostTypes != null)
+                for (String hostName : hosts) {
+                    String[] types = hostTypes.getTypesByHost(hostName);
+        %>
+        <div id="<%= hostName %>_balloon" class="balloonstyle" style="background-color: lightyellow">
+        <%
+                    StringBuilder b = new StringBuilder();
+                    for (String type : types) {
+                        String[] aliases = hostTypes.getAliasesByHostAndType(hostName, type);
+                        if (aliases.length == 0)
+                            aliases = null;
+                        if (aliases.length == 1 && hostName.equals(aliases[0]))
+                            aliases = null;
+                        b.append("<b>").append(type).append("</b>");
+                        if (aliases != null) {
+                            b.append(": ").append(aliases[0]);
+                            for (int i = 1; i < aliases.length; i++)
+                                b.append(", ").append(aliases[i]);
+                        }
+                        b.append("<br/>\n");
+                    }
+                    out.print(b.toString());
+        %>
+        </div>
+        <%      } %>
         <table cellpadding="2" cellspacing="0" border="1" width="80%" align="center">
             <% if (allHosts.size() == 0) {
                     if (!finished) {
@@ -143,29 +197,31 @@
                } else { %>
                  <tbody>
                  <tr>
-                     <th>System&nbsp;Name</th>
-                     <th>System&nbsp;Info</th>
-                     <% for (Iterator<String> iter = allTools.iterator(); iter.hasNext();) { %>
-                              <th><%= iter.next() %></th>
-                      <% } %>
+                     <th>System</th>
+                     <% for (String tool : allTools) { %>
+                        <th><%= tool %></th>
+                     <% } %>
                  </tr>
-                 <% for (Iterator<String> hostIter = allHosts.keySet().iterator(); hostIter.hasNext();) {
-                        String host = hostIter.next();
+                 <% for (String host : hosts) {
                         HashSet<String> toolSet = allHosts.get(host);
+                        if (toolSet == null)
+                            continue;
                  %>
                  <tr>
-                        <td style="text-align: left;"><%= host %></td>
-                     <% if (toolSet.contains("System&nbsp;Info")) {
+                     <% if (toolSet.contains("SystemInfo")) {
                              String fullName = infoHostMap.get(host);
                              if (fullName == null)
                                  fullName = host;
+                             String relClause = " ";
+                             if (hostTypes != null)
+                                 relClause = "rel=\"" + host + "_balloon\" ";
+                                 
                      %>
-                        <td style="text-align: center;"><a href="output/<%= runId %>/sysinfo.<%= fullName %>.html"><img src="img/view.gif" alt="View" border="0"></img></a></td>
+                        <td style="text-align: left;"><a <%= relClause %>href="output/<%= runId %>/sysinfo.<%= fullName %>.html"><%= host %></a></td>
                      <% } else { %>
-                        <td style="text-align: center;">&nbsp;</td>
+                        <td style="text-align: left;"><%= host %></td>
                      <% }
-                        for (Iterator<String> iter = allTools.iterator(); iter.hasNext();) {
-                            String tool = iter.next();
+                        for (String tool : allTools) {
                             if (toolSet.contains(tool)) {
                                 String fullName = toolHostMap.get(host);
                                 if (fullName == null)

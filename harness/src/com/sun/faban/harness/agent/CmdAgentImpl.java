@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgentImpl.java,v 1.19 2008/03/15 07:31:43 akara Exp $
+ * $Id: CmdAgentImpl.java,v 1.20 2008/04/04 22:09:24 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -76,7 +76,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
                                                 new ArrayList<CommandHandle>());
 
     private String[] baseClassPath;
-    Map<String, String> binMap;
+    Map<String, List<String>> binMap;
     private ArrayList<String> javaCmd;
 
     static class CmdProcess {
@@ -854,9 +854,9 @@ public class CmdAgentImpl extends UnicastRemoteObject
         String bin = cmd.get(0);
         if (bin.indexOf(File.separator) == -1) {
             // not an absolute path
-            String path = binMap.get(bin);
-            if (path != null) // Don't find it, just try as is
-                cmd.set(0, path);
+            List<String> prefixes = binMap.get(bin);
+            if (prefixes != null) // Don't find it, just try as is
+                CmdMap.replaceFirst(cmd, prefixes);
         }
         return cmd;
     }
@@ -938,14 +938,13 @@ public class CmdAgentImpl extends UnicastRemoteObject
      * @param gmtTimeString Time string in format
      */
     public void setTime(String gmtTimeString) {
-        String cmdLine = "date -u " + gmtTimeString;
-        Command c = new Command(cmdLine);
+        Command c = new Command("date", "-u", gmtTimeString);
         c.setLogLevel(Command.STDOUT, Level.FINER);
         c.setLogLevel(Command.STDERR, Level.WARNING);
         try {
             int exitValue = c.execute(this).exitValue();
             if (exitValue != 0)
-                logger.log(Level.WARNING, "Error on \"" + cmdLine +
+                logger.log(Level.WARNING, "Error on \"" + c +
                         "\" command trying to set the date. Exit value: " +
                         exitValue);
         } catch (IOException e) {

@@ -11,8 +11,8 @@ postprocess() {
 
     # Cpustat postprocessing scripts are maintained by FenXi
     # to match with FenXi input format.
-    if [ -n "$BINDIR" ] ; then
-        CPUSTAT_POST=`cd $BINDIR/../../master/webapps/fenxi/txt2xml/cpustat-post> /dev/null 2>&1 && pwd`
+    if [ -n "${BINDIR}" ] ; then
+        CPUSTAT_POST=`cd ${BINDIR}/.cpustat> /dev/null 2>&1 && pwd`
     fi
 
     # Obtain cpustat interface from file header.

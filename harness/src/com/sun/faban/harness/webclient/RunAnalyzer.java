@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunAnalyzer.java,v 1.4 2008/03/17 21:07:22 akara Exp $
+ * $Id: RunAnalyzer.java,v 1.5 2008/04/04 22:09:27 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import java.util.HashSet;
+import java.util.ArrayList;
 
 /**
  * Run Analyzer that handles all the backend tasks to analyze the runs.
@@ -134,13 +135,13 @@ public class RunAnalyzer {
             throw new IOException("Failed creating directory " +
                                     analysisDir +'!');
         }
-        StringBuilder cmd = new StringBuilder(256);
-        cmd.append(Config.BIN_DIR.trim()).append("fenxi ").
-            append(type);
+        ArrayList<String> cmd = new ArrayList<String>();
+        cmd.add(Config.BIN_DIR.trim() + "fenxi");
+        cmd.add(type.toString());
         for (String runId : runIdStrings)
-            cmd.append(' ').append(Config.OUT_DIR).append(runId);
+            cmd.add(Config.OUT_DIR + runId);
 
-        cmd.append(' ').append(Config.ANALYSIS_DIR).append(output);
+        cmd.add(Config.ANALYSIS_DIR + output);
 
         // Before we put anything in, we deal with security.
         File metaDir = new File(analysisDir, "META-INF");
@@ -152,8 +153,7 @@ public class RunAnalyzer {
         if (user != null)
             FileHelper.writeStringToFile(user, new File(metaDir, "submitter"));
 
-        logger.info("Executing: " + cmd.toString());
-        Command c = new Command(cmd.toString());
+        Command c = new Command(cmd);
         try {
             c.execute();
         } catch (InterruptedException e) {

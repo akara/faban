@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DeployUtil.java,v 1.12 2008/03/01 08:36:10 akara Exp $
+ * $Id: DeployUtil.java,v 1.13 2008/04/04 22:09:27 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.Date;
+import java.util.ArrayList;
 import java.text.SimpleDateFormat;
 
 /**
@@ -123,13 +124,16 @@ public class DeployUtil {
                         classpath += File.pathSeparator + benchLib +
                                      File.separator + jarFiles[i];
 
-                String ddCmd = Utilities.getJavaHome() + File.separator +
-                               "bin" + File.separator + "java -classpath " +
-                               classpath + " -Dbenchmark.config=" + configFile +
-                               " -Dbenchmark.ddfile=faban.xml" +
-                               " -Djava.util.logging.config.file=" +
-                               Config.CONFIG_DIR + "logging.properties" +
-                               " com.sun.faban.driver.util.DDGenerator";
+                ArrayList<String> ddCmd = new ArrayList<String>();
+                ddCmd.add(Utilities.getJavaHome() + File.separator +
+                               "bin" + File.separator + "java");
+                ddCmd.add("-classpath");
+                ddCmd.add(classpath);
+                ddCmd.add("-Dbenchmark.config=" + configFile);
+                ddCmd.add("-Dbenchmark.ddfile=faban.xml");
+                ddCmd.add("-Djava.util.logging.config.file=" +
+                               Config.CONFIG_DIR + "logging.properties");
+                ddCmd.add("com.sun.faban.driver.util.DDGenerator");
 
                 Command cmd = new Command(ddCmd);
                 cmd.setWorkingDirectory(metaInf);

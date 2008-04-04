@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Cpustat.java,v 1.4 2007/02/22 02:40:04 akara Exp $
+ * $Id: Cpustat.java,v 1.5 2008/04/04 22:09:27 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -59,18 +59,18 @@ public class Cpustat extends GenericTool {
         super.xferLog();
 
         // Do the post-processing after the transfer.
-        String cs = "cpustat-post " + outfile;
+        Command c = null;
         try {
 
             // Run postprocessor on master
-            Command c = new Command(cs);
+            c = new Command("cpustat-post", outfile);
             c.setOutputFile(Command.STDOUT, postFile);
             CmdAgent masterAgent = (CmdAgent) CmdAgentImpl.getRegistry().
                                    getService(Config.CMD_AGENT);
             masterAgent.execute(c);
 
         } catch (IOException e) {
-            logger.log(Level.SEVERE, "Error executing " + cs, e);
+            logger.log(Level.SEVERE, "Error executing " + c, e);
         } catch (InterruptedException e) {
             logger.log(Level.SEVERE, "cpustat postprocessor interrupted.", e);
         }

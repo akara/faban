@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ServerConfig.java,v 1.8 2008/03/14 06:38:20 akara Exp $
+ * $Id: ServerConfig.java,v 1.9 2008/04/04 22:09:26 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -331,9 +331,9 @@ class ServerConfig {
         // start and end
         try {
             CommandHandle handle;
-            Command c = new Command("messages \"" +
-                    startMon + " " + startDay + " " + stime + "\" \""  +
-                    endMon + " " + endDay + " " + etime + "\"");
+            Command c = new Command("messages", "\"" +
+                    startMon + " " + startDay + " " + stime + "\"",
+                    "\""  + endMon + " " + endDay + " " + etime + "\"");
             c.setStreamHandling(Command.STDOUT, Command.CAPTURE);
             logger.fine("Getting system messages");
 

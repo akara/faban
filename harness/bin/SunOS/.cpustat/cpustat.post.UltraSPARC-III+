@@ -1,0 +1,1197 @@
+#!/usr/bin/perl
+
+# Tunables
+
+$debug = 0;
+$CpuExp = 5;
+$SysioExp = 5;
+$AcExp = 4;
+#$AcExp = 8; 4 for CH/CH+ , 8 for Jaguar
+$SSMNodes = 4;
+$MC_CAP = 8.33;
+$MC_BDCAP = 11.9;
+
+# Get options 
+
+if ($#ARGV == -1) {&usage();}
+
+while ($#ARGV > -1) {
+	$arg = shift @ARGV;
+	if ( $arg =~ /^-(.)(.*)$/ ) {
+		$flag=$1; $val=$2;
+		$flag2=$flag.$val;
+		if ( $flag eq "i" ) {
+			if ( $val eq "" ) { $val = shift @ARGV;}
+			if ( $val eq "" ) { &usage();}
+			$infile = $val;
+		} elsif ($flag eq "o") {
+			if ( $val eq "" ) { $val = shift @ARGV;}
+			if ( $val eq "" ) { &usage();}
+			$outfile = $val;
+		} elsif ($flag eq "v") {
+			if ( $val ne "")  { &usage();}
+			$verbose = 1;
+		} elsif ($flag2 eq "ac") {
+			$aconly = 1;
+		} elsif ($flag2 eq "sysio") {
+			$sysioonly = 1;
+		} elsif ($flag2 eq "cpu") {
+			$cpuonly = 1;
+		} elsif ($flag2 eq "uk") {
+			$ukonly = 1;
+		} elsif ($flag2 eq "wfi") {
+			$wfionly = 1;
+		} elsif ($flag2 eq "avg") {
+			$avgonly = 1;
+		} elsif ($flag2 eq "eavg") {
+			$eavgonly = 1;
+		} else { &usage(); }
+	} elsif ( $arg =~ /^(.*)$/ ) {
+		$infile = $1;
+	}
+}
+
+# if no flags are set or if verbose flag is set  then  set all flags.
+
+if ( !($aconly || $sysioonly || $cpuonly || $wfionly || $avgonly || $eavgonly) || $verbose ) {
+	$aconly = $sysioonly = $cpuonly = $wfionly =$avgonly = $eavgonly = 1;
+}
+
+if (defined $infile) {
+	open(STDIN, "<$infile") || die "Could not open $infile\n";
+}
+
+if (defined $outfile) {
+	open(STDOUT, ">$outfile") || die "Could not open $outfile\n";
+}
+
+
+$word = "[a-zA-Z,=0-9_-]+";
+$smallword = "[a-zA-Z]+";
+$num = "[0-9]+";
+$dec = "[0-9]+\.[0-9]+|[0-9]+|\.[0-9]+|[0-9]+\.";
+$time = 0;
+$total_tx = `grep "Total number of transactions" summary 2>/dev/null | awk '{print \$6}'`;
+$runtime = `grep "^Run-time" summary 2>/dev/null | awk '{print \$3}'`;
+if ($runtime > 0 && $total_tx > 0 ) {
+$tps = $total_tx/$runtime  || die "Could not open summary\n";
+}
+#@psr_list = `grep since report|grep -v off-line`;
+#@psr_list =  (0,1,2,3,32,33,34,35);
+@psr_list = `grep -v total $infile |nawk 'NR > 1 {print \$2"\t"}' |sort -n |uniq`;
+if ($debug) {
+	print   
+	"
+	Assumptions:
+	The counts are in millions and not mill/sec or percents
+	Process ID in the output ignored.
+	", 2 ** $CpuExp," processors per SSM node.
+	", 2 ** $SysioExp," I/O boards per SSM node.
+	", 2 ** $AcExp," address controllers per SSM node.
+
+";
+	print "X" x 80,"\n";
+	print "The following lines in the input were ignored\n";
+	print "X" x 80,"\n";
+}
+
+# ++++++++++++++changed by ZYF(cpustat)
+while ($line = <STDIN>) {
+	chop $line;
+	if ( $line =~ /^\s*($dec)\s*($num)\s*($smallword)\s*($num)\s*($num)\s*\x23\s*($word)\s*$/ ){
+	#if ( $line =~ /^($dec)\s*($num)\s*($smallword)\s*($num)\s*($num)\s*($word)\s*$/ ){
+
+                #Pprint " $1,  $2, $3, $4, $5, $6 \n";
+                if ( $time == 0 ) { $time = $1;}
+                if ( $3 =~/total/ ) { last;}
+                $ctr_set = "cpu";
+                $instance = $2;
+                $cnt_a = ($4/1000000);
+                @list=split(",",$6);
+                @a=split("=",$list[0]);
+                @b=split("=",$list[1]);
+                $ctr_a = $a[1];
+                $ctr_b = $b[1];
+                $mode=$list[2];
+                if ($mode eq "")
+                  {$mode = "u";}
+                if ($mode eq "sys")
+                  {$mode = "uk";}
+                if ($mode eq "nouser")
+                  {$mode = "k";}
+                $cnt_b = ($5/1000000);
+                $hash_a = join(",", ("cpu",$2,$mode, $ctr_a));
+                $hash_b = join(",", ("cpu",$2,$mode, $ctr_b));
+                $time{$hash_a} += $time;
+                $count{$hash_a} += $cnt_a;
+                $time{$hash_b} += $time;
+                $count{$hash_b} += $cnt_b;
+        
+        }else {print "\n";}  
+
+}
+# ++++++++++++++changed by ZYF(cpustat)
+
+if ($debug) { print "X" x 80,"\n";}
+
+foreach $ind (keys %time) {
+	($ctr_set, $part_num, $mode, $ctr) = split(",",$ind);
+	$persec{$ind} = $count{$ind}/$time{$ind};
+
+	if ($ctr_set eq "cpu" && $mode eq "uk") {
+		$cpu_total{$ctr} += $persec{$ind};
+		$cpu_total_count{$ctr} += 1;
+		$node = $part_num >> $CpuExp;
+		$cpu_pernode{$node.",".$ctr} += $persec{$ind};
+		$cpu_pernode_count{$node.",".$ctr} += 1;
+		$cpu_per_part_num{$part_num.",".$ctr} += $persec{$ind};
+                $cpu_per_part_num_count{$part_num.",".$ctr} += 1;
+
+	}
+
+	if ($ctr_set eq "cpu" && $mode eq "u") {
+		$user_cpu_total{$ctr} += $persec{$ind};
+		$user_cpu_total_count{$ctr} += 1;
+		$node = $part_num >> $CpuExp;
+		$user_cpu_pernode{$node.",".$ctr} += $persec{$ind};
+		$user_cpu_pernode_count{$node.",".$ctr} += 1;
+		$user_per_part_num{$part_num.",".$ctr} += $persec{$ind};
+                $user_per_part_num_count{$part_num.",".$ctr} += 1;
+       #         print "$ctr, $user_cpu_total{$ctr} \n";
+	}
+
+	if ($ctr_set eq "cpu" && $mode eq "k") {
+		$kernel_cpu_total{$ctr} += $persec{$ind};
+		$kernel_cpu_total_count{$ctr} += 1;
+		$node = $part_num >> $CpuExp;
+		$kernel_cpu_pernode{$node.",".$ctr} += $persec{$ind};
+		$kernel_cpu_pernode_count{$node.",".$ctr} += 1;
+		$kernel_per_part_num{$part_num.",".$ctr} += $persec{$ind};
+                $kernel_per_part_num_count{$part_num.",".$ctr} += 1;
+	}
+
+
+	if ($ctr_set eq "AC" || $ctr_set eq "ac") {
+		$ac_total{$ctr} += $persec{$ind};
+		$ac_total_count{$ctr} += 1;
+		$node = $part_num >> $AcExp;
+		$ac_pernode{$node.",".$ctr} += $persec{$ind};
+		$ac_pernode_count{$node.",".$ctr} += 1;
+	}
+}
+
+if ($eavgonly) {
+	&print_event_averages();
+	print "\n";
+}
+
+if ($avgonly) {
+	&print_all_averages();
+}
+
+if ($cpuonly) {
+	printf "CPU statistics\n";
+	printf "--------------\n";
+	&print_cpu_cpi_breakdown();
+	printf "\n";
+	&print_cpu_mips();
+	printf "\n";
+	&print_cpu_cache_stats();
+	printf "\n";
+	printf "\n";
+}
+
+if ($ukonly) {
+	printf "CPU user mode statistics\n";
+	printf "------------------------\n";
+	&print_user_cpu_cpi_breakdown();
+	printf "\n";
+	&print_user_cpu_mips();
+	printf "\n";
+	&print_user_cpu_cache_stats();
+	printf "\n";
+	printf "CPU kernel mode statistics\n";
+	printf "--------------------------\n";
+	&print_kernel_cpu_cpi_breakdown();
+	printf "\n";
+	&print_kernel_cpu_mips();
+	printf "\n";
+	&print_kernel_cpu_cache_stats();
+	printf "\n";
+}
+
+if ($aconly) {
+	print "\n";
+	printf "Memory Banks Statistics\n";
+	printf "-----------------------\n";
+	&print_ALL_ac_membank_stats();
+	print "\n";
+}
+
+sub print_event_averages
+{
+	local ($ctr);
+
+	print "Event_Name #events/sec #instances #events/sec/instance\n";
+	
+	#print "CPU\n";
+	print "\n";
+	foreach $ctr (sort (keys %cpu_total)) {
+		printf("%s %.4f %d %.4f\n",
+							$ctr,
+							$cpu_total{$ctr},
+							$cpu_total_count{$ctr},
+							$cpu_total{$ctr}/$cpu_total_count{$ctr});
+	}
+	#print "AC\n";
+	print "\n";
+	foreach $ctr (sort (keys %ac_total)) {
+		printf("%s %.4f %d %.4f\n",
+							$ctr,
+							$ac_total{$ctr},
+							$ac_total_count{$ctr},
+							$ac_total{$ctr}/$ac_total_count{$ctr});
+	}
+	#print "SYSIO\n";
+	print "\n";
+	foreach $ctr (sort (keys %sysio_total)) {
+		printf("%s %.4f %d %.4f\n",
+							$ctr,
+							$sysio_total{$ctr},
+							$sysio_total_count{$ctr},
+							$sysio_total{$ctr}/$sysio_total_count{$ctr});
+	}
+	#print "WFI\n";
+	print "\n";
+	foreach $ctr (sort (keys %wfi_total)) {
+		printf("%s %.4f %d %.4f\n",
+							$ctr,
+							$wfi_total{$ctr},
+							$wfi_total_count{$ctr},
+							$wfi_total{$ctr}/$wfi_total_count{$ctr});
+	}
+}
+
+sub print_all_averages 
+{
+	local ($before, %part_name, $key, $ctr_set, $part_num, $mode, $ctr);
+	$before = "none";
+	print "Event_name #events/sec Instance_Type Instance_number\n";
+	foreach $key (sort mycmp (keys %time)) {
+		($ctr_set, $part_num, $ctr) = split(",",$key);
+		if ( $before ne $ctr_set ) { print "\n";}
+		printf("%s %.4f %s %d\n",
+					$ctr,
+					$persec{$key},
+					$ctr_set,
+					$part_num);
+		$before = $ctr_set;
+	}
+}
+
+
+
+sub mycmp 
+{
+	($ctr_set_a, $part_num_a, $mode_a, $ctr_a) = split(",", $a);
+	($ctr_set_b, $part_num_b, $mode_b, $ctr_b) = split(",", $b);
+
+	$ctr_set_a cmp $ctr_set_b ||
+	$part_num_a <=> $part_num_b ||
+	$ctr_a cmp $ctr_b;
+}
+
+
+sub print_cpu_cpi_breakdown
+{
+	print "CPI     Data_Stall   IcMiss     BrMiss  FpUse  \n";
+	&print_one_cpu_ratio_tab("Cycle_cnt", "Instr_cnt");
+        &print_cpu_dstall;
+	&print_one_cpu_ratio_tab("Dispatch0_IC_miss", "Instr_cnt");
+	&print_cpu_brmiss;
+	&print_one_cpu_ratio_tab("Rstall_FP_use", "Instr_cnt");
+	printf "\n";
+        print "\nData_stall components\n";
+        print "----------------------\n";
+        print "Dmiss_ehit Dmiss_emiss Dmiss_stall           IU_use     StBuf   RAW \n"; 
+	&print_cpu_dmiss_ehit;
+	&print_cpu_emiss;
+        &print_one_cpu_ratio_tab("Re_DC_miss", "Instr_cnt");
+        print "     ";
+        &print_one_cpu_ratio_tab("Rstall_IU_use", "Instr_cnt");
+	&print_one_cpu_ratio_tab("Rstall_storeQ", "Instr_cnt");
+	&print_one_cpu_ratio_tab("Re_RAW_miss", "Instr_cnt");
+	printf "\n";
+	printf "\n";
+
+	#print "CPI     IcMiss  FpUse  Dmiss_stall  IU_use  StBuf    RAW \n";
+	print "CPI     IcMiss  Dmiss_stall  IU_use   StBuf    RAW \n";
+foreach $psr (@psr_list) {
+                @pnum = split(/\t/, $psr);
+		#printf "psr is %d pnum[0] is(%d)\n",$psr, @pnum[0];
+                &print_one_indiv_cpu_ratio_tab("Cycle_cnt", "Instr_cnt",@pnum[0]);
+                &print_one_indiv_cpu_ratio_tab("Dispatch0_IC_miss", "Instr_cnt",@pnum[0]) ;
+#                &print_one_indiv_cpu_ratio_tab("Rstall_FP_use", "Instr_cnt", @pnum[0]);
+        #print "----------------------\n";
+        #print "Dmiss_stall  IU_use     StBuf   RAW \n"; 
+        print "   ";
+                &print_one_indiv_cpu_ratio_tab("Re_DC_miss", "Instr_cnt", @pnum[0]);
+        print "   ";
+                &print_one_indiv_cpu_ratio_tab("Rstall_IU_use", "Instr_cnt" ,@pnum[0]);
+                &print_one_indiv_cpu_ratio_tab("Rstall_storeQ", "Instr_cnt",@pnum [0]);
+                &print_one_indiv_cpu_ratio_tab("Re_RAW_miss", "Instr_cnt",@pnum[0]);
+                printf "(%d)\n",@pnum[0];
+}
+     printf "\n";
+
+}
+
+sub print_user_cpu_cpi_breakdown
+{
+	print "CPI     Data_Stall   IcMiss     BrMiss  FpUse  \n";
+	&print_one_user_cpu_ratio_tab("Cycle_cnt", "Instr_cnt");
+        &print_user_cpu_dstall;
+	&print_one_user_cpu_ratio_tab("Dispatch0_IC_miss", "Instr_cnt");
+	&print_user_cpu_brmiss;
+	&print_one_user_cpu_ratio_tab("Rstall_FP_use", "Instr_cnt");
+	printf "\n";
+        print "\nData_stall components\n";
+        print "----------------------\n";
+        print "Dmiss_ehit Dmiss_emiss Dmiss_stall           IU_use     StBuf   RAW \n"; 
+	&print_user_cpu_dmiss_ehit;
+	&print_user_cpu_emiss;
+        &print_one_user_cpu_ratio_tab("Re_DC_miss", "Instr_cnt");
+        print "     ";
+        &print_one_user_cpu_ratio_tab("Rstall_IU_use", "Instr_cnt");
+	&print_one_user_cpu_ratio_tab("Rstall_storeQ", "Instr_cnt");
+	&print_one_user_cpu_ratio_tab("Re_RAW_miss", "Instr_cnt");
+	printf "\n";
+	printf "\n";
+
+	#print "CPI     IcMiss  FpUse  Dmiss_stall  IU_use  StBuf    RAW \n";
+	print "CPI     IcMiss  Dmiss_stall  IU_use   StBuf    RAW \n";
+foreach $psr (@psr_list) {
+                @pnum = split(/\t/, $psr);
+                &print_one_indiv_user_cpu_ratio_tab("Cycle_cnt", "Instr_cnt",@pnum[0]);
+                &print_one_indiv_user_cpu_ratio_tab("Dispatch0_IC_miss", "Instr_cnt",@pnum[0]) ;
+#                &print_one_indiv_user_cpu_ratio_tab("Rstall_FP_use", "Instr_cnt", @pnum[0]);
+        #print "----------------------\n";
+        #print "Dmiss_stall  IU_use     StBuf   RAW \n"; 
+        print "   ";
+                &print_one_indiv_user_cpu_ratio_tab("Re_DC_miss", "Instr_cnt", @pnum[0]);
+        print "   ";
+                &print_one_indiv_user_cpu_ratio_tab("Rstall_IU_use", "Instr_cnt" ,@pnum[0]);
+                &print_one_indiv_user_cpu_ratio_tab("Rstall_storeQ", "Instr_cnt",@pnum [0]);
+                &print_one_indiv_user_cpu_ratio_tab("Re_RAW_miss", "Instr_cnt",@pnum[0]);
+                printf "(%d)\n",@pnum[0];
+        }
+
+	printf "\n";
+}
+
+sub print_kernel_cpu_cpi_breakdown
+{
+	print "CPI     Data_Stall   IcMiss     BrMiss  FpUse  \n";
+	&print_one_kernel_cpu_ratio_tab("Cycle_cnt", "Instr_cnt");
+        &print_kernel_cpu_dstall;
+	&print_one_kernel_cpu_ratio_tab("Dispatch0_IC_miss", "Instr_cnt");
+	&print_kernel_cpu_brmiss;
+	&print_one_kernel_cpu_ratio_tab("Rstall_FP_use", "Instr_cnt");
+	printf "\n";
+        print "\nData_stall components\n";
+        print "----------------------\n";
+        print "Dmiss_ehit Dmiss_emiss Dmiss_stall           IU_use     StBuf   RAW \n"; 
+	&print_kernel_cpu_dmiss_ehit;
+	&print_kernel_cpu_emiss;
+	&print_one_kernel_cpu_ratio_tab("Re_DC_miss", "Instr_cnt");
+        print "     ";
+	&print_one_kernel_cpu_ratio_tab("Rstall_IU_use", "Instr_cnt");
+	&print_one_kernel_cpu_ratio_tab("Rstall_storeQ", "Instr_cnt");
+	&print_one_kernel_cpu_ratio_tab("Re_RAW_miss", "Instr_cnt");
+	printf "\n";
+	printf "\n";
+
+	#print "CPI     IcMiss  FpUse  Dmiss_stall  IU_use  StBuf    RAW \n";
+	print "CPI     IcMiss  Dmiss_stall  IU_use   StBuf    RAW \n";
+foreach $psr (@psr_list) {
+                @pnum = split(/\t/, $psr);
+                &print_one_indiv_kernel_cpu_ratio_tab("Cycle_cnt", "Instr_cnt",@pnum[0]);
+                &print_one_indiv_kernel_cpu_ratio_tab("Dispatch0_IC_miss", "Instr_cnt",@pnum[0]) ;
+#                &print_one_indiv_kernel_cpu_ratio_tab("Rstall_FP_use", "Instr_cnt", @pnum[0]);
+        #print "----------------------\n";
+        #print "Dmiss_stall  IU_use     StBuf   RAW \n"; 
+        print "   ";
+                &print_one_indiv_kernel_cpu_ratio_tab("Re_DC_miss", "Instr_cnt", @pnum[0]);
+        print "   ";
+                &print_one_indiv_kernel_cpu_ratio_tab("Rstall_IU_use", "Instr_cnt" ,@pnum[0]);
+                &print_one_indiv_kernel_cpu_ratio_tab("Rstall_storeQ", "Instr_cnt",@pnum [0]);
+                &print_one_indiv_kernel_cpu_ratio_tab("Re_RAW_miss", "Instr_cnt",@pnum[0]);
+                printf "(%d)\n",@pnum[0];
+        }
+
+	printf "\n";
+}
+
+sub print_cpu_mips
+{
+	local ($node, $key);
+
+	print "MIPS\t";
+	printf("%.0f	", $cpu_total{"Instr_cnt"});
+if ($runtime > 0  && $total_tx > 0) {
+        print "TPS\t";
+        printf("%.2f    ", ${tps});
+        print "M-Instr/Txn \t";
+        printf("%.4f    ", $cpu_total{"Instr_cnt"}/${tps});
+        printf "\n";
+}
+	printf "\n";
+	foreach $ind (keys %cpu_per_part_num) {
+        ($part_num,$ctr) = split(",",$ind);
+        if ($ctr eq "Instr_cnt") {
+                printf("CPU %d \t %.0f    \n", $part_num, $cpu_per_part_num{$ind});
+		}
+	}
+	printf "\n";
+}
+
+sub print_user_cpu_mips
+{
+	local ($node, $key);
+
+	print "MIPS\t";
+	printf("%.0f	", $user_cpu_total{"Instr_cnt"});
+if ($runtime > 0  && $total_tx > 0) {
+        print "TPS\t";
+        printf("%.2f    ", ${tps});
+        print "M-Instr/Txn \t";
+        printf("%.4f    ", $user_cpu_total{"Instr_cnt"}/${tps});
+        printf "\n";
+}
+	printf "\n";
+	foreach $ind (keys %user_per_part_num) {
+        ($part_num,$ctr) = split(",",$ind);
+        if ($ctr eq "Instr_cnt") {
+                printf("CPU %d \t %.0f    \n", $part_num, $user_per_part_num{$ind});
+		}
+	}
+	printf "\n";
+}
+
+sub print_kernel_cpu_mips
+{
+	local ($node, $key);
+
+	print "MIPS\t";
+	printf("%.0f	", $kernel_cpu_total{"Instr_cnt"});
+if ($runtime > 0  && $total_tx > 0) {
+        print "TPS\t";
+        printf("%.2f    ", ${tps});
+        print "M-Instr/Txn \t";
+        printf("%.4f    ", $kernel_cpu_total{"Instr_cnt"}/${tps});
+        printf "\n";
+}
+	printf "\n";
+	foreach $ind (keys %kernel_per_part_num) {
+        ($part_num,$ctr) = split(",",$ind);
+        if ($ctr eq "Instr_cnt") {
+                printf("CPU %d \t %.0f    \n", $part_num, $kernel_per_part_num{$ind});
+		}
+	}
+	printf "\n";
+}
+
+sub print_cpu_cache_stats
+{
+	print "IcMssTot IcMiss  DcMiss Dc_rd_Miss  EcMiss  %Remote Ec_ic_miss Ec_rd_miss  EcWB\n";
+        if ( $cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.2f%%    ",
+                        ($cpu_total{"IC_miss"} * 100 ) /
+			$cpu_total{"Instr_cnt"});
+        }  else { printf(" empty  "); }
+	&print_cpu_icmiss();
+	&print_cpu_dcmiss();
+        &print_cpu_dc_rd_miss();
+	&print_cpu_ecmiss();
+        if ( $cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.2f%%      ",
+                        ($cpu_total{"EC_ic_miss"} * 100 ) /
+			$cpu_total{"Instr_cnt"});
+        }  else { printf(" empty  "); }
+        if ( $cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.2f%%     ",
+                        ($cpu_total{"EC_rd_miss"} * 100 ) /
+			$cpu_total{"Instr_cnt"});
+        }  else { printf(" empty  "); }
+
+	&print_one_cpu_ratio_pct("EC_wb", "Instr_cnt");
+	if (defined $cpu_total{"EC_snoop_cb"} &&
+	    defined $ac_total{"addr_pkts"} && 
+	    $ac_total{"addr_pkts"} != 0 ) {
+		printf("%.2f%%	", $cpu_total{"EC_snoop_cb"}/($ac_total{"addr_pkts"}/$ac_total_count{"addr_pkts"}) * 100 );
+	} else { return; }
+	printf "\n";
+}
+
+sub print_user_cpu_cache_stats
+{
+	print "IcMssTot IcMiss  DcMiss Dc_rd_Miss  EcMiss  %Remote Ec_ic_miss Ec_rd_miss  EcWB\n";
+        if ( $user_cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.2f%%	     ",
+                        ($user_cpu_total{"IC_miss"} * 100 ) /
+			$user_cpu_total{"Instr_cnt"});
+        }  else { printf(" empty  "); }
+	&print_user_cpu_icmiss();
+	&print_user_cpu_dcmiss();
+        &print_user_cpu_dc_rd_miss();
+	&print_user_cpu_ecmiss();
+        if ( $user_cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.2f%%	     ",
+                        ($user_cpu_total{"EC_ic_miss"} * 100 ) /
+			$user_cpu_total{"Instr_cnt"});
+        }  else { printf(" empty  "); }
+        if ( $user_cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.2f%%	  ",
+                        ($user_cpu_total{"EC_rd_miss"} * 100 ) /
+			$user_cpu_total{"Instr_cnt"});
+        }  else { printf(" empty  "); }
+	
+        &print_one_user_cpu_ratio_pct("EC_wb", "Instr_cnt");
+	printf "\n";
+}
+
+sub print_kernel_cpu_cache_stats
+{
+	print "IcMssTot IcMiss  DcMiss Dc_rd_Miss  EcMiss  %Remote Ec_ic_miss Ec_rd_miss  EcWB\n";
+        if ( $kernel_cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.2f%%	     ",
+                        ($kernel_cpu_total{"IC_miss"} * 100 ) /
+			$kernel_cpu_total{"Instr_cnt"});
+        }  else { printf(" empty  "); }
+	&print_kernel_cpu_icmiss();
+	&print_kernel_cpu_dcmiss();
+        &print_kernel_cpu_dc_rd_miss();
+	&print_kernel_cpu_ecmiss();
+        if ( $kernel_cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.2f%%	     ",
+                        ($kernel_cpu_total{"EC_ic_miss"} * 100 ) /
+			$kernel_cpu_total{"Instr_cnt"});
+        }  else { printf(" empty  "); }
+        if ( $kernel_cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.2f%%	  ",
+                        ($kernel_cpu_total{"EC_rd_miss"} * 100 ) /
+			$kernel_cpu_total{"Instr_cnt"});
+        }  else { printf(" empty  "); }
+	&print_one_kernel_cpu_ratio_pct("EC_wb", "Instr_cnt");
+	printf "\n";
+}
+
+sub print_one_cpu_ratio_tab
+{
+	local ($ctr1, $ctr2) = ($_[0], $_[1]);
+	local ($node, $key1, $key2);
+        #print "$cpu_total{$ctr1}, $cpu_total{$ctr2} \n";  
+	if (defined $cpu_total{$ctr1} && defined $cpu_total{$ctr2} && 
+	    $cpu_total{$ctr2} != 0 ) {
+		printf("%.3f	", $cpu_total{$ctr1}/$cpu_total{$ctr2});
+	} else { printf(" empty  "); }
+}
+
+sub print_one_user_cpu_ratio_tab
+{
+	local ($ctr1, $ctr2) = ($_[0], $_[1]);
+	local ($node, $key1, $key2);
+       # print "$ctr1, ctr2 \n";  
+
+	if (defined $user_cpu_total{$ctr1} && defined $user_cpu_total{$ctr2} && 
+	    $user_cpu_total{$ctr2} != 0 ) {
+		printf("%.3f	", $user_cpu_total{$ctr1}/$user_cpu_total{$ctr2});
+	} else { printf(" empty  "); }
+}
+
+sub print_one_kernel_cpu_ratio_tab
+{
+	local ($ctr1, $ctr2) = ($_[0], $_[1]);
+	local ($node, $key1, $key2);
+       # print "$kernel_cpu_total{Dispatch0_mispred}, $kernel_cpu_total{Instr_cnt} \n";
+	if (defined $kernel_cpu_total{$ctr1} && defined $kernel_cpu_total{$ctr2} && 
+	    $kernel_cpu_total{$ctr2} != 0 ) {
+		printf("%.3f	", $kernel_cpu_total{$ctr1}/$kernel_cpu_total{$ctr2});
+	} else { printf(" empty  "); }
+}
+
+sub print_one_cpu_ratio_pct
+{
+	local ($ctr1, $ctr2) = ($_[0], $_[1]);
+	local ($node, $key1, $key2);
+
+	if (defined $cpu_total{$ctr1} && defined $cpu_total{$ctr2} && 
+	    $cpu_total{$ctr2} != 0 ) {
+		printf("%.2f%%	", $cpu_total{$ctr1}/$cpu_total{$ctr2}* 100);
+	} else { return; }
+}
+
+sub print_one_user_cpu_ratio_pct
+{
+	local ($ctr1, $ctr2) = ($_[0], $_[1]);
+	local ($node, $key1, $key2);
+
+	if (defined $user_cpu_total{$ctr1} && defined $user_cpu_total{$ctr2} && 
+	    $user_cpu_total{$ctr2} != 0 ) {
+		printf("%.2f%%	", $user_cpu_total{$ctr1}/$user_cpu_total{$ctr2}* 100);
+	} else { return; }
+}
+
+sub print_one_kernel_cpu_ratio_pct
+{
+	local ($ctr1, $ctr2) = ($_[0], $_[1]);
+	local ($node, $key1, $key2);
+
+	if (defined $kernel_cpu_total{$ctr1} && defined $kernel_cpu_total{$ctr2} && 
+	    $kernel_cpu_total{$ctr2} != 0 ) {
+		printf("%.2f%%	", $kernel_cpu_total{$ctr1}/$kernel_cpu_total{$ctr2}* 100);
+	} else { return; }
+}
+
+sub print_cpu_dmiss_ehit
+{
+       local($node, $k1, $k2, $k3);
+
+       if ( $cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.3f        ",
+                        ($cpu_total{"Re_DC_miss"}-($cpu_total{"Re_EC_miss"}+($cpu_total{"Re_DC_missovhd"}* $cpu_total{"EC_rd_miss"}/$cpu_total{"DC_rd_miss"})) ) /
+			$cpu_total{"Instr_cnt"});
+       }  else { printf(" empty  "); }
+}
+
+sub print_user_cpu_dmiss_ehit
+{
+       local($node, $k1, $k2, $k3);
+
+       if ( $cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.3f        ",
+                        ($user_cpu_total{"Re_DC_miss"}-($user_cpu_total{"Re_EC_miss"}+($user_cpu_total{"Re_DC_missovhd"}*$user_cpu_total{"EC_rd_miss"}/$user_cpu_total{"DC_rd_miss"}))) /
+			$user_cpu_total{"Instr_cnt"});
+       }  else { printf(" empty  "); }
+}
+
+sub print_kernel_cpu_dmiss_ehit
+{
+       local($node, $k1, $k2, $k3);
+
+       if ( $kernel_cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.3f	     ",
+                        ($kernel_cpu_total{"Re_DC_miss"}-($kernel_cpu_total{"Re_EC_miss"}+($kernel_cpu_total{"Re_DC_missovhd"}*$kernel_cpu_total{"EC_rd_miss"}/$kernel_cpu_total{"DC_rd_miss"}))) /
+			$kernel_cpu_total{"Instr_cnt"});
+       }  else { printf(" empty  "); }
+}
+
+sub print_cpu_emiss
+{
+       local($node, $k1, $k2);
+
+       if ( $cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.3f	   ",
+                        ($cpu_total{"Re_EC_miss"}+($cpu_total{"Re_DC_missovhd"}*
+                        $cpu_total{"EC_rd_miss"}/$cpu_total{"DC_rd_miss"})) /
+			$cpu_total{"Instr_cnt"});
+       }  else { printf(" empty  "); }
+}
+
+sub print_user_cpu_emiss
+{
+       local($node, $k1, $k2);
+
+       if ( $user_cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.3f	   ",
+                        ($user_cpu_total{"Re_EC_miss"}+($user_cpu_total{"Re_DC_missovhd"}*
+                        $user_cpu_total{"EC_rd_miss"}/$user_cpu_total{"DC_rd_miss"})) /
+			$user_cpu_total{"Instr_cnt"});
+       }  else { printf(" empty  "); }
+}
+
+sub print_kernel_cpu_emiss
+{
+       local($node, $k1, $k2);
+
+       if ( $kernel_cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.3f	   ",
+                        ($kernel_cpu_total{"Re_EC_miss"}+($kernel_cpu_total{"Re_DC_missovhd"}*
+                        $kernel_cpu_total{"EC_rd_miss"}/$kernel_cpu_total{"DC_rd_miss"})) /
+			$kernel_cpu_total{"Instr_cnt"});
+       }  else { printf(" empty  "); }
+}
+
+
+sub print_cpu_brmiss
+{
+	local($node, $k1, $k2, $k3,$k4);
+
+	if ( $cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.3f	",
+			($cpu_total{"Dispatch0_mispred"}+$cpu_total{"Dispatch0_br_target"}+
+                         $cpu_total{"Dispatch_rs_mispred"}+$cpu_total{"Dispatch0_2nd_br"})  /
+			$cpu_total{"Instr_cnt"});
+	} else { return; }
+}
+
+sub print_user_cpu_brmiss
+{
+	local($node, $k1, $k2, $k3,$k4);
+
+	if ( $cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.3f	",
+			($user_cpu_total{"Dispatch0_mispred"}+$user_cpu_total{"Dispatch0_br_target"}+
+                         $user_cpu_total{"Dispatch_rs_mispred"}+$user_cpu_total{"Dispatch0_2nd_br"})  /
+			$user_cpu_total{"Instr_cnt"});
+	} else { return; }
+}
+
+sub print_kernel_cpu_brmiss
+{
+	local($node, $k1, $k2, $k3,$k4);
+
+	if ( $cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.3f	",
+			($kernel_cpu_total{"Dispatch0_mispred"}+
+                         $kernel_cpu_total{"Dispatch0_br_target"}+
+                         $kernel_cpu_total{"Dispatch_rs_mispred"}+
+                         $kernel_cpu_total{"Dispatch0_2nd_br"})  /
+			$kernel_cpu_total{"Instr_cnt"});
+	} else { return; }
+}
+
+sub print_cpu_icmiss
+{
+	local($node, $k1, $k2, $k3);
+
+	if (defined $cpu_total{"IC_ref"} &&
+	    defined $cpu_total{"IC_miss"} &&
+		defined $cpu_total{"Instr_cnt"} &&
+	    $cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.2f%%   ",
+			($cpu_total{"IC_miss"}-$cpu_total{"IC_miss_cancelled"})  /
+			$cpu_total{"Instr_cnt"} * 100 );
+	} else { return; }
+}
+
+sub print_user_cpu_icmiss
+{
+	local($node, $k1, $k2, $k3);
+
+	if (defined $user_cpu_total{"IC_ref"} &&
+	    defined $user_cpu_total{"IC_miss"} &&
+		defined $user_cpu_total{"Instr_cnt"} &&
+	    $user_cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.2f%%   ",
+			($user_cpu_total{"IC_miss"}-$user_cpu_total{"IC_miss_cancelled"})  /
+			$user_cpu_total{"Instr_cnt"} * 100 );
+	} else { return; }
+}
+
+sub print_kernel_cpu_icmiss
+{
+	local($node, $k1, $k2, $k3);
+
+	if (defined $kernel_cpu_total{"IC_ref"} &&
+	    defined $kernel_cpu_total{"IC_miss"} &&
+		defined $kernel_cpu_total{"Instr_cnt"} &&
+	    $kernel_cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.2f%%   ",
+			($kernel_cpu_total{"IC_miss"}-$kernel_cpu_total{"IC_miss_cancelled"})  /
+			$kernel_cpu_total{"Instr_cnt"} * 100 );
+	} else { return; }
+}
+
+sub print_user_cpu_dstall
+{
+       local($node, $k1, $k2, $k3,$k4,$k5,$k6,$k7,$k8);
+
+       if ( $user_cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.3f       ",
+                        (($user_cpu_total{"Re_DC_miss"}+$user_cpu_total{"Rstall_storeQ"}+ 
+                         $user_cpu_total{"Rstall_IU_use"} +
+                         $user_cpu_total{"Re_RAW_miss"})+ 12 * ($user_cpu_total{"Re__PC_miss"} + 
+                         $user_cpu_total{"Re_FPU_bypass"}+ $user_cpu_total{"Re_endian_miss"})) /
+			 $user_cpu_total{"Instr_cnt"});
+       }  else { printf(" empty  "); }
+}
+
+sub print_kernel_cpu_dstall
+{
+       local($node, $k1, $k2, $k3,$k4,$k5,$k6,$k7,$k8);
+
+       if ( $kernel_cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.3f       ",
+                        (($kernel_cpu_total{"Re_DC_miss"}+$kernel_cpu_total{"Rstall_storeQ"}+ 
+                         $kernel_cpu_total{"Rstall_IU_use"} +
+                         $kernel_cpu_total{"Re_RAW_miss"})+ 12 * ($kernel_cpu_total{"Re__PC_miss"} + 
+                         $kernel_cpu_total{"Re_FPU_bypass"}+ $kernel_cpu_total{"Re_endian_miss"})) /
+			 $kernel_cpu_total{"Instr_cnt"});
+       }  else { printf(" empty  "); }
+}
+
+sub print_cpu_dstall
+{
+       local($node, $k1, $k2, $k3,$k4,$k5,$k6,$k7,$k8);
+
+       if ( $cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.3f       ",
+                        (($cpu_total{"Re_DC_miss"}+$cpu_total{"Rstall_storeQ"}+ $cpu_total{"Rstall_IU_use"} +
+                         $cpu_total{"Re_RAW_miss"})+ 12 * ($cpu_total{"Re__PC_miss"} + 
+                         $cpu_total{"Re_FPU_bypass"}+ $cpu_total{"Re_endian_miss"})) /
+			 $cpu_total{"Instr_cnt"});
+       }  else { printf(" empty  "); }
+}
+
+sub print_cpu_ecmiss
+{
+	local($node, $k1, $k2, $k3);
+
+	if (defined $cpu_total{"EC_ref"} &&
+	    defined $cpu_total{"EC_misses"} &&
+		defined $cpu_total{"Instr_cnt"} &&
+	    $cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.2f%%   ",
+			($cpu_total{"EC_misses"})  /
+			$cpu_total{"Instr_cnt"} * 100 );
+		if($cpu_total{EC_miss_remote} != 0) {
+		printf("%.2f%%   ",
+			100 * ($cpu_total{"EC_miss_remote"})  /
+			($cpu_total{"EC_miss_local"} + $cpu_total{"EC_miss_remote"} ));
+						}
+		else { printf("-\t"); }
+	} else { return; }
+}
+
+sub print_user_cpu_ecmiss
+{
+	local($node, $k1, $k2, $k3);
+
+	if (defined $user_cpu_total{"EC_ref"} &&
+	    defined $user_cpu_total{"EC_misses"} &&
+		defined $user_cpu_total{"Instr_cnt"} &&
+	    $user_cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.2f%%	 ",
+			($user_cpu_total{"EC_misses"})  /
+			$user_cpu_total{"Instr_cnt"} * 100 );
+		if($user_cpu_total{EC_miss_remote} != 0) {
+		printf("%.2f%%   ",
+                        100 * ($user_cpu_total{"EC_miss_remote"})  /
+                        ($user_cpu_total{"EC_miss_local"} + $user_cpu_total{"EC_miss_remote"} ));
+							}
+		else { printf("-\t"); }
+	} else { return; }
+}
+
+sub print_kernel_cpu_ecmiss
+{
+	local($node, $k1, $k2, $k3);
+
+	if (defined $kernel_cpu_total{"EC_ref"} &&
+	    defined $kernel_cpu_total{"EC_misses"} &&
+		defined $kernel_cpu_total{"Instr_cnt"} &&
+	    $kernel_cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.2f%%	 ",
+			($kernel_cpu_total{"EC_misses"})  /
+			$kernel_cpu_total{"Instr_cnt"} * 100 );
+		if($kernel_cpu_total{EC_miss_remote} != 0) {
+		printf("%.2f%%   ",
+                        100 * ($kernel_cpu_total{"EC_miss_remote"})  /
+                        ($kernel_cpu_total{"EC_miss_local"} + $kernel_cpu_total{"EC_miss_remote"} ));
+							}
+		else { printf("-\t"); }
+	} else { return; }
+}
+
+sub  print_cpu_dcmiss
+{
+	local($node, $k1, $k2, $k3, $k4, $k5);
+
+	if (defined $cpu_total{"DC_rd_miss"} &&
+	    defined $cpu_total{"DC_wr_miss"} &&
+	    defined $cpu_total{"DC_rd"} &&
+	    defined $cpu_total{"DC_wr"} &&
+		defined $cpu_total{"Instr_cnt"} &&
+	    $cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.2f%%   ",
+			($cpu_total{"DC_rd_miss"} + $cpu_total{"DC_wr_miss"}) / 
+			$cpu_total{"Instr_cnt"} * 100 );
+	} else { return; }
+}
+
+sub  print_cpu_dc_rd_miss
+{
+	local($node, $k1, $k2);
+
+	if (defined $cpu_total{"DC_rd_miss"} &&
+		defined $cpu_total{"Instr_cnt"} &&
+	    $cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.2f%%       ",
+			($cpu_total{"DC_rd_miss"}) / 
+			$cpu_total{"Instr_cnt"} * 100 );
+	} else { return; }
+}
+
+sub  print_user_cpu_dc_rd_miss
+{
+	local($node, $k1, $k2);
+
+	if (defined $user_cpu_total{"DC_rd_miss"} &&
+		defined $user_cpu_total{"Instr_cnt"} &&
+	    $user_cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.2f%%       ",
+			($user_cpu_total{"DC_rd_miss"}) / 
+			$user_cpu_total{"Instr_cnt"} * 100 );
+	} else { return; }
+}
+
+sub  print_kernel_cpu_dc_rd_miss
+{
+	local($node, $k1, $k2);
+
+	if (defined $kernel_cpu_total{"DC_rd_miss"} &&
+		defined $kernel_cpu_total{"Instr_cnt"} &&
+	    $kernel_cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.2f%%      ",
+			($kernel_cpu_total{"DC_rd_miss"}) / 
+			$kernel_cpu_total{"Instr_cnt"} * 100 );
+	} else { return; }
+}
+
+sub  print_cpu_dc_wr_miss
+{
+	local($node, $k1, $k2);
+
+	if (defined $cpu_total{"DC_wr_miss"} &&
+		defined $cpu_total{"Instr_cnt"} &&
+	    $cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.2f%%       ",
+			($cpu_total{"DC_wr_miss"}) / 
+			$cpu_total{"Instr_cnt"} * 100 );
+	} else { return; }
+}
+
+sub  print_user_cpu_dc_wr_miss
+{
+	local($node, $k1, $k2);
+
+	if (defined $user_cpu_total{"DC_wr_miss"} &&
+		defined $user_cpu_total{"Instr_cnt"} &&
+	    $user_cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.2f%%      ",
+			($user_cpu_total{"DC_wr_miss"}) / 
+			$user_cpu_total{"Instr_cnt"} * 100 );
+	} else { return; }
+}
+
+sub  print_kernel_cpu_dc_wr_miss
+{
+	local($node, $k1, $k2);
+
+	if (defined $kernel_cpu_total{"DC_wr_miss"} &&
+		defined $kernel_cpu_total{"Instr_cnt"} &&
+	    $kernel_cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.2f%%       ",
+			($kernel_cpu_total{"DC_wr_miss"}) / 
+			$kernel_cpu_total{"Instr_cnt"} * 100 );
+	} else { return; }
+}
+
+sub  print_user_cpu_dcmiss
+{
+	local($node, $k1, $k2, $k3, $k4, $k5);
+
+	if (defined $user_cpu_total{"DC_rd_miss"} &&
+	    defined $user_cpu_total{"DC_wr_miss"} &&
+	    defined $user_cpu_total{"DC_rd"} &&
+	    defined $user_cpu_total{"DC_wr"} &&
+		defined $user_cpu_total{"Instr_cnt"} &&
+	    $user_cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.2f%%   ",
+			($user_cpu_total{"DC_rd_miss"} + $user_cpu_total{"DC_wr_miss"}) / 
+			$user_cpu_total{"Instr_cnt"} * 100 );
+	} else { return; }
+}
+
+sub  print_kernel_cpu_dcmiss
+{
+	local($node, $k1, $k2, $k3, $k4, $k5);
+
+	if (defined $kernel_cpu_total{"DC_rd_miss"} &&
+	    defined $kernel_cpu_total{"DC_wr_miss"} &&
+	    defined $kernel_cpu_total{"DC_rd"} &&
+	    defined $kernel_cpu_total{"DC_wr"} &&
+		defined $kernel_cpu_total{"Instr_cnt"} &&
+	    $kernel_cpu_total{"Instr_cnt"} != 0 ) {
+		printf("%.2f%%   ",
+			($kernel_cpu_total{"DC_rd_miss"} + $kernel_cpu_total{"DC_wr_miss"}) / 
+			$kernel_cpu_total{"Instr_cnt"} * 100 );
+	} else { return; }
+}
+
+
+sub usage
+{
+	print "
+	usage : $0 [-i <infile>] [-o <outfile>] [-v] [<infile>]
+	-i <name>: input file name
+	-o <name>: output file name
+	-uk:  print CPU user and kernel related data
+        -v : turn on verbose 
+	
+	-cpu   : print only CPU related data
+	-ac    : print only AC related data
+	-avg   : print only the per second counter values
+	-eavg  : print only the per second event counts \n";
+
+	exit 1;
+}
+
+sub print_ALL_ac_membank_stats
+{
+	local ($i);
+	local($key_r0, $key_w0, $key_r1, $key_w1);
+	local($key_r2, $key_w2, $key_r3, $key_w3);
+	local($key_s0, $key_s1, $key_s2, $key_s3);
+	local($ukey_r0, $ukey_w0, $ukey_r1, $ukey_w1);
+	local($ukey_r2, $ukey_w2, $ukey_r3, $ukey_w3);
+	local($ukey_s0, $ukey_s1, $ukey_s2, $ukey_s3);
+	local($kkey_r0, $kkey_w0, $kkey_r1, $kkey_w1);
+	local($kkey_r2, $kkey_w2, $kkey_r3, $kkey_w3);
+	local($kkey_s0, $kkey_s1, $kkey_s2, $key_s3);
+	local ($r_total, $w_total, $s_total) = 0;
+	local ($ur_total, $uw_total, $us_total) = 0;
+	local ($kr_total, $kw_total, $ks_total) = 0;
+
+	print "\nCPU Bank  TMrd/s TMwr/s  UMrd/s UMwr/s  KMrd/s KMwr/s   TStlCy UStlCy KStlCy\n \n";
+ 	#for ($i=0; $i < 600; $i++) {
+	foreach $psr (@psr_list) {
+		@pnum = split(/\t/, $psr);
+                $i = @pnum[0];
+        $key_r0 = join(",",("cpu",$i,"uk","MC_reads_0"));
+        $key_w0 = join(",",("cpu",$i,"uk","MC_writes_0"));
+        $key_s0 = join(",",("cpu",$i,"uk","MC_stalls_0"));
+        $key_r1 = join(",",("cpu",$i,"uk","MC_reads_1"));
+        $key_w1 = join(",",("cpu",$i,"uk","MC_writes_1"));
+        $key_s1 = join(",",("cpu",$i,"uk","MC_stalls_1"));
+        $key_r2 = join(",",("cpu",$i,"uk","MC_reads_2"));
+        $key_w2 = join(",",("cpu",$i,"uk","MC_writes_2"));
+        $key_s2 = join(",",("cpu",$i,"uk","MC_stalls_2"));
+        $key_r3 = join(",",("cpu",$i,"uk","MC_reads_3"));
+        $key_w3 = join(",",("cpu",$i,"uk","MC_writes_3"));
+        $key_s3 = join(",",("cpu",$i,"uk","MC_stalls_3"));
+        $ukey_r0 = join(",",("cpu",$i,"u","MC_reads_0"));
+        $ukey_w0 = join(",",("cpu",$i,"u","MC_writes_0"));
+        $ukey_s0 = join(",",("cpu",$i,"u","MC_stalls_0"));
+        $ukey_r1 = join(",",("cpu",$i,"u","MC_reads_1"));
+        $ukey_w1 = join(",",("cpu",$i,"u","MC_writes_1"));
+        $ukey_s1 = join(",",("cpu",$i,"u","MC_stalls_1"));
+        $ukey_r2 = join(",",("cpu",$i,"u","MC_reads_2"));
+        $ukey_w2 = join(",",("cpu",$i,"u","MC_writes_2"));
+        $ukey_s2 = join(",",("cpu",$i,"u","MC_stalls_2"));
+        $ukey_r3 = join(",",("cpu",$i,"u","MC_reads_3"));
+        $ukey_w3 = join(",",("cpu",$i,"u","MC_writes_3"));
+        $ukey_s3 = join(",",("cpu",$i,"u","MC_stalls_3"));
+        $kkey_r0 = join(",",("cpu",$i,"k","MC_reads_0"));
+        $kkey_w0 = join(",",("cpu",$i,"k","MC_writes_0"));
+        $kkey_s0 = join(",",("cpu",$i,"k","MC_stalls_0"));
+        $kkey_r1 = join(",",("cpu",$i,"k","MC_reads_1"));
+        $kkey_w1 = join(",",("cpu",$i,"k","MC_writes_1"));
+        $kkey_s1 = join(",",("cpu",$i,"k","MC_stalls_1"));
+        $kkey_r2 = join(",",("cpu",$i,"k","MC_reads_2"));
+        $kkey_w2 = join(",",("cpu",$i,"k","MC_writes_2"));
+        $kkey_s2 = join(",",("cpu",$i,"k","MC_stalls_2"));
+        $kkey_r3 = join(",",("cpu",$i,"k","MC_reads_3"));
+        $kkey_w3 = join(",",("cpu",$i,"k","MC_writes_3"));
+        $kkey_s3 = join(",",("cpu",$i,"k","MC_stalls_3"));
+        if (defined $persec{$key_r0} &&
+            defined $persec{$key_w0} &&
+            defined $persec{$key_s0} &&
+            defined $persec{$key_r1} &&
+            defined $persec{$key_w1} &&
+            defined $persec{$key_s1} &&
+            defined $persec{$key_r2} &&
+            defined $persec{$key_w2} &&
+            defined $persec{$key_s2} &&
+            defined $persec{$key_r3} &&
+            defined $persec{$key_w3} &&
+            defined $persec{$key_s3} &&
+            defined $persec{$ukey_r0} &&
+            defined $persec{$ukey_w0} &&
+            defined $persec{$ukey_s0} &&
+            defined $persec{$ukey_r1} &&
+            defined $persec{$ukey_w1} &&
+            defined $persec{$ukey_s1} &&
+            defined $persec{$ukey_r2} &&
+            defined $persec{$ukey_w2} &&
+            defined $persec{$ukey_s2} &&
+            defined $persec{$ukey_r3} &&
+            defined $persec{$ukey_w3} &&
+            defined $persec{$ukey_s3} &&
+            defined $persec{$kkey_r0} &&
+            defined $persec{$kkey_w0} &&
+            defined $persec{$kkey_s0} &&
+            defined $persec{$kkey_r1} &&
+            defined $persec{$kkey_w1} &&
+            defined $persec{$kkey_s1} &&
+            defined $persec{$kkey_r2} &&
+            defined $persec{$kkey_w2} &&
+            defined $persec{$kkey_s2} &&
+            defined $persec{$kkey_r3} &&
+            defined $persec{$kkey_w3} &&
+            defined $persec{$kkey_s3} &&
+            defined $persec{$key_w3} ) {
+                        printf("%d  %d    %.3f  %.3f   %.3f  %.3f	%.3f  %.3f	%.3f %.3f %.3f\n",
+$i, 0, $persec{$key_r0}, $persec{$key_w0}, $persec{$ukey_r0}, $persec{$ukey_w0}, $persec{$kkey_r0}, $persec{$kkey_w0}, $persec{$key_s0}/($persec{$key_r0}+$persec{$key_w0}+.00000001), $persec{$ukey_s0}/($persec{$ukey_r0}+$persec{$ukey_w0}+.00000001), $persec{$kkey_s0}/($persec{$kkey_r0}+$persec{$kkey_w0}+.00000001));
+                        printf("%d  %d    %.3f  %.3f   %.3f  %.3f	%.3f  %.3f	%.3f %.3f %.3f\n",
+$i, 1, $persec{$key_r1}, $persec{$key_w1}, $persec{$ukey_r1}, $persec{$ukey_w1}, $persec{$kkey_r1}, $persec{$kkey_w1}, $persec{$key_s1}/($persec{$key_r1}+$persec{$key_w1}+.00000001), $persec{$ukey_s1}/($persec{$ukey_r1}+$persec{$ukey_w1}+.00000001), $persec{$kkey_s1}/($persec{$kkey_r1}+$persec{$kkey_w1}+.00000001));
+                        printf("%d  %d    %.3f  %.3f   %.3f  %.3f	%.3f  %.3f	%.3f %.3f %.3f\n",
+$i, 2, $persec{$key_r2}, $persec{$key_w2}, $persec{$ukey_r2}, $persec{$ukey_w2}, $persec{$kkey_r2}, $persec{$kkey_w2}, $persec{$key_s2}/($persec{$key_r2}+$persec{$key_w2}+.00000001), $persec{$ukey_s2}/($persec{$ukey_r2}+$persec{$ukey_w2}+.00000001), $persec{$kkey_s2}/($persec{$kkey_r2}+$persec{$kkey_w2}+.00000001));
+                        printf("%d  %d    %.3f  %.3f   %.3f  %.3f	%.3f  %.3f	%.3f %.3f %.3f\n",
+$i, 3, $persec{$key_r3}, $persec{$key_w3}, $persec{$ukey_r3}, $persec{$ukey_w3}, $persec{$kkey_r3}, $persec{$kkey_w3}, $persec{$key_s3}/($persec{$key_r3}+$persec{$key_w3}+.00000001), $persec{$ukey_s3}/($persec{$ukey_r3}+$persec{$ukey_w3}+.00000001), $persec{$kkey_s3}/($persec{$kkey_r3}+$persec{$kkey_w3}+.00000001));
+                        $r_total += ($persec{$key_r0} + $persec{$key_r1} + $persec{$key_r2} + $persec{$key_r3});
+                        $w_total += ($persec{$key_w0} + $persec{$key_w1} + $persec{$key_w2} + $persec{$key_w3});
+                        $ur_total += ($persec{$ukey_r0} + $persec{$ukey_r1} + $persec{$ukey_r2} + $persec{$ukey_r3});
+                        $uw_total += ($persec{$ukey_w0} + $persec{$ukey_w1} + $persec{$ukey_w2} + $persec{$ukey_w3});
+                        $kr_total += ($persec{$kkey_r0} + $persec{$kkey_r1} + $persec{$kkey_r2} + $persec{$kkey_r3});
+                        $kw_total += ($persec{$kkey_w0} + $persec{$kkey_w1} + $persec{$kkey_w2} + $persec{$kkey_w3});
+                        }
+        }
+        printf("\nTotal    %.3f %.3f	 %.3f  %.3f  %.3f %.3f\n", $r_total, $w_total, $ur_total, $uw_total, $kr_total, $kw_total);
+}
+
+sub print_one_indiv_cpu_ratio_tab
+{
+        local ($ctr1, $ctr2, $part_num) = ($_[0], $_[1], $_[2]);
+        local ($node, $key1, $key2);
+if ($cpu_per_part_num{$part_num.",".$ctr2} != 0) {
+                printf("%.3f   ", $cpu_per_part_num{$part_num.",".$ctr1}/$cpu_per_part_num{$part_num.",".$ctr2});
+        } else { return; }
+
+}
+
+sub print_one_indiv_user_cpu_ratio_tab
+{
+
+        local ($ctr1, $ctr2, $part_num) = ($_[0], $_[1], $_[2]);
+        local ($node, $key1, $key2);
+
+
+if ($user_per_part_num{$part_num.",".$ctr2} != 0) {
+                printf("%.3f   ", $user_per_part_num{$part_num.",".$ctr1}/$user_per_part_num{$part_num.",".$ctr2});
+        } else { return; }
+}
+
+sub print_one_indiv_kernel_cpu_ratio_tab
+{
+
+        local ($ctr1, $ctr2, $part_num) = ($_[0], $_[1], $_[2]);
+        local ($node, $key1, $key2);
+
+
+if ($kernel_per_part_num{$part_num.",".$ctr2} != 0) {
+                printf("%.3f   ", $kernel_per_part_num{$part_num.",".$ctr1}/$kernel_per_part_num{$part_num.",".$ctr2});
+        } else { return; }
+}
+

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.36 2008/04/02 07:24:49 akara Exp $
+ * $Id: CmdService.java,v 1.37 2008/04/04 22:09:26 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -95,11 +95,12 @@ final public class CmdService { 	// The final keyword prevents clones
     private String masterAddress; // ip of faban master machine
     private CommandHandle registryCmd;
     private String javaHome;
-    private String jvmOptions;
-    private HashMap<String, String> binMap = new HashMap<String, String>();
+    private List<String> jvmOptions;
+    private HashMap<String, List<String>> binMap =
+                                    new HashMap<String, List<String>>();
     private Map<String, String> ifMap;
 
-    private String rsh, agent;
+    private List<String> rsh, agent;
 
     HostTypes hostTypes;
 
@@ -196,12 +197,14 @@ final public class CmdService { 	// The final keyword prevents clones
         // Again, we ensure FABAN_HOME to be quoted if there are spaces inside.
         if (escapedHome.indexOf(' ') != -1)
             escapedHome = '"' + escapedHome + '"';
-        jvmOptions = "-Dfaban.home=" + escapedHome +
-                " -Djava.security.policy=" + escapedHome + "config" + fs +
-                "faban.policy -Djava.util.logging.config.file=" + escapedHome +
-                "config" + fs + "logging.properties -Dfaban.registry.port=" +
-                Config.RMI_PORT + ' ' + "-Dfaban.logging.port=" +
-                Config.LOGGING_PORT;
+        jvmOptions = new ArrayList<String>();
+        jvmOptions.add("-Dfaban.home=" + escapedHome);
+        jvmOptions.add("-Djava.security.policy=" + escapedHome + "config" +
+                                                        fs + "faban.policy");
+        jvmOptions.add("-Djava.util.logging.config.file=" + escapedHome +
+                                        "config" + fs + "logging.properties");
+        jvmOptions.add("-Dfaban.registry.port=" + Config.RMI_PORT);
+        jvmOptions.add("-Dfaban.logging.port=" + Config.LOGGING_PORT);
 
         try {
             // Update the logging.properties file in config dir
@@ -236,23 +239,28 @@ final public class CmdService { 	// The final keyword prevents clones
             // Benchmark specific stubs will be in one of the jars.
             File[] libs = (new File(Config.LIB_DIR)).listFiles();
 
-            StringBuffer buf = new StringBuffer(" -cp ");
+            StringBuffer buf = new StringBuffer();
             for(int i = 0; i < libs.length; i++) {
                 if(libs[i].isFile())
                     buf.append(libs[i].getAbsolutePath() + File.pathSeparator);
             }
-
+            buf.setLength(buf.length() - 1);
             String classpath = buf.toString();
 
             // The registry should not consume much resources. Just don't
             // use the driver JVM options and set it to 32m - 1024m dynamic.
             // This should not be performance sensitive at all.
-            String cmd = javaHome + File.separator + "bin" + File.separator +
-                    "java " + jvmOptions + " -Xms32m -Xmx1024m " + classpath +
-                    " com.sun.faban.common.RegistryImpl" ;
+            List<String> cmd = new ArrayList<String>();
+            cmd.add(javaHome + File.separator + "bin" + File.separator +
+                    "java");
+            cmd.addAll(jvmOptions);
+            cmd.add("-Xms32m");
+            cmd.add("-Xmx1024m");
+            cmd.add("-cp");
+            cmd.add(classpath);
+            cmd.add("com.sun.faban.common.RegistryImpl");
 
             logger.info("Starting Registry.");
-            logger.fine("Starting using command " + cmd);
             Command rmiCmd = new Command(cmd);
             rmiCmd.setSynchronous(false);
             rmiCmd.setLogLevel(Command.STDOUT, Level.WARNING);
@@ -265,7 +273,7 @@ final public class CmdService { 	// The final keyword prevents clones
         }
 
         // Now add the driver options to the JVM options. Need them after this.
-        jvmOptions += ' ' + options;
+        jvmOptions.addAll(Command.parseArgs(options));
 
         // RMI registry takes a bit of time to startup. So sleep for some time
         try {
@@ -345,13 +353,15 @@ final public class CmdService { 	// The final keyword prevents clones
         try {
             binMap = CmdMap.getCmdMap(null);
             rsh = binMap.get("rsh");
-            agent = binMap.get("agent") + ' ';
+            agent = binMap.get("agent");
         } catch (Exception e) {
             logger.log(Level.WARNING, "Failed to obtain command map.",e);
         }
 
-        if (rsh == null)
-            rsh = "rsh";
+        if (rsh == null) {
+            rsh = new ArrayList<String>();
+            rsh.add("rsh");
+        }
 
         //only case in which interfaceAddress is not an address but
         //the hostname of the master machine.  used in CmdAgentImpl
@@ -569,16 +579,21 @@ final public class CmdService { 	// The final keyword prevents clones
                                   String interfaceAddress) {
 
         hostInterfaces.setProperty(mach, interfaceAddress);
-        String cmdarray;
+        List<String> cmd = new ArrayList<String>();
 
-        String agentParams = mach + ' ' + interfaceAddress + ' ' +
-                        masterAddress + ' ' + javaHome + ' ' + jvmOptions +
-                        " faban.benchmarkName=" + benchName;
+        List<String> agentParams = new ArrayList<String>();
+        agentParams.add(mach);
+        agentParams.add(interfaceAddress);
+        agentParams.add(masterAddress);
+        agentParams.add(javaHome);
+        agentParams.addAll(jvmOptions);
+        agentParams.add("faban.benchmarkName=" + benchName);
         try {
             if (mach.equals(master)) {
-                cmdarray = agent + agentParams;
-                logger.fine("Executing " + cmdarray);
-                Command cmdAgent = new Command(cmdarray);
+                cmd.addAll(agent);
+                cmd.addAll(agentParams);
+                logger.fine("Executing " + cmd);
+                Command cmdAgent = new Command(cmd);
                 cmdAgent.setSynchronous(false);
                 cmdAgent.setLogLevel(Command.STDOUT, Level.WARNING);
                 cmdAgent.execute();
@@ -594,7 +609,7 @@ final public class CmdService { 	// The final keyword prevents clones
                 URL downloadURL = new URL(fabanURL.getProtocol(),
                         interfaceAddress, fabanURL.getPort(),
                         fabanURL.getFile());
-                agentParams += " faban.download=" + downloadURL.toString();
+                agentParams.add("faban.download=" + downloadURL.toString());
 
                 boolean agentStarted = false;
 
@@ -603,7 +618,12 @@ final public class CmdService { 	// The final keyword prevents clones
                     OutputStream socketOut = socket.getOutputStream();
                     InputStream socketIn = socket.getInputStream();
                     byte[] buffer = new byte[1024];
-                    socketOut.write(agentParams.getBytes());
+                    StringBuilder b = new StringBuilder();
+                    for (String agentParam : agentParams) {
+                        b.append(agentParam).append(' ');
+                    }
+                    b.setLength(b.length() - 1);
+                    socketOut.write(b.toString().getBytes());
                     int length = socketIn.read(buffer);
                     socketIn.close();
                     socketOut.close();
@@ -640,9 +660,12 @@ final public class CmdService { 	// The final keyword prevents clones
                 }
 
                 if (!agentStarted) {
-                    cmdarray = rsh + ' ' + mach + ' ' + agent + agentParams;
-                    logger.fine("Executing " + cmdarray);
-                    Command cmdAgent = new Command(cmdarray);
+                    cmd.clear();
+                    cmd.addAll(rsh);
+                    cmd.add(mach);
+                    cmd.addAll(agent);
+                    cmd.addAll(agentParams);
+                    Command cmdAgent = new Command(cmd);
                     cmdAgent.setSynchronous(false);
                     cmdAgent.setLogLevel(Command.STDOUT, Level.WARNING);
                     cmdAgent.execute();
