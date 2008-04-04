@@ -19,7 +19,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: build.xml,v 1.14 2008/03/26 05:14:39 akara Exp $
+* $Id: build.xml,v 1.15 2008/04/04 22:11:24 akara Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 -->
@@ -228,6 +228,7 @@
         <exclude name="README.*"/>
         <exclude name="*.zip"/>
         <exclude name="output/**"/>
+        <exclude name="analysis/**"/>
         <exclude name="ant/**"/>
         <exclude name="benchmarks/**"/>
         <exclude name="master/**"/>
