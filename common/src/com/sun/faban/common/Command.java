@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Command.java,v 1.10 2008/03/18 06:55:53 akara Exp $
+ * $Id: Command.java,v 1.11 2008/04/04 22:00:59 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -132,12 +132,46 @@ public class Command implements Serializable {
      * @return The list of commands and arguments.
      */
     public static List<String> parseArgs(String command) {
-        // TODO: Need to reimplement parseArgs to cover escape and double quote cases.
-        StringTokenizer t = new StringTokenizer(command);
-        ArrayList<String> c = new ArrayList<String>(t.countTokens());
-        while (t.hasMoreTokens())
-            c.add(t.nextToken());
-        return c;
+        char[] c = command.trim().toCharArray();
+        char[] markers = new char[c.length]; // initialized to 0;
+        boolean inQuote = false;
+        // Scan for "\ " (escaped space), quotes, and spaces.
+        for (int i = 0; i < c.length; i++) {
+            switch (c[i]) {
+                case ' ' :
+                    if (!inQuote) {
+                        if (c[i - 1] == '\\')
+                            markers[i - 1] = 'e';
+                        else
+                            markers[i] = 's';
+                    }
+                    break;
+                case '"' :
+                    // Flip true to false and false to true.
+                    inQuote ^= true;
+                    markers[i] = 'q';
+                    break;
+            }
+        }
+        // Second pass, build the args.
+        ArrayList<String> args = new ArrayList<String>();
+        StringBuilder b = new StringBuilder();
+        for (int i = 0; i < c.length; i++) {
+            switch (markers[i]) {
+                case 's' :
+                    if (b.length() > 0) {
+                        args.add(b.toString());
+                        b.setLength(0);
+                    }
+                    break;
+                case 'q' : break;
+                case 'e' : break;
+                default  : b.append(c[i]);
+            }
+        }
+        if (b.length() > 0)
+            args.add(b.toString());
+        return args;
     }
 
     private StringBuilder _toString(StringBuilder buffer) {
@@ -490,7 +524,7 @@ public class Command implements Serializable {
     /* Main for testing the command facility */
     public static void main(String[] args) {
         try {
-            Command cmd = new Command("cat /etc/system");
+            Command cmd = new Command("cat", "/etc/system");
             cmd.setSynchronous(true);
             cmd.execute();
         } catch (IOException e) {
