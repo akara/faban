@@ -1,0 +1,39 @@
+#!/bin/sh
+BINDIR=`dirname $0`
+
+if [ -n "$BINDIR" ]
+then
+    FABAN_HOME=`cd $BINDIR/.. > /dev/null 2>&1 && pwd`
+    export FABAN_HOME
+fi
+
+JAVA=""
+
+# If JAVA_HOME is not defined, we try our best to locate it.
+if [ -z "$JAVA_HOME" ] ; then
+
+    # Check that Java is reachable at all.
+    JAVA_BIN=`which java`
+    if [ -z "$JAVA_BIN" ] ; then
+        echo "Could not find java. Please make sure the JDK is installed \
+and set JAVA_HOME or PATH accordingly." >&2
+        exit 1
+    fi
+    JAVA=$JAVA_BIN
+else
+    JAVA=$JAVA_HOME/bin/java
+fi
+
+MEMJAR=`/bin/ls $FABAN_HOME/lib/java_memcached-release*jar`
+if [ $? -ne 0 ]
+then
+    echo "Can't find java_memcache-release jar " >&2
+	exit 1
+fi
+MEMJAR=`echo $MEMJAR | sed 's/ /:/g'`
+CLASSPATH=$FABAN_HOME/lib/fabanagents.jar:$FABAN_HOME/lib/fabancommon.jar:$MEMJAR
+export CLASSPATH
+
+
+$JAVA -client -Xmx2m -cp "$CLASSPATH" \
+      com.sun.faban.harness.tools.MemcacheStats $*
