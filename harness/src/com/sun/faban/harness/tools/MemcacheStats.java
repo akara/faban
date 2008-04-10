@@ -1,7 +1,23 @@
-/*
- * MemcacheStats.java
+/* The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
  *
- * $Id: MemcacheStats.java,v 1.1 2008/04/10 19:30:43 shanti_s Exp $
+ * You can obtain a copy of the License at
+ * http://www.sun.com/cddl/cddl.html or
+ * install_dir/legal/LICENSE
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL
+ * Header Notice in each file and include the License file
+ * at install_dir/legal/LICENSE.
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ * "Portions Copyrighted [year] [name of copyright owner]"
+ *
+ * $Id: MemcacheStats.java,v 1.2 2008/04/10 20:46:47 shanti_s Exp $
  */
 package com.sun.faban.harness.tools;
 
@@ -17,6 +33,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * MemcacheStats.java
+ * This program implements a tool to collect memcache stats from
+ * a list of servers. The stats are collected and displayed at the
+ * specified interval. Most of the stats are on a per. second basis
+ * allowing easy tabulation and comparison with other tools.
  *
  * @author Shanti Subramanyam based on work by Kim LiChong
  * 
@@ -30,10 +51,11 @@ public class MemcacheStats {
     int interval;
     private SimpleDateFormat df = new SimpleDateFormat("HH:mm:ss");
 
-    /** This constructor creates a new instance of MemCacheUtility
-    A memcache client is created with a pool of servers.
+    /**
+	 * This constructor creates a memcache client with a pool of servers
      * 
-     * @param server name of server running memcached
+     * @param servers -  name of servers running memcached
+	 * @param interval - interval in secs for stats collection
      */
     public MemcacheStats(String servers[], int interval) {
         this.interval = interval;
@@ -75,14 +97,14 @@ public class MemcacheStats {
     private static final int NUM_COLS = 11;
     long[][] previousStats;
     
-    /* This method is used for dynamic memcache stats gathering.
+    /**
+	 * This method is used for dynamic memcache stats gathering.
      * We only gather and print out the following stats in a single row:
      * cur_itms bytes cur_conns sets gets get_hits get_misses evicts bytes_r, bytes_w
      * Since memcached returns cumulative stats, we do the subtraction to get
-     * the stats only for this interval
+     * the stats for this interval and then figure out stats/sec
      * @return TextTable - a single row of stats
      */
-
     public TextTable getStats() {
         Integer intval = 0;
 		long longval = 0;
@@ -220,12 +242,14 @@ public class MemcacheStats {
         return outputTextTable;
     }
 
-    /*
+    /**
      * This main method is used to gather dynamic statistics on memcache server instances.
-     *  It accepts the following optional arguments :
+	 * The primary arguments are the names of the memcached servers 
+     *  It accepts the following optional argument:
      * -i interval   the snapshot period to collect the stats, in seconds (default 10)
-     * -p port       memcached port (default 11211)
-     *  Usage:  java com.sun.faban.harnes.tools.MemcacheStats [-i interval][-p port]
+     *  Usage:  java com.sun.faban.harnes.tools.MemcacheStats host[:port]... [-i interval]
+	 * It creates an instance of MemcacheStats and sets up a timer task
+	 * at the specified interval to gather the stats.
      *  @param args String []
      *
      */
@@ -277,16 +301,12 @@ public class MemcacheStats {
     private static class MemCacheTask extends TimerTask {
 
         private MemcacheStats memcacheStats;
-
         public MemCacheTask(MemcacheStats memcacheStats) {
             this.memcacheStats = memcacheStats;
-
         }
 
         public void run() {
-
             System.out.println(memcacheStats.getStats());
-
         }
     }
 }
