@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Command.java,v 1.11 2008/04/04 22:00:59 akara Exp $
+ * $Id: Command.java,v 1.12 2008/04/11 07:43:28 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -73,6 +73,13 @@ public class Command implements Serializable {
      * 8KB will not cause any file I/O.
      */
     public static final int CAPTURE = 2;
+
+    // These private constants are used by parseArgs.
+    // Implicitly, normal chars are 0 and the marker array is initialized to it.
+    private static final byte M_SPACE  = (byte) 1;
+    private static final byte M_ESCAPE = (byte) 2;
+    private static final byte M_QUOTE  = (byte) 3;
+
 
     List<String> command;
     String[] env = null;
@@ -133,7 +140,7 @@ public class Command implements Serializable {
      */
     public static List<String> parseArgs(String command) {
         char[] c = command.trim().toCharArray();
-        char[] markers = new char[c.length]; // initialized to 0;
+        byte[] markers = new byte[c.length]; // initialized to 0;
         boolean inQuote = false;
         // Scan for "\ " (escaped space), quotes, and spaces.
         for (int i = 0; i < c.length; i++) {
@@ -141,15 +148,15 @@ public class Command implements Serializable {
                 case ' ' :
                     if (!inQuote) {
                         if (c[i - 1] == '\\')
-                            markers[i - 1] = 'e';
+                            markers[i - 1] = M_ESCAPE;
                         else
-                            markers[i] = 's';
+                            markers[i] = M_SPACE;
                     }
                     break;
                 case '"' :
                     // Flip true to false and false to true.
                     inQuote ^= true;
-                    markers[i] = 'q';
+                    markers[i] = M_QUOTE;
                     break;
             }
         }
@@ -158,15 +165,15 @@ public class Command implements Serializable {
         StringBuilder b = new StringBuilder();
         for (int i = 0; i < c.length; i++) {
             switch (markers[i]) {
-                case 's' :
+                case M_SPACE  :
                     if (b.length() > 0) {
                         args.add(b.toString());
                         b.setLength(0);
                     }
                     break;
-                case 'q' : break;
-                case 'e' : break;
-                default  : b.append(c[i]);
+                case M_QUOTE  : break;
+                case M_ESCAPE : break;
+                default       : b.append(c[i]);
             }
         }
         if (b.length() > 0)
