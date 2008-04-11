@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.37 2008/04/04 22:09:26 akara Exp $
+ * $Id: CmdService.java,v 1.38 2008/04/11 07:52:53 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -43,6 +43,7 @@ import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -693,7 +694,8 @@ final public class CmdService { 	// The final keyword prevents clones
         SimpleDateFormat dateFormat = new SimpleDateFormat("MMddHHmmyyyy.ss");
         dateFormat.setTimeZone(new SimpleTimeZone(0, "GMT")); // Use GMT.
         HashSet<String> hostSet = new HashSet<String>();
-        ArrayList<Future<Boolean>> tasks = new ArrayList<Future<Boolean>>();
+        ArrayList<NameValuePair<Future<Boolean>>> tasks =
+                new ArrayList<NameValuePair<Future<Boolean>>>();
         hostSet.add(master); // Don't try to set clock for master.
         for (Object o : cmdp) {
             CmdAgent agent = (CmdAgent) o;
@@ -701,25 +703,32 @@ final public class CmdService { 	// The final keyword prevents clones
             try {
                 hostName = agent.getHostName();
                 if (hostSet.add(hostName)) {
-                    tasks.add(Config.THREADPOOL.submit(
-                            new setClockTask(agent, hostName, dateFormat)));
+                    NameValuePair<Future<Boolean>> future =
+                            new NameValuePair<Future<Boolean>>();
+                    future.name = hostName;
+                    future.value = Config.THREADPOOL.submit(
+                            new setClockTask(agent, hostName, dateFormat));
+                    tasks.add(future);
                 }
-                for (Future<Boolean> future : tasks)
-                    try {
-                        future.get(300, TimeUnit.SECONDS);
-                    } catch (Throwable t) {
-                        Throwable cause = t.getCause();
-                        while (cause != null) {
-                            t = cause;
-                            cause = t.getCause();
-                        }
-                        logger.log(Level.SEVERE, t.getMessage(), t);
-                    }
             } catch (RemoteException e) {
                 logger.log(Level.SEVERE,
                         "Cannot communicate to agent to set time.", e);
             }
         }
+        for (NameValuePair<Future<Boolean>> future : tasks)
+            try {
+                future.value.get(300, TimeUnit.SECONDS);
+            } catch (TimeoutException e) {
+                logger.log(Level.SEVERE, "Timed out setting clock for " +
+                        future.name);
+            } catch (Throwable t) {
+                Throwable cause = t.getCause();
+                while (cause != null) {
+                    t = cause;
+                    cause = t.getCause();
+                }
+                logger.log(Level.SEVERE, t.getMessage(), t);
+            }
     }
 
     static class setClockTask implements Callable<Boolean> {
@@ -1554,6 +1563,19 @@ final public class CmdService { 	// The final keyword prevents clones
             logger.log(Level.FINE, "Exception", ie);
             return false;
         }
+    }
+
+    public synchronized boolean delete(String srcmachine, String dir,
+                                     com.sun.faban.harness.FileFilter filter) {
+        try {
+            return findFileAgent(srcmachine).removeFiles(dir, filter);
+        } catch (Exception ie) {
+                logger.severe("CmdService: Could not delete files on " +
+                        srcmachine + ":" + dir);
+            logger.log(Level.FINE, "Exception", ie);
+            return false;
+        }
+
     }
 
 

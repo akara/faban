@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ServerConfig.java,v 1.9 2008/04/04 22:09:26 akara Exp $
+ * $Id: ServerConfig.java,v 1.10 2008/04/11 07:52:53 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -136,12 +136,14 @@ class ServerConfig {
                         c.setStreamHandling(Command.STDOUT, Command.CAPTURE);
                         handle = cmds.execute(machine, c);
                         info = handle.fetchOutput(Command.STDOUT);
-                        syslog.println(linesep);
-                        syslog.println("<h3>" + userCmds[j] + " on server " +
-                                machineName + "</h3>");
-                        syslog.println("<pre>\n");
-                        syslog.write(info);
-                        syslog.println("\n</pre>");
+                        if (info != null) {
+                            syslog.println(linesep);
+                            syslog.println("<h3>" + userCmds[j] +
+                                    " on server " + machineName + "</h3>");
+                            syslog.println("<pre>\n");
+                            syslog.write(info);
+                            syslog.println("\n</pre>");
+                        }
                     }
                     syslog.println("</body></html>");
                     syslog.close();

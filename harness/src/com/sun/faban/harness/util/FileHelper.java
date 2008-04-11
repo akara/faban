@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileHelper.java,v 1.13 2008/04/04 22:09:27 akara Exp $
+ * $Id: FileHelper.java,v 1.14 2008/04/11 07:52:54 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -252,15 +252,43 @@ public class FileHelper {
             if (file.isDirectory()) {
                 File[] list = file.listFiles();
                 for (int i = 0; i < list.length; i++)
-                    recursiveDelete(list[i]);
-            } 
+                    if (!recursiveDelete(list[i])) {
+                        logger.severe("Delete failed for file " +
+                                file.getPath());
+                        success = false;
+                    }
+            }
             if (!file.delete()) {
                 logger.severe("Delete failed for file " + file.getPath());
                 success = false;
             }
         } catch(Exception e) {
-            logger.severe("Failed with " + e);
-            logger.log(Level.FINE, "Exception", e);
+            logger.log(Level.SEVERE, "Delete failed", e);
+            success = false;
+        }
+        return success;
+    }
+
+    /**
+     * Deletes all files matched by the filter in a certain directory.
+     * @param dir The directory to look for files to delete
+     * @param filter The file name filter
+     * @return True if all deletes succeeded, false otherwise
+     */
+    public static boolean delete(File dir, FileFilter filter) {
+        boolean success = true;
+
+        try {
+            if (!dir.isDirectory())
+                return false;
+            File[] list = dir.listFiles(filter);
+            for (File file : list)
+                if (!recursiveDelete(file)) {
+                    logger.severe("Delete failed for file " + file.getPath());
+                    success = false;
+                }
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Delete failed", e);
             success = false;
         }
         return success;

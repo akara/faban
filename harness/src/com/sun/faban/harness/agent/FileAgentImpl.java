@@ -17,13 +17,14 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileAgentImpl.java,v 1.5 2008/03/14 06:38:19 akara Exp $
+ * $Id: FileAgentImpl.java,v 1.6 2008/04/11 07:52:53 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.agent;
 
 import com.sun.faban.harness.common.Config;
+import com.sun.faban.harness.util.FileHelper;
 import com.sun.faban.common.FileTransfer;
 
 import java.io.*;
@@ -207,6 +208,17 @@ public class FileAgentImpl extends UnicastRemoteObject
             return file.delete();
         }
         return false;
+    }
+
+    /**
+     * Remove files from a directory matched by the filter.
+     * @param dirName The directory path name
+     * @param filter The filter
+     * @return True if files are successfully removed. False otherwise
+     */
+    public boolean removeFiles(String dirName, 
+                               com.sun.faban.harness.FileFilter filter) {
+        return FileHelper.delete(new File(dirName), filter);
     }
 
     /**

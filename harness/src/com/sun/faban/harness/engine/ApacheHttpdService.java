@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ApacheHttpdService.java,v 1.3 2008/02/25 20:41:22 shanti_s Exp $
+ * $Id: ApacheHttpdService.java,v 1.4 2008/04/11 07:52:53 akara Exp $
  *
  * Copyright 2007 Sun Microsystems Inc. All Rights Reserved
  */
@@ -28,6 +28,8 @@ import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
 import com.sun.faban.harness.RemoteCallable;
 import com.sun.faban.harness.RunContext;
+import com.sun.faban.harness.WildcardFileFilter;
+
 import java.io.BufferedReader;
 
 import java.io.File;
@@ -305,7 +307,6 @@ final public class ApacheHttpdService implements WebServerService {
      * @return true if operation succeeded, else fail
      */
     public boolean clearLogs() {
-        Command cmd = new Command("rm -f /tmp/sess*");
 
         for (int i = 0; i < myServers.length; i++) {
             if (RunContext.isFile(myServers[i], errlogFile)) {
@@ -326,8 +327,20 @@ final public class ApacheHttpdService implements WebServerService {
             logger.fine("Logs cleared for " + myServers[i]);
             try {
                 // Now delete the session files
-                CommandHandle ch = RunContext.exec(myServers[i], cmd);
-                logger.fine("Deleted session files for " + myServers[i]);
+                if (RunContext.deleteFiles(myServers[i], "/tmp",
+                        new WildcardFileFilter("sess*")))
+                    logger.fine("Deleted session files for " + myServers[i]);
+                else
+                    logger.warning("Error deleting session files for " +
+                            myServers[i]);
+
+                if (RunContext.deleteFiles(myServers[i], "/tmp",
+                        new WildcardFileFilter("php*")))
+                    logger.fine("Deleted php temp files for " + myServers[i]);
+                else
+                    logger.warning("Error deleting php temp files for " +
+                            myServers[i]);
+
             } catch (Exception e) {
                 logger.log(Level.FINE, "Delete session files failed on " + 
                         myServers[i] + ".", e);

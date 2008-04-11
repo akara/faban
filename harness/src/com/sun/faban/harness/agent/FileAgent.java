@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileAgent.java,v 1.4 2008/03/14 06:38:19 akara Exp $
+ * $Id: FileAgent.java,v 1.5 2008/04/11 07:52:53 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -68,6 +68,7 @@ public interface FileAgent extends Remote {
      */
     public boolean writeWholeFile(String file, String contents)
 	throws RemoteException;
+
     /**
      *
      * Remove a file.
@@ -78,8 +79,17 @@ public interface FileAgent extends Remote {
      *                   false if not successful or file does not exist.
      *
      */
-     public boolean removeFile(String fileName) throws RemoteException;
+    public boolean removeFile(String fileName) throws RemoteException;
 
+    /**
+     * Remove files from a directory matched by the filter.
+     * @param dirName The directory path name
+     * @param filter The filter
+     * @return True if files are successfully removed. False otherwise
+     */
+    boolean removeFiles(String dirName,
+                               com.sun.faban.harness.FileFilter filter)
+            throws RemoteException;
     /**
      * Gets a property from a given file
      * @param configFile The config file name

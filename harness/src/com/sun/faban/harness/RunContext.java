@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunContext.java,v 1.12 2008/04/02 07:24:50 akara Exp $
+ * $Id: RunContext.java,v 1.13 2008/04/11 07:52:54 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -274,6 +274,18 @@ public class RunContext {
      */
     public static boolean deleteFile(String hostName, String fileName) {
         return CmdService.getHandle().delete(hostName, fileName);
+    }
+
+    /**
+     * Deletes files o
+     * @param hostName The remote host name
+     * @param dir The file name
+     * @param filter The file name filter
+     * @return true if successful, false otherwise
+     */
+    public static boolean deleteFiles(String hostName, String dir,
+                                      FileFilter filter) {
+        return CmdService.getHandle().delete(hostName, dir, filter);
     }
 
     /**
