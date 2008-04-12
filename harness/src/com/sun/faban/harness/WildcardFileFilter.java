@@ -22,6 +22,8 @@ public class WildcardFileFilter implements FileFilter {
         int idx = 0;
         for (char c : src)
             switch (c) {
+                case '.' : dest[idx++] = '\\';
+                           dest[idx++] = c; break;
                 case '*' :
                 case '?' : dest[idx++] = '.';
                 default  : dest[idx++] = c;
