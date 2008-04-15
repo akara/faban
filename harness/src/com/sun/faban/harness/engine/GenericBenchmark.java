@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.27 2008/04/04 22:09:26 akara Exp $
+ * $Id: GenericBenchmark.java,v 1.28 2008/04/15 07:11:12 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -318,7 +318,9 @@ public class GenericBenchmark {
                 runStatus = COMPLETED;
             }
             return;
-
+        } catch (Throwable t) {
+            logger.log(Level.SEVERE,
+                    "Unexpected Exception processing benchmark.", t);
         } finally { // Ensure we kill the processes in any case.
             postProcess();
             _kill();

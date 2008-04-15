@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ParamRepository.java,v 1.8 2008/04/02 07:24:50 akara Exp $
+ * $Id: ParamRepository.java,v 1.9 2008/04/15 07:11:12 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -178,7 +178,12 @@ public class ParamRepository {
             Node node = nodes.item(i);
             Node typeNode = node.getParentNode().getParentNode();
             String type = typeNode.getNodeName();
-            String hosts = node.getFirstChild().getNodeValue();
+            Node hostTextNode = node.getFirstChild();
+            if (hostTextNode == null)
+                continue;
+            String hosts = hostTextNode.getNodeValue().trim();
+            if (hosts == null || hosts.length() == 0)
+                continue;
             StringTokenizer st = new StringTokenizer(hosts, " ,");
             while (st.hasMoreTokens()) {
                 NameValuePair<String> hostType = new NameValuePair<String>();
