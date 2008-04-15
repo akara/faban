@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.38 2008/04/11 07:52:53 akara Exp $
+ * $Id: CmdService.java,v 1.39 2008/04/15 17:45:55 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -770,7 +770,7 @@ final public class CmdService { 	// The final keyword prevents clones
 
             for (int i = 0;; i++) {
                 if (i >= 20) {
-                    logger.warning(hostName + "cannot accurately set remote " +
+                    logger.warning(hostName + " cannot accurately set remote " +
                             "time after " + i + " attempts. There is still a " +
                             "difference of " + timeDiff + " ms. Giving up.");
                     return false;
@@ -778,7 +778,7 @@ final public class CmdService { 	// The final keyword prevents clones
                 findBoundaryLoop:
                 for (int j = 0;; j++) {
                     if (j >= 20) {
-                        logger.warning(hostName + "Cannot scan time to set " +
+                        logger.warning(hostName + " cannot scan time to set " +
                                 "clock after " + j + " retries. Giving up " +
                                 "setting clock. System may be overloaded or " +
                                 "JVM doing too much garbage collections.");
@@ -813,6 +813,12 @@ final public class CmdService { 	// The final keyword prevents clones
 
                         if (System.currentTimeMillis() >= callTime - 2) {
                             wakeBefore += wakeBefore;
+                            if (wakeBefore > 700) {
+                                logger.warning(hostName + " wakeup-before " +
+                                        "time reached 700ms limit. System is " +
+                                        "too busy. Giving up.");
+                                return false;
+                            }
                             continue;
                         }
                         break;
