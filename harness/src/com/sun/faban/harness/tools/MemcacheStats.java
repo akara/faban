@@ -17,16 +17,17 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MemcacheStats.java,v 1.3 2008/04/17 04:01:15 shanti_s Exp $
+ * $Id: MemcacheStats.java,v 1.4 2008/04/17 06:33:37 akara Exp $
  */
 package com.sun.faban.harness.tools;
 
-import com.danga.MemCached.MemCachedClient;
-import com.danga.MemCached.SockIOPool;
 import com.sun.faban.common.TextTable;
 
-import com.sun.faban.harness.RemoteCallable;
-import com.sun.faban.harness.RunContext;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.text.DecimalFormat;
 import java.text.FieldPosition;
@@ -46,9 +47,8 @@ import java.util.logging.Logger;
  */
 public class MemcacheStats {
 
-    private static MemCachedClient cache = null;
-    static Logger logger = Logger.getLogger(
-            MemcacheStats.class.getName());
+    private static StatsClient cache = null;
+    static Logger logger = Logger.getLogger(MemcacheStats.class.getName());
     TextTable outputTextTable = null;
     int interval;
     private SimpleDateFormat df = new SimpleDateFormat("HH:mm:ss");
@@ -59,27 +59,20 @@ public class MemcacheStats {
      * @param servers -  name of servers running memcached
 	 * @param interval - interval in secs for stats collection
      */
-    public MemcacheStats(String servers[], int interval) {
+    public MemcacheStats(String servers[], int interval) throws IOException {
         this.interval = interval;
 
         logger.info("Connecting to " + servers[0]);
+        cache = new StatsClient(servers);
+        /*
         SockIOPool pool = SockIOPool.getInstance("statsPool");
         pool.setServers(servers);
         pool.initialize();
 
         cache = new MemCachedClient();
         cache.setPoolName("statsPool");
+        */
     }
-    
-    public static GregorianCalendar getGregorianCalendar(String hostName)
-            throws Exception {
-        return RunContext.exec(hostName, new RemoteCallable<GregorianCalendar>() {
-            public GregorianCalendar call() {
-                return new GregorianCalendar();
-            }
-        });
-    }
-
 
     /*
      * Columns in which the various stats fields will appear
@@ -124,12 +117,8 @@ public class MemcacheStats {
         //set counter to allow to set number of columns to output
         int row = 0;
 
-		boolean ignoreTime = false;
-		GregorianCalendar cal = null;
-
         //reset the iterator
         for (Map.Entry serverEntry : serverEntries) {
-            int column = 0;
             String key = (String) serverEntry.getKey();
             if (key == null)
                 break;
@@ -138,21 +127,7 @@ public class MemcacheStats {
             String srv = key.substring(0, key.indexOf(":"));
             if (srv == null)
 				break;
-			/*
-			 * Note the following requires a CmdAgent on the server machine
-			 * So this will only work in the context of a benchmark run
-			*/
-			try {
-			    cal = getGregorianCalendar(srv);
-				ignoreTime = false;
-            } catch (Exception ex) {
-				logger.log(Level.WARNING, "Couldn't get calendar on host " + srv, ex);
-                ignoreTime = true;
-            }
-			//cal = new GregorianCalendar();
 
-			if ( !ignoreTime)
-                curTime = df.format(cal.getTime());
             if (outputTextTable == null) {
                 // the number of rows is #of servers (for each interval)
                 // One extra column for server name
@@ -195,7 +170,11 @@ public class MemcacheStats {
                  * we're not looking at are not integers.
 				 */
 				 /* We do absolute stats for CUR_ITMS,BYTES and CUR_CONNS */
-                if (fldKey.equals("curr_items")) {
+                if (fldKey.equals("time")) {
+                    longval = Long.parseLong(fldValue) * 1000; // sec to ms
+                    outputTextTable.setField(row, CURTIME,
+                                                df.format(new Date(longval)));
+                } else if (fldKey.equals("curr_items")) {
                     intval = Integer.parseInt(fldValue);
                     outputTextTable.setField(row, CUR_ITMS, intval.toString());
                 } else if (fldKey.equals("bytes")) {
@@ -246,7 +225,10 @@ public class MemcacheStats {
                     intval = (int)((longval - previousStats[row][BYTES_W])/interval);
                     outputTextTable.setField(row, BYTES_W, intval.toString());
                     previousStats[row][BYTES_W] = longval;
-                }                
+                }
+                // Some version of memcached do not have evicts.
+                if (outputTextTable.getField(row, EVICTS) == null)
+                    outputTextTable.setField(row, EVICTS, "-");
             }
             row++;
         }
@@ -264,7 +246,7 @@ public class MemcacheStats {
      *  @param args String []
      *
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         int intervalTime = 10000; // in msecs
         LinkedHashSet<String> serverSet = new LinkedHashSet<String>();
 
@@ -318,6 +300,90 @@ public class MemcacheStats {
 
         public void run() {
             System.out.println(memcacheStats.getStats());
+        }
+    }
+
+    /**
+     * The client code to interface with all memcached servers.
+     */
+    private static class StatsClient {
+
+        ArrayList<StatsConnection> connections;
+        Map<String, Map<String, String>> stats;
+
+        /**
+         * Constructs the client for all given servers.
+         * @param servers host:port pairs for the server.
+         */
+        public StatsClient(String[] servers) throws IOException {
+            connections = new ArrayList<StatsConnection>(servers.length);
+            stats = new LinkedHashMap<String, Map<String, String>>(servers.length);
+            for (String server : servers)
+                try {
+                    StatsConnection conn = new StatsConnection(server);
+                    connections.add(conn);
+                    stats.put(server, conn.result);
+                } catch (IOException e) {
+                    logger.log(Level.SEVERE, "Cannot connect to " + server +
+                                ".", e);
+                }
+            if (connections.size() == 0)
+                throw new IOException("No host available.");
+        }
+
+        /**
+         * Obtains the stats from all servers.
+         * @return the stats from all servers.
+         */
+        public Map<String, Map<String, String>> stats() {
+            for (StatsConnection connection : connections) {
+                try {
+                    connection.stats();
+                } catch (IOException e) {
+                    logger.log(Level.SEVERE, "Error obtaining stats from " +
+                            connection.server + ".", e);
+                }
+            }
+            return stats;
+        }
+    }
+
+    private static class StatsConnection {
+
+        String server;
+        Socket socket;
+        BufferedReader reader;
+        OutputStream out;
+        HashMap<String, String> result = new HashMap<String, String>();
+
+        static final byte[] cmd = "stats\r\n".getBytes();
+
+        StatsConnection(String server) throws IOException {
+            this.server = server;
+            int colIdx = server.indexOf(':');
+            String host = server.substring(0, colIdx);
+            int port = Integer.parseInt(server.substring(colIdx + 1));
+            socket = new Socket(host, port);
+            out = socket.getOutputStream();
+            reader = new BufferedReader(new InputStreamReader(
+                    socket.getInputStream()));
+        }
+
+        Map<String, String> stats() throws IOException {
+            out.write(cmd);
+            for (;;) {
+                String line = reader.readLine();
+                if ("END".equals(line))
+                    break;
+                StringTokenizer t = new StringTokenizer(line);
+                String statStr = t.nextToken();
+                if (!"STAT".equals(statStr))
+                    throw new IOException("Expecting STAT, got " + statStr);
+                String key = t.nextToken();
+                String value = t.nextToken();
+                result.put(key, value);
+            }
+            return result;
         }
     }
 }

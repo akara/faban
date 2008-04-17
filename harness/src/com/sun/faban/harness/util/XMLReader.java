@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: XMLReader.java,v 1.12 2008/04/02 07:24:49 akara Exp $
+ * $Id: XMLReader.java,v 1.13 2008/04/17 06:33:38 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -226,6 +226,75 @@ public class XMLReader {
             throw new XMLException("Error evaluating " + xpath + ", " +
                                    e.getMessage(), e);
         }
+    }
+
+    public void setValue(Element element, String value) {
+        NodeList children = element.getChildNodes();
+        boolean valueSet = false;
+        int childCount = children.getLength();
+        for (int i = 0; i < childCount; i++) {
+            Node child = children.item(i);
+            short nodeType = child.getNodeType();
+            if (nodeType == Node.TEXT_NODE) {
+                child.setNodeValue(value);
+                valueSet = true;
+                break;
+            }
+        }
+        if (!valueSet)
+            element.appendChild(doc.createTextNode(value));
+    }
+
+    public Element addNode(Element parent, String namespaceURI,
+                           String prefix, String nodeName) {
+        Element newNode;
+        if (namespaceURI == null) {
+            newNode = doc.createElement(nodeName);
+        } else {
+            newNode = doc.createElementNS(namespaceURI, nodeName);
+            if (prefix != null)
+                newNode.setPrefix(prefix);
+        }
+        parent.appendChild(newNode);
+        this.updated = true;
+        return newNode;
+    }
+
+    public Element addNode(String baseXPath, String namespaceURI,
+                           String prefix, String nodeName) {
+        // If no absolute baseXPath is not given use //baseXPath to find the parameter
+        if(baseXPath.charAt(0) != '/')
+            baseXPath = "//" + baseXPath;
+        else    //the JXPathContext expects 'params' (which is the variable name returned by XMLFile
+            baseXPath = "params" + baseXPath;
+        try {
+            NodeList nodeList = (NodeList) xPath.evaluate(
+                                baseXPath, doc, XPathConstants.NODESET);
+            int length = nodeList.getLength();
+            if (length == 0) {
+                logger.warning("No match for XPath " + baseXPath);
+                return null;
+            } else if (length > 1) {
+                logger.warning("XPath " + baseXPath +
+                        " references more than one node. Please make the " +
+                        "XPath more specific.");
+                return null;
+            }
+
+            Node node = nodeList.item(0);
+            if (node.getNodeType() != Node.ELEMENT_NODE) {
+                logger.warning("XPath " + baseXPath +
+                        " does not reference an element.");
+                return null;
+            }
+
+            return addNode((Element) node, namespaceURI, prefix, nodeName);
+            
+        } catch (XPathExpressionException e) {
+            throw new XMLException("Error evaluating " + baseXPath + ", " +
+                                   e.getMessage(), e);
+        }
+
     }
 
     /**

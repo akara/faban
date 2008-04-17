@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ParamRepository.java,v 1.9 2008/04/15 07:11:12 akara Exp $
+ * $Id: ParamRepository.java,v 1.10 2008/04/17 06:33:38 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -32,6 +32,7 @@ import java.util.ArrayList;
 
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
+import org.w3c.dom.Element;
 
 /**
  * The ParamRepository is the programmatic representation of the
@@ -63,6 +64,55 @@ public class ParamRepository {
         return reader.getValue(xpath);
     }
 
+
+    /**
+     * Adds a new XPath to the param repository.
+     * @param baseXPath The base XPath to add this node
+     * @param paramName The element name
+     * @return The newly added element, or null on failure
+     */
+    public Element addParameter(String baseXPath, String paramName) {
+        return reader.addNode(baseXPath, null, null, paramName);
+    }
+
+    /**
+     * Adds a new XPath to the param repository.
+     * @param baseXPath The base XPath to add this node
+     * @param namespace The namespace for this new element, if any
+     * @param prefix The namespace prefix for this new element, if any
+     * @param paramName The element name
+     * @return The newly added element, or null on failure
+     */
+    public Element addParameter(String baseXPath, String namespace,
+                                String prefix, String paramName) {
+        return reader.addNode(baseXPath, namespace, prefix, paramName);
+    }
+
+    /**
+     * Adds a new XPath to the param repository,
+     * based on a previously added parameter.
+     * @param parent The parent element to add this node to
+     * @param paramName The element name
+     * @return The newly added element, or null on failure
+     */
+    public Element addParameter(Element parent, String paramName) {
+        return reader.addNode(parent, null, null, paramName);
+    }
+
+    /**
+     * Adds a new XPath to the param repository,
+     * based on a previously added parameter.
+     * @param parent The parent element to add this node to
+     * @param namespace The namespace for this new element, if any
+     * @param prefix The namespace prefix for this new element, if any
+     * @param paramName The element name
+     * @return The newly added element, or null on failure
+     */
+    public Element addParameter(Element parent, String namespace,
+                                String prefix, String paramName) {
+        return reader.addNode(parent, namespace, prefix, paramName);
+    }
+
     /**
      * Sets or replaces the parameter referenced by the XPath.
      * @param xpath The xpath referencing the parameter
@@ -70,6 +120,15 @@ public class ParamRepository {
      */
     public void setParameter(String xpath, String newValue) {
         reader.setValue(xpath, newValue);
+    }
+
+    /**
+     * Sets the parameter for a newly added DOM element.
+     * @param element The newly added element
+     * @param value The value to assign to the element
+     */
+    public void setParameter(Element element, String value) {
+        reader.setValue(element, value);
     }
 
     /**
