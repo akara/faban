@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MemcacheStats.java,v 1.6 2008/04/17 20:18:10 shanti_s Exp $
+ * $Id: MemcacheStats.java,v 1.7 2008/04/17 22:08:52 akara Exp $
  */
 package com.sun.faban.harness.tools;
 
@@ -96,7 +96,6 @@ public class MemcacheStats {
 		double dblval = 0;
 		DecimalFormat decval = new DecimalFormat("0.00");
 		FieldPosition fld = new FieldPosition(DecimalFormat.INTEGER_FIELD);
-        String curTime = null;
 
         Map memcacheStats = cache.stats();
         //cache.stats() will return a Map whose key  is the name of the memcache server
