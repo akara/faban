@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MemcacheStats.java,v 1.2 2008/04/10 20:46:47 shanti_s Exp $
+ * $Id: MemcacheStats.java,v 1.3 2008/04/17 04:01:15 shanti_s Exp $
  */
 package com.sun.faban.harness.tools;
 
@@ -28,6 +28,8 @@ import com.sun.faban.common.TextTable;
 import com.sun.faban.harness.RemoteCallable;
 import com.sun.faban.harness.RunContext;
 import java.text.SimpleDateFormat;
+import java.text.DecimalFormat;
+import java.text.FieldPosition;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -108,6 +110,9 @@ public class MemcacheStats {
     public TextTable getStats() {
         Integer intval = 0;
 		long longval = 0;
+		double dblval = 0;
+		DecimalFormat decval = new DecimalFormat("0.00");
+		FieldPosition fld = new FieldPosition(DecimalFormat.INTEGER_FIELD);
         String curTime = null;
 
         Map memcacheStats = cache.stats();
@@ -160,13 +165,13 @@ public class MemcacheStats {
                 outputTextTable.setHeader(CUR_ITMS, "items");
                 outputTextTable.setHeader(BYTES, "cache_MB");
                 outputTextTable.setHeader(CUR_CONNS, "conns");
-                outputTextTable.setHeader(SETS, "sets");
-                outputTextTable.setHeader(GETS, "gets");
-                outputTextTable.setHeader(GET_HITS, "get_hits");
-                outputTextTable.setHeader(GET_MISSES, "get_misses");
-                outputTextTable.setHeader(EVICTS, "evicts");
-                outputTextTable.setHeader(BYTES_R, "rB");
-                outputTextTable.setHeader(BYTES_W, "wB");
+                outputTextTable.setHeader(SETS, "sets/s");
+                outputTextTable.setHeader(GETS, "gets/s");
+                outputTextTable.setHeader(GET_HITS, "get_hits/s");
+                outputTextTable.setHeader(GET_MISSES, "get_misses/s");
+                outputTextTable.setHeader(EVICTS, "evicts/s");
+                outputTextTable.setHeader(BYTES_R, "rB/s");
+                outputTextTable.setHeader(BYTES_W, "wB/s");
                 
                 previousStats = new long[serverEntries.size()][NUM_COLS+1];
             }
@@ -178,6 +183,7 @@ public class MemcacheStats {
 
             // Populate the rest of the table.
             for (Map.Entry statsMapEntry : statsMapEntries) {
+		        StringBuffer str = new StringBuffer();
                 String fldKey = statsMapEntry.getKey().toString();
                 String fldValue = ((CharSequence)(statsMapEntry.getValue())).toString();
                 logger.fine("key = " + fldKey + ", value = " + fldValue);
@@ -195,30 +201,35 @@ public class MemcacheStats {
                 } else if (fldKey.equals("bytes")) {
 				// bytes can be large, so store in long - convert to MBs
                     longval = Long.parseLong(fldValue);
-					intval = (int)(longval / 1000000);
-                    outputTextTable.setField(row, BYTES, intval.toString());
+					dblval = (double)longval / 1000000;
+					decval.format(dblval, str, fld);
+                    outputTextTable.setField(row, BYTES, str);
                 } else if (fldKey.equals("curr_connections")) {
                     intval = Integer.parseInt(fldValue);
                     outputTextTable.setField(row, CUR_CONNS, intval.toString());
                 } else if (fldKey.equals("cmd_set")) {
                     longval = Long.parseLong(fldValue);
-                    intval = (int)((longval - previousStats[row][SETS])/interval);
-                    outputTextTable.setField(row, SETS, intval.toString());
+                    dblval = (double)(longval - previousStats[row][SETS])/interval;
+					decval.format(dblval, str, fld);
+                    outputTextTable.setField(row, SETS, str);
                     previousStats[row][SETS] = longval;
                 } else if (fldKey.equals("cmd_get")) {
                     longval = Long.parseLong(fldValue);
-                    intval = (int)((longval - previousStats[row][GETS])/interval);
-                    outputTextTable.setField(row, GETS, intval.toString());
+                    dblval = (double)(longval - previousStats[row][GETS])/interval;
+					decval.format(dblval, str, fld);
+                    outputTextTable.setField(row, GETS, str);
                     previousStats[row][GETS] = longval;
                 } else if (fldKey.equals("get_hits")) {
                     longval = Long.parseLong(fldValue);
-                    intval = (int)((longval - previousStats[row][GET_HITS])/interval);
-                    outputTextTable.setField(row, GET_HITS, intval.toString());
+                    dblval = (double)(longval - previousStats[row][GET_HITS])/interval;
+					decval.format(dblval, str, fld);
+                    outputTextTable.setField(row, GET_HITS, str);
                     previousStats[row][GET_HITS] = longval;
                 } else if (fldKey.equals("get_misses")) {
                     longval = Long.parseLong(fldValue);
-                    intval = (int)((longval - previousStats[row][GET_MISSES])/interval);
-                    outputTextTable.setField(row, GET_MISSES, intval.toString());
+                    dblval = (double)(longval - previousStats[row][GET_MISSES])/interval;
+					decval.format(dblval, str, fld);
+                    outputTextTable.setField(row, GET_MISSES, str);
                     previousStats[row][GET_MISSES] = longval;
                 } else if (fldKey.equals("evictions")) {
                     longval = Long.parseLong(fldValue);
