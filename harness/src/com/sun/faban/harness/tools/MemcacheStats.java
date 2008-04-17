@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MemcacheStats.java,v 1.5 2008/04/17 07:01:10 akara Exp $
+ * $Id: MemcacheStats.java,v 1.6 2008/04/17 20:18:10 shanti_s Exp $
  */
 package com.sun.faban.harness.tools;
 
@@ -140,7 +140,6 @@ public class MemcacheStats {
                 
                 previousStats = new long[serverEntries.size()][NUM_COLS+1];
             }
-            outputTextTable.setField(row, CURTIME, curTime);
             outputTextTable.setField(row, 0, key);
 
             //get this value's iterator
@@ -266,7 +265,7 @@ public class MemcacheStats {
 
         logger.info("Starting memcache stats");
 
-        MemcacheStats memcacheStats = new MemcacheStats(memCacheServers, intervalTime);
+        MemcacheStats memcacheStats = new MemcacheStats(memCacheServers, intervalTime/1000);
 
         try {
             Timer timer = new Timer();
