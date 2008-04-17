@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MemcacheStats.java,v 1.4 2008/04/17 06:33:37 akara Exp $
+ * $Id: MemcacheStats.java,v 1.5 2008/04/17 07:01:10 akara Exp $
  */
 package com.sun.faban.harness.tools;
 
@@ -61,17 +61,7 @@ public class MemcacheStats {
      */
     public MemcacheStats(String servers[], int interval) throws IOException {
         this.interval = interval;
-
-        logger.info("Connecting to " + servers[0]);
         cache = new StatsClient(servers);
-        /*
-        SockIOPool pool = SockIOPool.getInstance("statsPool");
-        pool.setServers(servers);
-        pool.initialize();
-
-        cache = new MemCachedClient();
-        cache.setPoolName("statsPool");
-        */
     }
 
     /*
