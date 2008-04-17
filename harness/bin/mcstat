@@ -34,6 +34,12 @@ MEMJAR=`echo $MEMJAR | sed 's/ /:/g'`
 CLASSPATH=$FABAN_HOME/lib/fabanagents.jar:$FABAN_HOME/lib/fabancommon.jar:$MEMJAR
 export CLASSPATH
 
-
 $JAVA -client -Xmx2m -cp "$CLASSPATH" \
-      com.sun.faban.harness.tools.MemcacheStats $*
+      com.sun.faban.harness.tools.MemcacheStats $* &
+pid=$?
+
+#  For some reason killing this script doesn't kill java process
+# So we manually kill it and exit
+trap "kill $pid" 2 3 15
+wait
+exit 0
