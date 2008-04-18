@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileAgentImpl.java,v 1.6 2008/04/11 07:52:53 akara Exp $
+ * $Id: FileAgentImpl.java,v 1.7 2008/04/18 07:10:31 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -281,7 +281,7 @@ public class FileAgentImpl extends UnicastRemoteObject
      * @throws java.rmi.RemoteException If there is an error in the transfer
      */
     public FileTransfer get(String srcFile, String destFile)
-            throws RemoteException {
+            throws FileNotFoundException {
         // Copying happens in FileTransfer.writeObject and
         // FileTransfer.readObject. This is the most memory-efficient way
         // to transfer large files over RMI.

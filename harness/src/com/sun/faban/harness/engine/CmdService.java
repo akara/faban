@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.39 2008/04/15 17:45:55 akara Exp $
+ * $Id: CmdService.java,v 1.40 2008/04/18 07:10:31 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -1371,8 +1371,8 @@ final public class CmdService { 	// The final keyword prevents clones
         }
 
         FileAgent destf = filep.get(didx);
-        FileTransfer transfer = new FileTransfer(srcfile, destfile);
         try {
+            FileTransfer transfer = new FileTransfer(srcfile, destfile);
             if (destf.push(transfer) != transfer.getSize())
                 throw new IOException("Invalid transfer size");
         } catch (RemoteException e) {

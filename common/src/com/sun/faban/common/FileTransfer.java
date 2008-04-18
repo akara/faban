@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileTransfer.java,v 1.1 2008/03/14 06:31:33 akara Exp $
+ * $Id: FileTransfer.java,v 1.2 2008/04/18 07:09:39 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -52,8 +52,11 @@ public class FileTransfer implements Serializable {
      * @param src The source file name
      * @param dest The destination file name
      */
-    public FileTransfer(String src, String dest) {
+    public FileTransfer(String src, String dest) throws FileNotFoundException {
         this.src = src;
+        File srcFile = new File(src);
+        if (!srcFile.isFile())
+            throw new FileNotFoundException("File " + src + " does not exist.");
         this.dest = dest;
     }
 
