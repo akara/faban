@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentThread.java,v 1.10 2007/09/07 15:49:04 noahcampbell Exp $
+ * $Id: AgentThread.java,v 1.11 2008/04/18 07:11:40 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -256,8 +256,18 @@ public abstract class AgentThread extends Thread {
      * @param op The operation being executed.
      */
     void logError(Throwable e, BenchmarkDefinition.Operation op) {
-        String message = name + "." + op.m.getName() + ": " +
-                e.getMessage();
+        String message = e.getMessage();
+        if (message == null) { // Find the message in the highest level exception.
+            Throwable t = e.getCause();
+            while (message == null && t != null) {
+                message = t.getMessage();
+                t = t.getCause();
+            }
+        }
+        if (message == null) // If still null, artificially create message.
+            message = "Exception in operation.";
+        message = name + "." + op.m.getName() + ": " + message;
+
         if (inRamp) {
 			message += "\nNote: Error not counted in result." +
                     "\nEither transaction start or end time is not " +
