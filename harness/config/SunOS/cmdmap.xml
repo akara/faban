@@ -10,6 +10,10 @@
         <exec>/usr/bin/rsh -n</exec>
     </command>
     <command>
+        <name>date</name>
+        <prefix>fastsu</prefix>
+    </command>
+    <command>
         <name>cpustat</name>
         <prefix sequence="1">fastsu</prefix>
         <prefix sequence="2">priocntl -e -c RT</prefix>
