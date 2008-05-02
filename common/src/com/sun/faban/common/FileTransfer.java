@@ -17,13 +17,15 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileTransfer.java,v 1.2 2008/04/18 07:09:39 akara Exp $
+ * $Id: FileTransfer.java,v 1.3 2008/05/02 23:16:18 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.common;
 
 import java.io.*;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * The FileTransfer class represents a file to be transferred via RMI from
@@ -36,39 +38,80 @@ import java.io.*;
  *
  * @author Akara Sucharitakul
  */
-public class FileTransfer implements Serializable {
+public class FileTransfer implements Externalizable {
 
-    private static final long serialVersionUID = 3122008L;
-    private static final int DEFAULT_BUFFER_SIZE = 8192;
+    private static final int MAX_BUFFER_SIZE = 8192;
+    private static final Logger logger =
+                            Logger.getLogger(FileTransfer.class.getName());
 
     private String src;
     private String dest;
-    private long size;
+    private long size; // Size only gets populated once file transfer happens.
 
+    private transient long transferSize;
     private transient byte[] buffer;
+    private transient FileInputStream dataIn;
 
     /**
      * Creates a file transfer object.
      * @param src The source file name
      * @param dest The destination file name
+     * @exception IOException Error reading the file to be transferred
      */
-    public FileTransfer(String src, String dest) throws FileNotFoundException {
+    public FileTransfer(String src, String dest) throws IOException {
         this.src = src;
-        File srcFile = new File(src);
-        if (!srcFile.isFile())
-            throw new FileNotFoundException("File " + src + " does not exist.");
         this.dest = dest;
+
+        // Ensure the file is really there and readable.
+        File srcFile = new File(src);
+        if (!srcFile.exists())
+            throw new FileNotFoundException("File " +
+                    srcFile.getAbsolutePath() + " does not exist.");
+        transferSize = srcFile.length();
+        if (transferSize <= 0)
+            throw new IOException(srcFile.getAbsolutePath() +
+                    ": Invalid file size of " + transferSize);
+
+        dataIn = new FileInputStream(srcFile);
+        buffer = new byte[transferSize < MAX_BUFFER_SIZE ?
+                                (int) transferSize : MAX_BUFFER_SIZE];
+
+        // Fill the first full buffer now, in order to detect I/O issues
+        // now and not during serialization.
+        int idx = 0;
+        while (idx < buffer.length) {
+            int readCount = dataIn.read(buffer, idx, buffer.length - idx);
+            if (readCount < 0)
+                throw new IOException("Error reading file " +
+                        srcFile.getAbsolutePath() + ". Size: " + transferSize +
+                        ", Read: " + idx);
+            idx += readCount;
+        }
+
+        if (buffer.length == transferSize) { // We have read everything now.
+            dataIn.close();
+        }
     }
 
     public FileTransfer(byte[] buffer, int offset, int length, String dest) {
+        this.src = "";
         this.dest = dest;
+        transferSize = length;
         this.buffer = new byte[length];
         System.arraycopy(buffer, offset, this.buffer, 0, length);
     }
 
     /**
+     * The noarg constructore is used for deserializing.
+     */
+    public FileTransfer() {
+
+    }
+
+    /**
      * Obtains the sources file name.
-     * @return The source file name
+     * @return The source file name, or an empty string if the transfer happens
+     *         from a buffer.
      */
     public String getSource() {
         return src;
@@ -91,57 +134,63 @@ public class FileTransfer implements Serializable {
         return size;
     }
 
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        if (src != null)
-            writeFile(out);
-        else if (buffer != null)
-            writeBuffer(out);
-        else
-            throw new IOException("Data source not provided");
+    /**
+     * Obtains the size to be transferred on the sending side, or the size
+     * really transferred on the receiving side.
+     * @return The transfer size
+     */
+    public long getTransferSize() {
+        return transferSize;
     }
 
-    private void writeFile(ObjectOutputStream out) throws IOException {
+    public void writeExternal(ObjectOutput out) throws IOException {
 
-        File srcFile = new File(src);
-        size = srcFile.length();
-        if (size <= 0)
-            throw new IOException(srcFile.getAbsolutePath() +
-                    ": Invalid file size of " + size);
-
-        // Ensure we can read from the input file.
-        FileInputStream dataIn = new FileInputStream(src);
-
-        // Write the headers.
+        // Flush headers and the first chunk.
+        size = transferSize;
         out.writeObject(src);
         out.writeObject(dest);
         out.writeLong(size);
+        out.write(buffer);
 
-        // Then, write the data stream, one buffer at a time.
-        if (buffer == null)
-            buffer = new byte[size < DEFAULT_BUFFER_SIZE ? (int) size :
-                                                        DEFAULT_BUFFER_SIZE];
-
-        long remainder = size;
-        while (remainder > 0) {
-            int chunkSize =
-                    remainder < buffer.length ? (int) remainder : buffer.length;
-            chunkSize = dataIn.read(buffer, 0, chunkSize);
-            out.write(buffer, 0, chunkSize);
-            remainder -= chunkSize;
+        // Then stream the rest, if any
+        if (size > buffer.length) {
+            // Write the rest of the data stream, one buffer at a time.
+            long remainder = size - buffer.length;
+            while (remainder > 0) {
+                int chunkSize = remainder < buffer.length ?
+                        (int) remainder : buffer.length;
+                if (dataIn != null) {
+                    // Even if we have or had errors, we need to transfer
+                    // the whole agreed upon bytes, valid or not.
+                    // This is not to corrupt the stream.
+                    try {
+                        chunkSize = dataIn.read(buffer, 0, chunkSize);
+                    } catch (IOException e) {
+                        logger.log(Level.WARNING,
+                                    "Error reading from file " + src, e);
+                        dataIn = null;
+                    }
+                }
+                if (chunkSize < 0) {
+                    break;
+                } else if (chunkSize == 0) {
+                    continue;
+                }
+                out.write(buffer, 0, chunkSize);
+                remainder -= chunkSize;
+            }
+            if (dataIn != null)
+                try {
+                    dataIn.close();
+                } catch (IOException e) {
+                    logger.log(Level.WARNING, "Error closing file " +
+                                                src, e);
+                }
+            buffer = null;
         }
-        dataIn.close();
-        buffer = null;
     }
 
-    private void writeBuffer(ObjectOutputStream out) throws IOException {
-        size = buffer.length;
-        out.writeObject("");
-        out.writeObject(dest);
-        out.writeLong(size);
-        out.write(buffer, 0, buffer.length);
-    }
-
-    private void readObject(ObjectInputStream in)
+    public void readExternal(ObjectInput in)
             throws IOException, ClassNotFoundException {
 
         // Read the headers
@@ -149,28 +198,57 @@ public class FileTransfer implements Serializable {
         dest = (String) in.readObject();
         size = in.readLong();
 
+        // We need to ensure we read everything out in order not to
+        // cause an rmi stream corruption, even if our file write bails.
         // Create the file
-        FileOutputStream dataOut = new FileOutputStream(dest);
+        FileOutputStream dataOut = null;
+        try {
+            dataOut = new FileOutputStream(dest);
+        } catch (IOException e) {
+            logger.log(Level.WARNING, "Error opening file " + dest, e);
+        }
 
         // Then, read the data stream and save to file, one buffer at a time.
         if (buffer == null)
-            buffer = new byte[size < DEFAULT_BUFFER_SIZE ? (int) size :
-                                                        DEFAULT_BUFFER_SIZE];
+            buffer = new byte[size < MAX_BUFFER_SIZE ? (int) size :
+                                                        MAX_BUFFER_SIZE];
         long remainder = size;
         while (remainder > 0) {
             int chunkSize =
                     remainder < buffer.length ? (int) remainder : buffer.length;
             chunkSize = in.read(buffer, 0, chunkSize);
-            dataOut.write(buffer, 0, chunkSize);
+            if (chunkSize < 0) {
+                break;
+            } else if (chunkSize == 0) {
+                continue;
+            }
+            if (dataOut != null)
+                // We still have to clear the stream,
+                // even if we cannot write it to file.
+                try {
+                    dataOut.write(buffer, 0, chunkSize);
+                } catch (IOException e) {
+                    logger.log(Level.WARNING, "Error writing to file " +
+                                            dest, e);
+                    dataOut = null;
+                }
             remainder -= chunkSize;
         }
-        dataOut.flush();
-        dataOut.close();
+        transferSize = size - remainder;
+        if (dataOut != null) {
+            try {
+                dataOut.flush();
+            } catch (IOException e) {
+                logger.log(Level.WARNING, "Error flushing data to file " +
+                                            dest, e);
+            }
+            try {
+                dataOut.close();
+            } catch (IOException e) {
+                logger.log(Level.WARNING, "Error closing file " +
+                                            dest, e);
+            }
+        }
         buffer = null;
-    }
-
-    private void readObjectNoData()
-            throws ObjectStreamException {
-        throw new StreamCorruptedException("FileTransfer did not receive data");
     }
 }
