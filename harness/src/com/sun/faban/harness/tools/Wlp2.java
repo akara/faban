@@ -17,22 +17,17 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Wlp2.java,v 1.3 2008/03/14 06:38:21 akara Exp $
+ * $Id: Wlp2.java,v 1.4 2008/05/02 21:30:03 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.tools;
 
-import com.sun.faban.common.FileTransfer;
 import com.sun.faban.harness.agent.CmdAgent;
-import com.sun.faban.harness.agent.CmdAgentImpl;
-import com.sun.faban.harness.agent.FileAgent;
 import com.sun.faban.harness.common.Config;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
-import java.util.logging.Level;
 
 /**
  * Wlp2 is an Oracle/TPC-E specific tool. So this class does not really belong here.
