@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileAgent.java,v 1.6 2008/04/18 07:10:31 akara Exp $
+ * $Id: FileAgent.java,v 1.7 2008/05/02 23:17:32 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -137,8 +137,8 @@ public interface FileAgent extends Remote {
      * @param srcFile The source file on the host the agent is running on
      * @param destFile The destination file on the master
      * @return The FileTransfer causing this transfer
-     * @throws RemoteException If there is an error in the transfer
+     * @throws IOException If there is an error reading or transferring
      */
     FileTransfer get(String srcFile, String destFile)
-            throws RemoteException, FileNotFoundException;
+            throws IOException;
 }

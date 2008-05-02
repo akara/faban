@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileAgentImpl.java,v 1.7 2008/04/18 07:10:31 akara Exp $
+ * $Id: FileAgentImpl.java,v 1.8 2008/05/02 23:17:32 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -268,6 +268,10 @@ public class FileAgentImpl extends UnicastRemoteObject
         // FileTransfer.writeObject and FileTransfer.readObject.
         // This is the most memory-efficient way to transfer large
         // files over RMI.
+        logger.info("Received " + transfer.getSource() + "->" +
+                    transfer.getDest() + ", " +
+                    transfer.getTransferSize() + " out of " +
+                    transfer.getSize() + " bytes");
         return transfer.getSize();
     }
 
@@ -278,14 +282,17 @@ public class FileAgentImpl extends UnicastRemoteObject
      * @param srcFile  The source file on the host the agent is running on
      * @param destFile The destination file on the master
      * @return The FileTransfer causing this transfer
-     * @throws java.rmi.RemoteException If there is an error in the transfer
+     * @throws RemoteException If there is an error reading or transferring
      */
     public FileTransfer get(String srcFile, String destFile)
-            throws FileNotFoundException {
+            throws IOException {
         // Copying happens in FileTransfer.writeObject and
         // FileTransfer.readObject. This is the most memory-efficient way
         // to transfer large files over RMI.
-        return new FileTransfer(srcFile, destFile);
+        FileTransfer t = new FileTransfer(srcFile, destFile);
+        logger.info("Transferring " + t.getSource() + "->" + t.getDest() +
+                    " size " + t.getTransferSize() + " bytes.");
+        return t;
     }
 
     /**
