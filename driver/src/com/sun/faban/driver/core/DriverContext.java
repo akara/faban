@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DriverContext.java,v 1.13 2008/02/14 21:55:20 akara Exp $
+ * $Id: DriverContext.java,v 1.14 2008/05/02 22:05:09 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -175,9 +175,12 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
 
     /**
      * Obtains the name of the operation currently executing.
-     * @return the current operation's name
+     * @return the current operation's name,
+     *         or null if called from outside an operation.
      */
 	public String getCurrentOperation() {
+        if (agentThread.currentOperation == -1)
+            return null;
         return agentThread.driverConfig.operations[
                 agentThread.currentOperation].name;
     }
@@ -188,7 +191,8 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      * operation-specific information such as stats. The id ranges from 0 to
      * n where n is the number of operations in the driver less one.
      *
-     * @return The unique id assigned to this operation type.
+     * @return The unique id assigned to this operation type,
+     *         or -1 if called from outside an operation.
      */
 	public int getOperationId() {
         return agentThread.currentOperation;
@@ -377,6 +381,9 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      * @throws IllegalStateException if the operation uses auto timing
      */
 	public void recordTime() {
+        if (agentThread.currentOperation == -1)
+            throw new IllegalStateException("DriverContext.recordTime called " +
+                                            "outside an operation");
         if (agentThread.driverConfig.operations[agentThread.currentOperation].
                 timing != Timing.MANUAL) {
             String msg = "Driver: " + getDriverName() + ", Operation: " +
@@ -409,6 +416,9 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      * pauseTime when the critical section is already paused are simply ignored. 
      */
 	public void pauseTime() {
+        if (agentThread.currentOperation == -1)
+            throw new IllegalStateException("DriverContext.pauseTime called " +
+                                            "outside an operation");
         if (agentThread.driverConfig.operations[agentThread.currentOperation].
                 timing != Timing.MANUAL) {
             String msg = "Driver: " + getDriverName() + ", Operation: " +
@@ -503,6 +513,9 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      * facilities.
      */
     public void recordStartTime() {
+        // Not in an operation, don't record time.
+        if (agentThread.currentOperation == -1)
+            return;
         if (timingInfo != null && agentThread.driverConfig.operations[
                 agentThread.currentOperation].timing == Timing.AUTO) {
             if (timingInfo.invokeTime == -1) {
@@ -529,6 +542,9 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      * facilities.
      */
     public void recordEndTime() {
+        // Not in an operation, don't record time.
+        if (agentThread.currentOperation == -1)
+            return;
         if (timingInfo != null && agentThread.driverConfig.operations[
                 agentThread.currentOperation].timing == Timing.AUTO) {
 			timingInfo.respondTime = timer.getTime();
