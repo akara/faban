@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.40 2008/04/18 07:10:31 akara Exp $
+ * $Id: CmdService.java,v 1.41 2008/05/02 21:16:35 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -32,7 +32,7 @@ import com.sun.faban.harness.agent.FileService;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.HostTypes;
 import com.sun.faban.harness.util.CmdMap;
-
+import com.sun.faban.harness.util.FileHelper;
 import com.sun.faban.harness.util.InterfaceProbe;
 
 import java.io.*;
@@ -1344,7 +1344,7 @@ final public class CmdService { 	// The final keyword prevents clones
 
     /**
      * Pushes a local file on the Faban master to the remote host.
-     * @param srcfile The source file name
+     * @param srcfile The source file name, relative to the out dir
      * @param destmachine The destination machine
      * @param destfile The destination file name
      * @return true if successful, false otherwise
@@ -1355,24 +1355,28 @@ final public class CmdService { 	// The final keyword prevents clones
         if (didx == -1)
             throw new FabanHostUnknownException(
                     "Host " + destmachine + " not found!");
-        if (srcfile.equals(destfile)){
-            try {
-                CmdAgent master = (CmdAgent)
-                                        registry.getService(Config.CMD_AGENT);
-                String src = master.getHostName();
-                String dest = cmdp.get(didx).getHostName();
-                if (dest.equals(src))
+        try {
+            String src = InetAddress.getLocalHost().getHostName();
+            String dest = hostTypes.getHostByAlias(destmachine);
+            if (dest.equals(src)) {
+                srcfile = Config.OUT_DIR + srcfile;
+                if (srcfile.equals(destfile))
                     return true;
-            } catch (RemoteException e) {
-                logger.log(Level.SEVERE, "CmdService: Pushing - CmdAgent " +
-                           "getHostName exception", e);
-                return false;
+                else
+                    return FileHelper.copyFile(srcfile, destfile, true);
             }
+        } catch (UnknownHostException e) {
+            logger.log(Level.SEVERE, "CmdService: Cannot determine own" +
+                        "host name", e);
+            return false;
         }
 
         FileAgent destf = filep.get(didx);
         try {
             FileTransfer transfer = new FileTransfer(srcfile, destfile);
+            logger.info("Transferring " + transfer.getSource() + "->" +
+                        transfer.getDest() + " size " +
+                        transfer.getSize() + " bytes.");
             if (destf.push(transfer) != transfer.getSize())
                 throw new IOException("Invalid transfer size");
         } catch (RemoteException e) {
@@ -1406,19 +1410,20 @@ final public class CmdService { 	// The final keyword prevents clones
         if (sidx == -1)
             throw new FabanHostUnknownException(
                     "Host " + srcmachine + " not found!");
-        if (srcfile.equals(destfile)){
-            try {
-                CmdAgent master = (CmdAgent)
-                                        registry.getService(Config.CMD_AGENT);
-                String src = cmdp.get(sidx).getHostName();
-                String dest = master.getHostName();
-                if (dest.equals(src))
+        try {
+            String src = InetAddress.getLocalHost().getHostName();
+            String dest = hostTypes.getHostByAlias(srcmachine);
+            if (dest.equals(src)) {
+                destfile = Config.OUT_DIR + destfile;
+                if (srcfile.equals(destfile))
                     return true;
-            } catch (RemoteException e) {
-                logger.log(Level.SEVERE, "CmdService: Getting - CmdAgent " +
-                           "getHostName exception", e);
-                return false;
+                else
+                    return FileHelper.copyFile(srcfile, destfile, true);
             }
+        } catch (UnknownHostException e) {
+            logger.log(Level.SEVERE, "CmdService: Cannot determine own" +
+                        "host name", e);
+            return false;
         }
 
         FileAgent srcf = filep.get(sidx);

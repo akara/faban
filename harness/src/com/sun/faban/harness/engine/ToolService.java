@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ToolService.java,v 1.5 2007/06/29 08:36:44 akara Exp $
+ * $Id: ToolService.java,v 1.6 2008/05/02 21:16:35 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -79,6 +79,8 @@ final public class ToolService {
     /**
      * This method initializes the ToolAgent RMI server processes
      * on the specified set of machines
+     * @param par The parameter repository
+     * @param outDir The run output directory, relative to Config.OUT_DIR
      * @return true if setup successful, else false
      *
      */

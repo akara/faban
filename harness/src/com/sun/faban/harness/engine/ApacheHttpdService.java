@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ApacheHttpdService.java,v 1.4 2008/04/11 07:52:53 akara Exp $
+ * $Id: ApacheHttpdService.java,v 1.5 2008/05/02 21:16:35 akara Exp $
  *
  * Copyright 2007 Sun Microsystems Inc. All Rights Reserved
  */
@@ -99,7 +99,6 @@ final public class ApacheHttpdService implements WebServerService {
         errlogFile = logsDir + File.separator + "error_log";
         acclogFile = logsDir + File.separator + "access_log";
         logger.info("ApacheHttpdService setup complete.");
-
     }
 
     /**
@@ -107,7 +106,7 @@ final public class ApacheHttpdService implements WebServerService {
      * @return boolean true if start succeeded on all machines, else false
      */
     public boolean startServers() {
-        Integer success = 0;
+
         String cmd = apachectlCmd + "start";
         Command startCmd = new Command(cmd);
         startCmd.setLogLevel(Command.STDOUT, Level.FINE);
@@ -117,7 +116,7 @@ final public class ApacheHttpdService implements WebServerService {
             String server = myServers[i];
             try {
                 // Run the command in the foreground and wait for the start
-                CommandHandle ch = RunContext.exec(server, startCmd);
+                RunContext.exec(server, startCmd);
                 /*
                  * Read the log file to make sure the server has started.
                  * We do this by running the code block on the server via
@@ -388,7 +387,7 @@ final public class ApacheHttpdService implements WebServerService {
 				****/
                 Command parseCommand = new Command("apache_trunc_errorlog.sh " +
                         beginDate + " " + endDate + " " + outFile);
-                CommandHandle ch = RunContext.exec(parseCommand);
+                RunContext.exec(parseCommand);
 
             } catch (Exception e) {
 
