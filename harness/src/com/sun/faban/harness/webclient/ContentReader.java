@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ContentReader.java,v 1.4 2007/09/08 01:21:14 akara Exp $
+ * $Id: ContentReader.java,v 1.5 2008/05/02 21:35:43 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -45,8 +45,8 @@ import java.util.ArrayList;
 public class ContentReader extends HttpServlet {
     ObjectPool bufferPool = new ObjectPool();
 
-    public void doGet(HttpServletRequest request,
-                           HttpServletResponse response)
+    @Override public void doGet(HttpServletRequest request,
+                                HttpServletResponse response)
             throws ServletException, IOException {
         String path = request.getContextPath();
         String uri = request.getRequestURI();
