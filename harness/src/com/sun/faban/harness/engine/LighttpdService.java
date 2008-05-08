@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: LighttpdService.java,v 1.3 2008/02/25 20:41:22 shanti_s Exp $
+ * $Id: LighttpdService.java,v 1.4 2008/05/08 17:19:09 shanti_s Exp $
  *
  * Copyright 2008 Sun Microsystems Inc. All Rights Reserved
  */
@@ -28,6 +28,7 @@ import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
 import com.sun.faban.harness.RemoteCallable;
 import com.sun.faban.harness.RunContext;
+import com.sun.faban.harness.WildcardFileFilter;
 import java.io.BufferedReader;
 
 import java.io.File;
@@ -141,30 +142,31 @@ final public class LighttpdService implements WebServerService {
 
     /*
      * Check if lighttpd server started by looking for pidfile
+	 * @param String hostName
+	 * @return boolean
      */
-    private static boolean checkServerStarted(String hostName) throws Exception {
+    private boolean checkServerStarted(String hostName) throws Exception {
         boolean val = false;
         
-                // Just to make sure we don't wait for ever.
-                // We try to read the msg 120 times before we give up
-                // Sleep 1 sec between each try. So wait for 1 min
-                int attempts = 60;
-                while (attempts > 0) {
-                    if (RunContext.isFile(hostName, pidFile)) {
-                        val = true;
-                        break;
-                    } else {
-                        // Sleep for some time
-                        try {
-                            Thread.sleep(1000);
-                            attempts--;
-                        } catch (Exception e) {
-                            break;
-                        }
-                    }
-                }
-                return (val);
-
+        // Just to make sure we don't wait for ever.
+        // We try to read the msg 120 times before we give up
+        // Sleep 1 sec between each try. So wait for 1 min
+        int attempts = 60;
+        while (attempts > 0) {
+            if (RunContext.isFile(hostName, pidFile)) {
+               val = true;
+               break;
+            } else {
+                // Sleep for some time
+                 try {
+                     Thread.sleep(1000);
+                     attempts--;
+                 } catch (Exception e) {
+                     break;
+                 }
+            }
+        }
+        return (val);
     }
 
     /**
@@ -196,13 +198,17 @@ final public class LighttpdService implements WebServerService {
      */
     public boolean stopServers() {
         boolean success = true;
+	int pid = -1;
 
+        /******* Changing logic to check for pidfile and kill process
         // First check if servers were started
         // If there weren't started, simply return
         if (ch == null || ch.length == 0) {
             return (success);
         }
-        for (int i = 0; i < myServers.length; i++) {
+         */
+        for (String hostName : myServers) {
+            /***
             try {
                 if (ch[i] != null) {
                     ch[i].destroy();
@@ -213,54 +219,123 @@ final public class LighttpdService implements WebServerService {
                 logger.log(Level.FINE, "lighttpd stop Exception", re);                
                 success = false;
             }
-        }         
+             */
+            if (RunContext.isFile(hostName, pidFile)) {
+                // we retrieve the pid value
+                try {
+                    pid = getPid(hostName);
+                    logger.fine("Found lighttpd pidvalue of " + pid + " on host " + hostName);
+                } catch (Exception ee) {
+                    logger.log(Level.WARNING, "Failed to read lighttpd pidfile on " +
+                            hostName + " with " + ee);
+                    logger.log(Level.FINE, "Exception", ee);                
+                    success = false;
+                }
+                if ( pid <= 0)
+                    continue;
+                // Now kill the server
+                Command cmd = new Command("kill " + pid);
+                try {
+                    RunContext.exec(hostName, cmd);
+                    // Check if the server truly stopped
+                    int attempts = 60;
+                    boolean b = false;
+                    while (attempts > 0) {
+                        if ( ! RunContext.isFile(hostName, pidFile)) {
+                            b = true;
+                            break;
+                        } else {
+                            // Sleep for some time
+                            try {
+                                Thread.sleep(2000);
+                                attempts--;
+                            } catch (Exception e) {
+                                break;
+                            }
+                        }
+                    }
+                    if ( !b) {
+                        success = false;
+                        logger.severe("Cannot kill lighttpd pid " + pid + " on " + hostName);
+                    }
+                } catch (Exception e) {
+                    success = false;
+                    logger.severe("kill " + pid + " failed on " + hostName);
+                    logger.log(Level.FINE, "Exception", e);
+                }
+            }
+        }                
         return (success);
+    }
+
+    /*
+     * Return lighttpd pid
+     * It reads the pid file from the remote server host and
+     * returns the pid stored in it. 
+     * @param String hostName
+     * @return int pid
+     * @throws Exception
+     */
+    private static int getPid(String hostName) throws Exception {
+        int pid;
+
+        pid = RunContext.exec(hostName, new RemoteCallable<Integer>() {
+            public Integer call() throws Exception {
+                String pidval;
+
+                FileInputStream is = new FileInputStream(pidFile);
+                BufferedReader bufR = new BufferedReader(new InputStreamReader(is));
+                pidval = bufR.readLine();
+                bufR.close();
+                return (Integer.parseInt(pidval));
+            }
+         });
+        return (pid);
     }
 
     /**
      * clear server logs and session files
+	 * clears access log, error log, pidfile and session files
      * It assumes that session files are in /tmp/sess*
      * @return true if operation succeeded, else fail
      */
     public boolean clearLogs() {
         Command cmd = new Command("rm -f /tmp/sess*");
+		boolean success = true;
 
         for (int i = 0; i < myServers.length; i++) {
             if (RunContext.isFile(myServers[i], errlogFile)) {
                 if (!RunContext.deleteFile(myServers[i], errlogFile)) {
                     logger.log(Level.WARNING, "Delete of " + errlogFile +
                             " failed on " + myServers[i]);
-                    return (false);
+                    success = false;
                 }
             }
             if (RunContext.isFile(myServers[i], acclogFile)) {
                 if (!RunContext.deleteFile(myServers[i], acclogFile)) {
                     logger.log(Level.WARNING, "Delete of " + acclogFile +
                             " failed on " + myServers[i]);
-                    return (false);
+                    success = false;
                 }
             }
            if (RunContext.isFile(myServers[i], pidFile)) {
                 if (!RunContext.deleteFile(myServers[i], pidFile)) {
                     logger.log(Level.WARNING, "Delete of " + pidFile +
                             " failed on " + myServers[i]);
-                    return (false);
+                    success = false;
                 }
             }
 
             logger.fine("Logs cleared for " + myServers[i]);
-            try {
-                // Now delete the session files
-                CommandHandle ch = RunContext.exec(myServers[i], cmd);
-                logger.fine("Deleted session files for " + myServers[i]);
-            } catch (Exception e) {
-                logger.log(Level.FINE, "Delete session files failed on " + 
-                        myServers[i] + ".", e);
-                logger.log(Level.FINE, "Exception", e);
-                return (false);
-            }
+             // Now delete the session files
+             if (RunContext.deleteFiles(myServers[i], "/tmp",
+                        new WildcardFileFilter("sess*")))
+                 logger.fine("Deleted session files for " + myServers[i]);
+             else
+                 logger.warning("Error deleting session files for " +
+                            myServers[i]);
         }
-        return (true);
+        return (success);
     }
 
     /**
