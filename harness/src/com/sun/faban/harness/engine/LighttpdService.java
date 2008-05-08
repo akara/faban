@@ -17,26 +17,25 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: LighttpdService.java,v 1.4 2008/05/08 17:19:09 shanti_s Exp $
+ * $Id: LighttpdService.java,v 1.5 2008/05/08 22:04:35 akara Exp $
  *
  * Copyright 2008 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.engine;
 
 import com.sun.faban.common.Command;
-
 import com.sun.faban.common.CommandHandle;
 import com.sun.faban.harness.RemoteCallable;
 import com.sun.faban.harness.RunContext;
 import com.sun.faban.harness.WildcardFileFilter;
-import java.io.BufferedReader;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
-import java.rmi.RemoteException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -110,9 +109,8 @@ final public class LighttpdService implements WebServerService {
      * @return boolean true if start succeeded on all machines, else false
      */
     public boolean startServers() {
-        Integer success = 0;
-        String cmd = lightyCmd + "-f " + confFile;
-        Command startCmd = new Command(cmd);
+
+        Command startCmd = new Command(lightyCmd, "-f", confFile);
         startCmd.setSynchronous(false);
         startCmd.setLogLevel(Command.STDOUT, Level.FINE);
         startCmd.setLogLevel(Command.STDERR, Level.FINE);
@@ -179,8 +177,8 @@ final public class LighttpdService implements WebServerService {
 
         logger.info("Restarting lighttpd server(s). Please wait ... ");
         // We first stop and clear the logs
-        if (this.stopServers())
-            this.clearLogs();
+        if (stopServers())
+            clearLogs();
 
         // Now start the servers
         if (!startServers()) {
@@ -189,7 +187,7 @@ final public class LighttpdService implements WebServerService {
                 clearLogs();
             return false;
         }
-        return (true);
+        return true;
     }
 
     /**
@@ -231,10 +229,10 @@ final public class LighttpdService implements WebServerService {
                     logger.log(Level.FINE, "Exception", ee);                
                     success = false;
                 }
-                if ( pid <= 0)
+                if (pid <= 0)
                     continue;
                 // Now kill the server
-                Command cmd = new Command("kill " + pid);
+                Command cmd = new Command("kill", String.valueOf(pid));
                 try {
                     RunContext.exec(hostName, cmd);
                     // Check if the server truly stopped
@@ -300,8 +298,8 @@ final public class LighttpdService implements WebServerService {
      * @return true if operation succeeded, else fail
      */
     public boolean clearLogs() {
-        Command cmd = new Command("rm -f /tmp/sess*");
-		boolean success = true;
+
+        boolean success = true;
 
         for (int i = 0; i < myServers.length; i++) {
             if (RunContext.isFile(myServers[i], errlogFile)) {
@@ -375,7 +373,7 @@ final public class LighttpdService implements WebServerService {
 				****/
                 Command parseCommand = new Command("lighttpd_trunc_errorlog.sh " +
                         beginDate + " " + endDate + " " + outFile);
-                CommandHandle ch = RunContext.exec(parseCommand);
+                RunContext.exec(parseCommand);
 
             } catch (Exception e) {
 
