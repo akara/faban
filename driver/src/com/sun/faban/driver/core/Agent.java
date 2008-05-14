@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Agent.java,v 1.5 2008/05/14 07:06:00 akara Exp $
+ * $Id: Agent.java,v 1.6 2008/05/14 07:43:32 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -58,7 +58,7 @@ public interface Agent extends Remote {
 
     /**
      * Sets the actual run start time.
-     * @param nsTime The relative nanosec time of the benchmark start.
+     * @param msTime The relative millisec time of the benchmark start.
      * @throws RemoteException
      */
     public void setStartTime(int msTime) throws RemoteException;
