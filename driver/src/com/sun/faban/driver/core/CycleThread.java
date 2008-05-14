@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CycleThread.java,v 1.7 2008/01/29 22:33:46 akara Exp $
+ * $Id: CycleThread.java,v 1.8 2008/05/14 07:06:01 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -40,16 +40,16 @@ public class CycleThread extends AgentThread {
      * to the pseudo-thread dimensions.
      */
 	void initTimes() {
-        delayTime = new int[1];
-        startTime = new int[1];
-        endTime = new int[1];
+        delayTime = new long[1];
+        startTime = new long[1];
+        endTime = new long[1];
         previousOperation = new int[1];
 
         // This is the start and end time of the previous operation used to
         // calculate the start of the next operation. We set it to the current
         // time for the first operation to have a reference point. In fact,
         // any reference point is OK.
-        startTime[0] = timer.getTime();
+        startTime[0] = System.nanoTime();
         endTime[0] = startTime[0];
         previousOperation[0] = -1;
     }
@@ -142,14 +142,14 @@ public class CycleThread extends AgentThread {
                 // If it never waited, we'll see whether we can just use the
                 // previous start and end times.
                 if (timingInfo.invokeTime == -1) {
-                    int currentTime = timer.getTime();
+                    long currentTime = System.nanoTime();
                     if (currentTime < timingInfo.intendedInvokeTime) {
                         timingInfo.invokeTime = startTime[mixId];
                         timingInfo.respondTime = endTime[mixId];
                     } else {
                         // Too late, we'll need to use the real time
                         // for both invoke and respond time.
-                        timingInfo.invokeTime = timer.getTime();
+                        timingInfo.invokeTime = System.nanoTime();
                         timingInfo.respondTime = timingInfo.invokeTime;
                         // The delay time is invalid,
                         // we cannot record in this case.
@@ -208,7 +208,7 @@ public class CycleThread extends AgentThread {
      * @param end   The end of a time span
      * @return true if this time span is in steady state, false otherwise.
      */
-	boolean isSteadyState(int start, int end) {
+	boolean isSteadyState(long start, long end) {
         return isSteadyState();
     }
 
@@ -223,13 +223,13 @@ public class CycleThread extends AgentThread {
         // once the start time is actually set.
         if (!runInfo.simultaneousStart && !startTimeSet &&
                 agent.timeSetLatch.getCount() == 0) {
-            int invoke = driverContext.timingInfo.invokeTime;
-            if (invoke >= runInfo.benchStartTime) {
+            long invoke = driverContext.timingInfo.invokeTime;
+            if (invoke >= agent.startTime) {
                 ++cycleCount; // Count this tx which started after bench start.
                 startTimeSet = true;
                 inRamp = true;
             } else if (invoke == -1 &&
-                    timer.getTime() >= runInfo.benchStartTime) {
+                    System.nanoTime() >= agent.startTime) {
                 // We need to set the start time as time has come.
                 startTimeSet = true;
                 inRamp = true;

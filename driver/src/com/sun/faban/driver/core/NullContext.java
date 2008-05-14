@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: NullContext.java,v 1.8 2008/02/09 07:52:29 akara Exp $
+ * $Id: NullContext.java,v 1.9 2008/05/14 07:06:02 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -41,9 +41,10 @@ import java.util.logging.Logger;
 public class NullContext extends DriverContext {
     private Logger logger;
     private Random random;
-    private long baseTime = System.currentTimeMillis();
+    private long baseMillis = System.currentTimeMillis();
+    private long baseNanos = System.nanoTime();
 
- 
+
     /**
      * @see com.sun.faban.driver.DriverContext#getScale()
      */
@@ -159,14 +160,28 @@ public class NullContext extends DriverContext {
      * @see com.sun.faban.driver.DriverContext#getTime()
      */
 	public int getTime() {
-        return (int) (System.currentTimeMillis() - baseTime);
+        return (int) (System.currentTimeMillis() - baseMillis);
     }
 
     /**
      * @see com.sun.faban.driver.DriverContext#getSteadyStateStart()
      */
 	public int getSteadyStateStart() {
-        return (int) (System.currentTimeMillis() - baseTime + 5000l);
+        return (int) (System.currentTimeMillis() - baseMillis + 5000l);
+    }
+
+    /**
+     * @see com.sun.faban.driver.DriverContext#getNanoTime()
+     */
+    public long getNanoTime() {
+        return System.nanoTime() - baseNanos;
+    }
+
+    /**
+     * @see com.sun.faban.driver.DriverContext#getSteadyStateStartNanos()
+     */
+    public long getSteadyStateStartNanos() {
+        return System.nanoTime() - baseNanos + 5000000000l;
     }
 
     /**

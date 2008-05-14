@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TimeThread.java,v 1.8 2008/02/12 03:26:38 akara Exp $
+ * $Id: TimeThread.java,v 1.9 2008/05/14 07:06:02 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -42,16 +42,16 @@ public class TimeThread extends AgentThread {
      * to the pseudo-thread dimensions.
      */
 	void initTimes() {
-        delayTime = new int[1];
-        startTime = new int[1];
-        endTime = new int[1];
+        delayTime = new long[1];
+        startTime = new long[1];
+        endTime = new long[1];
         previousOperation = new int[1];
 
         // This is the start and end time of the previous operation used to
         // calculate the start of the next operation. We set it to the current
         // time for the first operation to have a reference point. In fact,
         // any reference point is OK.
-        startTime[0] = timer.getTime();
+        startTime[0] = System.nanoTime();
         endTime[0] = startTime[0];
         previousOperation[0] = -1;
     }
@@ -97,9 +97,9 @@ public class TimeThread extends AgentThread {
 
             // Calculate time periods
             // Note that the time periods are in secs, need to convert
-            endRampUp = runInfo.benchStartTime + runInfo.rampUp * 1000;
-            endStdyState = endRampUp + runInfo.stdyState * 1000;
-            endRampDown = endStdyState + runInfo.rampDown * 1000;
+            endRampUp = agent.startTime + runInfo.rampUp * 1000000000l;
+            endStdyState = endRampUp + runInfo.stdyState * 1000000000l;
+            endRampDown = endStdyState + runInfo.rampDown * 1000000000l;
         }
 
         logger.fine(name + ": Start of run.");
@@ -114,9 +114,9 @@ public class TimeThread extends AgentThread {
 
                 // Calculate time periods
                 // Note that the time periods are in secs, need to convert
-                endRampUp = runInfo.benchStartTime + runInfo.rampUp * 1000;
-                endStdyState = endRampUp + runInfo.stdyState * 1000;
-                endRampDown = endStdyState + runInfo.rampDown * 1000;
+                endRampUp = agent.startTime + runInfo.rampUp * 1000000000l;
+                endStdyState = endRampUp + runInfo.stdyState * 1000000000l;
+                endRampDown = endStdyState + runInfo.rampDown * 1000000000l;
             }
 
             // Save the previous operation
@@ -133,7 +133,7 @@ public class TimeThread extends AgentThread {
 
             // The invoke time is based on the delay after the previous op.
             // so we need to use the previous op for calculating and recording.
-            int invokeTime = getInvokeTime(previousOp, mixId);
+            long invokeTime = getInvokeTime(previousOp, mixId);
 
             // endRampDown is only valid if start time is set.
             // If the start time of next tx is beyond the end
@@ -170,7 +170,7 @@ public class TimeThread extends AgentThread {
                 // If it never waited, we'll see whether we can just use the
                 // previous start and end times.
                 if (timingInfo.invokeTime == -1) {
-                    int currentTime = timer.getTime();
+                    long currentTime = System.nanoTime();
                     if (currentTime < timingInfo.intendedInvokeTime) {
                         // No time change, no need to checkRamp
                         metrics.recordError();
@@ -179,7 +179,7 @@ public class TimeThread extends AgentThread {
                     }
 					// Too late, we'll need to use the real time
 					// for both invoke and respond time.
-					timingInfo.invokeTime = timer.getTime();
+					timingInfo.invokeTime = System.nanoTime();
 					timingInfo.respondTime = timingInfo.invokeTime;
 					checkRamp();
 					metrics.recordError();
@@ -187,7 +187,7 @@ public class TimeThread extends AgentThread {
 					// The delay time is invalid,
 					// we cannot record in this case.
                 } else if (timingInfo.respondTime == -1) {
-                    timingInfo.respondTime = timer.getTime();
+                    timingInfo.respondTime = System.nanoTime();
                     checkRamp();
                     metrics.recordError();
                     logError(cause, op);
@@ -250,7 +250,7 @@ public class TimeThread extends AgentThread {
      * @param end   The end of a time span
      * @return true if this time span is in steady state, false otherwise.
      */
-	boolean isSteadyState(int start, int end) {
+	boolean isSteadyState(long start, long end) {
         return startTimeSet && start >= endRampUp && end < endStdyState;
     }
 }

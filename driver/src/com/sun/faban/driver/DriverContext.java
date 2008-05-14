@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DriverContext.java,v 1.8 2008/02/14 21:55:20 akara Exp $
+ * $Id: DriverContext.java,v 1.9 2008/05/14 07:06:04 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -183,6 +183,22 @@ public abstract class DriverContext {
      * @return The relative time steady state starts
      */
     public abstract int getSteadyStateStart();
+
+    /**
+     * Obtains a relative time, in nanosecs. This time is relative to
+     * a certain time at the beginning of the benchmark run and does not
+     * represent a wall clock time. All agents will have the same reference
+     * time. Use this time to check time durations during the benchmark run.
+     * @return The relative time of the benchmark run
+     */
+    public abstract long getNanoTime();
+
+    /**
+     * Obtains the relative time - in nanosecs - that steady state starts,
+     * if set. The if the time is not yet set, it will return 0.
+     * @return The relative time steady state starts
+     */
+    public abstract long getSteadyStateStartNanos();
 
     /**
      * Obtains the configured ramp up time.

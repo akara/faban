@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MasterImpl.java,v 1.16 2008/03/05 02:50:26 akara Exp $
+ * $Id: MasterImpl.java,v 1.17 2008/05/14 07:06:01 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -992,7 +992,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
             // plotData[1] is the avg ops/sec
 
             int txCnt = 0;
-            int rampUp = runInfo.rampUp/1000; // The rampup in secs
+            int rampUp = runInfo.rampUp; // The rampup in secs
 
             // Get the aggregate tx
             for (int i = 0; i < agentStats.length; i++) {
@@ -1116,11 +1116,11 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 
     /**
      * Sets the benchmark start time after all threads are started.
-     * @param relTime The time relative to the timer
+     * @param relTime The ms time from the run epoch
      */
     public void setStartTime(int relTime) {
         runInfo.benchStartTime = relTime;
-        runInfo.start = relTime + timer.getOffsetTime();
+        runInfo.start = timer.toAbsMillis(relTime);
         if (agentRefs != null) {
 			for (int i = 0; i < agentRefs.length && !runAborted; i++) {
 				if (agentRefs[i] != null) {

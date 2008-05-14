@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: NegativeExponential.java,v 1.3 2007/09/07 15:49:05 noahcampbell Exp $
+ * $Id: NegativeExponential.java,v 1.4 2008/05/14 07:06:02 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -40,15 +40,14 @@ public class NegativeExponential extends Cycle {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	int cycleMean;
-    int cycleMax;
+	long cycleMean;
+    long cycleMax;
 
     /**
      * Initializes this cycle according to the annotation.
      * @param a The annotation
      * @throws DefinitionException If there is an error in the annotation
      */
-    @Override
 	public void init(Annotation a) throws DefinitionException {
         com.sun.faban.driver.NegativeExponential cycleDef =
                 (com.sun.faban.driver.NegativeExponential) a;
@@ -75,7 +74,9 @@ public class NegativeExponential extends Cycle {
 			throw new DefinitionException(
                     "@NegativeExponential CYCLETIME cycleMax cannot be 0");
 		}
-
+        // Adjust time to nanosec.
+        cycleMean *= 1000000l;
+        cycleMax *= 1000000l;
     }
 
     /**
@@ -86,15 +87,14 @@ public class NegativeExponential extends Cycle {
      * @param random The random number generator used
      * @return The delay time
      */
-    @Override
-	public int getDelay(Random random) {
-        int delay = 0;
+	public long getDelay(Random random) {
+        long delay = 0;
         if (cycleMean > 0) {
             double x = random.drandom(0.0, 1.0);
             if (x == 0) {
 				x = 0.05;
 			}
-            delay = (int)(cycleMean * -Math.log(x));
+            delay = (long)(cycleMean * -Math.log(x));
             if (delay > cycleMax) {
 				delay = cycleMax;
 			}
@@ -107,7 +107,6 @@ public class NegativeExponential extends Cycle {
      *
      * @return The max reasonable delay to be presented in the output histogram.
      */
-    @Override
 	public double getHistogramMax() {
         if (cycleMax > 0) {
 			return cycleMax;

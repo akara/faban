@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.14 2008/03/05 02:50:26 akara Exp $
+ * $Id: Metrics.java,v 1.15 2008/05/14 07:06:02 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -50,9 +50,9 @@ public class Metrics implements Serializable, Cloneable {
     /** Number of delay time buckets in histogram. */
     public static final int DELAYBUCKETS = 100;
 
-    protected int respBucketSize;  // Size of each response time bucket, in ms
-    protected int delayBucketSize; // Size of each delay time bucket, in ms
-    protected int graphBucketSize;  // Size of each graph bucket, in ms
+    protected long respBucketSize;  // Size of each response time bucket, in ns
+    protected long delayBucketSize; // Size of each delay time bucket, in ns
+    protected long graphBucketSize;  // Size of each graph bucket, in ns
     protected int graphBuckets;     // Number of graph buckets
 
     int threadCnt = 0;		// Threads this stat object is representing
@@ -113,7 +113,7 @@ public class Metrics implements Serializable, Cloneable {
     protected double[] respSumTotal;
 
     /** Max. response time. */
-    protected int[] respMax;
+    protected long[] respMax;
 
     /** Sum of delay (cycle/think) times. */
     protected long[] delaySum;
@@ -122,10 +122,10 @@ public class Metrics implements Serializable, Cloneable {
     protected long[] targetedDelaySum;
 
     /** Maximum delay times. */
-    protected int[] delayMax;
+    protected long[] delayMax;
 
     /** Minimum delay times. */
-    protected int[] delayMin;
+    protected long[] delayMin;
 
     /** Sum of cycle time (not think time) for little's law verification. */
     protected long cycleSum = 0;
@@ -142,11 +142,14 @@ public class Metrics implements Serializable, Cloneable {
     /** Histogram of selected delay times. */
     protected int[][] targetedDelayHist;
 
-    /** Start time as absolute time */
+    /** Start time as absolute time, in ms */
     protected long startTime;
 
-    /** End time as offset from start time */
-    protected int endTime;
+    /** End time as ms offset from start time */
+    protected long endTime;
+
+    /** End time as nanosec time */
+    protected transient long endTimeNanos;
 
     /**
      * The thruput graph. This is updated throughout the run, not only
@@ -160,7 +163,7 @@ public class Metrics implements Serializable, Cloneable {
      * This data need to be divided by the accumulated tx count for the
      * bucket to get the avg response time in that bucket.
      */
-    protected int[][] respGraph;
+    protected long[][] respGraph;
 
     /** The attached custom metrics */
     protected CustomMetrics attachment = null;
@@ -207,10 +210,10 @@ public class Metrics implements Serializable, Cloneable {
         delayCntStdy = new int[txTypes];
         respSumStdy = new double[txTypes];
         respSumTotal = new double[txTypes];
-        respMax = new int[txTypes];
+        respMax = new long[txTypes];
         delaySum = new long[txTypes];
-        delayMax = new int[txTypes];
-        delayMin = new int[txTypes];
+        delayMax = new long[txTypes];
+        delayMin = new long[txTypes];
         for (int i = 0; i < delayMin.length; i++) {
 			delayMin[i] = Integer.MAX_VALUE; // init to the largest number
 		}
@@ -230,12 +233,11 @@ public class Metrics implements Serializable, Cloneable {
                     runInfo.maxRunTime / driverConfig.graphInterval);
 		}
 
-        // Convert to ms.
-        graphBucketSize = driverConfig.graphInterval * 1000;
+        // Convert to ns.
+        graphBucketSize = driverConfig.graphInterval * 1000000000l;
         thruputGraph = new int[txTypes][graphBuckets];
-        respGraph = new int[txTypes][graphBuckets];
+        respGraph = new long[txTypes][graphBuckets];
 
-        // TODO: Consider the Unit of time on the operation
         // Find the maximum 90th% resp among all ops, in seconds
         double max90th = driverConfig.operations[0].max90th;
         for (int i = 1; i < txTypes; i++) {
@@ -245,12 +247,12 @@ public class Metrics implements Serializable, Cloneable {
 		}
 
         double respHistMax = max90th * 5d;  // 5 x max response time
-        respBucketSize = (int) Math.ceil(1000d * respHistMax / RESPBUCKETS);
+        respBucketSize = (long) Math.ceil(1e9d * respHistMax / RESPBUCKETS);
 
         double delayHistMax = driverConfig.operations[0].
                 cycle.getHistogramMax();
 
-        // Find the max delay time histogram among ops, in ms
+        // Find the max delay time histogram among ops, in ns
         for (int i = 1; i < txTypes; i++) {
             double opMaxDelay = driverConfig.operations[i].
                     cycle.getHistogramMax();
@@ -273,28 +275,30 @@ public class Metrics implements Serializable, Cloneable {
         int txType = thread.currentOperation;
         DriverContext.TimingInfo timingInfo =
                 thread.driverContext.timingInfo;
-        endTime = timingInfo.respondTime;
-        int responseTime = endTime - timingInfo.invokeTime -
+        endTimeNanos = timingInfo.respondTime;
+        long responseTime = endTimeNanos - timingInfo.invokeTime -
                            timingInfo.pauseTime;
         if (responseTime < 0) {
             thread.logger.warning(thread.name +
                     ":Pause time too large - invoke : " +
-                    timingInfo.invokeTime + ", respond : " + endTime +
+                    timingInfo.invokeTime + ", respond : " + endTimeNanos +
                     ", pause : " + timingInfo.pauseTime);
             responseTime = 0; // Set it to 0 in this case so it does not
                               // destroy the whole run.
         }
 
-        int elapsedTime = endTime - RunInfo.getInstance().benchStartTime;
+        long elapsedTime = Long.MIN_VALUE;
+        if (thread.agent.startTime != Long.MIN_VALUE)
+            elapsedTime = endTimeNanos - thread.agent.startTime;
 
-        if(elapsedTime > 0) {
+        if(elapsedTime > 0l) {
             if ((elapsedTime / graphBucketSize) >= graphBuckets) {
                 thruputGraph[txType][graphBuckets - 1]++;
                 respGraph[txType][graphBuckets - 1] += responseTime;
             } else {
-                thruputGraph[txType][elapsedTime / graphBucketSize]++;
-                respGraph[txType][elapsedTime / graphBucketSize] +=
-                        responseTime;
+                int bucket = (int) (elapsedTime / graphBucketSize);
+                thruputGraph[txType][bucket]++;
+                respGraph[txType][bucket] += responseTime;
             }
         }
 
@@ -309,7 +313,7 @@ public class Metrics implements Serializable, Cloneable {
             if ((responseTime / respBucketSize) >= RESPBUCKETS) {
                 respHist[txType][RESPBUCKETS - 1]++;
 			} else {
-                respHist[txType][responseTime / respBucketSize]++;
+                respHist[txType][(int) (responseTime / respBucketSize)]++;
 			}
 
             if (responseTime > respMax[txType]) {
@@ -335,7 +339,7 @@ public class Metrics implements Serializable, Cloneable {
             errCntStdy[txType]++;
 		}
 
-        endTime = thread.driverContext.timingInfo.respondTime;
+        endTimeNanos = thread.driverContext.timingInfo.respondTime;
     }
 
     /**
@@ -352,8 +356,8 @@ public class Metrics implements Serializable, Cloneable {
         DriverContext.TimingInfo timingInfo =
                 thread.driverContext.timingInfo;
 
-        int actualDelayTime = -1;
-        int actualCycleTime = -1;
+        long actualDelayTime = -1l;
+        long actualCycleTime = -1l;
 
         if (thread.isSteadyState(thread.startTime[thread.mixId],
                                  timingInfo.invokeTime)) {
@@ -401,18 +405,26 @@ public class Metrics implements Serializable, Cloneable {
             delayMin[txType] = actualDelayTime;
 		}
 
-        if ((actualDelayTime / delayBucketSize) >= DELAYBUCKETS) {
+        int bucket = (int) (actualDelayTime / delayBucketSize);
+        if (bucket >= DELAYBUCKETS) {
             delayHist[txType][DELAYBUCKETS - 1]++;
 		} else {
-            delayHist[txType][actualDelayTime / delayBucketSize]++;
+            delayHist[txType][bucket]++;
 		}
-        if ((thread.delayTime[thread.mixId] / delayBucketSize) >=
-                DELAYBUCKETS) {
+        bucket = (int) (thread.delayTime[thread.mixId] / delayBucketSize);
+        if (bucket >= DELAYBUCKETS) {
             targetedDelayHist[txType][DELAYBUCKETS - 1]++;
 		} else {
-            targetedDelayHist[txType]
-                    [thread.delayTime[thread.mixId] / delayBucketSize]++;
-		}
+            targetedDelayHist[txType][bucket]++;
+        }
+    }
+
+    /**
+     * Wraps up the metric for serialization/transportation and/or
+     * further processing.
+     */
+    public void wrap() {
+        endTime = (endTimeNanos - thread.agent.startTime) / 1000000l;
     }
 
     /**
@@ -462,10 +474,9 @@ public class Metrics implements Serializable, Cloneable {
 				delayHist[i][j] += s.delayHist[i][j];
 			}
 			for (int j = 0; j < DELAYBUCKETS; j++) {
-				targetedDelayHist[i][j] +=
-                                        s.targetedDelayHist[i][j];
-			}
-		}
+				targetedDelayHist[i][j] += s.targetedDelayHist[i][j];
+            }
+        }
 
         if (s.startTime < startTime) {
             startTime = s.startTime;
@@ -514,7 +525,7 @@ public class Metrics implements Serializable, Cloneable {
                 clone.targetedDelayHist[i] = targetedDelayHist[i].clone();
 			}
             clone.thruputGraph = new int[thruputGraph.length][];
-            clone.respGraph = new int[respGraph.length][];
+            clone.respGraph = new long[respGraph.length][];
             for (int i = 0; i < thruputGraph.length; i++) {
                 clone.thruputGraph[i] = thruputGraph[i].clone();
                 clone.respGraph[i] = respGraph[i].clone();
@@ -661,7 +672,7 @@ public class Metrics implements Serializable, Cloneable {
         /* avg.rt = cycle time = tx. rt + cycle time */
         space(8, buffer);
         formatter.format("<rtXtps>%.04f</rtXtps>\n",
-                cycleSum / (runInfo.stdyState * 1000d));
+                cycleSum / (runInfo.stdyState * 1e9d));
 
         space(8, buffer).append("<passed>");
         int passStrOffset = buffer.length();
@@ -715,7 +726,15 @@ public class Metrics implements Serializable, Cloneable {
         }
         space(8, buffer).append("</mix>\n");
 
-        space(8, buffer).append("<responseTimes>\n");
+        // The precision of the response time, in nanosecs.
+        // If sec, pecision is 1E9 nanos,
+        // if microsec, precision is 1E3 nanos, etc.
+        double precision = driver.responseTimeUnit.toNanos(1l);
+        String responseTimeUnit = driver.responseTimeUnit.toString().
+                toLowerCase();
+
+        space(8, buffer).append("<responseTimes unit=\"").
+                append(responseTimeUnit).append("\">\n");
         for (int i = 0; i < txNames.length; i++) {
             String nameModifier;
             if (i < fgTxTypes) {
@@ -731,9 +750,9 @@ public class Metrics implements Serializable, Cloneable {
                 boolean pass90 = true;
                 space(16, buffer);
                 formatter.format("<avg>%5.3f</avg>\n",
-                        (respSumStdy[i]/txCntStdy[i]) / 1000d);
+                        (respSumStdy[i]/txCntStdy[i]) / precision);
                 space(16, buffer);
-                formatter.format("<max>%5.3f</max>\n", respMax[i] / 1000d);
+                formatter.format("<max>%5.3f</max>\n", respMax[i] / precision);
                 sumtx = 0;
                 cnt90 = (int)(txCntStdy[i] * .90);
                 int j = 0;
@@ -743,7 +762,7 @@ public class Metrics implements Serializable, Cloneable {
                         break;
                     }
                 }
-                resp90 = (j + 1) * respBucketSize / 1000d;
+                resp90 = (j + 1) * respBucketSize / precision;
                 space(16, buffer);
                 formatter.format("<p90th>%5.3f</p90th>\n", resp90);
                 if (resp90 > max90) {
@@ -781,16 +800,16 @@ public class Metrics implements Serializable, Cloneable {
                     append(nameModifier).append("\" type=\"").
                     append(typeString).append("\">\n");
             if (delayCntStdy[i] > 0) {
-                avg = delaySum[i] / (delayCntStdy[i] * 1000d);
-                tavg =  targetedDelaySum[i] / (delayCntStdy[i] * 1000d);
+                avg = delaySum[i] / (delayCntStdy[i] * 1e9d);
+                tavg =  targetedDelaySum[i] / (delayCntStdy[i] * 1e9d);
                 space(16, buffer);
                 formatter.format("<targetedAvg>%.3f</targetedAvg>\n",tavg);
                 space(16, buffer);
                 formatter.format("<actualAvg>%.3f</actualAvg>\n", avg);
                 space(16, buffer);
-                formatter.format("<min>%.3f</min>\n", delayMin[i]/1000d);
+                formatter.format("<min>%.3f</min>\n", delayMin[i]/1e9d);
                 space(16, buffer);
-                formatter.format("<max>%.3f</max>\n", delayMax[i]/1000d);
+                formatter.format("<max>%.3f</max>\n", delayMax[i]/1e9d);
 
                 boolean passDelay = true;
 
@@ -902,23 +921,54 @@ public class Metrics implements Serializable, Cloneable {
     }
 
     /**
+     * Scans the data for the upper limit of used buckets.
+     * @param data The data, histogram or graph
+     * @return The index of the first unused bucket
+     */
+    private int getBucketLimit(long[][] data) {
+        int maxBucketId = data[0].length - 1;
+
+        bucketScanLoop:
+        for (; maxBucketId >= 0; maxBucketId--) {
+			for (int i = 0; i < data.length; i++) {
+				if (data[i][maxBucketId] != 0) {
+                    break bucketScanLoop;
+				}
+			}
+		}
+        ++maxBucketId;
+        if (maxBucketId < data[0].length) {
+            ++maxBucketId; // Include one row of zeros if not last row.
+		}
+        return maxBucketId;
+    }
+
+    /**
      * @param b
      */
     public void printDetail(StringBuilder b)  {
-        printGraph(b, "Throughput", graphBucketSize / 1000d,
-                "%.0f", "%.2f", thruputGraph, graphBucketSize / 1000d);
+        RunInfo runInfo = RunInfo.getInstance();
+        BenchmarkDefinition.Driver driver = runInfo.driverConfigs[driverType];
+        long precision = driver.responseTimeUnit.toNanos(1l);
 
-        printGraph(b, "Response Times", graphBucketSize / 1000d,
-                "%.0f", "%.5f", respGraph, thruputGraph, 1000d);
+        double graphBucketSize = this.graphBucketSize / 1e9d;
+        String responseTimeUnit = driver.responseTimeUnit.toString().
+                toLowerCase();
+        printGraph(b, "Throughput", graphBucketSize,
+                "%.0f", "%.2f", thruputGraph, graphBucketSize);
+
+        printGraph(b, "Response Times (" + responseTimeUnit +
+                ")", graphBucketSize, "%.0f", "%.6f", respGraph,
+                thruputGraph, precision);
 
         printHistogram(b, "Frequency Distribution of Response Times",
-                respBucketSize / 1000d, "%5.3f", respHist);
+                respBucketSize / 1e9d, "%5.3f", respHist);
 
         printHistogram(b, "Frequency Distribution of Cycle/Think Times",
-                delayBucketSize / 1000d, "%5.3f", delayHist);
+                delayBucketSize / 1e9d, "%5.3f", delayHist);
 
         printHistogram(b, "Frequency Distribution of Targeted Cycle/Think " +
-                "Times", delayBucketSize / 1000d, "%5.3f",
+                "Times", delayBucketSize / 1e9d, "%5.3f",
                 targetedDelayHist);
     }
 
@@ -968,7 +1018,7 @@ public class Metrics implements Serializable, Cloneable {
     @SuppressWarnings("boxing")
     private void printGraph(StringBuilder b, String label, double unit,
                             String unitFormat, String dataFormat,
-                            int[][] rawGraph, int[][] divider, double divider2){
+                            long[][] rawGraph, int[][] divider, double divider2){
 
         int bucketLimit = rawGraph[0].length;
 

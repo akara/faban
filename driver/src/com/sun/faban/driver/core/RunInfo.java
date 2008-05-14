@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunInfo.java,v 1.16 2007/09/07 15:49:05 noahcampbell Exp $
+ * $Id: RunInfo.java,v 1.17 2008/05/14 07:06:02 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -91,17 +91,17 @@ public class RunInfo implements Serializable {
     public String runId;
     
     /**
-     * Ramp Up 
+     * Ramp Up, in seconds
      */
     public int rampUp;
     
     /**
-     * Ramp Down
+     * Ramp Down, in seconds
      */
     public int rampDown;
     
     /**
-     * Steady State
+     * Steady State, in seconds
      */
     public int stdyState;
     
@@ -124,7 +124,7 @@ public class RunInfo implements Serializable {
     /** benchStartTime */
     public int benchStartTime = Integer.MAX_VALUE;
     /** start */
-    public long start = Long.MAX_VALUE;			// benchStartTime in actual time
+    public long start = Long.MAX_VALUE;	// benchStartTime in ms actual time
     /** maxRunTime */
     public int maxRunTime = 6;  // 6 hrs
     /** graphInterval */
@@ -319,6 +319,7 @@ public class RunInfo implements Serializable {
             metric = driverDef.metric;
             opsUnit = driverDef.opsUnit;
             threadPerScale = driverDef.threadPerScale;
+            responseTimeUnit = driverDef.responseTimeUnit;
             if (driverDef.preRun != null) {
 				preRun = (BenchmarkDefinition.DriverMethod)
                         driverDef.preRun.clone();
@@ -576,7 +577,6 @@ public class RunInfo implements Serializable {
             /**
              * @see com.sun.faban.driver.core.RunInfo.ConfigurationReader.RunInfoDefinition#getStatics(int)
              */
-            @Override
 			public String getStatics(int opNum) throws Exception {
                 if (isBinary) {
                     FileInputStream fis = new FileInputStream(data);
@@ -602,7 +602,6 @@ public class RunInfo implements Serializable {
             /**
              * @see com.sun.faban.driver.core.RunInfo.ConfigurationReader.RunInfoDefinition#getURL(int)
              */
-            @Override
 			public String getURL(int opNum) {
                 return new StringBuilder("\"").append(url).
                         append("\"").toString();
@@ -611,7 +610,6 @@ public class RunInfo implements Serializable {
             /**
              * @see com.sun.faban.driver.core.RunInfo.ConfigurationReader.RunInfoDefinition#getPostRequest(int)
              */
-            @Override
 			public String getPostRequest(int opNum) throws Exception {
                 if (isBinary) {
                     return new StringBuilder(", post_data_").append(opNum).
@@ -670,7 +668,6 @@ public class RunInfo implements Serializable {
             /**
              * @see com.sun.faban.driver.core.RunInfo.ConfigurationReader.RunInfoDefinition#getStatics(int)
              */
-            @Override
 			public String getStatics(int opNum) {
                 if (doSubst) {
 					return "";
@@ -689,7 +686,6 @@ public class RunInfo implements Serializable {
             /**
              * @see com.sun.faban.driver.core.RunInfo.ConfigurationReader.RunInfoDefinition#getURL(int)
              */
-            @Override
 			public String getURL(int opNum) {
                 if (doSubst) {
                     String requestString = generateRandomData(data);
@@ -706,7 +702,6 @@ public class RunInfo implements Serializable {
             /**
              * @see com.sun.faban.driver.core.RunInfo.ConfigurationReader.RunInfoDefinition#getPostRequest(int)
              */
-            @Override
 			public String getPostRequest(int opNum) {
                 return "";
             }

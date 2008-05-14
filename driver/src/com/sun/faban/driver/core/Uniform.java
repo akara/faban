@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Uniform.java,v 1.3 2007/09/07 15:49:05 noahcampbell Exp $
+ * $Id: Uniform.java,v 1.4 2008/05/14 07:06:03 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -36,19 +36,15 @@ import java.lang.annotation.Annotation;
  */
 public class Uniform extends Cycle {
 
-    /**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
-	int cycleMin;
-    int cycleMax;
+	long cycleMin;
+    long cycleMax;
 
     /**
      * Initializes this cycle according to the annotation.
      * @param a The annotation
      * @throws DefinitionException If there is an error in the annotation
      */
-    @Override
 	public void init(Annotation a) throws DefinitionException {
         com.sun.faban.driver.Uniform cycleDef =
                 (com.sun.faban.driver.Uniform) a;
@@ -71,6 +67,10 @@ public class Uniform extends Cycle {
 			throw new DefinitionException(
                     "@Uniform CYCLETIME cycleMax cannot be 0");
 		}
+        // Adjust time to nanosec.
+        cycleMin *= 1000000l;
+        cycleMax *= 1000000l;
+
     }
 
     /**
@@ -81,9 +81,8 @@ public class Uniform extends Cycle {
      * @param random The random number generator used
      * @return The delay time
      */
-    @Override
-	public int getDelay(Random random) {
-        return random.random(cycleMin, cycleMax);
+	public long getDelay(Random random) {
+        return random.lrandom(cycleMin, cycleMax);
     }
 
     /**
@@ -91,7 +90,6 @@ public class Uniform extends Cycle {
      *
      * @return The max reasonable delay to be presented in the output histogram.
      */
-    @Override
 	public double getHistogramMax() {
         if (cycleMax > 0) {
 			return 1.5d * cycleMax;

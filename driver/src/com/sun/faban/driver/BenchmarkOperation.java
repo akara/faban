@@ -17,14 +17,16 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: BenchmarkOperation.java,v 1.6 2008/02/26 02:48:19 akara Exp $
+ * $Id: BenchmarkOperation.java,v 1.7 2008/05/14 07:06:04 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver;
 
-import java.lang.annotation.*;
-import java.util.concurrent.TimeUnit;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * This annotation interface describes the parameters
@@ -42,18 +44,13 @@ public @interface BenchmarkOperation {
      * The benchmark run will fail if the 90th percentile of this
      * operation exceeds the given limit.
      * 
-     * The unit of measure is in seconds and can be changed by 
-     * explicitly stating the annotation unit.
+     * The unit of measure is dependent on the response time unit specified
+     * in the BenchmarkDriver annotation.
+     * 
+     * @see BenchmarkDriver#responseTimeUnit()
      */
     double max90th();
 
-    /**
-     * The unit of time for the max90th attribute.
-     * Note that this is not yet supported, but will be soon. The current
-     * unit is fixed to seconds.
-     */
-    TimeUnit units() default TimeUnit.SECONDS;
-    
     /**
      * Sets the timing mode of this operation to manual or automatic.
      * Manual timing is needed if the benchmark is not a client/server

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Cycle.java,v 1.4 2007/09/07 15:49:05 noahcampbell Exp $
+ * $Id: Cycle.java,v 1.5 2008/05/14 07:06:01 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -140,7 +140,7 @@ public abstract class Cycle implements Serializable, Cloneable {
      * @param random        The random number generator used
      * @return The delay time
      */
-    public abstract int getDelay(Random random);
+    public abstract long getDelay(Random random);
 
     /**
      * Provides the maximum value to be represented inside a histogram.

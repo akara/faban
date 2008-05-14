@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FixedTime.java,v 1.4 2007/09/07 15:49:04 noahcampbell Exp $
+ * $Id: FixedTime.java,v 1.5 2008/05/14 07:06:01 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -40,20 +40,19 @@ public class FixedTime extends Cycle {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	int cycleTime;
+	long cycleTime;
 
     /**
      * Initializes this cycle according to the annotation.
      * @param a The annotation
      * @throws DefinitionException If there is an error in the annotation
      */
-    @Override
 	public void init(Annotation a) throws DefinitionException {
         com.sun.faban.driver.FixedTime cycleDef =
                 (com.sun.faban.driver.FixedTime) a;
         cycleType = cycleDef.cycleType();
         cycleDeviation = cycleDef.cycleDeviation();
-        cycleTime = cycleDef.cycleTime();
+        cycleTime = cycleDef.cycleTime() * 1000000l;
 
         // Now check parameters for validity.
         if (cycleTime == 0 && cycleType == CycleType.CYCLETIME) {
@@ -72,8 +71,7 @@ public class FixedTime extends Cycle {
      * @param random The random number generator used
      * @return The delay time
      */
-    @Override
-	public int getDelay(Random random) {
+	public long getDelay(Random random) {
         return cycleTime;
     }
 
@@ -82,7 +80,6 @@ public class FixedTime extends Cycle {
      *
      * @return The max reasonable delay to be presented in the output histogram.
      */
-    @Override
 	public double getHistogramMax() {
         if (cycleTime > 0) {
 			return cycleTime * 2;
@@ -93,26 +90,6 @@ public class FixedTime extends Cycle {
         // max of 2 seconds for data prep should be enough.
         return 2d;
     }
-
-    /* TODO: Remove this block.
-    private boolean isInitialCycle() {
-        if (initialCycle.get() == null) {
-            initialCycle.set(Boolean.FALSE);
-            RunInfo runInfo = RunInfo.getInstance();
-            // Check that by the time rampup ends, we're not in the first cycle.
-            // Or otherwise the recorded cycle time will be the initial one.
-            if (runInfo.rampUp * 1000 < cycleTime) {
-                int minRampup = (int) Math.ceil((cycleTime + 100) / 1000d);
-                throw new FatalException("Ramp up time must be at least " +
-                        minRampup + " seconds. Currently it is " +
-                        runInfo.rampUp + " seconds. This will produce " +
-                        "inaccurate results." );
-            }
-            return true;
-        }
-        return false;
-    }
-    */
 
     // How to load myself from a stream
     private void readObject(java.io.ObjectInputStream in)

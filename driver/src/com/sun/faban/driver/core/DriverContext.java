@@ -17,11 +17,13 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DriverContext.java,v 1.14 2008/05/02 22:05:09 akara Exp $
+ * $Id: DriverContext.java,v 1.15 2008/05/14 07:06:01 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver.core;
+
+import static com.sun.faban.driver.core.AgentThread.TIME_NOT_SET;
 
 import com.sun.faban.driver.CustomMetrics;
 import com.sun.faban.driver.Timing;
@@ -72,8 +74,8 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      */
     boolean pauseSupported = true;
 
-    /** The start time of the last pause, -1 if no pause. */
-    int pauseStart;
+    /** The start time of the last pause, TIME_NOT_SET if no pause. */
+    long pauseStart = TIME_NOT_SET;
 
     /** Context-specific logger. */
     Logger logger;
@@ -395,15 +397,16 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
             throw e;
         }
         if (timingInfo != null) {
-			if (timingInfo.invokeTime == -1) {
-                timer.sleep(timingInfo.intendedInvokeTime);
+			if (timingInfo.invokeTime == TIME_NOT_SET) {
+                timer.wakeupAt(timingInfo.intendedInvokeTime);
                 // But since sleep may not be exact, we get the time again here.
-                timingInfo.invokeTime = timer.getTime();
-            } else if (pauseStart != -1) { // The critical section was paused.
-                timingInfo.pauseTime += timer.getTime() - pauseStart;
-                pauseStart = -1;
+                timingInfo.invokeTime = System.nanoTime();
+            } else if (pauseStart != TIME_NOT_SET) {
+                // The critical section was paused.
+                timingInfo.pauseTime += System.nanoTime() - pauseStart;
+                pauseStart = TIME_NOT_SET;
             } else {
-                timingInfo.respondTime = timer.getTime();
+                timingInfo.respondTime = System.nanoTime();
             }
 		}
     }
@@ -429,8 +432,8 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
             logger.throwing(className, "recordTime", e);
             throw e;
         }
-        if (pauseStart == -1) {
-			pauseStart = timer.getTime();
+        if (pauseStart == TIME_NOT_SET) {
+			pauseStart = System.nanoTime();
 		}
     }
 
@@ -453,7 +456,29 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      * @return The relative time steady state starts
      */
 	public int getSteadyStateStart() {
-        return agentThread.endRampUp;
+        return (int) (timer.toRelTime(agentThread.endRampUp) / 1000000l);
+    }
+
+    /**
+     * Obtains a relative time, in nanosecs. This time is relative to
+     * a certain time at the beginning of the benchmark run and does not
+     * represent a wall clock time. All agents will have the same reference
+     * time. Use this time to check time durations during the benchmark run.
+     *
+     * @return The relative time of the benchmark run
+     */
+    public long getNanoTime() {
+        return timer.getTime();
+    }
+
+    /**
+     * Obtains the relative time - in nanosecs - that steady state starts,
+     * if set. The if the time is not yet set, it will return 0.
+     *
+     * @return The relative time steady state starts
+     */
+    public long getSteadyStateStartNanos() {
+        return timer.toRelTime(agentThread.endRampUp);
     }
 
     /**
@@ -518,20 +543,20 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
             return;
         if (timingInfo != null && agentThread.driverConfig.operations[
                 agentThread.currentOperation].timing == Timing.AUTO) {
-            if (timingInfo.invokeTime == -1) {
-                timer.sleep(timingInfo.intendedInvokeTime);
+            if (timingInfo.invokeTime == TIME_NOT_SET) {
+                timer.wakeupAt(timingInfo.intendedInvokeTime);
                 // But since sleep may not be exact, we get the time again here.
-                timingInfo.invokeTime = timer.getTime();
-            } else if (pauseSupported && timingInfo.respondTime != -1) {
+                timingInfo.invokeTime = System.nanoTime();
+            } else if (pauseSupported && timingInfo.respondTime != TIME_NOT_SET) {
                 // Some response already read, then transmit again.
                 // In this case the time from last receive to this transmit
                 // is the pause time ...
-                int lastResponse = timingInfo.respondTime;
+                long lastResponse = timingInfo.respondTime;
 
                 // We set the pause time only on the first byte transmitted.
-                timingInfo.respondTime = -1;
+                timingInfo.respondTime = TIME_NOT_SET;
 
-                timingInfo.pauseTime += timer.getTime() - lastResponse;
+                timingInfo.pauseTime += System.nanoTime() - lastResponse;
             }
         }
     }
@@ -547,7 +572,7 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
             return;
         if (timingInfo != null && agentThread.driverConfig.operations[
                 agentThread.currentOperation].timing == Timing.AUTO) {
-			timingInfo.respondTime = timer.getTime();
+			timingInfo.respondTime = System.nanoTime();
 		}
     }
 
@@ -556,15 +581,15 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      * on this thread. This is called from AgentThread only.
      * @param time The time to invoke
      */
-    void setInvokeTime(int time) {
+    void setInvokeTime(long time) {
 
         // Then set the intended start time.
         timingInfo.intendedInvokeTime = time;
         // And set the other times to invalid.
-        timingInfo.invokeTime = -1;
-        timingInfo.respondTime = -1;
-        timingInfo.pauseTime = 0;
-        pauseStart = -1;
+        timingInfo.invokeTime = TIME_NOT_SET;
+        timingInfo.respondTime = TIME_NOT_SET;
+        timingInfo.pauseTime = 0l;
+        pauseStart = TIME_NOT_SET;
     }
 
     /**
@@ -575,19 +600,19 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
     	/**
     	 * Intended Invoke Time
     	 */
-        public int intendedInvokeTime = -1;
+        public long intendedInvokeTime = TIME_NOT_SET;
         /**
          * Actual Invoke Time.
          */
-        public int invokeTime = -1;
+        public long invokeTime = TIME_NOT_SET;
         /**
          * Respond Time
          */
-        public int respondTime = -1;
+        public long respondTime = TIME_NOT_SET;
         /**
          * Pause Time.
          */
-        public int pauseTime = 0;
+        public long pauseTime = 0l;
     }
 
     /**

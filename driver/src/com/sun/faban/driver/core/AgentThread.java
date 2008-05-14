@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentThread.java,v 1.11 2008/04/18 07:11:40 akara Exp $
+ * $Id: AgentThread.java,v 1.12 2008/05/14 07:06:00 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -102,15 +102,17 @@ public abstract class AgentThread extends Thread {
     Class<?> driverClass;
     Object driver;
     boolean inRamp = true; // indicator for rampup or rampdown, initially true
-    int[] delayTime;  // recently calculated cycle times
-    int[] startTime; // start times for previous tx
-    int[] endTime; // end time for the recent tx ended
+    long[] delayTime;  // recently calculated cycle times
+    long[] startTime; // start times for previous tx
+    long[] endTime; // end time for the recent tx ended
 
     private RunState threadState = RunState.NOT_STARTED;
 
     Logger logger;
     String className;
-    int endRampUp, endStdyState, endRampDown;
+    long endRampUp = Long.MAX_VALUE;
+    long endStdyState = Long.MAX_VALUE;
+    long endRampDown = Long.MAX_VALUE;
     int cycleCount = 0; // The cycles executed so far
 
     /** Run configuration from the Master */
@@ -119,6 +121,8 @@ public abstract class AgentThread extends Thread {
     boolean startTimeSet = false;
 
     boolean stopped = false;
+
+    public static final long TIME_NOT_SET = Long.MIN_VALUE;
 
     /**
      * Factory method for instantiating the right type of AgentThread.
@@ -168,7 +172,7 @@ public abstract class AgentThread extends Thread {
         this.timer = timer;
         this.runInfo = RunInfo.getInstance();
         this.agent = agent;
-        random = new Random(timer.getTime() + hashCode());
+        random = new Random(System.nanoTime() + hashCode());
         className = getClass().getName();
         driverConfig = runInfo.driverConfig;
         name = type + '[' + agentId + "]." + id;
@@ -394,7 +398,7 @@ public abstract class AgentThread extends Thread {
      * @param mixId The mix
      * @return The targeted invoke time.
      */
-    int getInvokeTime(BenchmarkDefinition.Operation op, int mixId) {
+    long getInvokeTime(BenchmarkDefinition.Operation op, int mixId) {
         Cycle cycle;
         if (op == null) {
 			// No op, this is the initial cycle, use initialDelay
@@ -404,7 +408,7 @@ public abstract class AgentThread extends Thread {
             cycle = op.cycle;
 		}
 
-        int invokeTime = -1;
+        long invokeTime = TIME_NOT_SET;
         delayTime[mixId] = cycle.getDelay(random);
 
         switch (cycle.cycleType) {
@@ -426,14 +430,13 @@ public abstract class AgentThread extends Thread {
         try {
             agent.timeSetLatch.await();
             startTimeSet = true;
-            int delay = runInfo.benchStartTime - timer.getTime();
+            long delay = agent.startTime - System.nanoTime();
             if (delay <= 0) {
-                logger.severe(name + ": TriggerTime has expired. " +
-                        "Need " + (-delay) + " ms more");
+                logger.severe(name + ": Start time is set " + (-delay) +
+                        " nanosecs too late. Please file a bug.");
                 agent.abortRun();
             } else {
-                // debug.println(3, ident + "Sleeping for " + delay + "ms");
-                Thread.sleep(delay);
+                timer.wakeupAt(agent.startTime);
             }
         } catch (InterruptedException e) { // Run is killed.
             throw new FatalException(e);
@@ -451,7 +454,7 @@ public abstract class AgentThread extends Thread {
         // If there is no error, we still check for the
         // unusual case of time not recorded and issue the
         // proper message.
-        if (timingInfo.invokeTime == -1) {
+        if (timingInfo.invokeTime == TIME_NOT_SET) {
             String msg = null;
             if (driverConfig.operations[
                     currentOperation].timing == Timing.AUTO) {
@@ -469,7 +472,7 @@ public abstract class AgentThread extends Thread {
             logger.severe(msg);
             agent.abortRun();
             throw new FatalException(msg);
-        } else if (timingInfo.respondTime == -1) {
+        } else if (timingInfo.respondTime == TIME_NOT_SET) {
             String msg = null;
             if (driverConfig.operations[
                     currentOperation].timing == Timing.AUTO) {
@@ -514,14 +517,15 @@ public abstract class AgentThread extends Thread {
      * @param end The end of a time span
      * @return true if this time span is in steady state, false otherwise.
      */
-    abstract boolean isSteadyState(int start, int end);
+    abstract boolean isSteadyState(long start, long end);
 
     /**
      * Return results of this thread.
      * @return Final stats
      */
     public Metrics getResult() {
-        return(metrics);
+        metrics.wrap();
+        return metrics;
     }
 
     /**

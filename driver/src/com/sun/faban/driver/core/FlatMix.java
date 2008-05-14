@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FlatMix.java,v 1.4 2007/09/07 15:49:05 noahcampbell Exp $
+ * $Id: FlatMix.java,v 1.5 2008/05/14 07:06:01 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -53,7 +53,6 @@ public class FlatMix extends Mix {
      * @param a           The annotation
      * @throws DefinitionException If there is an error in the annotation
      */
-    @Override
 	public void init(Class<?> driverClass, Annotation a)
             throws DefinitionException {
         com.sun.faban.driver.FlatMix flatMix =
@@ -147,7 +146,6 @@ public class FlatMix extends Mix {
      * @throws ConfigurationException   If the configuration is invalid
      *                                  for the mix
      */
-    @Override
 	public void configure(Element driverConfigNode)
             throws ConfigurationException {
 
@@ -253,7 +251,6 @@ public class FlatMix extends Mix {
      * amount but the selector (doMenu) will base the random number
      * generator to 1.
      */
-    @Override
 	public void normalize() {
         // if (logger.isLoggable(Level.FINEST))
             getLogger().finest("normalize - before\n" + toString());
@@ -276,7 +273,6 @@ public class FlatMix extends Mix {
      *
      * @return The flat mix representation.
      */
-    @Override
 	public FlatMix flatMix() {
         return this;
     }
@@ -313,7 +309,6 @@ public class FlatMix extends Mix {
      * @param random The per-thread random value generator
      * @return The selector to be used by the driver
      */
-    @Override
 	public Selector selector(Random random) {
         return new Selector(random, mix);
     }
@@ -340,7 +335,6 @@ public class FlatMix extends Mix {
          *
          * @return The operation index selected to run next
          */
-        @Override
 		public int select() {
             double val = random.drandom(0, 1);
             for (int i = 0; i < selectMix.length; i++) {
@@ -355,7 +349,6 @@ public class FlatMix extends Mix {
          * Resets the selector's state to start at the first op,
          * if applicable.
          */
-        @Override
 		public void reset() {
             // Noop... there's nothing to reset in a flatmix as it does
             // not contain any state.

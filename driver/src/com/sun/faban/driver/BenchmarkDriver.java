@@ -17,13 +17,14 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: BenchmarkDriver.java,v 1.3 2006/11/23 00:27:59 akara Exp $
+ * $Id: BenchmarkDriver.java,v 1.4 2008/05/14 07:06:04 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver;
 
 import java.lang.annotation.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This annotation interface describes the parameters
@@ -49,4 +50,9 @@ public @interface BenchmarkDriver {
      * benchmark scale.
      */
     int threadPerScale()    default 1;
+
+    /**
+     * The time unit used for reporting response times.
+     */
+    TimeUnit responseTimeUnit() default TimeUnit.SECONDS;
 }

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TimeThreadWithBackground.java,v 1.5 2007/09/07 15:49:05 noahcampbell Exp $
+ * $Id: TimeThreadWithBackground.java,v 1.6 2008/05/14 07:06:03 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -45,16 +45,16 @@ public class TimeThreadWithBackground extends TimeThread {
      */
     @Override
 	void initTimes() {
-        delayTime = new int[2];
-        startTime = new int[2];
-        endTime = new int[2];
+        delayTime = new long[2];
+        startTime = new long[2];
+        endTime = new long[2];
         previousOperation = new int[2];
 
         // This is the start and end time of the previous operation used to
         // calculate the start of the next operation. We set it to the current
         // time for the first operation to have a reference point. In fact,
         // any reference point is OK.
-        startTime[0] = timer.getTime();
+        startTime[0] = System.nanoTime();
         endTime[0] = startTime[0];
         endTime[1] = startTime[1] = startTime[0];
         previousOperation[0] = -1;
@@ -104,9 +104,9 @@ public class TimeThreadWithBackground extends TimeThread {
 
             // Calculate time periods
             // Note that the time periods are in secs, need to convert
-            endRampUp = runInfo.benchStartTime + runInfo.rampUp * 1000;
-            endStdyState = endRampUp + runInfo.stdyState * 1000;
-            endRampDown = endStdyState + runInfo.rampDown * 1000;
+            endRampUp = agent.startTime + runInfo.rampUp * 1000000000l;
+            endStdyState = endRampUp + runInfo.stdyState * 1000000000l;
+            endRampDown = endStdyState + runInfo.rampDown * 1000000000l;
         }
 
         logger.fine(name + ": Start of run.");
@@ -115,7 +115,7 @@ public class TimeThreadWithBackground extends TimeThread {
         BenchmarkDefinition.Operation[] op = 
                 new BenchmarkDefinition.Operation[2];
         // Next fg and bg time
-        int[] invokeTime = new int[2];
+        long[] invokeTime = new long[2];
 
         // Loop until time or cycles are up
         driverLoop:
@@ -127,9 +127,9 @@ public class TimeThreadWithBackground extends TimeThread {
 
                 // Calculate time periods
                 // Note that the time periods are in secs, need to convert
-                endRampUp = runInfo.benchStartTime + runInfo.rampUp * 1000;
-                endStdyState = endRampUp + runInfo.stdyState * 1000;
-                endRampDown = endStdyState + runInfo.rampDown * 1000;
+                endRampUp = agent.startTime + runInfo.rampUp * 1000000000l;
+                endStdyState = endRampUp + runInfo.stdyState * 1000000000l;
+                endRampDown = endStdyState + runInfo.rampDown * 1000000000l;
             }
 
             // Select the operations and invoke times
@@ -199,7 +199,7 @@ public class TimeThreadWithBackground extends TimeThread {
                 // If it never waited, we'll see whether we can just use the
                 // previous start and end times.
                 if (timingInfo.invokeTime == -1) {
-                    int currentTime = timer.getTime();
+                    long currentTime = System.nanoTime();
                     if (currentTime < timingInfo.intendedInvokeTime) {
                         // No time change, no need to checkRamp
                         metrics.recordError();
@@ -208,7 +208,7 @@ public class TimeThreadWithBackground extends TimeThread {
                     }
 					// Too late, we'll need to use the real time
 					// for both invoke and respond time.
-					timingInfo.invokeTime = timer.getTime();
+					timingInfo.invokeTime = System.nanoTime();
 					timingInfo.respondTime = timingInfo.invokeTime;
 					checkRamp();
 					metrics.recordError();
@@ -216,7 +216,7 @@ public class TimeThreadWithBackground extends TimeThread {
 					// The delay time is invalid,
 					// we cannot record in this case.
                 } else if (timingInfo.respondTime == -1) {
-                    timingInfo.respondTime = timer.getTime();
+                    timingInfo.respondTime = System.nanoTime();
                     checkRamp();
                     metrics.recordError();
                     logError(cause, op[mixId]);

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentImpl.java,v 1.11 2008/03/05 02:50:26 akara Exp $
+ * $Id: AgentImpl.java,v 1.12 2008/05/14 07:06:00 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -67,6 +67,7 @@ public class AgentImpl extends UnicastRemoteObject
     private String agentId;
     private String displayName;
     private String className;
+    long startTime = Long.MIN_VALUE;
     CountDownLatch threadStartLatch;
     CountDownLatch timeSetLatch;
     CountDownLatch preRunLatch;
@@ -226,8 +227,11 @@ public class AgentImpl extends UnicastRemoteObject
         // Create the required number of threads
         numThreads = runInfo.agentInfo.threads;
         agentThreads = new AgentThread[numThreads];
+        long nsBetweenThreadStart = runInfo.msBetweenThreadStart * 1000000;
         try {
-            int baseTime = timer.getTime();
+            // We use System.nanoTime() here directly
+            // instead of timer.getTime().
+            long baseTime = System.nanoTime();
             int count = 0;
             for (; count < numThreads && !runAborted; count++) {
                 int globalThreadId = runInfo.agentInfo.startThreadNumber +
@@ -243,31 +247,26 @@ public class AgentImpl extends UnicastRemoteObject
                     preRunLatch.await();
 
                     // Adjust baseTime if the preRun takes long.
-                    int currentTime = timer.getTime();
-                    if (currentTime - baseTime > runInfo.msBetweenThreadStart) {
-						baseTime = currentTime - runInfo.msBetweenThreadStart;
+                    long currentTime = System.nanoTime();
+
+                    if (currentTime - baseTime > nsBetweenThreadStart) {
+						baseTime = currentTime - nsBetweenThreadStart;
 					}                    
                 }
 
                 // We ensure we catch up with the configured thread starting
                 // rate. If we fall short, we sleep less until we caught up.
-                int sleepTime = runInfo.msBetweenThreadStart * (count + 1) +
-                        baseTime - timer.getTime();
+                long wakeupTime = nsBetweenThreadStart * (count + 1) +
+                        baseTime;
+                long sleepTime = wakeupTime - System.nanoTime();
 
                 // In case we fall short, we sleep only 1/3 the interval
                 if (sleepTime <= 0) {
-					sleepTime = runInfo.msBetweenThreadStart / 3;
+					sleepTime = nsBetweenThreadStart / 3;
+                    wakeupTime = System.nanoTime() + sleepTime;
 				}
 
-                // If the configured time is low, we can still end up
-                // with 0 on an integer operation, so we just check again.
-                if (sleepTime > 0) {
-					try {
-                        Thread.sleep(sleepTime);
-                    } catch (InterruptedException ie) {
-                    	logger.log(Level.FINE, ie.getMessage(), ie);
-                    }
-				}
+                timer.wakeupAt(wakeupTime);
             }
             if (runAborted) {
 				logger.warning(displayName + ": Run aborted before starting " +
@@ -319,17 +318,17 @@ public class AgentImpl extends UnicastRemoteObject
 
     /**
      * Sets the actual run start time.
-     * @param time The relative time of the benchmark start
+     * @param time The relative millisec time of the benchmark start
      */
     public void setStartTime(int time) {
         runInfo.benchStartTime = time;
-        runInfo.start = time + timer.getOffsetTime();        
+        startTime = timer.toAbsNanos(time);
+        runInfo.start = timer.toAbsMillis(time);
         timeSetLatch.countDown();
 
         // After we know the start time, we calibrate
         // the timer during the rampup.
-        timer.calibrate(displayName,
-                runInfo.benchStartTime + runInfo.rampUp * 1000);
+        timer.calibrate(displayName, time + runInfo.rampUp * 1000000000l);
     }
 
     /**

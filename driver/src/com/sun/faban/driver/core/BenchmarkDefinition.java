@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: BenchmarkDefinition.java,v 1.10 2008/03/01 08:36:40 akara Exp $
+ * $Id: BenchmarkDefinition.java,v 1.11 2008/05/14 07:06:00 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,19 +25,19 @@ package com.sun.faban.driver.core;
 
 import com.sun.faban.driver.*;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.io.File;
 
 /**
  * Implements the basic benchmark, driver, and operation definitions.
@@ -162,6 +162,7 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
             def.drivers[i].metric = benchDriver.metric();
             def.drivers[i].opsUnit = benchDriver.opsUnit();
             def.drivers[i].threadPerScale = benchDriver.threadPerScale();
+            def.drivers[i].responseTimeUnit = benchDriver.responseTimeUnit();
             def.drivers[i].className = driverClasses[i].getName();
             populatePrePost(driverClasses[i], def.drivers[i]);
             getBackground(driverClasses[i], def.drivers[i]);
@@ -348,7 +349,6 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
                 Operation op = new Operation();
                 op.name = benchOp.name();
                 op.max90th = benchOp.max90th();
-                op.units = benchOp.units();
                 op.timing = benchOp.timing();
                 op.countToMetric = benchOp.countToMetric();
                 op.m = m;
@@ -379,7 +379,6 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
                 Operation op = new Operation();
                 op.name = benchOp.name();
                 op.max90th = benchOp.max90th();
-                op.units = benchOp.units();
                 op.timing = benchOp.timing();
                 op.countToMetric = benchOp.countToMetric();
                 op.m = m;
@@ -565,6 +564,7 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
         String metric;
         String opsUnit;
         int threadPerScale;
+        TimeUnit responseTimeUnit;
         Mix[] mix = new Mix[2]; // Foreground (0) and background (1) mix.
         Cycle[] initialDelay = new Cycle[2]; // Foreground and background
         Operation[] operations;
@@ -722,7 +722,6 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
 		
 		String name;
         double max90th;
-        TimeUnit units;
         Timing timing;
         boolean countToMetric;
         Cycle cycle;

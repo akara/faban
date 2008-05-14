@@ -17,11 +17,13 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Timer.java,v 1.2 2006/06/29 19:38:39 akara Exp $
+ * $Id: Timer.java,v 1.3 2008/05/14 07:06:03 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver.util;
+
+import com.sun.faban.driver.FatalException;
 
 import java.io.Serializable;
 import java.util.Random;
@@ -31,19 +33,46 @@ import java.util.logging.Logger;
  * This class has the functions to get timestamps
  */
 public class Timer implements Serializable {
-	long baseTime;
+    /** The millisec epoch time of this benchmark */
+	long epochMillis;
+
+    /** The nanosec epoch time of this benchmark */
+    transient long epochNanos; // This has no meaning on a different system.
+
+    transient long diffms; // The epoch difference, millisec part
+    transient int diffns; // The epoch difference, nanosec part
+
     private transient Logger logger;
-    private int compensation = 5;  // Some pretty good starting numbers
-    private double deviation = 5d; // for both fields.
+    private long compensation = 5000000l;  // Some pretty good starting numbers
+    private double deviation = 5000000d; // for both fields.
 
     /**
      * Default Constructor which saves the current time
-     * as baseTime (the start of the benchmark). The resolution
-     * is unknown.
+     * as epochMillis and epochNanos (the start of the benchmark).
+     * The resolution is unknown. Note that this is only constructed on the
+     * master so the initial values before adjustments pertain to the master
+     * alone.
      */
 	public Timer() {
-		baseTime = System.currentTimeMillis();
-        getLogger().fine("Timer: baseTime in getOffsetTime = " + baseTime);
+        // This is the closest we could possibly get, to put the two epochs
+        // at the same time. The accuracy is different, but both epochs will
+        // be in the same millisec.
+        long epochMillis0 = 0l;
+        int retries = 100;
+        do {
+            epochMillis0 = System.currentTimeMillis();
+            epochNanos = System.nanoTime();
+		    epochMillis = System.currentTimeMillis();
+            if (retries-- <= 0)
+                throw new FatalException("Cannot establish epoch times, " +
+                                         "system may be too busy.");
+        } while (epochMillis0 != epochMillis);
+
+        diffms = epochMillis - epochNanos / 1000000l;
+        diffns = (int) (epochNanos % 1000000l);
+
+        getLogger().fine("Timer: baseTime ms: " + epochMillis +
+                         ", ns: " + epochNanos);
 	}
 
     private Logger getLogger() {
@@ -53,46 +82,90 @@ public class Timer implements Serializable {
     }
 
     /**
-        * this method is used to print the benchmark report
-        * @return baseTime the start of the benchmark time
-        */
-	public long getOffsetTime() {
-		return baseTime;
-	}
+     * Converts the millisec relative time to absolute nanosecs.
+     * @param relTimeMillis The millisec relative time
+     * @return The corresponding nanosec time
+     */
+    public long toAbsNanos(int relTimeMillis) {
+        return (relTimeMillis + epochMillis - diffms) * 1000000l + diffns;
+    }
 
+    /**
+     * Converts the nanosecond time relative to the run's epoch to absolute
+     * millisec comparable to System.currentTimeMillis().
+     * @param relTimeNanos The relative time in nanosecs
+     * @return The absolute time in millisecs
+     */
+    public long toAbsMillis(long relTimeNanos) {
+        return (relTimeNanos + epochNanos) / 1000000l + diffms;
+    }
 
-	/**
-	 * This  method returns the current time relative to baseTime.
-	 * This way, we don't need to keep track of large numbers and
-	 * worry about long variables
-         * @return int duration the difference between start and current time
-	 */
-	public int getTime() {
-		long c = System.currentTimeMillis();
-		return (int) (c - baseTime);
-	}
+    /**
+     * Converts the millisec time relative to the run's epoch to absolute
+     * millisec comparable to System.currentTimeMillis().
+     * @param relTimeMillis The relative time in nanosecs
+     * @return the absolute time in millisecs
+     */
+    public long toAbsMillis(int relTimeMillis) {
+        return relTimeMillis + epochMillis;
+    }
+
+    /**
+     * Obtains the current time relative to the base time, in
+     * milliseconds. This is mainly used to determine the current state of
+     * of the run. The base time is synchronized between the Faban
+     * master and all driver agents.
+     * @return The nanoseconds from the base time.
+     */
+    public int getTime() {
+        long c = System.currentTimeMillis();
+        return (int) (c - epochMillis);
+    }
+
+    /**
+     * Obtains the time relative to the base time, given a nanoTime
+     * with an unknown datum. The base time is synchronized between the Faban
+     * master and all driver agents.
+     * @param nanoTime The nanotime obtained from System.nanoTime()
+     * @return The nanosecond time relative to our base time.
+     */
+    public long toRelTime(long nanoTime) {
+        return nanoTime - epochNanos;
+    }
+
+    /**
+     * Obtains the nano time comparable to System.nanoTime() from a given
+     * nanotime relative to the base time.
+     * @param relNanos The relative nanosecond time
+     * @return The nanoseconds comparable to System.nanoTime.
+     */
+    public long toAbsTime(long relNanos) {
+        return relNanos + epochNanos;
+    }
 
     /**
      * Sets the actual measured sleep time deviation. This is called from
      * the calibrator. Since the deviation is rarely read and certainly not
      * read concurrently we do not need to protect it. The compensation
      * will automatically be set as a round-up of deviation.
-     * @param deviation The deviation.
+     * @param deviation The deviation, in nanosecs.
      */
     private void setDeviation(double deviation) {
         this.deviation = deviation;
-        int compensation = (int) deviation;     // A low cost way to
-        if (deviation - compensation > 0d)      // round up the deviation.
-            ++compensation;
+        int compensation = (int) (deviation / 1000000); // A low cost way to
+        ++compensation;                                 // round up.
+        // Note: There's a 1:10^6 chance we round up a full millis.
+        // But that's better than not rounding up at all.
+
         // Make a single atomic int assignment in order to avoid race conditions
-        this.compensation = compensation;
+        this.compensation = compensation * 1000000l;
     }
 
     /**
      * Reads the compensation value.
      * @return The compensation
      */
-    public int getCompensation() {
+    public long getCompensation() {
         return compensation;
     }
 
@@ -114,11 +187,12 @@ public class Timer implements Serializable {
      * should be close to zero.
      * @param wakeupTime The time this thread is supposed to wakeup.
      */
-    public void sleep(int wakeupTime) {
-        int currentTime;
-        if ((currentTime = getTime()) < wakeupTime - compensation)
+    public void wakeupAt(long wakeupTime) {
+        long currentTime;
+        if ((currentTime = System.nanoTime()) < wakeupTime - compensation)
             try {
-                Thread.sleep(wakeupTime - currentTime - compensation);
+                long sleepTime = wakeupTime - currentTime - compensation;
+                Thread.sleep(sleepTime / 1000000l, (int) (sleepTime % 1000000l));
             } catch (InterruptedException e) {
                 throw new RuntimeException(
                         "Sleep interrupted. Run terminating.");
@@ -130,12 +204,15 @@ public class Timer implements Serializable {
     /**
      * Runs a timer sleep time calibration for a certain amount of time.
      * @param id The agent identifier - used for logging purposes.
-     * @param endTime The time to end the calibration, referencing this timer.
+     * @param endTime The time to end the calibration, referencing this JVMs
+     *        nanosec timer.
      */
-    public void calibrate(String id, int endTime) {
+    public void calibrate(String id, long endTime) {
+        // Convert relative time to abs time.
+        endTime = toAbsTime(endTime);
         // Only calibrate if we have at least 5 secs to do so.
         // Otherwise it does not make sense at all.
-        if (endTime - getTime() > 5000) {
+        if (endTime - System.nanoTime() > 5000000000l) {
             Calibrator calibrator = new Calibrator(id, endTime);
             calibrator.start();
         }
@@ -143,11 +220,39 @@ public class Timer implements Serializable {
 
     /**
      * Adjusts the base time based on the clock differences of this JVM to
-     * the master's JVM.
-     * @param offset
+     * the master's JVM. This is done at the millisecond accuracy. Since
+     * remote calls are usually not much faster than a millisec, it does
+     * not make much sense to be too ideological about accuracy here.
+     * @param offset The millisec offset between systems
      */
     public void adjustBaseTime(int offset) {
-        baseTime += offset;
+
+        long refMillis0 = 0l;
+        long refMillis = 0l;
+        long refNanos = Long.MIN_VALUE;
+
+        // First, establish the local relationship between
+        // the nanos and millis clocks.
+        int retries = 100;
+        do {
+            refMillis0 = System.currentTimeMillis();
+            refNanos = System.nanoTime();
+		    refMillis = System.currentTimeMillis();
+            if (retries-- <= 0)
+                throw new FatalException("Cannot establish ref times, " +
+                                         "system may be too busy.");
+        } while (refMillis0 != refMillis);
+
+        diffms = refMillis - refNanos / 1000000l;
+        diffns = (int) (refNanos % 1000000l);
+
+        // Then, we use the provided offset to calculate the millis
+        // reprsenting the same timestamp on a remote system.
+        epochMillis += offset;
+
+        // And based on our local differences between the nanos and millis
+        // clock, we set the epochNanos reopresenting the same instance in time.
+        epochNanos = (epochMillis - diffms) * 1000000l + diffns;
     }
 
     /**
@@ -173,13 +278,13 @@ public class Timer implements Serializable {
     class Calibrator extends Thread {
 
         private String id;
-        private int endTime;
+        private long endTime;
 
         /**
          * Constructs the calibrator.
          * @param endTime The time to end the calibration, based on this timer
          */
-        Calibrator(String id, int endTime) {
+        Calibrator(String id, long endTime) {
             this.id = id;
             this.endTime = endTime;
             setName("Calibrator");
@@ -189,12 +294,12 @@ public class Timer implements Serializable {
          * Runs the calibrator thread.
          */
         public void run() {
-            int timeAfter = Integer.MIN_VALUE;
+            long timeAfter = Long.MIN_VALUE;
             int maxSleep = -1; // Initial value
             Random random = new Random();
 
             int count = 0;
-            int devSum = 0;
+            long devSum = 0l;
             for (;;) {
                 // We random the intended sleep between 10 and 30 ms
                 // thus assuming the systems running the driver will
@@ -207,20 +312,20 @@ public class Timer implements Serializable {
                     setDeviation((double) devSum/count); // Final one.
                     break;
                 }
-                int timeBefore = Integer.MAX_VALUE;
+                long timeBefore = Long.MAX_VALUE;
                 try {
-                    timeBefore = getTime();
-                    Thread.sleep(intendedSleep);
-                    timeAfter = getTime();
+                    timeBefore = System.nanoTime();
+                    Thread.sleep(intendedSleep, 0);
+                    timeAfter = System.nanoTime();
                 } catch (InterruptedException e) {
                 }
                 if (timeAfter > timeBefore) { // If not interrupted.
-                    int actualSleep = timeAfter - timeBefore;
-                    int deviation = actualSleep - intendedSleep;
+                    long actualSleep = timeAfter - timeBefore;
+                    long deviation = actualSleep - intendedSleep * 1000000l;
                     devSum += deviation;
                     ++count;
                     if (actualSleep > maxSleep)
-                        maxSleep = actualSleep;
+                        maxSleep = (int) (actualSleep / 1000000l);
                     // Keep converging the deviation to the final value
                     // until this thread exits, just before steady state.
                     if (count % 50 == 0) // Sets every 50 experiments, ~1 sec.
@@ -236,16 +341,16 @@ public class Timer implements Serializable {
                 debug = Boolean.parseBoolean(debugSwitch);
 
             // Test for qualifying final compensation...
-            if (!debug && compensation > 100) {
+            if (!debug && compensation > 100000000l) {
                 getLogger().severe(id + ": System needed time compensation " +
-                        "of " + compensation + ".\nValues over 100ms are " +
-                        "unacceptable for a driver. \nPlease use a faster " +
-                        "system or tune the driver JVM/GC.\nExiting...");
+                        "of " + compensation / 1000000l + ".\nValues over " +
+                        "100ms are unacceptable for a driver. \nPlease use a " +
+                        "faster system or tune the driver JVM/GC.\nExiting...");
                 System.exit(1);
             }
             getLogger().fine(id + ": Calibration succeeded. Sleep time " +
-                    "deviation: " + getDeviation() + " compensation: " +
-                    compensation + " ms.");
+                    "deviation: " + getDeviation() + " ns, compensation: " +
+                    compensation + " ns.");
         }
     }
 }
