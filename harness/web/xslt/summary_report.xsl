@@ -149,7 +149,11 @@
                             </xsl:for-each>
                         </tbody>
                     </table><br></br>
-                    <h3>Response Times</h3>
+                    <h3>Response Times
+                        <xsl:if test="responseTimes/@unit">
+                            (<xsl:value-of select="responseTimes/@unit"/>)
+                        </xsl:if>
+                    </h3>
                     <table border="1" cellpadding="2" cellspacing="0"
                         style="text-align: center; width: 100%;">
                         <tbody>

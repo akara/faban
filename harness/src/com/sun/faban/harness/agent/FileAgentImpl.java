@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileAgentImpl.java,v 1.8 2008/05/02 23:17:32 akara Exp $
+ * $Id: FileAgentImpl.java,v 1.9 2008/05/14 07:08:31 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -268,7 +268,7 @@ public class FileAgentImpl extends UnicastRemoteObject
         // FileTransfer.writeObject and FileTransfer.readObject.
         // This is the most memory-efficient way to transfer large
         // files over RMI.
-        logger.info("Received " + transfer.getSource() + "->" +
+        logger.fine("Received " + transfer.getSource() + "->" +
                     transfer.getDest() + ", " +
                     transfer.getTransferSize() + " out of " +
                     transfer.getSize() + " bytes");
@@ -290,7 +290,7 @@ public class FileAgentImpl extends UnicastRemoteObject
         // FileTransfer.readObject. This is the most memory-efficient way
         // to transfer large files over RMI.
         FileTransfer t = new FileTransfer(srcFile, destFile);
-        logger.info("Transferring " + t.getSource() + "->" + t.getDest() +
+        logger.fine("Transferring " + t.getSource() + "->" + t.getDest() +
                     " size " + t.getTransferSize() + " bytes.");
         return t;
     }
