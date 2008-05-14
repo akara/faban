@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.15 2008/05/14 07:06:02 akara Exp $
+ * $Id: Metrics.java,v 1.16 2008/05/14 15:50:04 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -247,7 +247,8 @@ public class Metrics implements Serializable, Cloneable {
 		}
 
         double respHistMax = max90th * 5d;  // 5 x max response time
-        respBucketSize = (long) Math.ceil(1e9d * respHistMax / RESPBUCKETS);
+        double precision = driverConfig.responseTimeUnit.toNanos(1l);
+        respBucketSize = (long) Math.ceil(precision * respHistMax / RESPBUCKETS);
 
         double delayHistMax = driverConfig.operations[0].
                 cycle.getHistogramMax();
@@ -961,14 +962,15 @@ public class Metrics implements Serializable, Cloneable {
                 ")", graphBucketSize, "%.0f", "%.6f", respGraph,
                 thruputGraph, precision);
 
-        printHistogram(b, "Frequency Distribution of Response Times",
-                respBucketSize / 1e9d, "%5.3f", respHist);
+        printHistogram(b, "Frequency Distribution of Response Times (" +
+                responseTimeUnit + ")", respBucketSize / precision, "%5.3f",
+                respHist);
 
-        printHistogram(b, "Frequency Distribution of Cycle/Think Times",
-                delayBucketSize / 1e9d, "%5.3f", delayHist);
+        printHistogram(b, "Frequency Distribution of Cycle/Think Times " +
+                "(seconds)", delayBucketSize / 1e9d, "%5.3f", delayHist);
 
         printHistogram(b, "Frequency Distribution of Targeted Cycle/Think " +
-                "Times", delayBucketSize / 1e9d, "%5.3f",
+                "Times (seconds)", delayBucketSize / 1e9d, "%5.3f",
                 targetedDelayHist);
     }
 

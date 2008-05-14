@@ -188,7 +188,7 @@
                         </tbody>
                     </table><br></br>
                     <xsl:if test="delayTimes">
-                    <h3>Cycle/Think Times</h3>
+                    <h3>Cycle/Think Times (seconds)</h3>
                     <table border="1" cellpadding="2" cellspacing="0"
                         style="text-align: center; width: 100%;">
                         <tbody>
