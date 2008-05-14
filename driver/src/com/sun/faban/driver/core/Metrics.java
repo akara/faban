@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.16 2008/05/14 15:50:04 akara Exp $
+ * $Id: Metrics.java,v 1.17 2008/05/14 16:49:40 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -45,7 +45,7 @@ public class Metrics implements Serializable, Cloneable {
 	private static final long serialVersionUID = 1L;
 
 	/** Number of response time buckets in histogram. */
-    public static final int RESPBUCKETS = 100;
+    public static final int RESPBUCKETS = 1000;
 
     /** Number of delay time buckets in histogram. */
     public static final int DELAYBUCKETS = 100;
@@ -950,7 +950,7 @@ public class Metrics implements Serializable, Cloneable {
     public void printDetail(StringBuilder b)  {
         RunInfo runInfo = RunInfo.getInstance();
         BenchmarkDefinition.Driver driver = runInfo.driverConfigs[driverType];
-        long precision = driver.responseTimeUnit.toNanos(1l);
+        double precision = driver.responseTimeUnit.toNanos(1l);
 
         double graphBucketSize = this.graphBucketSize / 1e9d;
         String responseTimeUnit = driver.responseTimeUnit.toString().
@@ -963,14 +963,14 @@ public class Metrics implements Serializable, Cloneable {
                 thruputGraph, precision);
 
         printHistogram(b, "Frequency Distribution of Response Times (" +
-                responseTimeUnit + ")", respBucketSize / precision, "%5.3f",
+                responseTimeUnit + ")", respBucketSize / precision, "%.5f",
                 respHist);
 
         printHistogram(b, "Frequency Distribution of Cycle/Think Times " +
-                "(seconds)", delayBucketSize / 1e9d, "%5.3f", delayHist);
+                "(seconds)", delayBucketSize / 1e9d, "%.3f", delayHist);
 
         printHistogram(b, "Frequency Distribution of Targeted Cycle/Think " +
-                "Times (seconds)", delayBucketSize / 1e9d, "%5.3f",
+                "Times (seconds)", delayBucketSize / 1e9d, "%.3f",
                 targetedDelayHist);
     }
 
@@ -1078,7 +1078,7 @@ public class Metrics implements Serializable, Cloneable {
         TextTable table = new TextTable(bucketLimit, txTypes + 1);
 
         // The X axis headers and column headers, or legends
-        table.setHeader(0, "Time (s)");
+        table.setHeader(0, "Time");
         for (int j = 0; j < txTypes; j++) {
             table.setHeader(j + 1, txNames[j]);
 		}
