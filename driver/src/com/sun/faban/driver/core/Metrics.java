@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.21 2008/05/15 21:14:20 akara Exp $
+ * $Id: Metrics.java,v 1.22 2008/05/15 21:36:35 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -1004,39 +1004,18 @@ public class Metrics implements Serializable, Cloneable {
 
         // If all buckets are used, the last one does not get extrapolated
         // as it has the data of that bucket and beyond.
-        if (limit == FINE_RESPBUCKETS + COARSE_RESPBUCKETS) {
-            --limit; // Don't extrapolate the last bucket.
-            int size = (COARSE_RESPBUCKETS - 1) * 10 + FINE_RESPBUCKETS + 1;
-            int[][] respHist = new int[txTypes][size];
-            for (int i = 0; i < txTypes; i++) {
+        boolean spareLastBucket = false;
+        if (limit == respHist.length)
+            spareLastBucket = true;
 
-                // Copy the fine buckets unchanged.
-                for (int j = 0; j < FINE_RESPBUCKETS; j++)
-                    respHist[i][j] = this.respHist[i][j];
-
-                for (int j = FINE_RESPBUCKETS; j < limit; j++) {
-                    int count = this.respHist[i][j];
-                    // Spread the count among all 10 flat buckets.
-                    int base = count / 10;
-                    int remainder = count % 10;
-                    int baseIdx = (j - FINE_RESPBUCKETS) * 10 +
-                                    FINE_RESPBUCKETS;
-                    int k = 9;
-                    // The higher buckets get the base
-                    for (; k >= remainder; k--)
-                        respHist[i][baseIdx + k] = base;
-                    // The lower remaining buckets get the base + 1
-                    ++base;
-                    for (; k >= 0; k--)
-                        respHist[i][baseIdx + k] = base;
-                }
-                // Just copy the last bucket.
-                respHist[i][size - 1] = this.respHist[i][limit];
+        if (limit > FINE_RESPBUCKETS) {
+            int size;
+            if (spareLastBucket) {
+                --limit;
+                size = (COARSE_RESPBUCKETS - 1) * 10 + FINE_RESPBUCKETS + 1;
+            } else {
+                size = (limit - FINE_RESPBUCKETS) * 10 + FINE_RESPBUCKETS;
             }
-            this.respHist = respHist;
-
-        } else if (limit > FINE_RESPBUCKETS) {
-            int size = (limit - FINE_RESPBUCKETS) * 10 + FINE_RESPBUCKETS;
             int[][] respHist = new int[txTypes][size];
             for (int i = 0; i < txTypes; i++) {
 
@@ -1060,6 +1039,9 @@ public class Metrics implements Serializable, Cloneable {
                     for (; k >= 0; k--)
                         respHist[i][baseIdx + k] = base;
                 }
+                if (spareLastBucket)
+                    // Just copy the last bucket.
+                    respHist[i][size - 1] = this.respHist[i][limit];
             }
             this.respHist = respHist;
         }
