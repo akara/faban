@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.19 2008/05/15 07:21:53 akara Exp $
+ * $Id: Metrics.java,v 1.20 2008/05/15 15:49:36 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -266,22 +266,8 @@ public class Metrics implements Serializable, Cloneable {
         // Calculate the response time histograms.
         double precision = driverConfig.responseTimeUnit.toNanos(1l);
         long max90nanos = Math.round(max90th * precision);
-
-        // Find 1.5 * max90th without incurring float errors.
-        long t = max90nanos * 3l;
-        long mod = t % 2l;
-        t /= 2l;
-        if (mod > 0)
-            t += 1;
-
-        // Find an integer bucket size.
-        mod = t % FINE_RESPBUCKETS;
-        fineRespBucketSize = t / FINE_RESPBUCKETS;
-        if (mod > 0)
-            fineRespBucketSize += 1l;
-
+        fineRespBucketSize = max90nanos / 200l;  // 20% of scale of 1000
         fineRespHistMax = fineRespBucketSize * FINE_RESPBUCKETS;
-
         coarseRespBucketSize = fineRespBucketSize * 10l;
         coarseRespHistMax = coarseRespBucketSize * COARSE_RESPBUCKETS +
                                                     fineRespHistMax;
@@ -659,7 +645,8 @@ public class Metrics implements Serializable, Cloneable {
         int sumFgTxCnt = 0;
         mixRatio = new double[txTypes];
         boolean success = true;
-        double avg, tavg, resp90;
+        double avg, tavg;
+        long resp90;
         int sumtx, cnt90;
         RunInfo runInfo = RunInfo.getInstance();
         Formatter formatter = new Formatter(buffer);
@@ -785,6 +772,8 @@ public class Metrics implements Serializable, Cloneable {
                 nameModifier = " &amp;";
             }
             double max90 = driver.operations[i].max90th;
+            long max90nanos = Math.round(max90 * precision);
+
             space(12, buffer);
             formatter.format("<operation name=\"%s%s\" r90th=\"%5.3f\">\n",
                     txNames[i], nameModifier, max90);
@@ -813,11 +802,10 @@ public class Metrics implements Serializable, Cloneable {
                             fineRespHistMax;
                 else
                     resp90 = coarseRespHistMax;
-                resp90 /= precision;
 
                 space(16, buffer);
-                formatter.format("<p90th>%5.3f</p90th>\n", resp90);
-                if (resp90 > max90) {
+                formatter.format("<p90th>%5.3f</p90th>\n", resp90 / precision);
+                if (resp90 > max90nanos) {
                     pass90 = false;
                     success = false;
                 }
