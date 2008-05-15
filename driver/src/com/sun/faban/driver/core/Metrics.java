@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.18 2008/05/15 06:33:25 akara Exp $
+ * $Id: Metrics.java,v 1.19 2008/05/15 07:21:53 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -1003,7 +1003,7 @@ public class Metrics implements Serializable, Cloneable {
      * 370 entries). For low response times, we care a lot about the exact
      * response time and therefore we use fine-grained buckets. For large
      * response times we just want to know the ballpark, but not the exact
-     * nunmber. So it does not make sense to keep the same bucket size
+     * number. So it does not make sense to keep the same bucket size
      * throughout. We use fine granularity below 1.5x largest set 90th% and
      * coarse granularity for anything beyond that.
      *
