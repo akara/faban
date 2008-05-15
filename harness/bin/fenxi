@@ -59,13 +59,22 @@ fi
 #DIR=${0%/*}
 #PROG=${0##*/}
 
-PROG=$FENXI_SCRIPTS/process
+#PROG=$FENXI_SCRIPTS/process
 
 chmod a+rx $FENXI_HOME/txt2db/*
 
-if [ $# -ne 4 ]; then
-        echo "usage: $0 [process|compare] rawdir htmldir runID" 2>&1
+usage() {
+        echo "usage: $0 process rawdir htmldir runID" 2>&1
+        echo "       $0 compare rundir1 rundir2 ... outdir" 2>&1
         exit 2
+}
+
+if [ $# -lt 4 ]; then
+    usage
+fi
+
+if [ $# -gt 4 -a "$1" = "process" ] ; then
+    usage
 fi
 
 #FENXI_HOME=${FENXI_HOME:-$DIR/..}

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunAnalyzer.java,v 1.5 2008/04/04 22:09:27 akara Exp $
+ * $Id: RunAnalyzer.java,v 1.6 2008/05/15 06:34:17 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -163,7 +163,7 @@ public class RunAnalyzer {
         }
         File outIdx = new File(analysisDir, "index.html");
         if (!outIdx.exists()) {
-            analysisDir.delete();
+            FileHelper.recursiveDelete(analysisDir);
             throw new IOException("Failed creating analysis.");
         }
     }
