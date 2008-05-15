@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.17 2008/05/14 16:49:40 akara Exp $
+ * $Id: Metrics.java,v 1.18 2008/05/15 06:33:25 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -44,13 +44,30 @@ public class Metrics implements Serializable, Cloneable {
 
 	private static final long serialVersionUID = 1L;
 
-	/** Number of response time buckets in histogram. */
-    public static final int RESPBUCKETS = 1000;
+    /*
+    Response Histogram
+    ~~~~~~~~~~~~~~~~~~
+    Use fine and coarse bucket sizes for response time.
+    Use fine buckets for up to 1.5 * Max90th
+    Use coarse bucket sizes for 1.5 * Max90th to 5 * Max90th
+    We do not care much about accuracy when we're far beyond the Max90th.
+    We use 200 buckets up to Max90th. This means 300 buckets for up to
+    1.5 * Max90th. Beyond that, we reduce the accuracy by 10x so only 70
+    coarse buckets are needed. Altogether, we use 370 buckets, which is
+    63% savings when compared to 1000 buckets. The logic will be slightly
+    more complicated but by not much.
+    */
+    public static final int COARSE_RESPBUCKETS = 70;
+    public static final int FINE_RESPBUCKETS = 300;
 
     /** Number of delay time buckets in histogram. */
     public static final int DELAYBUCKETS = 100;
 
-    protected long respBucketSize;  // Size of each response time bucket, in ns
+    // We use double here to prevent cumulative errors
+    protected long fineRespBucketSize;  // Size of the fine and coarse
+    protected long coarseRespBucketSize; // response time buckets, in ns.
+    protected long fineRespHistMax; // Max fine response time
+    protected long coarseRespHistMax; // Max coarse response time
     protected long delayBucketSize; // Size of each delay time bucket, in ns
     protected long graphBucketSize;  // Size of each graph bucket, in ns
     protected int graphBuckets;     // Number of graph buckets
@@ -191,9 +208,9 @@ public class Metrics implements Serializable, Cloneable {
         driverType = agent.agent.driverType;
         RunInfo.DriverConfig driverConfig = runInfo.driverConfig;
         driverName = driverConfig.name;
-        
+
         txTypes = driverConfig.operations.length;
-        
+
         stdyState = runInfo.stdyState;
 
         // We cannot serialize the agent itself but we only need the names.
@@ -219,7 +236,7 @@ public class Metrics implements Serializable, Cloneable {
 		}
         targetedDelaySum = new long[txTypes];
         elapse = new double[txTypes];
-        respHist = new int[txTypes][RESPBUCKETS];
+        respHist = new int[txTypes][FINE_RESPBUCKETS + COARSE_RESPBUCKETS];
         delayHist = new int[txTypes][DELAYBUCKETS];
         targetedDelayHist = new int[txTypes][DELAYBUCKETS];
 
@@ -246,9 +263,28 @@ public class Metrics implements Serializable, Cloneable {
 			}
 		}
 
-        double respHistMax = max90th * 5d;  // 5 x max response time
+        // Calculate the response time histograms.
         double precision = driverConfig.responseTimeUnit.toNanos(1l);
-        respBucketSize = (long) Math.ceil(precision * respHistMax / RESPBUCKETS);
+        long max90nanos = Math.round(max90th * precision);
+
+        // Find 1.5 * max90th without incurring float errors.
+        long t = max90nanos * 3l;
+        long mod = t % 2l;
+        t /= 2l;
+        if (mod > 0)
+            t += 1;
+
+        // Find an integer bucket size.
+        mod = t % FINE_RESPBUCKETS;
+        fineRespBucketSize = t / FINE_RESPBUCKETS;
+        if (mod > 0)
+            fineRespBucketSize += 1l;
+
+        fineRespHistMax = fineRespBucketSize * FINE_RESPBUCKETS;
+
+        coarseRespBucketSize = fineRespBucketSize * 10l;
+        coarseRespHistMax = coarseRespBucketSize * COARSE_RESPBUCKETS +
+                                                    fineRespHistMax;
 
         double delayHistMax = driverConfig.operations[0].
                 cycle.getHistogramMax();
@@ -311,11 +347,16 @@ public class Metrics implements Serializable, Cloneable {
             respSumStdy[txType] += responseTime;
 
             // post in histogram of response times
-            if ((responseTime / respBucketSize) >= RESPBUCKETS) {
-                respHist[txType][RESPBUCKETS - 1]++;
-			} else {
-                respHist[txType][(int) (responseTime / respBucketSize)]++;
-			}
+            int bucket;
+            if (responseTime < fineRespHistMax) {
+                bucket = (int) (responseTime / fineRespBucketSize);
+            } else if (responseTime < coarseRespHistMax) {
+                bucket = (int) (((responseTime - fineRespHistMax) /
+                        coarseRespBucketSize) + FINE_RESPBUCKETS);
+            } else {
+                bucket = FINE_RESPBUCKETS + COARSE_RESPBUCKETS - 1;
+            }
+            respHist[txType][bucket]++;
 
             if (responseTime > respMax[txType]) {
 				respMax[txType] = responseTime;
@@ -464,7 +505,7 @@ public class Metrics implements Serializable, Cloneable {
 			}
 
 			// sum up histogram buckets
-			for (int j = 0; j < RESPBUCKETS; j++) {
+			for (int j = 0; j < FINE_RESPBUCKETS + COARSE_RESPBUCKETS; j++) {
 				respHist[i][j] += s.respHist[i][j];
 			}
 			for (int j = 0; j < graphBuckets; j++) {
@@ -579,7 +620,7 @@ public class Metrics implements Serializable, Cloneable {
         /* Now print out the histogram data */
         for (int i = 0; i < txTypes; i++) {
             buffer.append(txNames[i] + " Response Times Histogram\n");
-            for (int j = 0; j < RESPBUCKETS; j++) {
+            for (int j = 0; j < FINE_RESPBUCKETS + COARSE_RESPBUCKETS; j++) {
                 buffer.append(" " + respHist[i][j]);
 			}
             buffer.append('\n');
@@ -755,15 +796,25 @@ public class Metrics implements Serializable, Cloneable {
                 space(16, buffer);
                 formatter.format("<max>%5.3f</max>\n", respMax[i] / precision);
                 sumtx = 0;
-                cnt90 = (int)(txCntStdy[i] * .90);
+                cnt90 = (int)(txCntStdy[i] * .90d);
                 int j = 0;
-                for (; j < RESPBUCKETS; j++) {
+                for (; j < respHist[i].length; j++) {
                     sumtx += respHist[i][j];
                     if (sumtx >= cnt90)	{	/* 90% of tx. got */
                         break;
                     }
                 }
-                resp90 = (j + 1) * respBucketSize / precision;
+                // We report the base of the next bucket.
+                ++j;
+                if (j < FINE_RESPBUCKETS)
+                    resp90 = j * fineRespBucketSize;
+                else if (j < COARSE_RESPBUCKETS)
+                    resp90 = (j - FINE_RESPBUCKETS) * coarseRespBucketSize +
+                            fineRespHistMax;
+                else
+                    resp90 = coarseRespHistMax;
+                resp90 /= precision;
+
                 space(16, buffer);
                 formatter.format("<p90th>%5.3f</p90th>\n", resp90);
                 if (resp90 > max90) {
@@ -945,16 +996,66 @@ public class Metrics implements Serializable, Cloneable {
     }
 
     /**
+     * The respHist, or response histogram has a special structure:
+     * The lower buckets are fine-grained buckets. The higher buckets
+     * are coarse-grained bucket covering 10x as much time. It is done this
+     * way to save memory (from 1000 entries per thread per operation, down to
+     * 370 entries). For low response times, we care a lot about the exact
+     * response time and therefore we use fine-grained buckets. For large
+     * response times we just want to know the ballpark, but not the exact
+     * nunmber. So it does not make sense to keep the same bucket size
+     * throughout. We use fine granularity below 1.5x largest set 90th% and
+     * coarse granularity for anything beyond that.
+     *
+     * Now, we need to flatten the response time histogram into a flat one
+     * before plotting. We do this, here. We'll end up with more entries, but
+     * we really don't care since this is one copy, once per run at report time.
+     */
+    private void flattenRespHist() {
+        int limit = getBucketLimit(respHist);
+        if (limit > FINE_RESPBUCKETS) {
+            int size = (limit - FINE_RESPBUCKETS) * 10 + FINE_RESPBUCKETS;
+            int[][] respHist = new int[txTypes][size];
+            for (int i = 0; i < txTypes; i++) {
+
+                // Copy the fine buckets unchanged.
+                for (int j = 0; j < FINE_RESPBUCKETS; j++)
+                    respHist[i][j] = this.respHist[i][j];
+
+                for (int j = FINE_RESPBUCKETS; j < limit; j++) {
+                    int count = this.respHist[i][j];
+                    // Spread the count among all 10 flat buckets.
+                    int base = count / 10;
+                    int remainder = count % 10;
+                    int baseIdx = (j - FINE_RESPBUCKETS) * 10 +
+                                    FINE_RESPBUCKETS;
+                    int k = 9;
+                    // The higher buckets get the base
+                    for (; k >= remainder; k--)
+                        respHist[i][baseIdx + k] = base;
+                    // The lower remaining buckets get the base + 1
+                    ++base;
+                    for (; k >= 0; k--)
+                        respHist[i][baseIdx + k] = base;
+                }
+            }
+            this.respHist = respHist;
+        }
+    }
+
+    /**
      * @param b
      */
     public void printDetail(StringBuilder b)  {
         RunInfo runInfo = RunInfo.getInstance();
         BenchmarkDefinition.Driver driver = runInfo.driverConfigs[driverType];
         double precision = driver.responseTimeUnit.toNanos(1l);
-
         double graphBucketSize = this.graphBucketSize / 1e9d;
         String responseTimeUnit = driver.responseTimeUnit.toString().
                 toLowerCase();
+
+        flattenRespHist();
+
         printGraph(b, "Throughput", graphBucketSize,
                 "%.0f", "%.2f", thruputGraph, graphBucketSize);
 
@@ -963,7 +1064,7 @@ public class Metrics implements Serializable, Cloneable {
                 thruputGraph, precision);
 
         printHistogram(b, "Frequency Distribution of Response Times (" +
-                responseTimeUnit + ")", respBucketSize / precision, "%.5f",
+                responseTimeUnit + ")", fineRespBucketSize / precision, "%.5f",
                 respHist);
 
         printHistogram(b, "Frequency Distribution of Cycle/Think Times " +

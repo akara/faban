@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: BenchmarkDefinition.java,v 1.11 2008/05/14 07:06:00 akara Exp $
+ * $Id: BenchmarkDefinition.java,v 1.12 2008/05/15 06:33:25 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -163,6 +163,9 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
             def.drivers[i].opsUnit = benchDriver.opsUnit();
             def.drivers[i].threadPerScale = benchDriver.threadPerScale();
             def.drivers[i].responseTimeUnit = benchDriver.responseTimeUnit();
+            if (def.drivers[i].responseTimeUnit.equals(TimeUnit.NANOSECONDS))
+                throw new DefinitionException("@BenchmarkDriver " +
+                                "responseTimeUnit must not be NANOSECONDS");
             def.drivers[i].className = driverClasses[i].getName();
             populatePrePost(driverClasses[i], def.drivers[i]);
             getBackground(driverClasses[i], def.drivers[i]);
