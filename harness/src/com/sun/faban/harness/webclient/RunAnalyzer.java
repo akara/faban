@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunAnalyzer.java,v 1.6 2008/05/15 06:34:17 akara Exp $
+ * $Id: RunAnalyzer.java,v 1.7 2008/05/19 22:59:56 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -77,7 +77,7 @@ public class RunAnalyzer {
      * </ol>
      * @return The suggested analysis name
      */
-    public static String suggestRun(Type type, String[] runIdStrings) {
+    public static String suggestName(Type type, String[] runIdStrings) {
         StringBuilder suggestion = new StringBuilder();
         HashSet<String> benchNameSet = new HashSet<String>();
         HashSet<String> hostNameSet = new HashSet<String>();
@@ -117,6 +117,31 @@ public class RunAnalyzer {
         }
         return suggestion.toString();
 
+    }
+
+    /**
+     * Checks whether the analysis with the given name exists.
+     * @param name The analysis name
+     * @return true if the analysis exists, false otherwise
+     */
+    public static boolean exists(String name) {
+        File analysisDir = new File(Config.ANALYSIS_DIR + name);
+        File resultFile = new File(analysisDir, "index.html");
+        if (resultFile.exists()) {
+            return true;
+        } else if (analysisDir.isDirectory()) {
+            FileHelper.recursiveDelete(analysisDir);
+            return false;
+        } else {
+            return false;
+        }
+    }
+
+    public static void clear(String name) {
+        File analysisDir = new File(Config.ANALYSIS_DIR + name);
+        if (analysisDir.isDirectory()) {
+            FileHelper.recursiveDelete(analysisDir);
+        }
     }
 
     /**

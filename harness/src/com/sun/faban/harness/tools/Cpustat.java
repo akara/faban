@@ -17,20 +17,23 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Cpustat.java,v 1.5 2008/04/04 22:09:27 akara Exp $
+ * $Id: Cpustat.java,v 1.6 2008/05/19 22:59:55 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.tools;
 
 import com.sun.faban.common.Command;
+import com.sun.faban.common.FileTransfer;
 import com.sun.faban.harness.agent.CmdAgent;
 import com.sun.faban.harness.agent.CmdAgentImpl;
+import com.sun.faban.harness.agent.FileAgent;
 import com.sun.faban.harness.common.Config;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
+import java.rmi.RemoteException;
 
 /**
  * Cpustat starts the cpustat tool. Unlike GenericTool, cpustat needs some
@@ -54,25 +57,35 @@ public class Cpustat extends GenericTool {
         outfile = outfile.replace(".log.", ".raw.");
     }
 
-    protected void xferLog() {
 
-        super.xferLog();
+    /**
+     * This method is responsible for stopping the tool utility.
+     */
+    @Override public void stop(boolean warn) {
+        super.stop(warn);
 
-        // Do the post-processing after the transfer.
-        Command c = null;
         try {
+            Thread.sleep(5000); // Ensure we're really beyond steadystate.
+            Command c = new Command("cpustat-post", logfile);
+            c.execute();
 
-            // Run postprocessor on master
-            c = new Command("cpustat-post", outfile);
-            c.setOutputFile(Command.STDOUT, postFile);
-            CmdAgent masterAgent = (CmdAgent) CmdAgentImpl.getRegistry().
-                                   getService(Config.CMD_AGENT);
-            masterAgent.execute(c);
-
-        } catch (IOException e) {
-            logger.log(Level.SEVERE, "Error executing " + c, e);
+            FileTransfer transfer = tool.fetchOutput(Command.STDOUT, postFile);
+            logger.finer("Transferring CPUstat post output to " + postFile);
+            if(transfer != null) {
+                // Use FileAgent on master machine to copy log
+                String s = Config.FILE_AGENT;
+                FileAgent fa = (FileAgent) CmdAgentImpl.getRegistry().
+                                                            getService(s);
+                if (fa.push(transfer) != transfer.getSize())
+                    logger.log(Level.SEVERE, "Invalid transfer size");
+            }
+        } catch (RemoteException e) {
+            logger.log(Level.SEVERE, "RemoteException post-processing cpustat!",
+                    e);
         } catch (InterruptedException e) {
-            logger.log(Level.SEVERE, "cpustat postprocessor interrupted.", e);
+            logger.log(Level.SEVERE, "Interrupted post-processing cpustat!", e);
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "IOException post-processing cpustat!", e);
         }
     }
 }

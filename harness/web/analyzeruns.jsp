@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: analyzeruns.jsp,v 1.5 2008/03/05 02:57:07 akara Exp $
+ * $Id: analyzeruns.jsp,v 1.6 2008/05/19 22:59:56 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -78,6 +78,10 @@
         */
 
         String output = request.getParameter("output");
+
+        boolean analyze = false;
+        boolean redirect = false;
+
         if (output == null) {
             StringBuilder runList = new StringBuilder();
 
@@ -85,7 +89,7 @@
                 runList.append(runIds[i]).append(", ");
 
             runList.setLength(runList.length() - 2); //Strip off the last comma
-            String suggestion = RunAnalyzer.suggestRun(type, runIds);
+            String suggestion = RunAnalyzer.suggestName(type, runIds);
     %>
     </head>
     <body>
@@ -110,7 +114,7 @@
     <%
             for (int i = 0; i < runIds.length; i++) {
     %>
-    <input type="hidden" name="select" value="<%= runIds[i] %>">
+    <input type="hidden" name="select" value="<%= runIds[i] %>"/>
     <%
             }
     %>
@@ -118,9 +122,44 @@
             >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="reset"></center>
     </form>
     <%
+        } else if (RunAnalyzer.exists(output)) {
+            String replace = request.getParameter("replace");
+            if (replace == null) {
+    %>
+    </head>
+    <body>
+    <h2><center>Analysis Already Exists</center></h2>
+       <form name="replaceOld" method="post" action="analyzeruns.jsp">
+    <%
+            for (int i = 0; i < runIds.length; i++) {
+    %>
+         <input type="hidden" name="select" value="<%= runIds[i] %>"/>
+    <%
+            }
+    %>
+         <input type="hidden" name="process" value="<%= processString%>"/>
+         <input type="hidden" name="output" value="<%= output%>"/>
+         <center>
+         <input type="submit" name="replace" value="Replace"/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+         <input type="submit" name="replace" value="Use Old Analysis"/>
+         </center>
+       </form>
+    </body>
+    <%
+            } else if (replace.equals("Replace")) {
+                analyze = true;
+                redirect = true;
+            } else {
+                redirect = true;
+            }
         } else {
+            analyze = true;
+            redirect = true;
+        }
 
+        if (analyze)
             try {
+                RunAnalyzer.clear(output);
                 RunAnalyzer.analyze(type, runIds, output, usrEnv.getUser());
             } catch (IOException e) {
                 String msg = e.getMessage();
@@ -128,6 +167,8 @@
                 logger.log(Level.SEVERE, msg, e);
                 response.sendError(HttpServletResponse.SC_CONFLICT, msg);
             }
+
+        if (redirect) {
     %>
             <meta HTTP-EQUIV=REFRESH CONTENT="0;URL=analysis/<%= output %>/index.html">
         </head>

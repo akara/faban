@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultlist.jsp,v 1.7 2007/05/03 23:13:19 akara Exp $
+ * $Id: resultlist.jsp,v 1.8 2008/05/19 22:59:56 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -43,7 +43,9 @@
             <form name="analyze" method="post" action="analyzeruns.jsp">
               <center>
                 <input type="submit" name="process" value="Compare">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <!-- Commented out until FenXi supports averaging again.
                 <input type="submit" name="process" value="Average">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                -->
                 <input type="reset">
               </center>
               <br>
@@ -72,7 +74,9 @@
      <br/>
      <center>
      <input type="submit" name="process" value="Compare">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+     <!-- Commented out until FenXi supports averaging again.
      <input type="submit" name="process" value="Average">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+     -->
      <input type="reset">
      </center>
     </form>
