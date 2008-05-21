@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.23 2008/05/21 00:56:02 akara Exp $
+ * $Id: Metrics.java,v 1.24 2008/05/21 08:55:24 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -57,8 +57,10 @@ public class Metrics implements Serializable, Cloneable {
     63% savings when compared to 1000 buckets. The logic will be slightly
     more complicated but by not much.
     */
-    public static final int FINE_RESPBUCKETS = 300;
-    public static final int COARSE_RESPBUCKETS = 70;
+    public static final int RESPBUCKET_SIZE_RATIO = 10;
+    public static final int COARSE_RESPBUCKETS = 70; // Percentage coarse.
+    public static final int FINE_RESPBUCKETS = (100 - COARSE_RESPBUCKETS) *
+                                                    RESPBUCKET_SIZE_RATIO;
     public static final int RESPBUCKETS = FINE_RESPBUCKETS + COARSE_RESPBUCKETS;
 
     /** Number of delay time buckets in histogram. */
@@ -269,7 +271,7 @@ public class Metrics implements Serializable, Cloneable {
         long max90nanos = Math.round(max90th * precision);
         fineRespBucketSize = max90nanos / 200l;  // 20% of scale of 1000
         fineRespHistMax = fineRespBucketSize * FINE_RESPBUCKETS;
-        coarseRespBucketSize = fineRespBucketSize * 10l;
+        coarseRespBucketSize = fineRespBucketSize * RESPBUCKET_SIZE_RATIO;
         coarseRespHistMax = coarseRespBucketSize * COARSE_RESPBUCKETS +
                                                     fineRespHistMax;
 
@@ -1013,9 +1015,11 @@ public class Metrics implements Serializable, Cloneable {
             int size;
             if (spareLastBucket) {
                 --limit;
-                size = (COARSE_RESPBUCKETS - 1) * 10 + FINE_RESPBUCKETS + 1;
+                size = (COARSE_RESPBUCKETS - 1) * RESPBUCKET_SIZE_RATIO +
+                                                        FINE_RESPBUCKETS + 1;
             } else {
-                size = (limit - FINE_RESPBUCKETS) * 10 + FINE_RESPBUCKETS;
+                size = (limit - FINE_RESPBUCKETS) * RESPBUCKET_SIZE_RATIO +
+                                                        FINE_RESPBUCKETS;
             }
             int[][] respHist = new int[txTypes][size];
             for (int i = 0; i < txTypes; i++) {
@@ -1027,10 +1031,10 @@ public class Metrics implements Serializable, Cloneable {
                 for (int j = FINE_RESPBUCKETS; j < limit; j++) {
                     int count = this.respHist[i][j];
                     // Spread the count among all 10 flat buckets.
-                    int base = count / 10;
-                    int remainder = count % 10;
-                    int baseIdx = (j - FINE_RESPBUCKETS) * 10 +
-                                    FINE_RESPBUCKETS;
+                    int base = count / RESPBUCKET_SIZE_RATIO;
+                    int remainder = count % RESPBUCKET_SIZE_RATIO;
+                    int baseIdx = (j - FINE_RESPBUCKETS) *
+                                    RESPBUCKET_SIZE_RATIO + FINE_RESPBUCKETS;
                     int k = 9;
                     // The higher buckets get the base
                     for (; k >= remainder; k--)
