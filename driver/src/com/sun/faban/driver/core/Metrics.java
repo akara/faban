@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.22 2008/05/15 21:36:35 akara Exp $
+ * $Id: Metrics.java,v 1.23 2008/05/21 00:56:02 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -57,8 +57,9 @@ public class Metrics implements Serializable, Cloneable {
     63% savings when compared to 1000 buckets. The logic will be slightly
     more complicated but by not much.
     */
-    public static final int COARSE_RESPBUCKETS = 70;
     public static final int FINE_RESPBUCKETS = 300;
+    public static final int COARSE_RESPBUCKETS = 70;
+    public static final int RESPBUCKETS = FINE_RESPBUCKETS + COARSE_RESPBUCKETS;
 
     /** Number of delay time buckets in histogram. */
     public static final int DELAYBUCKETS = 100;
@@ -236,7 +237,7 @@ public class Metrics implements Serializable, Cloneable {
 		}
         targetedDelaySum = new long[txTypes];
         elapse = new double[txTypes];
-        respHist = new int[txTypes][FINE_RESPBUCKETS + COARSE_RESPBUCKETS];
+        respHist = new int[txTypes][RESPBUCKETS];
         delayHist = new int[txTypes][DELAYBUCKETS];
         targetedDelayHist = new int[txTypes][DELAYBUCKETS];
 
@@ -340,7 +341,7 @@ public class Metrics implements Serializable, Cloneable {
                 bucket = (int) (((responseTime - fineRespHistMax) /
                         coarseRespBucketSize) + FINE_RESPBUCKETS);
             } else {
-                bucket = FINE_RESPBUCKETS + COARSE_RESPBUCKETS - 1;
+                bucket = RESPBUCKETS - 1;
             }
             respHist[txType][bucket]++;
 
@@ -491,7 +492,7 @@ public class Metrics implements Serializable, Cloneable {
 			}
 
 			// sum up histogram buckets
-			for (int j = 0; j < FINE_RESPBUCKETS + COARSE_RESPBUCKETS; j++) {
+			for (int j = 0; j < RESPBUCKETS; j++) {
 				respHist[i][j] += s.respHist[i][j];
 			}
 			for (int j = 0; j < graphBuckets; j++) {
@@ -606,7 +607,7 @@ public class Metrics implements Serializable, Cloneable {
         /* Now print out the histogram data */
         for (int i = 0; i < txTypes; i++) {
             buffer.append(txNames[i] + " Response Times Histogram\n");
-            for (int j = 0; j < FINE_RESPBUCKETS + COARSE_RESPBUCKETS; j++) {
+            for (int j = 0; j < RESPBUCKETS; j++) {
                 buffer.append(" " + respHist[i][j]);
 			}
             buffer.append('\n');
@@ -797,7 +798,7 @@ public class Metrics implements Serializable, Cloneable {
                 ++j;
                 if (j < FINE_RESPBUCKETS)
                     resp90 = j * fineRespBucketSize;
-                else if (j < COARSE_RESPBUCKETS)
+                else if (j < RESPBUCKETS)
                     resp90 = (j - FINE_RESPBUCKETS) * coarseRespBucketSize +
                             fineRespHistMax;
                 else
