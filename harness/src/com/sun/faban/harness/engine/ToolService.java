@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ToolService.java,v 1.6 2008/05/02 21:16:35 akara Exp $
+ * $Id: ToolService.java,v 1.7 2008/05/23 05:57:41 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -294,5 +294,23 @@ final public class ToolService {
         }
         toolAgents = null;
         hostNames = null;
+    }
+
+    /**
+     * Wait for all tools.
+=     */
+    public void waitFor() {
+        if (runTools == false || toolAgents == null || toolAgents.length <= 0)
+            return;
+
+        for (int i = 0; i < toolAgents.length; i++) {
+            try {
+                if (toolAgents[i] != null)
+                    toolAgents[i].waitFor();
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Error in Stopping tools on " +
+                        "machine " + hostNames[i] + ".", e);
+            }
+        }
     }
 }

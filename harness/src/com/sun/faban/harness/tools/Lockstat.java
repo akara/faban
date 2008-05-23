@@ -17,16 +17,17 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Lockstat.java,v 1.2 2006/06/29 19:38:43 akara Exp $
+ * $Id: Lockstat.java,v 1.3 2008/05/23 05:57:42 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.tools;
 
 
-import com.sun.faban.harness.agent.CmdAgent;
+import com.sun.faban.harness.agent.CmdAgentImpl;
 
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 
 /**
@@ -46,8 +47,9 @@ public class Lockstat extends GenericTool {
      * as this tool can run only for a limited amount of time
      * and calls GenericTool with the arguments to configure
      */
-    public void configure(String toolName, List argList, String path, String outDir,
-                          String host, String masterhost, CmdAgent cmdAgent) {
+    public void configure(String toolName, List<String> argList, String path,
+                          String outDir, String host, String masterhost,
+                          CmdAgentImpl cmdAgent, CountDownLatch latch) {
         
         // If there is no sleep for trapstat call
         // insert a sleep for 30 sec.
@@ -63,7 +65,7 @@ public class Lockstat extends GenericTool {
 
         //@todo we need to execute trapstat and lockstat
         super.configure(toolName, argList, path, outDir, host, masterhost,
-                        cmdAgent);
+                        cmdAgent, latch);
 
    }
    

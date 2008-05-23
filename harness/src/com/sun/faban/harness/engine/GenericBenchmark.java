@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.28 2008/04/15 07:11:12 akara Exp $
+ * $Id: GenericBenchmark.java,v 1.29 2008/05/23 05:57:41 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -322,6 +322,7 @@ public class GenericBenchmark {
             logger.log(Level.SEVERE,
                     "Unexpected Exception processing benchmark.", t);
         } finally { // Ensure we kill the processes in any case.
+            tools.waitFor();
             postProcess();
             _kill();
             // We need to place a marker into the Benchmark's META-INF directory

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgentImpl.java,v 1.20 2008/04/04 22:09:24 akara Exp $
+ * $Id: CmdAgentImpl.java,v 1.21 2008/05/23 05:57:41 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -75,6 +75,8 @@ public class CmdAgentImpl extends UnicastRemoteObject
     private List<CommandHandle> handleList = Collections.synchronizedList(
                                                 new ArrayList<CommandHandle>());
 
+    private Timer timer;
+
     private String[] baseClassPath;
     Map<String, List<String>> binMap;
     private ArrayList<String> javaCmd;
@@ -123,7 +125,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
      * So the access is limited to package level
      * @return this Command Agent
      */
-    static CmdAgent getHandle() {
+    static CmdAgentImpl getHandle() {
         return AgentBootstrap.cmd;
     }
 
@@ -961,6 +963,16 @@ public class CmdAgentImpl extends UnicastRemoteObject
      */
     public long getTime() {
         return System.currentTimeMillis();
+    }
+
+    /**
+     * Obtains the timer associated with this command agent.
+     * @return the timer for this command agent
+     */
+    public synchronized Timer getTimer() {
+        if (timer == null)
+            timer = new Timer("CmdAgent Timer", true);
+        return timer;
     }
 
     // The class which spawns a thread to read the stream of the process

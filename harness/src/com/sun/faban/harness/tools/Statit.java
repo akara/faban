@@ -17,17 +17,18 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Statit.java,v 1.4 2006/11/20 06:52:36 akara Exp $
+ * $Id: Statit.java,v 1.5 2008/05/23 05:57:42 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.tools;
 
 import com.sun.faban.common.Command;
-import com.sun.faban.harness.agent.CmdAgent;
+import com.sun.faban.harness.agent.CmdAgentImpl;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 
 /**
@@ -43,18 +44,18 @@ import java.util.logging.Level;
  */
 public class Statit extends GenericTool {
 
-    public void configure(String toolName, List argList, String path,
+    public void configure(String toolName, List<String> argList, String path,
                           String outDir, String host, String masterhost,
-                          CmdAgent cmdAgent) {
+                          CmdAgentImpl cmdAgent, CountDownLatch latch) {
 
         // Insert the -x option at the beginning.
         argList.add(0, "-x");
 
         super.configure(toolName, argList, path, outDir, host, masterhost,
-                        cmdAgent);
+                        cmdAgent, latch);
     }
 
-    public void stop(boolean warn) {
+    protected void stop(boolean warn) {
 
         logger.fine("Stopping statit");
         if (toolStatus == STARTED) {
@@ -76,11 +77,6 @@ public class Statit extends GenericTool {
                            "Interrupted waiting for command statit -y", e);
             }
         } else if (warn && toolStatus == NOT_STARTED)
-            logger.warning("Tool not started but stop called for " + this.cmd);
-
-        // If the Thread start was called
-        if((toolThread != null) && (toolThread.isAlive()))
-            toolThread.interrupt();
-
+            logger.warning("Tool not started but stop called for " + this.toolCmd);
     }
 }

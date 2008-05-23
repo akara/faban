@@ -17,14 +17,15 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Tool.java,v 1.2 2006/06/29 19:38:43 akara Exp $
+ * $Id: Tool.java,v 1.3 2008/05/23 05:57:42 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.tools;
-import com.sun.faban.harness.agent.CmdAgent;
+import com.sun.faban.harness.agent.CmdAgentImpl;
 
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * The methods in this interface are the public face of 
@@ -36,7 +37,7 @@ import java.util.List;
  *
  * @author Ramesh Ramachandran
  */
-public interface Tool extends Runnable {
+public interface Tool {
 
     /**
      * This method is called to configure the tool
@@ -45,9 +46,12 @@ public interface Tool extends Runnable {
      * @param path
      * @param host name of machine the tool is running on
      * @param masterhost name of master machine
+     * @param cmdAgent agent The command agent used for executing tools
+     * @param latch The latch the tool uses to identify it's completion.
      */
-    public void configure(String toolName, List args, String path, String outDir,
-                          String host, String masterhost, CmdAgent cmdAgent);
+    public void configure(String toolName, List<String> args, String path,
+                          String outDir, String host, String masterhost,
+                          CmdAgentImpl cmdAgent, CountDownLatch latch);
 
     /**
      * Abort any running tools and exit

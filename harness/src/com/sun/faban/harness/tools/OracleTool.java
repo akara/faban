@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: OracleTool.java,v 1.5 2008/03/14 06:38:21 akara Exp $
+ * $Id: OracleTool.java,v 1.6 2008/05/23 05:57:42 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -26,7 +26,6 @@ package com.sun.faban.harness.tools;
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
 import com.sun.faban.common.FileTransfer;
-import com.sun.faban.harness.agent.CmdAgent;
 import com.sun.faban.harness.agent.CmdAgentImpl;
 import com.sun.faban.harness.agent.FileAgent;
 import com.sun.faban.harness.common.Config;
@@ -35,6 +34,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -62,29 +64,27 @@ public abstract class OracleTool implements Tool {
     int priority;
     int delay;
     int duration;
-    CmdAgent cmdAgent;
+    CmdAgentImpl cmdAgent;
     String snapId;
-
-    private OracleTool toolObj;
+    Timer timer;
+    CountDownLatch latch;
+    boolean countedDown = false;
 
     Thread toolThread = null;
 
     static Logger logger = Logger.getLogger(OracleTool.class.getName());
-
-    // GenericTool implementation
-    public OracleTool(){
-        toolObj = this;
-    }
 
     /**
      * This is the method that should get the arguments to
      * call the tool with.
      *
      */
-    public void configure(String tool, List argList, String path, String outDir,
-                          String host, String masterhost, CmdAgent cmdAgent) {
+    public void configure(String tool, List<String> argList, String path,
+                          String outDir, String host, String masterhost,
+                          CmdAgentImpl cmdAgent, CountDownLatch latch) {
         toolName = tool;
         this.cmdAgent = cmdAgent;
+        timer = cmdAgent.getTimer();
 
         outfile = getOutputFile(outDir, host);
         logfile = getLogFile();
@@ -93,8 +93,8 @@ public abstract class OracleTool implements Tool {
             throw new IllegalArgumentException(
                     "ORACLE_HOME and/or ORACLE_SID not passed as argument");
 
-        String oracleHome = (String) argList.get(0);
-        String oracleSID = (String) argList.get(1);
+        String oracleHome = argList.get(0);
+        String oracleSID = argList.get(1);
 
         if (oracleHome.endsWith(File.separator))
             oracleHome = oracleHome.substring(0, oracleHome.length() -
@@ -195,7 +195,9 @@ public abstract class OracleTool implements Tool {
         // If feasible, we'll try to collect the end snapshot and transfer
         // back the output. So we still have some stats even for a bad run.
         stop(false);
+        finish();
     }
+
 
     /**
      * This method is responsible for starting up the tool and stopping it
@@ -204,27 +206,21 @@ public abstract class OracleTool implements Tool {
      * @param delay int delay (sec) after which start should be called
      * @param duration int duration for which the tool needs to be run
      */
+
     public boolean start(int delay, int duration) {
         this.duration = duration;
 
         if(this.start(delay)) {
-            Thread stopThread = new Thread() {
+            TimerTask stopTask = new TimerTask() {
                 public void run() {
-                    try {
-                        Thread.sleep(toolObj.delay*1000 + toolObj.duration*1000);
-                    }
-                    catch(Exception e) {
-                        logger.severe("Cannot start Tool Stop thread " + e);
-                        logger.log(Level.FINE,  "Exception", e);
-                    }
-                    toolObj.stop();
+                    stop();
                 }
             };
-            stopThread.start();
+            timer.schedule(stopTask, this.delay * 1000 + this.duration * 1000);
             return true;
-        }
-        else
+        } else {
             return false;
+        }
     }
 
     /**
@@ -232,31 +228,20 @@ public abstract class OracleTool implements Tool {
      * @param delay int delay (sec) after which start should be called
      */
 
-    public boolean start (int delay) {
-        this.delay = delay;
-
-        // start the tool in a new thread
-        toolThread = new Thread(this);
-        // Set this tool thread as a daemon thread.  So that JVM can exit when 
-        // the only threads running are all daemon threads.        
-        toolThread.setDaemon(true);
-        toolThread.start();
-        return(true);
+    public boolean start(int delay) {
+        TimerTask startTask = new TimerTask() {
+            public void run() {
+                start();
+            }
+        };
+        timer.schedule(startTask, delay * 1000);
+        return true;
     }
 
     /**
      * The Runnable.run() is used to really start the tool after the delay.
      */
-    public void run() {
-
-        try {
-            // Sleep for the delay secs.
-            Thread.sleep(delay*1000);
-        } catch(InterruptedException e) {
-            // the stop was called.
-            return;
-        }
-
+    protected void start() {
         try {
             tool = cmdAgent.execute(sqlplus);
             snapId = parseSnapId(tool.fetchOutput(Command.STDOUT));
@@ -264,8 +249,10 @@ public abstract class OracleTool implements Tool {
             toolStatus = STARTED;
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Error executing sqlplus", e);
+            finish();
         } catch (InterruptedException e) {
             logger.log(Level.SEVERE, "Interrupted executing sqlplus", e);
+            finish();
         }
     }
 
@@ -274,6 +261,7 @@ public abstract class OracleTool implements Tool {
      */
     public void stop() {
         stop(true);
+        finish();
     }
 
 
@@ -337,6 +325,12 @@ public abstract class OracleTool implements Tool {
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Error transferring " + srcFile, e);
         }
+    }
+
+    protected void finish() {
+        if (!countedDown)
+            latch.countDown();
+        countedDown = true;
     }
 }
 

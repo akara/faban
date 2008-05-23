@@ -17,17 +17,18 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Wlp2.java,v 1.4 2008/05/02 21:30:03 akara Exp $
+ * $Id: Wlp2.java,v 1.5 2008/05/23 05:57:42 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.tools;
 
-import com.sun.faban.harness.agent.CmdAgent;
+import com.sun.faban.harness.agent.CmdAgentImpl;
 import com.sun.faban.harness.common.Config;
 
 import java.io.File;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Wlp2 is an Oracle/TPC-E specific tool. So this class does not really belong here.
@@ -47,8 +48,9 @@ public class Wlp2 extends Statspack {
      * This is the method that should get the arguments to
      * call the tool with.
      */
-    public void configure(String tool, List argList, String path, String outDir,
-                          String host, String masterhost, CmdAgent cmdAgent) {
+    public void configure(String tool, List<String> argList, String path,
+                          String outDir, String host, String masterhost,
+                          CmdAgentImpl cmdAgent, CountDownLatch latch) {
         this.outDir = outDir;
         this.host = host;
 
@@ -57,7 +59,7 @@ public class Wlp2 extends Statspack {
         int benchIdx = outDir.lastIndexOf(File.separator, dotIdx) + 1;
         benchName = outDir.substring(benchIdx, dotIdx);
 
-        super.configure("statspack", argList, path, outDir, host, masterhost, cmdAgent);
+        super.configure("statspack", argList, path, outDir, host, masterhost, cmdAgent, latch);
     }
 
     /**

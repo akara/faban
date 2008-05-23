@@ -17,23 +17,25 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Cpustat.java,v 1.6 2008/05/19 22:59:55 akara Exp $
+ * $Id: Cpustat.java,v 1.7 2008/05/23 05:57:42 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.tools;
 
 import com.sun.faban.common.Command;
+import com.sun.faban.common.CommandHandle;
 import com.sun.faban.common.FileTransfer;
-import com.sun.faban.harness.agent.CmdAgent;
 import com.sun.faban.harness.agent.CmdAgentImpl;
 import com.sun.faban.harness.agent.FileAgent;
 import com.sun.faban.harness.common.Config;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.logging.Level;
 import java.rmi.RemoteException;
+import java.util.List;
+import java.util.TimerTask;
+import java.util.concurrent.CountDownLatch;
+import java.util.logging.Level;
 
 /**
  * Cpustat starts the cpustat tool. Unlike GenericTool, cpustat needs some
@@ -46,10 +48,11 @@ public class Cpustat extends GenericTool {
 
     String postFile;
 
-    public void configure(String tool, List argList, String path, String outDir,
-                          String host, String masterhost, CmdAgent cmdAgent) {
-        super.configure(tool, argList, path, outDir, host, masterhost, cmdAgent);
-
+    public void configure(String tool, List<String> argList, String path,
+                          String outDir, String host, String masterhost,
+                          CmdAgentImpl cmdAgent, CountDownLatch latch) {
+        super.configure(tool, argList, path, outDir, host,
+                        masterhost, cmdAgent, latch);
         // The postprocessed output is in .xan.host file
         postFile = outfile.replace(".log.", ".xan.");
 
@@ -57,6 +60,12 @@ public class Cpustat extends GenericTool {
         outfile = outfile.replace(".log.", ".raw.");
     }
 
+    /**
+     * This method is responsible for stopping the tool utility.
+     */
+    @Override public void stop() {
+        stop(true); // Don't finish just yet.
+    }
 
     /**
      * This method is responsible for stopping the tool utility.
@@ -64,28 +73,39 @@ public class Cpustat extends GenericTool {
     @Override public void stop(boolean warn) {
         super.stop(warn);
 
-        try {
-            Thread.sleep(5000); // Ensure we're really beyond steadystate.
-            Command c = new Command("cpustat-post", logfile);
-            c.execute();
+        TimerTask postprocess = new TimerTask() {
+            public void run() {
+                try {
+                    Command c = new Command("cpustat-post", logfile);
+                    CommandHandle ch = c.execute();
 
-            FileTransfer transfer = tool.fetchOutput(Command.STDOUT, postFile);
-            logger.finer("Transferring CPUstat post output to " + postFile);
-            if(transfer != null) {
-                // Use FileAgent on master machine to copy log
-                String s = Config.FILE_AGENT;
-                FileAgent fa = (FileAgent) CmdAgentImpl.getRegistry().
-                                                            getService(s);
-                if (fa.push(transfer) != transfer.getSize())
-                    logger.log(Level.SEVERE, "Invalid transfer size");
+                    FileTransfer transfer = ch.fetchOutput(Command.STDOUT,
+                                                                    postFile);
+                    logger.finer("Transferring CPUstat post output to " +
+                                                                    postFile);
+                    if(transfer != null) {
+                        // Use FileAgent on master machine to copy log
+                        String s = Config.FILE_AGENT;
+                        FileAgent fa = (FileAgent) CmdAgentImpl.getRegistry().
+                                getService(s);
+                        if (fa.push(transfer) != transfer.getSize())
+                            logger.log(Level.SEVERE, "Invalid transfer size");
+                    }
+                } catch (RemoteException e) {
+                    logger.log(Level.SEVERE,
+                            "RemoteException post-processing cpustat!", e);
+                } catch (InterruptedException e) {
+                    logger.log(Level.SEVERE,
+                            "Interrupted post-processing cpustat!", e);
+                } catch (IOException e) {
+                    logger.log(Level.SEVERE,
+                            "IOException post-processing cpustat!", e);
+                } finally {
+                    finish();
+                }
             }
-        } catch (RemoteException e) {
-            logger.log(Level.SEVERE, "RemoteException post-processing cpustat!",
-                    e);
-        } catch (InterruptedException e) {
-            logger.log(Level.SEVERE, "Interrupted post-processing cpustat!", e);
-        } catch (IOException e) {
-            logger.log(Level.SEVERE, "IOException post-processing cpustat!", e);
-        }
+        };
+        // Wait till way into ramp down before postprocessing.
+        timer.schedule(postprocess, 5000l);
     }
 }

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ToolAgent.java,v 1.2 2006/06/29 19:38:40 akara Exp $
+ * $Id: ToolAgent.java,v 1.3 2008/05/23 05:57:41 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -81,6 +81,15 @@ public interface ToolAgent extends Remote {
      * This method is responsible for stopping the tools
      */
     public void stop () throws RemoteException;
+
+    /**
+     * Stopping specific tools.
+     * @param tools The tools to stop.
+     */ 
     public void stop (String tools[]) throws RemoteException;
 
+    /**
+     * Waits for all tools to finish up.
+     */
+    public void waitFor() throws RemoteException;
 }

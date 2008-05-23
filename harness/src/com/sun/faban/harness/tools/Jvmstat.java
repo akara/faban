@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Jvmstat.java,v 1.4 2007/09/08 01:21:13 akara Exp $
+ * $Id: Jvmstat.java,v 1.5 2008/05/23 05:57:42 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,14 +25,14 @@ package com.sun.faban.harness.tools;
 
 import com.sun.faban.common.Command;
 import com.sun.faban.common.Utilities;
-import com.sun.faban.harness.agent.CmdAgent;
+import com.sun.faban.harness.agent.CmdAgentImpl;
 import com.sun.faban.harness.common.Config;
-import com.sun.faban.harness.util.FileHelper;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 
 /**
@@ -47,39 +47,39 @@ import java.util.logging.Level;
  */
 public class Jvmstat extends GenericTool {
 
-    List argList;
+    List<String> argList;
 
     /**
      * This is the method that should get the arguments to
      * call the tool with.
      */
-    public void configure(String tool, List argList, String path, String outDir,
-                          String host, String masterhost, CmdAgent cmdAgent) {
+    public void configure(String tool, List<String> argList, String path,
+                          String outDir, String host, String masterhost,
+                          CmdAgentImpl cmdAgent, CountDownLatch latch) {
         this.argList = argList;
         path = Utilities.getJavaHome() + File.separator + "bin" + File.separator;
         tool = "java";
         argList.add(0, "-jar");
         argList.add(1, Config.LIB_DIR + "jvmps.jar");
         argList.add(2, "-v");
-        super.configure(tool, argList, path, outDir, host, masterhost, cmdAgent);
+        super.configure(tool, argList, path, outDir, host, masterhost,
+                cmdAgent, latch);
     }
 
-    public boolean start(int delay) {
+    protected void start() {
 
-        ArrayList pids = new ArrayList();
-        Command cmd = new Command(this.cmd);
+        ArrayList<String> pids = new ArrayList<String>();
+        Command cmd = new Command(this.toolCmd);
         cmd.setStreamHandling(Command.STDOUT, Command.CAPTURE);
         String result = null;
         try {
             tool = cmdAgent.execute(cmd);
             result = new String(tool.fetchOutput(Command.STDOUT));
         } catch (IOException e) {
-            logger.log(Level.WARNING, "Error starting command " + this.cmd, e);
-            return false;
+            logger.log(Level.WARNING, "Error starting command " + this.toolCmd, e);
         } catch (InterruptedException e) {
             logger.log(Level.WARNING, "Interrupted starting command " +
-                    this.cmd, e);
-            return false;
+                    this.toolCmd, e);
         }
 
         int startIdx = 0;
@@ -104,8 +104,8 @@ public class Jvmstat extends GenericTool {
 
         // @todo If there are more than one JVM we need to spawn multiple jvmstat
 
-        // get the cmd line params for the tool and append it.
-        return super.start(delay);
+        // get the toolCmd line params for the tool and append it.
+        super.start();
     }
     
     //  All other methods are inherited from GenericTool

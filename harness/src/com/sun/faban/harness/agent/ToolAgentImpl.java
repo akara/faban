@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ToolAgentImpl.java,v 1.2 2006/06/29 19:38:40 akara Exp $
+ * $Id: ToolAgentImpl.java,v 1.3 2008/05/23 05:57:41 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -31,6 +31,7 @@ import java.rmi.server.UnicastRemoteObject;
 import java.rmi.server.Unreferenced;
 import java.util.StringTokenizer;
 import java.util.ArrayList;
+import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.io.File;
@@ -53,6 +54,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
     static String masterMachine = null;	// name of master machine
     static String host;	// our current hostname
     Logger logger;
+    CountDownLatch latch;
 
     public ToolAgentImpl() throws RemoteException {
         super();
@@ -79,7 +81,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
         tools = new Tool[numTools];
 
         logger.info("Processing tools");
-
+        latch = new CountDownLatch(toolslist.length);
         for (i = 0; i < toolslist.length; i++) {
             if (toolslist[i].length() == 0)
                 continue;
@@ -90,7 +92,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
             // be broken into a String array "sar", "-u", "-c"
             tool = st.nextToken();
             toolNames[i] = tool;
-            ArrayList args = new ArrayList();
+            ArrayList<String> args = new ArrayList<String>();
             while (st.hasMoreTokens()) {
                 args.add(st.nextToken());
             }
@@ -114,21 +116,21 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
                         + tool.substring(1);
                 Class c = Class.forName(toolClass);
 
-                Tool l = (Tool)c.newInstance();
+                Tool l = (Tool) c.newInstance();
                 logger.info("Trying to run tool " + l.getClass());
                 tools[i] = l;
                 l.configure(tool, args, path, outDir, host, masterMachine,
-                            CmdAgentImpl.getHandle());
+                            CmdAgentImpl.getHandle(), latch);
             } catch (ClassNotFoundException ce) {
                 tools[i] = new GenericTool();
                 tools[i].configure(tool, args, path, outDir, host,
-                                   masterMachine, CmdAgentImpl.getHandle());
+                            masterMachine, CmdAgentImpl.getHandle(), latch);
                 logger.info("Trying to run tool " + tool +
                             " using GenericTool.");
             } catch (Exception ie) {
                 logger.log(Level.WARNING, "Error in creating tool object " +
                            tool, ie);
-
+                latch.countDown(); // Tool did not get started.
             }
         }
     }
@@ -219,7 +221,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
     /**
      * This method is responsible for stopping the tools
      */
-    public void stop () {
+    public void stop() {
         int i;
         for (i = 0; i < tools.length; i++) {
             try {
@@ -232,7 +234,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
         }
     }
 
-    public void stop (String t[]) {
+    public void stop(String t[]) {
         int i, j;
         for (j = 0; j < t.length; j++) {
             for (i = 0; i < tools.length; i++) {
@@ -241,6 +243,15 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
                     break;
                 }
             }
+        }
+    }
+
+    public void waitFor() {
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            logger.log(Level.WARNING,
+                    "Interrupted waiting for tools to finish.", e);
         }
     }
 

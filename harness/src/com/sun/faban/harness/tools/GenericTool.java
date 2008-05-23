@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericTool.java,v 1.9 2008/03/14 06:38:20 akara Exp $
+ * $Id: GenericTool.java,v 1.10 2008/05/23 05:57:42 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -32,6 +32,10 @@ import com.sun.faban.harness.common.Config;
 import java.io.*;
 import java.rmi.RemoteException;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.ArrayList;
+import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -58,26 +62,24 @@ public class GenericTool implements Tool {
     static final int STARTED = 1;
     static final int STOPPED = 2;
 
-    String cmd;
+    List<String> toolCmd;
     CommandHandle tool;
     int toolStatus = NOT_STARTED;
+    CountDownLatch latch;
+    boolean countedDown = false;
     String logfile, outfile;	// Name of stdout,stderr from tool
     String toolName;
     String path = null; // The path to the tool.
-    int priority;
     int delay;
     int duration;
-    CmdAgent cmdAgent;
+    CmdAgentImpl cmdAgent;
 
-    private GenericTool toolObj;
-
-    Thread toolThread = null;
+    protected Timer timer;
 
     Logger logger;
 
     // GenericTool implementation
     public GenericTool(){
-        toolObj = this;
         logger = Logger.getLogger(this.getClass().getName());
     }
 
@@ -86,10 +88,13 @@ public class GenericTool implements Tool {
      * call the tool with.
      *
      */
-    public void configure(String tool, List argList, String path, String outDir,
-                          String host, String masterhost, CmdAgent cmdAgent) {
+    public void configure(String tool, List<String> argList, String path,
+                          String outDir, String host, String masterhost,
+                          CmdAgentImpl cmdAgent, CountDownLatch latch) {
         toolName = tool;
         this.cmdAgent = cmdAgent;
+        timer = cmdAgent.getTimer();
+        this.latch = latch;
 
         if (path != null)
             this.path = path;
@@ -101,24 +106,21 @@ public class GenericTool implements Tool {
 
         buildCmd(argList);
 
-        logger.fine(toolName + " Configured with cmd " + this.cmd);
+        logger.fine(toolName + " Configured with toolCmd " + this.toolCmd);
     }
 
     /**
      * Builds the command from the path, tool name, and argument list.
      * @param argList The argument list
      */
-    protected void buildCmd(List argList) {
+    protected void buildCmd(List<String> argList) {
+        this.toolCmd = new ArrayList<String>();
         StringBuilder cmd = new StringBuilder();
         if(this.path != null)
             cmd.append(this.path);
         cmd.append(toolName);
-
-        int len = argList.size();		// Get args to tool
-        for (int i = 0; i < len; i++)
-            cmd.append(" ").append((String)argList.get(i));
-
-        this.cmd = cmd.toString();
+        this.toolCmd.add(cmd.toString());
+        this.toolCmd.addAll(argList);
     }
 
 
@@ -129,6 +131,7 @@ public class GenericTool implements Tool {
     public void kill() {
         // For most tools, we try to collect the output no matter what.
         stop(false);
+        finish();
     }
 
     /**
@@ -143,23 +146,16 @@ public class GenericTool implements Tool {
         this.duration = duration;
 
         if(this.start(delay)) {
-            Thread stopThread = new Thread() {
+            TimerTask stopTask = new TimerTask() {
                 public void run() {
-                    try {
-                        Thread.sleep(toolObj.delay*1000 + toolObj.duration*1000);
-                    }
-                    catch(Exception e) {
-                        logger.log(Level.SEVERE,
-                                "Cannot start Tool Stop thread.", e);
-                    }
-                    toolObj.stop();
+                    stop();
                 }
             };
-            stopThread.start();
+            timer.schedule(stopTask, this.delay * 1000 + this.duration * 1000);
             return true;
-        }
-        else
+        } else {
             return false;
+        }
     }
 
     /**
@@ -167,46 +163,34 @@ public class GenericTool implements Tool {
      * @param delay int delay (sec) after which start should be called
      */
 
-    public boolean start (int delay) {
-        this.delay = delay;
-
-        // start the tool in a new thread
-        toolThread = new Thread(this);
-        // Set this tool thread as a daemon thread.  So that JVM can exit when 
-        // the only threads running are all daemon threads.        
-        toolThread.setDaemon(true);
-        toolThread.start();
-        return(true);
+    public boolean start(int delay) {
+        TimerTask startTask = new TimerTask() {
+            public void run() {
+                start();
+            }
+        };
+        timer.schedule(startTask, delay * 1000);
+        return true;
     }
 
-    /**
-     * The Runnable.run() is used to really start the tool after the delay.
-     */
-    public void run() {
-
+    protected void start() {
         try {
-            // Sleep for the delay secs.
-            Thread.sleep(delay*1000);
-        } catch(InterruptedException e) {
-            // the stop was called.
-            return;
-        }
-
-        try {
-            Command cmd = new Command(this.cmd);
+            Command cmd = new Command(toolCmd);
             cmd.setSynchronous(false);
             cmd.setStreamHandling(Command.STDOUT, Command.CAPTURE);
             cmd.setOutputFile(Command.STDOUT, logfile);
             tool = cmdAgent.execute(cmd);
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Cannot start tool " + toolName, e);
+            finish();
             return;
         } catch (InterruptedException e) {
             logger.log(Level.SEVERE, "Tool start interrupted: " + toolName, e);
+            finish();
             return;
         }
         toolStatus = STARTED;
-        logger.fine(toolName + " Started with Cmd = " + this.cmd);
+        logger.fine(toolName + " Started with Cmd = " + toolCmd);
     }
 
     /**
@@ -214,6 +198,7 @@ public class GenericTool implements Tool {
      */
     public void stop() {
         stop(true);
+        finish();
     }
 
     /**
@@ -223,7 +208,7 @@ public class GenericTool implements Tool {
      */
     protected void stop(boolean warn) {
 
-        logger.fine("Stopping tool " + this.cmd);
+        logger.fine("Stopping tool " + this.toolCmd);
         if (toolStatus == STARTED)
             try {
                 tool.destroy();
@@ -241,12 +226,7 @@ public class GenericTool implements Tool {
                            toolName, e);
             }
         else if (warn && toolStatus == NOT_STARTED)
-            logger.warning("Tool not started but stop called for " + this.cmd);
-
-        // If the Thread start was called
-        if((toolThread != null) && (toolThread.isAlive()))
-            toolThread.interrupt();
-
+            logger.warning("Tool not started but stop called for " + this.toolCmd);
     }
 
 
@@ -264,6 +244,12 @@ public class GenericTool implements Tool {
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Error transferring " + logfile, e);
         }
+    }
+
+    protected void finish() {
+        if (!countedDown)
+            latch.countDown();
+        countedDown = true;
     }
 }
 

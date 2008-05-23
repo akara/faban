@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Collector.java,v 1.2 2006/06/29 19:38:43 akara Exp $
+ * $Id: Collector.java,v 1.3 2008/05/23 05:57:42 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,10 +25,12 @@ package com.sun.faban.harness.tools;
 
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
-import com.sun.faban.harness.agent.CmdAgent;
+import com.sun.faban.harness.agent.CmdAgentImpl;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 
 /**
@@ -48,16 +50,19 @@ import java.util.logging.Level;
  */
 public class Collector extends GenericTool {
 
-    private StringBuffer pids = new StringBuffer(" ");
+    private ArrayList<String> pids = new ArrayList<String>();
 
-    public void configure(String tool, List argList, String path, String outDir, String host, String masterhost, CmdAgent cmdAgent) {
-        super.configure(tool, argList, path, outDir, host, masterhost, cmdAgent);    //To change body of overridden methods use File | Settings | File Templates.
+    public void configure(String tool, List<String> argList, String path,
+                          String outDir, String host, String masterhost,
+                          CmdAgentImpl cmdAgent, CountDownLatch latch) {
+        super.configure(tool, argList, path, outDir, host, masterhost,
+                cmdAgent, latch);
     }
 
-    public boolean start(int delay) {
+    protected void start() {
 
         // Locate the process with collector, starting with user processes.
-        Command c = new Command("/usr/bin/ps -u " + System.getProperty("user.name"));
+        Command c = new Command("/usr/bin/ps", "-u", System.getProperty("user.name"));
         c.setStreamHandling(Command.STDOUT, Command.CAPTURE);
         String result = null;
         try {
@@ -65,10 +70,10 @@ public class Collector extends GenericTool {
             result = new String(handle.fetchOutput(Command.STDOUT));
         } catch (IOException e) {
             logger.log(Level.WARNING, "Error executing ps", e);
-            return false;
+            return;
         } catch (InterruptedException e) {
             logger.log(Level.WARNING, "Interrupted executing ps", e);
-            return false;
+            return;
         }
 
         int startIdx = 0;
@@ -82,7 +87,7 @@ public class Collector extends GenericTool {
             if (line.startsWith("PID ")) // skip header
                 continue;
             String pid = line.substring(0, line.indexOf(' '));
-            c = new Command("/usr/bin/pldd " + pid);
+            c = new Command("/usr/bin/pldd", pid);
             c.setStreamHandling(Command.STDOUT, Command.CAPTURE);
 
             // Check for process that started with collector.
@@ -91,26 +96,26 @@ public class Collector extends GenericTool {
                 result = new String(handle.fetchOutput(Command.STDOUT));
             } catch (IOException e) {
                 logger.log(Level.WARNING, "Error executing pldd", e);
-                return false;
             } catch (InterruptedException e) {
                 logger.log(Level.WARNING, "Interrupted executing pldd", e);
-                return false;
             }
             if (result.indexOf("libcollector") > 0)
-                pids.append(pid).append(' ');
+                pids.add(pid);
         }
 
         logger.info("Found process(es) started with Collector, pid = "+ pids);
 
-        // Send signal to start the collection.
-        cmd = "kill -PROF " + pids;
-        return super.start(delay);
+        toolCmd = new ArrayList<String>();
+        toolCmd.add("kill");
+        toolCmd.add("-PROF");
+        toolCmd.addAll(pids);
+        super.start();
     }
 
     public void stop() {
         // We use the same command to start and stop the collection
         // So there is no need to reconstruct the command strings.
-        Command c = new Command(cmd);
+        Command c = new Command(toolCmd);
         try {
             cmdAgent.execute(c);
         } catch (IOException e) {
