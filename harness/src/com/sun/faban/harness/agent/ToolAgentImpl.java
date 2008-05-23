@@ -17,24 +17,24 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ToolAgentImpl.java,v 1.3 2008/05/23 05:57:41 akara Exp $
+ * $Id: ToolAgentImpl.java,v 1.4 2008/05/23 23:24:45 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.agent;
+import com.sun.faban.common.Command;
 import com.sun.faban.harness.common.Config;
-import com.sun.faban.harness.tools.Tool;
 import com.sun.faban.harness.tools.GenericTool;
+import com.sun.faban.harness.tools.Tool;
 
+import java.io.File;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.rmi.server.Unreferenced;
-import java.util.StringTokenizer;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.io.File;
 
 /**
  * This class implements the ToolAgent interface.
@@ -73,7 +73,6 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
      */
     public void configure(String toolslist[], String outDir) throws RemoteException {
         String tool;
-        StringTokenizer st;
         int i;
 
         numTools = toolslist.length;
@@ -85,17 +84,10 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
         for (i = 0; i < toolslist.length; i++) {
             if (toolslist[i].length() == 0)
                 continue;
-            
-            st = new StringTokenizer(toolslist[i]);
 
-            // st is a string of the form "sar -u -c" etc, and must
-            // be broken into a String array "sar", "-u", "-c"
-            tool = st.nextToken();
+            List<String> args = Command.parseArgs(toolslist[i]);
+            tool= args.remove(0);
             toolNames[i] = tool;
-            ArrayList<String> args = new ArrayList<String>();
-            while (st.hasMoreTokens()) {
-                args.add(st.nextToken());
-            }
 
             String path = null;
             int nameIdx = tool.lastIndexOf(File.separator) + 1;

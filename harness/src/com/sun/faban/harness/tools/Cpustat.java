@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Cpustat.java,v 1.7 2008/05/23 05:57:42 akara Exp $
+ * $Id: Cpustat.java,v 1.8 2008/05/23 23:24:46 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -76,8 +76,9 @@ public class Cpustat extends GenericTool {
         TimerTask postprocess = new TimerTask() {
             public void run() {
                 try {
-                    Command c = new Command("cpustat-post", logfile);
-                    CommandHandle ch = c.execute();
+                    Command cmd = new Command("cpustat-post", logfile);
+                    cmd.setStreamHandling(Command.STDOUT, Command.CAPTURE);
+                    CommandHandle ch = cmdAgent.execute(cmd);
 
                     FileTransfer transfer = ch.fetchOutput(Command.STDOUT,
                                                                     postFile);

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericTool.java,v 1.10 2008/05/23 05:57:42 akara Exp $
+ * $Id: GenericTool.java,v 1.11 2008/05/23 23:24:46 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -70,8 +70,6 @@ public class GenericTool implements Tool {
     String logfile, outfile;	// Name of stdout,stderr from tool
     String toolName;
     String path = null; // The path to the tool.
-    int delay;
-    int duration;
     CmdAgentImpl cmdAgent;
 
     protected Timer timer;
@@ -143,7 +141,6 @@ public class GenericTool implements Tool {
      */
 
     public boolean start(int delay, int duration) {
-        this.duration = duration;
 
         if(this.start(delay)) {
             TimerTask stopTask = new TimerTask() {
@@ -151,7 +148,7 @@ public class GenericTool implements Tool {
                     stop();
                 }
             };
-            timer.schedule(stopTask, this.delay * 1000 + this.duration * 1000);
+            timer.schedule(stopTask, (delay + duration) * 1000);
             return true;
         } else {
             return false;
