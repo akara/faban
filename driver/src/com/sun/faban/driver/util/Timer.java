@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Timer.java,v 1.3 2008/05/14 07:06:03 akara Exp $
+ * $Id: Timer.java,v 1.4 2008/05/30 01:50:29 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -54,26 +54,151 @@ public class Timer implements Serializable {
      * alone.
      */
 	public Timer() {
-        // This is the closest we could possibly get, to put the two epochs
-        // at the same time. The accuracy is different, but both epochs will
-        // be in the same millisec.
-        long epochMillis0 = 0l;
-        int retries = 100;
-        do {
-            epochMillis0 = System.currentTimeMillis();
-            epochNanos = System.nanoTime();
-		    epochMillis = System.currentTimeMillis();
-            if (retries-- <= 0)
-                throw new FatalException("Cannot establish epoch times, " +
-                                         "system may be too busy.");
-        } while (epochMillis0 != epochMillis);
 
-        diffms = epochMillis - epochNanos / 1000000l;
-        diffns = (int) (epochNanos % 1000000l);
+        // This is just a fake setting of the epochNanos. The call
+        // into System.nanoTime() ensures initialization of the nano timer
+        // and prevents underflow from calibration.
+        epochNanos = System.nanoTime();
+
+        // Set the benchmark epoch 10ms ahead of the actual current time
+        // also prevents underflow in case the nano timer is just initialized.
+        // The value of the nano timer may be very close to Long.MIN_VALUE.
+        epochMillis = System.currentTimeMillis() + 10l;
+        epochNanos = calibrateNanos(epochMillis);
 
         getLogger().fine("Timer: baseTime ms: " + epochMillis +
                          ", ns: " + epochNanos);
 	}
+
+    /**
+     * Calibrates the difference of the nanosec timer from the millisec
+     * timer using 100 iterations. This is probably the most accurate
+     * way to establish the relationship.
+     * @param baseMillis the base millisec to find the base nanosec for
+     * @return The base nanosec corresponding to the base millisec.
+     */
+    private long calibrateNanos(long baseMillis) {
+        int iterations = 100;
+        int limit = 1000;  // Limit the number of total loops...
+        long[] diffms = new long[iterations];
+        int[] diffns = new int[iterations];
+        Logger logger = getLogger();
+        System.gc(); // We don't want gc during calibration. So we try to gc
+                     // now, on best effort.
+
+        for (int i = 0, tooLong = 0; i < iterations;) {
+            if (tooLong > limit) // prevent infinite loops.
+                throw new FatalException("Cannot establish clock offset " +
+                                         "(ms->ns), retries " + i + "," +
+                                         tooLong);
+
+            long nanos;
+            long millis;
+            long millisBefore = System.currentTimeMillis();
+            do {
+               nanos = System.nanoTime();
+               millis = System.currentTimeMillis();
+            } while (millis == millisBefore);
+
+            if (++millisBefore == millis) { // Only use the edges.
+                diffms[i] = millis - nanos / 1000000l;
+                diffns[i] = (int) (nanos % 1000000l);
+                logger.finer("iter: " + i + ", millis: " + millis +
+                        ", nanos: " + nanos + ", diffms: " + diffms[i] +
+                        ", diffns: " + diffns[i]);
+                tooLong = 0; // Reset retry counters on success.
+                ++i;
+            } else {
+                ++tooLong;
+            }
+        }
+
+        // Find the granularity of the nanosec results.
+        int granularity = 6;
+        for (int i = 0; i < diffns.length; i++) {
+            int ns = diffns[i];
+            int mod = 10;
+            int g = 0;
+            for (; g < 6; g++) {
+                if (ns % mod != 0)
+                    break;
+                mod *= 10;
+            }
+            if (g < granularity)
+                granularity = g;
+            if (granularity == 0)
+                break;
+        }
+        logger.fine("Nanosec timer granularity: " + granularity);
+
+        // Find the max ms difference.
+        long maxDiffMs = Long.MIN_VALUE;
+        for (int i = 0; i < diffms.length; i++) {
+            if (diffms[i] > maxDiffMs)
+                maxDiffMs = diffms[i];
+        }
+
+        // Adjust the ms difference to be the same, the rest goes into ns.
+        for (int i = 0; i < diffms.length; i++) {
+            if (diffms[i] < maxDiffMs) {
+                diffns[i] += (maxDiffMs - diffms[i]) * 1000000l;
+                diffms[i] = maxDiffMs;
+            }
+        }
+
+        // Find the avg diffns
+        double avgDiffNs = 0d;
+        for (int i = 0; i < diffns.length; i++)
+            avgDiffNs += diffns[i];
+        avgDiffNs /= diffns.length;
+
+        // Find the standard deviation
+        double sdevDiffNs = 0d;
+        for (int i = 0; i < diffns.length; i++) {
+            double dev = diffns[i] - avgDiffNs;
+            dev *= dev;
+            sdevDiffNs += dev;
+        }
+        sdevDiffNs = Math.sqrt(sdevDiffNs / diffns.length);
+        logger.fine("Sdev nsec: " + sdevDiffNs);
+
+        // Now, eliminate the outliers
+        int count = 0;
+        double avgDiffNs2 = 0;
+        for (int i = 0; i < diffns.length; i++) {
+            double dev = Math.abs(diffns[i] - avgDiffNs);
+            if (dev <= sdevDiffNs * 2d) { // Outliers are beyond 2x sdev.
+                ++count;
+                avgDiffNs2 += diffns[i];
+            } else {
+                logger.fine("Excluded: " + i);
+            }
+        }
+        avgDiffNs2 /= count;
+
+        // Warn if we have a lot of outliers, allow 10% on each side.
+        if (count < (int) 0.8d * iterations)
+            logger.warning("Too many outliers in calibration. " +
+                    (iterations - count) + " of " + iterations);
+
+        // Round the average to the granularity
+        int grainSize = 1;
+        for (int i = 0; i < granularity; i++) {
+            grainSize *= 10;
+        }
+
+        int avgDiffNsI = (int) Math.round(avgDiffNs2 / grainSize);
+        avgDiffNsI *= grainSize;
+        maxDiffMs -= avgDiffNsI / 1000000;
+        avgDiffNsI %= 1000000;
+
+        this.diffms = maxDiffMs;
+        this.diffns = avgDiffNsI;
+
+        // Based on our local differences between the nanos and millis clock
+        // clock, we calculate the base nanose based on the given base millis.
+        return (baseMillis - this.diffms) * 1000000l + this.diffns;
+    }
 
     private Logger getLogger() {
         if (logger == null)
@@ -227,32 +352,19 @@ public class Timer implements Serializable {
      */
     public void adjustBaseTime(int offset) {
 
-        long refMillis0 = 0l;
-        long refMillis = 0l;
-        long refNanos = Long.MIN_VALUE;
+        // This is just a fake setting of the epochNanos. The call
+        // into System.nanoTime() ensures initialization of the nano timer
+        // and prevents underflow from calibration. This is just in case
+        // the first call of System.nanoTime gives a value very close to
+        // Long.MIN_VALUE.
+        epochNanos = System.nanoTime();
 
-        // First, establish the local relationship between
-        // the nanos and millis clocks.
-        int retries = 100;
-        do {
-            refMillis0 = System.currentTimeMillis();
-            refNanos = System.nanoTime();
-		    refMillis = System.currentTimeMillis();
-            if (retries-- <= 0)
-                throw new FatalException("Cannot establish ref times, " +
-                                         "system may be too busy.");
-        } while (refMillis0 != refMillis);
-
-        diffms = refMillis - refNanos / 1000000l;
-        diffns = (int) (refNanos % 1000000l);
-
-        // Then, we use the provided offset to calculate the millis
+        // We use the provided offset to calculate the millis
         // reprsenting the same timestamp on a remote system.
         epochMillis += offset;
 
-        // And based on our local differences between the nanos and millis
-        // clock, we set the epochNanos reopresenting the same instance in time.
-        epochNanos = (epochMillis - diffms) * 1000000l + diffns;
+        // And then calibrate the nanos based on the new millis.
+        epochNanos = calibrateNanos(epochMillis);
     }
 
     /**
