@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Timer.java,v 1.4 2008/05/30 01:50:29 akara Exp $
+ * $Id: Timer.java,v 1.5 2008/05/30 01:56:06 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -86,6 +86,7 @@ public class Timer implements Serializable {
         System.gc(); // We don't want gc during calibration. So we try to gc
                      // now, on best effort.
 
+        // Run the calibration loop and collect data.
         for (int i = 0, tooLong = 0; i < iterations;) {
             if (tooLong > limit) // prevent infinite loops.
                 throw new FatalException("Cannot establish clock offset " +
@@ -162,7 +163,7 @@ public class Timer implements Serializable {
         sdevDiffNs = Math.sqrt(sdevDiffNs / diffns.length);
         logger.fine("Sdev nsec: " + sdevDiffNs);
 
-        // Now, eliminate the outliers
+        // Now, eliminate the outliers beyond 2x sdev.
         int count = 0;
         double avgDiffNs2 = 0;
         for (int i = 0; i < diffns.length; i++) {
@@ -186,12 +187,14 @@ public class Timer implements Serializable {
         for (int i = 0; i < granularity; i++) {
             grainSize *= 10;
         }
-
         int avgDiffNsI = (int) Math.round(avgDiffNs2 / grainSize);
         avgDiffNsI *= grainSize;
+
+        // Re-adjust the ms so the ns does not exceed 1,000,000.
         maxDiffMs -= avgDiffNsI / 1000000;
         avgDiffNsI %= 1000000;
 
+        // Then assign the diffs.
         this.diffms = maxDiffMs;
         this.diffns = avgDiffNsI;
 
