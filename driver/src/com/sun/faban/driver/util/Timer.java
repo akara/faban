@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Timer.java,v 1.5 2008/05/30 01:56:06 akara Exp $
+ * $Id: Timer.java,v 1.6 2008/05/30 06:27:43 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -164,6 +164,10 @@ public class Timer implements Serializable {
         logger.fine("Sdev nsec: " + sdevDiffNs);
 
         // Now, eliminate the outliers beyond 2x sdev.
+        // Based on the empirical rule, about 95% of the values are within
+        // 2 standard deviations (assuming a normal distribution of
+        // timing discrepancy). So what's beyond 2x sdev can really
+        // be counted as outliers.
         int count = 0;
         double avgDiffNs2 = 0;
         for (int i = 0; i < diffns.length; i++) {
