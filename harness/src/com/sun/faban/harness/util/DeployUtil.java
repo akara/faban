@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DeployUtil.java,v 1.13 2008/04/04 22:09:27 akara Exp $
+ * $Id: DeployUtil.java,v 1.14 2008/06/02 21:02:09 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -89,17 +89,17 @@ public class DeployUtil {
         String metaInf = benchDir + "META-INF" + File.separator;
         String xmlPath = metaInf + "benchmark.xml";
         File benchmarkXml = new File(xmlPath);
-        if (benchmarkXml.exists())
+        String configFile = null;
             try {
+                if (benchmarkXml.exists()) {
                 DocumentBuilder parser = DocumentBuilderFactory.newInstance().
                         newDocumentBuilder();
                 Node root = parser.parse(benchmarkXml).getDocumentElement();
                 XPath xPath = XPathFactory.newInstance().newXPath();
-                String configFile = xPath.evaluate("config-file-name", root);
+                configFile = xPath.evaluate("config-file-name", root);
                 if (configFile == null || configFile.length() == 0)
-                    throw new IOException("Element <config-file-name> empty " +
-                            "or missing in " + benchmarkXml.getAbsolutePath());
-
+                    configFile = "run.xml";
+                }
                 File libDir = new File(Config.LIB_DIR);
                 String[] jarFiles = libDir.list();
                 String classpath = null;

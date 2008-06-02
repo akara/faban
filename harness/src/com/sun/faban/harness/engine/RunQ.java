@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunQ.java,v 1.22 2008/01/15 08:02:52 akara Exp $
+ * $Id: RunQ.java,v 1.23 2008/06/02 21:02:09 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -117,21 +117,32 @@ public class RunQ {
                     desc.shortName + File.separator + "META-INF" + File.separator;
             String runqMetaInf = metaInf.getAbsolutePath() + File.separator;
             String sourceBenchDesc = benchMetaInf + "benchmark.xml";
-            String destBenchDesc = runqMetaInf + "benchmark.xml";
             String sourceFabanDesc = benchMetaInf + "faban.xml";
+            String destBenchDesc = null;
             String destFabanDesc = null;
+            if (new File(sourceBenchDesc).exists())
+                destBenchDesc = runqMetaInf + "benchmark.xml";
+            else
+                sourceBenchDesc = null;
             if (new File(sourceFabanDesc).exists())
                 destFabanDesc = runqMetaInf + "faban.xml";
             else
                 sourceFabanDesc = null;
 
-            if (!(FileHelper.copyFile(sourceBenchDesc, destBenchDesc, false) &&
-               (sourceFabanDesc == null ||
-                FileHelper.copyFile(sourceFabanDesc, destFabanDesc, false)))) {
+            if (sourceBenchDesc == null && sourceFabanDesc == null) {
+                String msg = "No benchmark descriptors found";
+                IOException e = new IOException(msg);
+                logger.log(Level.SEVERE, msg, e);
+                throw e;
+            }
+
+            if (!((sourceBenchDesc == null ||
+                 FileHelper.copyFile(sourceBenchDesc, destBenchDesc, false)) &
+                  (sourceFabanDesc == null ||
+                 FileHelper.copyFile(sourceFabanDesc, destFabanDesc, false)))) {
                 String msg = "Error copying benchmark descriptors.";
                 IOException e = new IOException(msg);
-                logger.log(Level.SEVERE, "Error copying benchmark descriptors.",
-                           e);
+                logger.log(Level.SEVERE, msg, e);
                 throw e;
             }
 

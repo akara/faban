@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: BenchmarkDescription.java,v 1.9 2007/07/21 01:41:58 akara Exp $
+ * $Id: BenchmarkDescription.java,v 1.10 2008/06/02 21:02:08 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -59,13 +59,13 @@ public class BenchmarkDescription implements Serializable {
     public String version;
 
     /** The form used to configure the benchmark. */
-    public String configForm;
+    public String configForm = "config.xhtml";
 
     /** The stylesheet used to format the form, if any */
     public String configStylesheet;
 
     /** The file used for configuring the benchmark. */
-    public String configFileName;
+    public String configFileName = "run.xml";
 
     /** The result file path relative to the output directory */
     public String resultFilePath = "summary.xml";
@@ -207,44 +207,47 @@ public class BenchmarkDescription implements Serializable {
     * @param dir The benchmark directory
     * @return The benchmark description object.
     */
-    public static BenchmarkDescription readDescription(String shortName, String dir) {
+    public static BenchmarkDescription readDescription(String shortName,
+                                                       String dir) {
         BenchmarkDescription desc = null;
         String metaInf = dir + File.separator + "META-INF" + File.separator;
         File benchmarkXml = new File(metaInf + "benchmark.xml");
-        if (benchmarkXml.exists())
-            try {
-                desc = new BenchmarkDescription();
+        try {
+            desc = new BenchmarkDescription();
+            DocumentBuilder parser = parserPool.get();
+            Node root = null;
+            if (benchmarkXml.exists()) {
+               root = parser.parse(benchmarkXml).getDocumentElement();
+               desc.benchmarkClass = xPath.evaluate("benchmark-class", root);
+            }
+            boolean fdExists = readFabanDescription(desc, metaInf, parser);
+            parserPool.release(parser);
 
-                DocumentBuilder parser = parserPool.get();
-                Node root = parser.parse(benchmarkXml).getDocumentElement();
-                desc.benchmarkClass = xPath.evaluate("benchmark-class", root);
-                readFabanDescription(desc, metaInf, parser);
-                parserPool.release(parser);
+            if (!fdExists && root == null)
+                throw new IOException("Missing benchmark.xml!");
 
-                desc.shortName = shortName ;
+            desc.shortName = shortName ;
 
-                desc.configFileName = xPath.evaluate("config-file-name", root);
-                if (desc.configFileName == null ||
-                        desc.configFileName.length() == 0)
-                    throw new IOException("Element <config-file-name> empty " +
-                            "or missing in " + benchmarkXml.getAbsolutePath());
+            if (root != null) {
+                String value = xPath.evaluate("config-file-name", root);
+                if (value != null && value.length() > 0)
+                    desc.configFileName = value;
 
-                desc.configStylesheet = xPath.evaluate(
-                                                    "config-stylesheet", root);
-                if ("".equals(desc.configStylesheet))
-                    desc.configStylesheet = null;
+                value = xPath.evaluate("config-stylesheet", root);
+                if (value != null && value.length() > 0)
+                    desc.configStylesheet = value;
 
                 if (desc.benchmarkClass == null ||
-                        desc.benchmarkClass.length() == 0)
+                    desc.benchmarkClass.length() == 0)
                     throw new IOException("Element <benchmark-class> empty " +
                             "or missing in " + benchmarkXml.getAbsolutePath());
 
-                String value = xPath.evaluate("name", root);
+                value = xPath.evaluate("name", root);
                 if (value != null && value.length() > 0)
                     desc.name = value;
-                if (desc == null)
+                if (desc.name == null)
                     throw new IOException("Element <name> empty or missing " +
-                            "in " + benchmarkXml.getAbsolutePath());
+                                        "in " + benchmarkXml.getAbsolutePath());
 
                 value = xPath.evaluate("version", root);
                 if (value != null && value.length() > 0)
@@ -253,10 +256,9 @@ public class BenchmarkDescription implements Serializable {
                     throw new IOException("Element <version> empty or " +
                             "missing in " + benchmarkXml.getAbsolutePath());
 
-                desc.configForm = xPath.evaluate("config-form", root);
-                if (desc.configForm == null || desc.configForm.length() == 0)
-                    throw new IOException("Element <config-form> empty or " +
-                            "missing in " + benchmarkXml.getAbsolutePath());
+                value = xPath.evaluate("config-form", root);
+                if (value != null && value.length() > 0)
+                    desc.configForm = value;
 
                 value = xPath.evaluate("result-file-path", root);
                 if (value != null && value.length() > 0)
@@ -286,15 +288,16 @@ public class BenchmarkDescription implements Serializable {
                     throw new IOException("Both element <scaleName> and " +
                             "<scaleUnit> empty or missing in " +
                             benchmarkXml.getAbsolutePath());
-            } catch (Exception e) {
-                desc = null;
-                logger.log(Level.WARNING, "Error reading benchmark " +
-                        "descriptor for " + dir, e);
             }
-        return desc;
+       } catch (Exception e) {
+           desc = null;
+           logger.log(Level.WARNING, "Error reading benchmark " +
+                   "descriptor for " + dir, e);
+       }
+       return desc;
     }
 
-    private static void readFabanDescription(BenchmarkDescription desc,
+    private static boolean readFabanDescription(BenchmarkDescription desc,
                                              String metaInf,
                                              DocumentBuilder parser) {
         File fabanXml = new File(metaInf + "faban.xml");
@@ -311,11 +314,14 @@ public class BenchmarkDescription implements Serializable {
                     desc.benchmarkClass.length() == 0)
                     desc.benchmarkClass =
                             "com.sun.faban.harness.DefaultFabanBenchmark";
-
+                return true;
             } catch (Exception e) {
                 logger.log(Level.WARNING, "Error reading faban driver " +
                         "descriptor for " + desc.shortName, e);
+                return false;
             }
+        else
+            return false;
     }
 
     private BenchmarkDescription() {
