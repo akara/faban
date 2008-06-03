@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DeployUtil.java,v 1.14 2008/06/02 21:02:09 akara Exp $
+ * $Id: DeployUtil.java,v 1.15 2008/06/03 18:00:32 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -92,14 +92,16 @@ public class DeployUtil {
         String configFile = null;
             try {
                 if (benchmarkXml.exists()) {
-                DocumentBuilder parser = DocumentBuilderFactory.newInstance().
-                        newDocumentBuilder();
-                Node root = parser.parse(benchmarkXml).getDocumentElement();
-                XPath xPath = XPathFactory.newInstance().newXPath();
-                configFile = xPath.evaluate("config-file-name", root);
+                    DocumentBuilder parser = DocumentBuilderFactory.
+                            newInstance().newDocumentBuilder();
+                    Node root = parser.parse(benchmarkXml).getDocumentElement();
+                    XPath xPath = XPathFactory.newInstance().newXPath();
+                    configFile = xPath.evaluate("config-file-name", root);
+                }
+
                 if (configFile == null || configFile.length() == 0)
                     configFile = "run.xml";
-                }
+
                 File libDir = new File(Config.LIB_DIR);
                 String[] jarFiles = libDir.list();
                 String classpath = null;

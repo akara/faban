@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: BenchmarkDescription.java,v 1.10 2008/06/02 21:02:08 akara Exp $
+ * $Id: BenchmarkDescription.java,v 1.11 2008/06/03 18:00:32 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -210,8 +210,13 @@ public class BenchmarkDescription implements Serializable {
     public static BenchmarkDescription readDescription(String shortName,
                                                        String dir) {
         BenchmarkDescription desc = null;
-        String metaInf = dir + File.separator + "META-INF" + File.separator;
-        File benchmarkXml = new File(metaInf + "benchmark.xml");
+        String metaInf = dir + File.separator + "META-INF";
+        File metaInfDir = new File(metaInf);
+        if (!metaInfDir.isDirectory())
+            return null;
+
+        File benchmarkXml = new File(metaInfDir, "benchmark.xml");
+
         try {
             desc = new BenchmarkDescription();
             DocumentBuilder parser = parserPool.get();
@@ -220,7 +225,7 @@ public class BenchmarkDescription implements Serializable {
                root = parser.parse(benchmarkXml).getDocumentElement();
                desc.benchmarkClass = xPath.evaluate("benchmark-class", root);
             }
-            boolean fdExists = readFabanDescription(desc, metaInf, parser);
+            boolean fdExists = readFabanDescription(desc, metaInfDir, parser);
             parserPool.release(parser);
 
             if (!fdExists && root == null)
@@ -298,9 +303,9 @@ public class BenchmarkDescription implements Serializable {
     }
 
     private static boolean readFabanDescription(BenchmarkDescription desc,
-                                             String metaInf,
+                                             File metaInfDir,
                                              DocumentBuilder parser) {
-        File fabanXml = new File(metaInf + "faban.xml");
+        File fabanXml = new File(metaInfDir, "faban.xml");
         if (fabanXml.exists())
             try {
                 Node root = parser.parse(fabanXml).getDocumentElement();
