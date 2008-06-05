@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CycleThread.java,v 1.8 2008/05/14 07:06:01 akara Exp $
+ * $Id: CycleThread.java,v 1.9 2008/06/05 20:50:41 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -141,7 +141,7 @@ public class CycleThread extends AgentThread {
                 DriverContext.TimingInfo timingInfo = driverContext.timingInfo;
                 // If it never waited, we'll see whether we can just use the
                 // previous start and end times.
-                if (timingInfo.invokeTime == -1) {
+                if (timingInfo.invokeTime == TIME_NOT_SET) {
                     long currentTime = System.nanoTime();
                     if (currentTime < timingInfo.intendedInvokeTime) {
                         timingInfo.invokeTime = startTime[mixId];
@@ -154,7 +154,7 @@ public class CycleThread extends AgentThread {
                         // The delay time is invalid,
                         // we cannot record in this case.
                     }
-                } else if (timingInfo.respondTime == -1) {
+                } else if (timingInfo.respondTime == TIME_NOT_SET) {
                     timingInfo.respondTime = timingInfo.invokeTime;
                     metrics.recordDelayTime();
                 } else {

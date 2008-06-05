@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TimeThread.java,v 1.9 2008/05/14 07:06:02 akara Exp $
+ * $Id: TimeThread.java,v 1.10 2008/06/05 20:50:41 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -162,14 +162,14 @@ public class TimeThread extends AgentThread {
                 checkFatal(cause, op);
 
                 // We have to fix up the invoke/respond times to have valid
-                // values and not -1.
+                // values and not TIME_NOT_SET.
 
                 // In case of exception, invokeTime or even respondTime may
-                // still be -1.
+                // still be TIME_NOT_SET.
                 DriverContext.TimingInfo timingInfo = driverContext.timingInfo;
                 // If it never waited, we'll see whether we can just use the
                 // previous start and end times.
-                if (timingInfo.invokeTime == -1) {
+                if (timingInfo.invokeTime == TIME_NOT_SET) {
                     long currentTime = System.nanoTime();
                     if (currentTime < timingInfo.intendedInvokeTime) {
                         // No time change, no need to checkRamp
@@ -186,7 +186,7 @@ public class TimeThread extends AgentThread {
 					logError(cause, op);
 					// The delay time is invalid,
 					// we cannot record in this case.
-                } else if (timingInfo.respondTime == -1) {
+                } else if (timingInfo.respondTime == TIME_NOT_SET) {
                     timingInfo.respondTime = System.nanoTime();
                     checkRamp();
                     metrics.recordError();
@@ -231,7 +231,7 @@ public class TimeThread extends AgentThread {
      * @return True if the last operation is in steady state, false otherwise.
      */
 	boolean isSteadyState() {
-        if (driverContext.timingInfo.respondTime == -1) {
+        if (driverContext.timingInfo.respondTime == TIME_NOT_SET) {
 			throw new FatalException("isTxSteadyState called before response " +
                     "time capture. Cannot determine tx in steady state or " +
                     "not. This is a bug in the driver code.");

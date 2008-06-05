@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TimeThreadWithBackground.java,v 1.6 2008/05/14 07:06:03 akara Exp $
+ * $Id: TimeThreadWithBackground.java,v 1.7 2008/06/05 20:50:41 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -191,14 +191,14 @@ public class TimeThreadWithBackground extends TimeThread {
                 checkFatal(cause, op[mixId]);
 
                 // We have to fix up the invoke/respond times to have valid
-                // values and not -1.
+                // values and not TIME_NOT_SET.
 
                 // In case of exception, invokeTime or even respondTime may
-                // still be -1.
+                // still be TIME_NOT_SET.
                 DriverContext.TimingInfo timingInfo = driverContext.timingInfo;
                 // If it never waited, we'll see whether we can just use the
                 // previous start and end times.
-                if (timingInfo.invokeTime == -1) {
+                if (timingInfo.invokeTime == TIME_NOT_SET) {
                     long currentTime = System.nanoTime();
                     if (currentTime < timingInfo.intendedInvokeTime) {
                         // No time change, no need to checkRamp
@@ -215,7 +215,7 @@ public class TimeThreadWithBackground extends TimeThread {
 					logError(cause, op[mixId]);
 					// The delay time is invalid,
 					// we cannot record in this case.
-                } else if (timingInfo.respondTime == -1) {
+                } else if (timingInfo.respondTime == TIME_NOT_SET) {
                     timingInfo.respondTime = System.nanoTime();
                     checkRamp();
                     metrics.recordError();
