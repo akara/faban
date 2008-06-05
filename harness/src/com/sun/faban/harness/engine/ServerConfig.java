@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ServerConfig.java,v 1.10 2008/04/11 07:52:53 akara Exp $
+ * $Id: ServerConfig.java,v 1.11 2008/06/05 07:24:08 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -76,11 +76,14 @@ class ServerConfig {
         String[][] serverMachines;
         boolean success = true;
 
-        ArrayList enabledHosts = new ArrayList();
-        List hosts = par.getTokenizedParameters("fa:hostConfig/fa:host");
-        List enabled = par.getParameters("fa:hostConfig/fh:enabled");
-        List cmdList = par.getParameters("fa:hostConfig/fh:userCommands");
-        ArrayList commands = new ArrayList();
+        ArrayList<String[]> enabledHosts = new ArrayList<String[]>();
+        List<String[]> hosts =
+                        par.getTokenizedParameters("fa:hostConfig/fa:host");
+        List<String> enabled =
+                        par.getParameters("fa:hostConfig/fh:enabled");
+        List<String> cmdList =
+                        par.getParameters("fa:hostConfig/fh:userCommands");
+        ArrayList<String> commands = new ArrayList<String>();
         if(hosts.size() != enabled.size()) {
             logger.severe("Number of hosts does not match Number of " +
                     "enabled node");
@@ -93,14 +96,14 @@ class ServerConfig {
                 return false;
             }
             for(int i = 0; i < hosts.size(); i++) {
-                if(Boolean.valueOf((String)enabled.get(i)).booleanValue()) {
+                if(Boolean.valueOf(enabled.get(i)).booleanValue()) {
                     enabledHosts.add(hosts.get(i));
                     commands.add(cmdList.get(i));
                 }
             }
-            serverMachines = (String[][]) enabledHosts.toArray(new String[1][1]);
+            serverMachines = enabledHosts.toArray(new String[1][1]);
             // Each category of hosts may have a user command to be executed.
-            userCmds = (String[]) commands.toArray((new String[1]));
+            userCmds = commands.toArray((new String[1]));
         }
 
 
@@ -118,7 +121,8 @@ class ServerConfig {
                         continue;
 
                     // Get system info
-                    PrintStream syslog = new PrintStream(new FileOutputStream(f));
+                    PrintStream syslog =
+                                    new PrintStream(new FileOutputStream(f));
                     Command sysinfo = new Command("sysinfo");
                     sysinfo.setStreamHandling(Command.STDOUT, Command.CAPTURE);
                     CommandHandle handle = cmds.execute(machine, sysinfo);
@@ -132,17 +136,20 @@ class ServerConfig {
 
                     // Get User Commands output if specified
                     if (userCmds[j] != null && userCmds[j].trim().length() > 0) {
-                        Command c = new Command(userCmds[j]);
-                        c.setStreamHandling(Command.STDOUT, Command.CAPTURE);
-                        handle = cmds.execute(machine, c);
-                        info = handle.fetchOutput(Command.STDOUT);
-                        if (info != null) {
-                            syslog.println(linesep);
-                            syslog.println("<h3>" + userCmds[j] +
-                                    " on server " + machineName + "</h3>");
-                            syslog.println("<pre>\n");
-                            syslog.write(info);
-                            syslog.println("\n</pre>");
+                        String[] cmdStrings = userCmds[j].split(";");
+                        for (String cmdString : cmdStrings) {
+                            Command c = new Command(cmdString);
+                            c.setStreamHandling(Command.STDOUT, Command.CAPTURE);
+                            handle = cmds.execute(machine, c);
+                            info = handle.fetchOutput(Command.STDOUT);
+                            if (info != null) {
+                                syslog.println(linesep);
+                                syslog.println("<h3>" + userCmds[j] +
+                                        " on server " + machineName + "</h3>");
+                                syslog.println("<pre>\n");
+                                syslog.write(info);
+                                syslog.println("\n</pre>");
+                            }
                         }
                     }
                     syslog.println("</body></html>");
@@ -164,16 +171,20 @@ class ServerConfig {
      * @return true/false depending on whether we were successful or not
      */
     public boolean set(CmdService cmds) {
-        List CPUs  = par.getTokenizedParameters("fa:hostConfig/fh:cpus");
-        ArrayList enabledHosts = new ArrayList();
-        List hosts = par.getTokenizedParameters("fa:hostConfig/fa:host");
-        List enabled = par.getParameters("fa:hostConfig/fh:enabled");
-        ArrayList cpuVector = new ArrayList();
+        List<String[]> CPUs  =
+                            par.getTokenizedParameters("fa:hostConfig/fh:cpus");
+        ArrayList<String[]> enabledHosts = new ArrayList<String[]>();
+        List<String[]> hosts =
+                            par.getTokenizedParameters("fa:hostConfig/fa:host");
+        List<String> enabled =
+                            par.getParameters("fa:hostConfig/fh:enabled");
+        ArrayList<String[]> cpuVector = new ArrayList<String[]>();
         String[][] serverMachines = null;
         String[][] numCpus = null;
 
         if(hosts.size() != enabled.size()) {
-            logger.severe("Number of hosts does not match Number of enabled node");
+            logger.severe(
+                    "Number of hosts does not match Number of enabled node");
             return false;
         }
         else {
@@ -182,12 +193,12 @@ class ServerConfig {
                 return false;
             }
             for(int i = 0; i < hosts.size(); i++) {
-                if(Boolean.valueOf((String)enabled.get(i)).booleanValue()) {
+                if(Boolean.valueOf(enabled.get(i)).booleanValue()) {
                     enabledHosts.add(hosts.get(i));
                     cpuVector.add(CPUs.get(i));
                 }
-                serverMachines = (String[][]) enabledHosts.toArray(new String[1][1]);
-                numCpus = (String[][]) cpuVector.toArray(new String[1][1]);
+                serverMachines = enabledHosts.toArray(new String[1][1]);
+                numCpus = cpuVector.toArray(new String[1][1]);
 
             }
         }
@@ -204,7 +215,9 @@ class ServerConfig {
 
             for(int j = 0; j < machines.length; j++) {
                 // If the CPU is set to null, Null String or 0 don't do anything.
-                if((cpus == null) || ((cpus.length == 1) && ((cpus[0].trim().equals("")) || (cpus[0].trim().equals("0")))))
+                if ((cpus == null) || ((cpus.length == 1) &&
+                        ((cpus[0].trim().equals("")) ||
+                        (cpus[0].trim().equals("0")))))
                     break;
                 else {
                     if(cpus.length == 1)
@@ -222,54 +235,67 @@ class ServerConfig {
                     // to get the required number
                     String buf = Config.BIN_DIR + "fastsu /usr/sbin/psradm -a -n";
                     logger.config("Turning on all cpus on " + machines[j]);
-                    cmds.start(machines[j], buf, CmdService.SEQUENTIAL, Config.DEFAULT_PRIORITY);
+                    cmds.start(machines[j], buf, CmdService.SEQUENTIAL,
+                                                    Config.DEFAULT_PRIORITY);
 
                     String tmpFile = Config.TMP_DIR + "sys.out";
                     buf = "/usr/sbin/psrinfo > " + tmpFile;
                     logger.fine("Getting cpus");
-                    cmds.start(machines[j], buf, CmdService.SEQUENTIAL, Config.DEFAULT_PRIORITY);
+                    cmds.start(machines[j], buf, CmdService.SEQUENTIAL,
+                                                    Config.DEFAULT_PRIORITY);
 
                     if (cmds.get(machines[j], tmpFile, tmpFile)) {
-                        BufferedReader in = new BufferedReader(new FileReader(tmpFile));
+                        BufferedReader in =
+                                new BufferedReader(new FileReader(tmpFile));
 
-                        ArrayList cpuList = new ArrayList();
+                        ArrayList<Integer> cpuList = new ArrayList<Integer>();
                         boolean isMultiCore = false;
 
                         while ((buf = in.readLine()) != null) {
                             // build list of cpus
-                            Integer cpuId = Integer.valueOf((new StringTokenizer(buf)).nextToken().trim());
-                            if((isMultiCore == false) && (cpuId.intValue() > 511))
+                            Integer cpuId = Integer.valueOf((
+                                    new StringTokenizer(buf)).nextToken().
+                                    trim());
+                            if((isMultiCore == false) &&
+                                    (cpuId.intValue() > 511))
                                 isMultiCore = true;
                             cpuList.add(cpuId);
                         }
-                        logger.info("Total number of CPUs is " + cpuList.size()/(isMultiCore ? 2 : 1));
+                        logger.info("Total number of CPUs is " +
+                                cpuList.size()/(isMultiCore ? 2 : 1));
 
                         // The index gets changed when you remove elements
-                        // Remove number of CPUs configured to be used for this server
+                        // Remove number of CPUs configured to be used for this
+                        // server
                         for(int k = 0; k < numCPUs; k++) {
                             if(isMultiCore) {
-                                Integer cpuId = new Integer(((Integer)cpuList.get(0)).intValue() + 512);
+                                Integer cpuId = new Integer(
+                                        (cpuList.get(0)).intValue() + 512);
                                 cpuList.remove(cpuId);
                             }
                             cpuList.remove(0);
                         }
 
-                        logger.info("Number of CPUs turned off is " + cpuList.size()/(isMultiCore ? 2 : 1));
+                        logger.info("Number of CPUs turned off is " +
+                                cpuList.size()/(isMultiCore ? 2 : 1));
 
                         // The remaining CPUs in the list have to be turned off.
                         if (cpuList.size() > 0) {
                             StringBuffer offline = new StringBuffer(" ");
                             for(int k = 0; k < cpuList.size(); k++)
-                                offline.append(cpuList.get(k).toString()).append(" ");
+                                offline.append(cpuList.get(k).toString()).
+                                        append(" ");
 
                             logger.info("Off-lining CPUs " + offline);
-                            String cmd = Config.BIN_DIR + "fastsu /usr/sbin/psradm -f " + offline;
-                            cmds.start(machines[j], cmd,
-                                    CmdService.SEQUENTIAL, Config.HIGHER_PRIORITY);
+                            String cmd = Config.BIN_DIR +
+                                    "fastsu /usr/sbin/psradm -f " + offline;
+                            cmds.start(machines[j], cmd, CmdService.SEQUENTIAL,
+                                                        Config.HIGHER_PRIORITY);
                         }
                     }
                     else {
-                        logger.severe("Could not set CPUs on server " + serverMachines[i]);
+                        logger.severe("Could not set CPUs on server " +
+                                serverMachines[i]);
                     }
                 } catch (Exception ie) {
                     logger.log(Level.SEVERE, "Failed to set Server Config.", ie);
@@ -290,20 +316,22 @@ class ServerConfig {
      */
     public void report(long startTime, long endTime) {
         String[][] serverMachines = null;
-        ArrayList enabledHosts = new ArrayList();
-        List hosts = par.getTokenizedParameters("fa:hostConfig/fa:host");
-        List enabled = par.getParameters("fa:hostConfig/fh:enabled");
+        ArrayList<String[]> enabledHosts = new ArrayList<String[]>();
+        List<String[]> hosts =
+                par.getTokenizedParameters("fa:hostConfig/fa:host");
+        List<String> enabled = par.getParameters("fa:hostConfig/fh:enabled");
         if(hosts.size() != enabled.size()) {
-            logger.severe("Number of hosts does not match Number of enabled node");
+            logger.severe(
+                    "Number of hosts does not match Number of enabled node");
             return;
         }
         else {
             for(int i = 0; i < hosts.size(); i++) {
-                if(Boolean.valueOf((String)enabled.get(i)).booleanValue()) {
+                if(Boolean.valueOf(enabled.get(i)).booleanValue()) {
                     enabledHosts.add(hosts.get(i));
                 }
             }
-            serverMachines = (String[][]) enabledHosts.toArray(new String[1][1]);
+            serverMachines = enabledHosts.toArray(new String[1][1]);
         }
 
         String sysfile = run.getOutDir() + "system.report";
@@ -348,7 +376,8 @@ class ServerConfig {
                     handle = cmds.execute(machine, c);
                     byte[] messages = handle.fetchOutput(Command.STDOUT);
                     syslog.println(linesep);
-                    syslog.println("System messages during run from server " + machine);
+                    syslog.println("System messages during run from server " +
+                                                                    machine);
                     syslog.println("\n");
                     if (messages != null) // Null if no messages.
                         syslog.write(messages);
