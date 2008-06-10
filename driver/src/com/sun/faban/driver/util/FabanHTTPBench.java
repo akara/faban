@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FabanHTTPBench.java,v 1.5 2008/02/26 22:00:52 akara Exp $
+ * $Id: FabanHTTPBench.java,v 1.6 2008/06/10 16:50:03 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -264,15 +264,15 @@ public class FabanHTTPBench {
             if (outputDirectory == null) {
                 outputDirectory = DEFAULT_OUTPUT_DIR;
                 n.appendChild(doc.createTextNode(outputDirectory));
+            }
+        } else {
+            String nodeValue = textNode.getNodeValue().trim();
+            if (nodeValue.length() == 0) {
+                if (outputDirectory == null)
+                    outputDirectory = DEFAULT_OUTPUT_DIR;
+                textNode.setNodeValue(outputDirectory);
             } else {
-                String nodeValue = textNode.getNodeValue().trim();
-                if (nodeValue.length() == 0) {
-                    if (outputDirectory == null)
-                        outputDirectory = DEFAULT_OUTPUT_DIR;
-                    textNode.setNodeValue(outputDirectory);
-                } else {
-                    outputDirectory = nodeValue;
-                }
+                outputDirectory = nodeValue;
             }
         }
         return doc;
