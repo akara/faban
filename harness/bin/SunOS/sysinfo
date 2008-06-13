@@ -25,6 +25,9 @@ echo "        <pre>"
 cat /etc/release
 echo "        </pre>"
 PRTDIAG=/usr/platform/`uname -m`/sbin/prtdiag
+if [ ! -x "${PRTDIAG}" ] ; then
+    PRTDIAG=/usr/sbin/prtdiag
+fi
 if [ -x "${PRTDIAG}" ] ; then
     echo "        <h3>Prtdiag on server ${HOSTNAME}</h3>"
     echo "        <pre>"
