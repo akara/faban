@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ThreadCookieHandler.java,v 1.8 2008/02/02 05:36:44 akara Exp $
+ * $Id: ThreadCookieHandler.java,v 1.9 2008/06/14 09:37:05 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -129,7 +129,7 @@ public class ThreadCookieHandler {
         Cookie cookie = Cookie.parseCookie(cookieString, this);
         cookie.validate(request);
         putCookies(cookie);
-        logger.fine("ResponseHeader - " + headerName + ": "
+        logger.finer("ResponseHeader - " + headerName + ": "
                 + cookieString);
         return cookie;
     }
@@ -261,9 +261,9 @@ public class ThreadCookieHandler {
             }
             String cookieString = b.toString();
             list.add(cookieString);
-            logger.fine("Cookie:" + cookieString);
+            logger.finest("Cookie:" + cookieString);
         } else {
-            logger.fine("No request cookies");
+            logger.finer("No request cookies");
         }
     }
 
@@ -295,9 +295,9 @@ public class ThreadCookieHandler {
             }
             String cookieString = b.toString();
             list.add(cookieString);
-            logger.fine("Cookie:" + cookieString);
+            logger.finest("Cookie:" + cookieString);
         } else {
-            logger.fine("No request cookies");
+            logger.finer("No request cookies");
         }
     }
 
@@ -644,7 +644,7 @@ public class ThreadCookieHandler {
                 DomainCookieStore dxStore = store.get(dm);
                 logger.finest("Fetching cookies for domain " + dm);
                 if (dxStore == null) {
-                    logger.finest("No cookies found for domain " + dm);
+                    logger.finer("No cookies found for domain " + dm);
                     continue;
                 }
                 if (dStore == null) {

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.24 2008/05/21 08:55:24 akara Exp $
+ * $Id: Metrics.java,v 1.25 2008/06/14 09:37:05 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -32,6 +32,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Formatter;
 import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * Generic statistics collection and reporting facility. For simple agents
@@ -371,6 +372,15 @@ public class Metrics implements Serializable, Cloneable {
 		}
 
         endTimeNanos = thread.driverContext.timingInfo.respondTime;
+
+        // Debugging the end time issue. Rarely happens but does happen
+        // and we can't figure out where we're missing stuff.
+        if (endTimeNanos == Long.MIN_VALUE) {
+            String msg = "endTimeNanos still MIN_VALUE - this is a bug we're " +
+                    "chasing, please report with the stack trace.";
+            Exception e = new Exception(msg);
+            thread.logger.log(Level.SEVERE, msg, e);
+        }
     }
 
     /**
