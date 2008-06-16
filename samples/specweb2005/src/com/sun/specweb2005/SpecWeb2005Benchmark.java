@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: SpecWeb2005Benchmark.java,v 1.4 2007/06/29 08:38:54 akara Exp $
+ * $Id: SpecWeb2005Benchmark.java,v 1.5 2008/06/16 06:34:25 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -35,14 +35,10 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import java.io.*;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.sun.faban.harness.RunContext.*;
 import static com.sun.faban.harness.util.FileHelper.copyFile;
@@ -66,8 +62,7 @@ public class SpecWeb2005Benchmark implements Benchmark {
     CommandHandle handle;
     String dbServer;
     private Calendar startTime;
-    private LinkedHashSet<String> hostsSet;
-    ArrayList<NameValuePair<Integer>> hostsPorts;
+    List<NameValuePair<Integer>> hostsPorts;
 
     /**
      * Allows benchmark to validate the configuration file. Note that no
@@ -95,48 +90,8 @@ public class SpecWeb2005Benchmark implements Benchmark {
         // Note that runConfig/clients is used during the generation
         // of Test.config file. And runConfig/hostConfig/host is used for
         // starting the faban processes
-        String clients = par.getParameter("fa:runConfig/clients");
-        // replacing all the newline characters and other white space
-        // characters with a blank space
-
-        clients = clients.replaceAll("\\s", " ");
-        par.setParameter("fa:runConfig/clients", clients);
-
-        // Find the patterns that have either hostname or hostname:port values
-        Pattern p1 = Pattern.compile("([a-zA-Z_0-9-]+):?(\\w*)\\s*");
-        Matcher m1 = p1.matcher(clients + ' '); // add a whitespace at end
-
-        hostsSet = new LinkedHashSet<String>();
-        hostsPorts = new ArrayList<NameValuePair<Integer>>();
-
-        //  Fill up the hosts set with names of all the hosts
-        for (boolean found = m1.find(); found; found = m1.find()) {
-            NameValuePair<Integer> hostPort = new NameValuePair<Integer>();
-            hostPort.name = m1.group(1);
-            String port = m1.group(2);
-            if (port != null && port.length() > 1)
-                hostPort.value = new Integer(port);
-            logger.fine("adding host:" + hostPort.name);
-            hostsSet.add(hostPort.name);
-            hostsPorts.add(hostPort);
-        }
-
-        // Now extract the unique hosts
-        StringBuffer hosts = new StringBuffer();
-        for (String host : hostsSet) {
-            hosts.append(host);
-            hosts.append(' ');
-        }
-
-        // Update the unique hosts to the host filed and save
-        par.setParameter("fa:runConfig/fa:hostConfig/fa:host",
-                                                    hosts.toString().trim());
-
-        logger.info("Hosts: " + par.getParameter(
-                                        "fa:runConfig/fa:hostConfig/fa:host"));
-
-        par.save();
-
+        hostsPorts = par.getHostPorts(
+                                "fa:runConfig/fa:hostConfig/fa:hostPorts");
         // Do all translations
         runDir = getOutDir();
         runID = getRunId();
@@ -198,7 +153,8 @@ public class SpecWeb2005Benchmark implements Benchmark {
         // replacing the GC option with a blank space
         String javaOptionsNoGC = javaOptions.replaceFirst("-Xloggc:\\S+", " ");
 
-        cleanOldFiles(hostsSet);
+        cleanOldFiles(par.getTokenizedValue(
+                                    "fa:runConfig/fa:hostConfig/fa:host"));
 
         for (NameValuePair hostPort : hostsPorts) {
             String tmp = getTmpDir(hostPort.name);
@@ -242,10 +198,10 @@ public class SpecWeb2005Benchmark implements Benchmark {
     // undefined when running remotely. So we need to make sure that this
     // anonymous inner class does not make such assumptions. Access to the
     // RunContext gives undefined results, for example.
-    private static void cleanOldFiles(Set<String> hostsSet) {
+    private static void cleanOldFiles(String[] hosts) {
         // Clean the result/error/gc files and restart the client driver
         // processes. The processes will be killed at the end of the run.
-        for (String hostName : hostsSet) {
+        for (String hostName : hosts) {
             final String tmp = getTmpDir(hostName);
             try {
                 exec(hostName, new RemoteCallable() {

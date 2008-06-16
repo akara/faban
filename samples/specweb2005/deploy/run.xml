@@ -10,7 +10,7 @@
     <fa:runConfig>
         <fh:description>Sample SPECWEB2005 benchmark run</fh:description>
         <fa:hostConfig>
-            <fa:host/><!-- derived from the clients field -->
+            <fa:hostPorts>starlost starlost:1200</fa:hostPorts>
             <fh:enabled>true</fh:enabled>
             <fh:cpus>0</fh:cpus>
             <fh:tools>NONE</fh:tools>
@@ -18,7 +18,6 @@
             <nodeid>1</nodeid>
             <port>2000</port>
         </fa:hostConfig>
-        <clients>starlost starlost:1200</clients>
         <clientDir>/export/home/w2005/sw2005-v1.02f.jar</clientDir>
         <fa:scale>50</fa:scale>
         <fa:runControl unit="time">

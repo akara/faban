@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<!-- $Id: config.xhtml,v 1.4 2007/07/21 01:43:03 akara Exp $ -->
+<!-- $Id: config.xhtml,v 1.5 2008/06/16 06:34:24 akara Exp $ -->
 <html xmlns:xforms="http://www.w3.org/2002/xforms"
       xmlns:fa="http://faban.sunsource.net/ns/faban"
       xmlns:fh="http://faban.sunsource.net/ns/fabanharness">
@@ -15,9 +15,9 @@
                 <xforms:bind id="bind-runConfig" xforms:nodeset="fa:runConfig">
                     <xforms:bind id="bind-description" xforms:nodeset="fh:description"/>
                     <xforms:bind id="bind-runConfig-hostConfig" xforms:nodeset="fa:hostConfig">
+                        <xforms:bind id="bind-hostPorts" xforms:nodeset="fa:hostPorts"/>
                         <xforms:bind id="bind-agent-tools" xforms:nodeset="fh:tools"/>
                     </xforms:bind>
-                    <xforms:bind id="bind-clients" xforms:nodeset="clients"/>
                     <xforms:bind id="bind-clientDir" xforms:nodeset="clientDir"/>
                     <xforms:bind id="bind-sessions" xforms:nodeset="fa:scale" />
                     <xforms:bind id="bind-runControl" xforms:nodeset="fa:runControl">
@@ -175,7 +175,7 @@
                     <yes>Yes</yes>
                     <no>No</no>
                     <serverConfig>Server</serverConfig>
-                    <clients>Clients</clients>
+                    <hostPorts>Clients</hostPorts>
                     <port>Port</port>
                     <tools>Tools</tools>
                     <webServer>Web Server Host</webServer>
@@ -288,8 +288,8 @@
                             <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/description"/>
                             <xforms:hint>Enter description of this run</xforms:hint>
                         </xforms:textarea>
-                        <xforms:textarea id="input-clients" xforms:bind="bind-clients">
-                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/clients"/>
+                        <xforms:textarea id="input-hostPorts" xforms:bind="bind-hostPorts">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hostPorts"/>
                             <xforms:hint>Enter client host[:port] pairs</xforms:hint>
                         </xforms:textarea>
                         <xforms:input id="input-javaHome" xforms:bind="bind-javaHome">

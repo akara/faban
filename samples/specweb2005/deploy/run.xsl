@@ -6,7 +6,7 @@
     <xsl:param name="outputDir">oDir</xsl:param>
     <xsl:template match="/specweb2005Benchmark">
 
-        <xsl:text>CLIENTS = "</xsl:text> <xsl:value-of select="fa:runConfig/clients"/><xsl:text> "</xsl:text>
+        <xsl:text>CLIENTS = "</xsl:text> <xsl:value-of select="fa:runConfig/fa:hostConfig/fa:hostPorts"/><xsl:text> "</xsl:text>
 
         <xsl:text>&#10;&#10;SIMULTANEOUS_SESSIONS = </xsl:text> <xsl:value-of select="fa:runConfig/fa:scale"/>
 
