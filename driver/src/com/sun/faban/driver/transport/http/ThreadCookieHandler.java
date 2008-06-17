@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ThreadCookieHandler.java,v 1.10 2008/06/17 16:47:24 akara Exp $
+ * $Id: ThreadCookieHandler.java,v 1.11 2008/06/17 17:02:17 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -540,58 +540,46 @@ public class ThreadCookieHandler {
          * @return true if the request path matches this cookie, false otherwise
          */
         boolean matchPath(String requestPath) {
-            if (cPath == null)
-                cPath = requestPath.toCharArray();
+            if (cPath == null) // Initialize cPath for multiple uses.
+                cPath = path.toCharArray();
 
             char[] rPath = requestPath.toCharArray(); // request path
             boolean[] mark = new boolean[2]; // boolean array saves space.
-            char c1 = Character.MIN_VALUE;
-            char c2 = c1++;
 
             for (int i = 0, j = 0; i < cPath.length; i++, j++) {
 
                 if (j >= rPath.length) // request path too short to match
                     return false;
 
-                // c1 = relevant char for cPath
-                if (cPath[i] == '/') {
-                    if (!mark[0]) {
-                        mark[0] = true;
-                        c1 = cPath[i];
-                    } else {
+                if (cPath[i] == '/')
+                    if (mark[0]) {
                         ++i;
                         while (i < cPath.length && cPath[i] == '/')
                             ++i;
                         if (i == cPath.length)
                             break;
-                        c1 = cPath[i];
                         mark[0] = false;
-                    }
-                } else {
-                    mark[0] = false;
-                    c1 = cPath[i];
-                }
-
-                // c2 = relevant char for rPath
-                if (rPath[j] == '/') {
-                    if (!mark[1]) {
-                        mark[1] = true;
-                        c2 = rPath[j];
                     } else {
+                        mark[0] = true;
+                    }
+                else
+                    mark[0] = false;
+
+                if (rPath[j] == '/')
+                    if (mark[1]) {
                         ++j;
                         while (j < rPath.length && rPath[j] == '/')
                             ++j;
                         if (j == rPath.length) // too short to match
                             return false;
-                        c2 = rPath[j];
                         mark[1] = false;
+                    } else {
+                        mark[1] = true;
                     }
-                } else {
+                else
                     mark[1] = false;
-                    c2 = rPath[j];
-                }
 
-                if (c1 != c2)
+                if (cPath[i] != rPath[j])
                     return false;
             }
             return true;
