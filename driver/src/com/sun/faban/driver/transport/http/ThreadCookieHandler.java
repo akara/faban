@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ThreadCookieHandler.java,v 1.9 2008/06/14 09:37:05 akara Exp $
+ * $Id: ThreadCookieHandler.java,v 1.10 2008/06/17 16:47:24 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -33,6 +33,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * ThreadCookieHandler stores cookies from a response and retrieves all applicable
@@ -148,6 +149,7 @@ public class ThreadCookieHandler {
 
         Map<String, List<String>> cookieHeaders =
                 new LinkedHashMap<String, List<String>>();
+        cookieHeaders.putAll(requestHeaders);
         for (Map.Entry<Integer, CookieStore> entry : cookieStore.entrySet()) {
             int version = entry.getKey();
             CookieStore store = entry.getValue();
@@ -329,7 +331,8 @@ public class ThreadCookieHandler {
         long timeStamp;
         int maxAge = -1;
         String path;
-        String pathString;
+        private char[] cPath;   // Used for context-sensitive comparison
+        String pathString;  // Original path string
         int[] ports;        // Set-Cookie2 only
         String portString;  // Set-Cookie2 only
         boolean secure;
@@ -531,6 +534,70 @@ public class ThreadCookieHandler {
         }
 
         /**
+         * Matches a cookie's path to a request path to decide to send
+         * or not to send cookie.
+         * @param requestPath The URI path of the request
+         * @return true if the request path matches this cookie, false otherwise
+         */
+        boolean matchPath(String requestPath) {
+            if (cPath == null)
+                cPath = requestPath.toCharArray();
+
+            char[] rPath = requestPath.toCharArray(); // request path
+            boolean[] mark = new boolean[2]; // boolean array saves space.
+            char c1 = Character.MIN_VALUE;
+            char c2 = c1++;
+
+            for (int i = 0, j = 0; i < cPath.length; i++, j++) {
+
+                if (j >= rPath.length) // request path too short to match
+                    return false;
+
+                // c1 = relevant char for cPath
+                if (cPath[i] == '/') {
+                    if (!mark[0]) {
+                        mark[0] = true;
+                        c1 = cPath[i];
+                    } else {
+                        ++i;
+                        while (i < cPath.length && cPath[i] == '/')
+                            ++i;
+                        if (i == cPath.length)
+                            break;
+                        c1 = cPath[i];
+                        mark[0] = false;
+                    }
+                } else {
+                    mark[0] = false;
+                    c1 = cPath[i];
+                }
+
+                // c2 = relevant char for rPath
+                if (rPath[j] == '/') {
+                    if (!mark[1]) {
+                        mark[1] = true;
+                        c2 = rPath[j];
+                    } else {
+                        ++j;
+                        while (j < rPath.length && rPath[j] == '/')
+                            ++j;
+                        if (j == rPath.length) // too short to match
+                            return false;
+                        c2 = rPath[j];
+                        mark[1] = false;
+                    }
+                } else {
+                    mark[1] = false;
+                    c2 = rPath[j];
+                }
+
+                if (c1 != c2)
+                    return false;
+            }
+            return true;
+        }
+
+        /**
          * A cookie is equal to another cookie and replaces the other cookie
          * if for the same domain or request it has the same name and the same
          * path. Cookies that do not share the effective host/domain may not
@@ -560,6 +627,35 @@ public class ThreadCookieHandler {
         @Override
 		public int hashCode() {
             return (name + path).hashCode();
+        }
+
+        /**
+         * Returns a string representation of the object. In general, the
+         * <code>toString</code> method returns a string that
+         * "textually represents" this object. The result should
+         * be a concise but informative representation that is easy for a
+         * person to read.
+         * It is recommended that all subclasses override this method.
+         * <p/>
+         * The <code>toString</code> method for class <code>Object</code>
+         * returns a string consisting of the name of the class of which the
+         * object is an instance, the at-sign character `<code>@</code>', and
+         * the unsigned hexadecimal representation of the hash code of the
+         * object. In other words, this method returns a string equal to the
+         * value of:
+         * <blockquote>
+         * <pre>
+         * getClass().getName() + '@' + Integer.toHexString(hashCode())
+         * </pre></blockquote>
+         *
+         * @return a string representation of the object.
+         */
+        @Override public String toString() {
+            StringBuilder b = new StringBuilder();
+            b.append(name).append('=').append(value).append(", domain: ");
+            b.append(domain).append(", path: ").append(path).
+                    append(", ports: ").append(ports);
+            return b.toString();
         }
     }
 
@@ -655,6 +751,7 @@ public class ThreadCookieHandler {
             }
 
             if (dStore == null) {
+                logger.finer("No cookies found for request " + request);
 				return null;
 			}
 
@@ -921,6 +1018,9 @@ public class ThreadCookieHandler {
 					}
 				}
                 if (portDenied) {
+                    if (logger.isLoggable(Level.FINEST))
+                        logger.finest("Port denied. Cookie: " + cookie +
+                                                ", Request: " + request);
 					continue;
 				}
 
@@ -929,7 +1029,10 @@ public class ThreadCookieHandler {
                 if (path == null) {
 					path = "/";
 				}
-                if (!path.startsWith(cookie.path)) {
+                if (!cookie.matchPath(path)) {
+                    if (logger.isLoggable(Level.FINEST))
+                        logger.finest("Path denied. Cookie: " + cookie +
+                                                ", Request path: " + path);
 					continue;
 				}
 
