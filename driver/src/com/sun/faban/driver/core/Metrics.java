@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.25 2008/06/14 09:37:05 akara Exp $
+ * $Id: Metrics.java,v 1.26 2008/06/17 20:43:58 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -959,12 +959,13 @@ public class Metrics implements Serializable, Cloneable {
         int maxBucketId = data[0].length - 1;
 
         bucketScanLoop:
-        for (; maxBucketId >= 0; maxBucketId--) {
+        while (maxBucketId >= 0) {
 			for (int i = 0; i < data.length; i++) {
 				if (data[i][maxBucketId] != 0) {
                     break bucketScanLoop;
 				}
 			}
+            --maxBucketId;
 		}
         ++maxBucketId;
         if (maxBucketId < data[0].length) {
@@ -1018,7 +1019,7 @@ public class Metrics implements Serializable, Cloneable {
         // If all buckets are used, the last one does not get extrapolated
         // as it has the data of that bucket and beyond.
         boolean spareLastBucket = false;
-        if (limit == respHist.length)
+        if (limit == respHist[0].length)
             spareLastBucket = true;
 
         if (limit > FINE_RESPBUCKETS) {
