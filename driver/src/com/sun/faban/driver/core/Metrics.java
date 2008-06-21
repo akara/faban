@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.26 2008/06/17 20:43:58 akara Exp $
+ * $Id: Metrics.java,v 1.27 2008/06/21 09:25:46 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -892,14 +892,22 @@ public class Metrics implements Serializable, Cloneable {
         space(8, buffer).append("</delayTimes>\n");
 
         if (attachment != null) {
+            Logger logger = Logger.getLogger(
+                                        this.getClass().getName());
             Result.init(this); // Creates the result for the attachment to use.
-            CustomMetrics.Element[] elements = attachment.getResults();
+            CustomMetrics.Element[] elements = null;
+            try {
+                elements = attachment.getResults();
+            } catch (Exception e) { // Ensure the getResults
+                                    // doesn't break report generation.
+                logger.log(Level.WARNING, "Exceptione reporting CustomMetrics",
+                                                                            e);
+                elements = null;
+            }
             if (elements != null && elements.length > 0) {
                 space(8, buffer).append("<miscStats>\n");
                 for (CustomMetrics.Element element: elements) {
                     if (element == null) {
-                        Logger logger = Logger.getLogger(
-                                                    this.getClass().getName());
                         logger.warning("Null element returned from " +
                                 attachment.getClass().getName() +
                                 ".getResults, ignored!");
