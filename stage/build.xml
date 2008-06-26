@@ -19,7 +19,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: build.xml,v 1.15 2008/04/04 22:11:24 akara Exp $
+* $Id: build.xml,v 1.16 2008/06/26 06:26:44 akara Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 -->
@@ -158,7 +158,11 @@
             dest="master/webapps/faban"/>
     </target>
 
-    <target name="make-release">
+    <target name="check-release">
+        <available file="release.template" property="release.exists"/>
+    </target>
+
+    <target name="make-release" depends="check-release" if="release.exists">
         <copy file="release.template"
               tofile="release" overwrite="true" verbose="true"/>
         <replace file="release" token="@@build.date@@" value="${build.date}"/>
