@@ -19,7 +19,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: build.xml,v 1.16 2008/06/26 06:26:44 akara Exp $
+* $Id: build.xml,v 1.17 2008/06/28 00:26:25 akara Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 -->
@@ -196,6 +196,7 @@
         <exclude name="benchmarks/?*/**"/>
         <exclude name="output/?*"/>
         <exclude name="output/?*/**"/>
+        <exclude name="analysis/**"/>
         <exclude name="logs/?*"/>
         <exclude name="logs/?*/**"/>
         <exclude name="config/sequence"/>
@@ -207,7 +208,7 @@
         <exclude name="master/logs/?*"/>
         <exclude name="master/logs/?*/**"/>
         <exclude name="master/webapps/faban/**"/>
-        <exclude name="master/webapps/xanadu/**"/>
+        <exclude name="master/webapps/fenxi/**"/>
         <exclude name="master/work/Catalina/localhost/?*"/>
         <exclude name="master/work/Catalina/localhost/?*/**"/>
         <exclude name="samples/**/bin/**"/>
@@ -219,8 +220,6 @@
 
     <patternset id="server.excludes">
         <patternset refid="package.excludes"/>
-        <exclude name="build.xml"/>
-        <exclude name="build.properties"/>
         <exclude name="*.zip" if="faban.bundled"/>
         <exclude name="ant/**" if="faban.bundled"/>
         <exclude name="lib/pkglists/**"/>
@@ -230,6 +229,8 @@
     <patternset id="agent.excludes">
         <patternset refid="server.excludes"/>
         <exclude name="README.*"/>
+        <exclude name="build.xml"/>
+        <exclude name="build.properties"/>
         <exclude name="*.zip"/>
         <exclude name="output/**"/>
         <exclude name="analysis/**"/>
@@ -269,9 +270,9 @@
         </tar>
     </target>
 
-    <target name="package-server"
-        description="Package server install image">
-        <tar destfile="${kit.dir}/${package.name}-server-${build.date}.tar.gz"
+    <target name="package-benchmark" if="faban.bundled"
+        description="Package install image for specific benchmark">
+        <tar destfile="${kit.dir}/${package.name}-${build.date}.tar.gz"
             longfile="warn" compression="gzip">
             <tarfileset dir="." prefix="${package.name}" mode="755" dirmode="755">
                 <patternset refid="server.bin"/>
@@ -345,7 +346,7 @@
         unless="faban.bundled"
         description="Package the Faban kit only packages."/>
 
-    <target name="all" depends="package-faban"
+    <target name="all" depends="package-faban, package-benchmark"
         description="Create all packages."/>
 
     <target name="clean-master"
@@ -357,6 +358,7 @@
                 <exclude name="benchmarks/${package.name}.jar"/>
                 <include name="output/?*/**"/>
                 <include name="output/?*"/>
+                <include name="analysis/**"/>
                 <include name="logs/?*/**"/>
                 <include name="logs/?*"/>
                 <include name="config/sequence"/>
@@ -367,7 +369,7 @@
                 <include name="master/logs/?*/**"/>
                 <include name="master/logs/?*"/>
                 <include name="master/webapps/faban/**"/>
-                <include name="master/webapps/xanadu/**"/>
+                <include name="master/webapps/fenxi/**"/>
                 <include name="master/work/Catalina/localhost/?*/**"/>
                 <include name="master/work/Catalina/localhost/?*"/>
                 <include name="samples/**/build/**"/>
