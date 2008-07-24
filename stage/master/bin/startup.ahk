@@ -41,7 +41,7 @@ FileRemoveDir, faban, 1
 FileRemoveDir, xanadu
 FileCreateDir, faban
 SetWorkingDir, faban
-Run, %JavaHome%\bin\jar xf ../faban.war, , Hide
+Run, %JavaHome%\bin\jar xf ..\faban.war, , Hide
 
 SetWorkingDir, %PRGDIR%
 Run, %comspec% /c start "Tomcat" catalina.bat run %1% %2% %3% %4% %5%
