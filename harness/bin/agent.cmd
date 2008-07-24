@@ -40,4 +40,4 @@ goto :EOF
 
 :ONEARG
 REM This is either daemon mode or just querying for help
-start /b %JAVA% -client -cp %CLASSPATH% -Dfaban.cli.command=%0 -Dfaban.pathext=%PATHEXT% com.sun.faban.harness.agent.AgentBootstrap %* >>agent.log 2>&1
+start /b %JAVA% -client -cp %CLASSPATH% -Dfaban.cli.command=%0 -Djava.security.policy=%FABAN_HOME%\\config\\faban.policy -Djava.util.logging.config.file=%FABAN_HOME%\\config\\logging.properties -Dfaban.pathext=%PATHEXT% com.sun.faban.harness.agent.AgentBootstrap %* >>agent.log 2>&1
