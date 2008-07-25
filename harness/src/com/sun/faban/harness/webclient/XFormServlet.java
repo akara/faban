@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: XFormServlet.java,v 1.7 2007/09/08 01:21:14 akara Exp $
+ * $Id: XFormServlet.java,v 1.8 2008/07/25 00:20:38 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -48,6 +48,7 @@ import javax.servlet.http.HttpSession;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -124,8 +125,9 @@ public class XFormServlet extends HttpServlet {
         String styleSheet = (String)
                                 session.getAttribute("faban.submit.stylesheet");
 
-        String srcURL = "file://" + templateFile.replace('\\', '/');
+        String srcURL = new File(templateFile).toURI().toString();
 
+        logger.finer("benchmark.template: " + srcURL);
         session.removeAttribute("faban.submit.template");
         session.removeAttribute("faban.submit.stylesheet");
 
