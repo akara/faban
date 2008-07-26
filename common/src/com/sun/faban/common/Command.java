@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Command.java,v 1.12 2008/04/11 07:43:28 akara Exp $
+ * $Id: Command.java,v 1.13 2008/07/26 07:33:33 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -181,20 +181,13 @@ public class Command implements Serializable {
         return args;
     }
 
-    private StringBuilder _toString(StringBuilder buffer) {
-        for (String arg : command)
-            buffer.append(arg).append(' ');
-        buffer.setLength(buffer.length() - 1);
-        return buffer;
-    }
-
     /**
      * Returns a string representation of this command.
      *
      * @return a string representation of the command.
      */
     @Override public String toString() {
-        return _toString(new StringBuilder()).toString();
+        return command.toString();
     }
 
     /**
@@ -248,7 +241,7 @@ public class Command implements Serializable {
         if (logger.isLoggable(Level.FINE)) {
             StringBuilder msg = new StringBuilder();
             msg.append("Executing: ");
-            _toString(msg);
+            msg.append(command.toString());
             logger.fine(msg.toString());
         }
 
