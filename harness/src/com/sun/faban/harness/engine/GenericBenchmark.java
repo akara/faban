@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.30 2008/06/07 06:08:36 akara Exp $
+ * $Id: GenericBenchmark.java,v 1.31 2008/07/26 07:36:09 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -148,7 +148,7 @@ public class GenericBenchmark {
                         par.getParameter("fh:jvmConfig/fh:javaHome").trim();
                 if(!(new File(javaHome)).isDirectory()) {
                     logger.severe("Cannot set JAVA_HOME. " + javaHome +
-                            " is not set. Exiting");
+                            " is not a valid JAVA_HOME. Exiting");
                     return;
                 }
 

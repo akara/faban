@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: InterfaceProbe.java,v 1.2 2008/01/15 08:02:53 akara Exp $
+ * $Id: InterfaceProbe.java,v 1.3 2008/07/26 07:36:09 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -127,6 +127,8 @@ public class InterfaceProbe {
                 ifAInfo.prefixLength = ifAddress.getNetworkPrefixLength();
                 ifAInfo.netAddress = getNetworkAddress(ia,
                                                         ifAInfo.prefixLength);
+                if (ifAInfo.netAddress == null) // In some cases we cannot
+                    continue; // figure out the network. Ignore such networks.
                 ifAInfos.add(ifAInfo);
                 printIfInfo(ifAInfo);
             }
@@ -359,6 +361,13 @@ public class InterfaceProbe {
     private byte[] getNetworkAddress(InetAddress ia, short prefixLen) {
         byte[] byteAddress = ia.getAddress();
         short networkBytes = (short) (prefixLen / 8);
+        if (networkBytes > byteAddress.length) {
+            logger.severe("Netmask too long. Network address " + ia + " has " +
+                    prefixLen + "bit netmask while having " +
+                    byteAddress.length + "bytes in the address. " +
+                    "The address is a " + ia.getClass().getName());
+            return null;
+        }
         byte[] netAddress = new byte[byteAddress.length];
         int bytePos = 0;
         for (; bytePos < networkBytes; bytePos++)

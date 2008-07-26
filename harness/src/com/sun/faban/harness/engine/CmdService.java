@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.43 2008/05/14 07:08:32 akara Exp $
+ * $Id: CmdService.java,v 1.44 2008/07/26 07:36:09 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -183,21 +183,12 @@ final public class CmdService { 	// The final keyword prevents clones
     public boolean setup(String benchName, String[][] hosts,
                          String home, String options) {
 
-        // It is common for java to be in C:\Program Files. This has a space
-        // inside the string and can cause havoc. We need to double quote this
-        // parameter as needed.
-        if (home.indexOf(' ') == -1)
             javaHome = home;
-        else
-            javaHome = '"' + home + '"';
 
         // We need to be careful to escape properties having '\\' on win32
         String escapedHome = Config.FABAN_HOME.replace("\\", "\\\\");
         String fs = File.separatorChar == '\\' ? "\\\\" : File.separator;
 
-        // Again, we ensure FABAN_HOME to be quoted if there are spaces inside.
-        if (escapedHome.indexOf(' ') != -1)
-            escapedHome = '"' + escapedHome + '"';
         jvmOptions = new ArrayList<String>();
         jvmOptions.add("-Dfaban.home=" + escapedHome);
         jvmOptions.add("-Djava.security.policy=" + escapedHome + "config" +
@@ -246,6 +237,10 @@ final public class CmdService { 	// The final keyword prevents clones
                     buf.append(libs[i].getAbsolutePath() + File.pathSeparator);
             }
             buf.setLength(buf.length() - 1);
+            if (buf.indexOf(" ") != -1) {
+                buf.insert(0, '"');
+                buf.append('"');
+            }
             String classpath = buf.toString();
 
             // The registry should not consume much resources. Just don't
