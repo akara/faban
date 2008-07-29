@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Timer.java,v 1.6 2008/05/30 06:27:43 akara Exp $
+ * $Id: Timer.java,v 1.7 2008/07/29 23:26:41 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -45,6 +45,7 @@ public class Timer implements Serializable {
     private transient Logger logger;
     private long compensation = 5000000l;  // Some pretty good starting numbers
     private double deviation = 5000000d; // for both fields.
+    private Boolean debug = null;
 
     /**
      * Default Constructor which saves the current time
@@ -78,6 +79,10 @@ public class Timer implements Serializable {
      * @return The base nanosec corresponding to the base millisec.
      */
     private long calibrateNanos(long baseMillis) {
+
+        if (isDebug())
+            return estimateNanos(baseMillis);
+
         int iterations = 100;
         int limit = 1000;  // Limit the number of total loops...
         long[] diffms = new long[iterations];
@@ -204,6 +209,25 @@ public class Timer implements Serializable {
 
         // Based on our local differences between the nanos and millis clock
         // clock, we calculate the base nanose based on the given base millis.
+        return (baseMillis - this.diffms) * 1000000l + this.diffns;
+    }
+
+    /**
+     * Estimates the difference of the nanosec timer from the millisec
+     * timer. This method is not as timing sensitive as calibrateNanos
+     * and is routed from calibrateNanos in debug mode when the driver
+     * is run in an IDE or debugger. It is by far not as accurate as
+     * calibrateNanos.
+     * @param baseMillis the base millisec to find the base nanosec for
+     * @return The base nanosec corresponding to the base millisec.
+     */
+    private long estimateNanos(long baseMillis) {
+        long ns1 = System.nanoTime();
+        long ms = System.currentTimeMillis();
+        long ns2 = System.nanoTime();
+        long avgNs = (ns2 - ns1) / 2 + ns1;
+        this.diffms = ms - avgNs / 1000000;
+        this.diffns = (int) (avgNs % 1000000);
         return (baseMillis - this.diffms) * 1000000l + this.diffns;
     }
 
@@ -375,6 +399,24 @@ public class Timer implements Serializable {
     }
 
     /**
+     * Check whether we're in debug mode. Debug mode will make
+     * the Faban driver less timing sensitive. Debug mode is set
+     * by passing a system property -Dfaban.debug=true to the JVM
+     * at startup.
+     * @return true if debug is turned on.
+     */
+    boolean isDebug() {
+        if (debug == null) {
+            String debugSwitch = System.getProperty("faban.debug");
+            if (debugSwitch != null)
+                debug = new Boolean(debugSwitch);
+            else
+                debug = Boolean.FALSE;
+        }
+        return debug.booleanValue();
+    }
+
+    /**
      * The Calibrator thread is used to calibrate the deviation of the sleep
      * time for compensation purposes. We already know the semantics of sleep
      * points to the minimum sleep time. The actual time calculated from<ul>
@@ -452,15 +494,8 @@ public class Timer implements Serializable {
                 }
             }
 
-            // Check whether we're in debug mode. Debug mode will make
-            // the Faban driver less timing sensitive.
-            boolean debug = false;
-            String debugSwitch = System.getProperty("faban.debug");
-            if (debugSwitch != null)
-                debug = Boolean.parseBoolean(debugSwitch);
-
             // Test for qualifying final compensation...
-            if (!debug && compensation > 100000000l) {
+            if (!isDebug() && compensation > 100000000l) {
                 getLogger().severe(id + ": System needed time compensation " +
                         "of " + compensation / 1000000l + ".\nValues over " +
                         "100ms are unacceptable for a driver. \nPlease use a " +
