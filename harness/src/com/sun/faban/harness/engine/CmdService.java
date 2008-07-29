@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.44 2008/07/26 07:36:09 akara Exp $
+ * $Id: CmdService.java,v 1.45 2008/07/29 23:34:28 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -706,7 +706,7 @@ final public class CmdService { 	// The final keyword prevents clones
                     tasks.add(future);
                 }
             } catch (RemoteException e) {
-                logger.log(Level.SEVERE,
+                logger.log(Level.WARNING,
                         "Cannot communicate to agent to set time.", e);
             }
         }
@@ -714,7 +714,7 @@ final public class CmdService { 	// The final keyword prevents clones
             try {
                 future.value.get(300, TimeUnit.SECONDS);
             } catch (TimeoutException e) {
-                logger.log(Level.SEVERE, "Timed out setting clock for " +
+                logger.log(Level.WARNING, "Timed out setting clock for " +
                         future.name);
             } catch (Throwable t) {
                 Throwable cause = t.getCause();
@@ -722,7 +722,7 @@ final public class CmdService { 	// The final keyword prevents clones
                     t = cause;
                     cause = t.getCause();
                 }
-                logger.log(Level.SEVERE, t.getMessage(), t);
+                logger.log(Level.WARNING, t.getMessage(), t);
             }
     }
 
@@ -739,7 +739,7 @@ final public class CmdService { 	// The final keyword prevents clones
             this.dateFormat = dateFormat;
         }
 
-        public Boolean call() throws RemoteException, InterruptedException {
+        public Boolean call() throws IOException, InterruptedException {
 
             // 1. If we're within accuracy, don't set the clock
             long ms = System.currentTimeMillis();
@@ -1499,9 +1499,9 @@ final public class CmdService { 	// The final keyword prevents clones
             srcfilep.close();
             destfilep.close();
         } catch (Exception ie) {
-            logger.severe("CmdService: Could not copy " + srcmachine +
-                              ":" + srcfile + " to " + destmachine + ":" + destfile);
-            logger.log(Level.FINE, "Exception", ie);
+            logger.log(Level.WARNING, "CmdService: Could not copy " +
+                    srcmachine + ":" + srcfile + " to " + destmachine + ":" +
+                    destfile, ie);
             return(false);
         }
         return true;
@@ -1620,9 +1620,8 @@ final public class CmdService { 	// The final keyword prevents clones
 
             srcfilep.close();
         } catch (Exception ie) {
-            logger.severe("CmdService: Could not copy " + srcmachine +
-                          ":" + srcfile);
-            logger.log(Level.FINE, "Exception", ie);
+            logger.log(Level.WARNING, "CmdService: Could not copy " +
+                    srcmachine + ":" + srcfile, ie);
             return(false);
         }
         return(true);
@@ -1678,10 +1677,9 @@ final public class CmdService { 	// The final keyword prevents clones
             srcfilep.close();
             destfilep.close();
         } catch (Exception ie) {
-            logger.severe("CmdService: Could not copy " + srcmachine +
-                          ":" + srcfile + " to " + destmachine + ":" +
-                          destfile);
-            logger.log(Level.FINE, "Exception", ie);
+            logger.log(Level.WARNING, "CmdService: Could not copy " +
+                    srcmachine + ":" + srcfile + " to " + destmachine + ":" +
+                    destfile, ie);
             return(false);
         }
         return(true);

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgentImpl.java,v 1.21 2008/05/23 05:57:41 akara Exp $
+ * $Id: CmdAgentImpl.java,v 1.22 2008/07/29 23:34:27 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -854,12 +854,32 @@ public class CmdAgentImpl extends UnicastRemoteObject
      */
     public List<String> checkCommand(List<String> cmd) {
         String bin = cmd.get(0);
-        if (bin.indexOf(File.separator) == -1) {
-            // not an absolute path
-            List<String> prefixes = binMap.get(bin);
-            if (prefixes != null) // Don't find it, just try as is
-                CmdMap.replaceFirst(cmd, prefixes);
+        if (bin.indexOf(File.separator) == -1) { // not an absolute path
+            List<String> mods = binMap.get(bin);
+            // If we find modified commands, replace the command with the mods.
+            if (mods != null) {
+                CmdMap.replaceFirst(cmd, mods);
+            }
+        } else { // Check for pathext in case of absolute path...
+            File f = new File(bin);
+            if (!f.exists()) {
+                logger.finer(bin + " does not exist as a file.");
+                String[] exts = CmdMap.getPathExt();
+                if (exts != null) {
+                    for (String ext : exts) {
+                        String cext = bin + ext;
+                        logger.finer("Trying " + cext);
+                        f = new File(cext);
+                        if (f.exists()) {
+                            cmd.set(0, cext);
+                            logger.finer("Found " + cext);
+                            break;
+                        }
+                    }
+                }
+            }
         }
+
         return cmd;
     }
 
@@ -939,7 +959,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
      *
      * @param gmtTimeString Time string in format
      */
-    public void setTime(String gmtTimeString) {
+    public void setTime(String gmtTimeString) throws IOException {
         Command c = new Command("date", "-u", gmtTimeString);
         c.setLogLevel(Command.STDOUT, Level.FINER);
         c.setLogLevel(Command.STDERR, Level.WARNING);
@@ -951,6 +971,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
                         exitValue);
         } catch (IOException e) {
             logger.log(Level.WARNING, "Error setting date.", e);
+            throw e;
         } catch (InterruptedException e) {
             logger.log(Level.WARNING, "Interrupted setting date.", e);
         }

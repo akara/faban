@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgent.java,v 1.6 2008/02/01 22:53:55 akara Exp $
+ * $Id: CmdAgent.java,v 1.7 2008/07/29 23:34:27 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -227,7 +227,7 @@ public interface CmdAgent extends Remote {
      * @param gmtTimeString
      * @throws RemoteException
      */
-    void setTime(String gmtTimeString) throws RemoteException;
+    public void setTime(String gmtTimeString) throws IOException;
 
     /**
      * Gets the time on the agent host, in millis.
