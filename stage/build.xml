@@ -19,7 +19,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: build.xml,v 1.17 2008/06/28 00:26:25 akara Exp $
+* $Id: build.xml,v 1.18 2008/07/30 23:10:29 akara Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 -->
@@ -44,7 +44,10 @@
 
     <target name="build-faban" unless="faban.bundled"
         description="Build all the Faban components">
-	    <ant dir="${workspace.dir}/common"/>
+        <mkdir dir="${lib.dir}"/>
+        <mkdir dir="${kit.dir}"/>
+        <mkdir dir="${docs.dir}"/>
+        <ant dir="${workspace.dir}/common"/>
 	    <ant dir="${workspace.dir}/driver"/>
 	    <ant dir="${workspace.dir}/harness"/>
         <antcall target="copy"/>
