@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.27 2008/06/21 09:25:46 akara Exp $
+ * $Id: Metrics.java,v 1.28 2008/07/30 23:41:29 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -371,8 +371,9 @@ public class Metrics implements Serializable, Cloneable {
             errCntStdy[txType]++;
 		}
 
-        endTimeNanos = thread.driverContext.timingInfo.respondTime;
-
+        if (thread.driverContext.timingInfo.respondTime !=
+                AgentThread.TIME_NOT_SET)
+            endTimeNanos = thread.driverContext.timingInfo.respondTime;
         // Debugging the end time issue. Rarely happens but does happen
         // and we can't figure out where we're missing stuff.
         if (endTimeNanos == Long.MIN_VALUE) {
