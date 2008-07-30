@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Mysqlstats.java,v 1.1 2008/06/16 18:30:44 shanti_s Exp $
+ * $Id: Mysqlstats.java,v 1.2 2008/07/30 23:11:32 akara Exp $
  *
  * Copyright 2008 Sun Microsystems Inc. All Rights Reserved
  */
@@ -33,8 +33,8 @@ import com.sun.faban.harness.common.Config;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.StringTokenizer;
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -63,6 +63,8 @@ public class Mysqlstats implements Tool {
     Command mysql;
     CommandHandle tool;
 	int toolStatus = NOT_STARTED;
+    CountDownLatch latch;
+    boolean countedDown = false;
     String logfile, logfile1, logfile2, outfile; // Name of logfiles
     String toolName;
     String path = null; // The path to the tool.
@@ -71,11 +73,12 @@ public class Mysqlstats implements Tool {
     int duration;
     CmdAgent cmdAgent;
 
-    Thread toolThread = null;
-	private Mysqlstats toolObj;
+    protected Timer timer;
+
+    // Thread toolThread = null;
+	// private Mysqlstats toolObj;
 
     public Mysqlstats() {
-	    toolObj = this;
 		logger = Logger.getLogger(this.getClass().getName());
 	}
 
@@ -84,10 +87,13 @@ public class Mysqlstats implements Tool {
      * call the tool with.
      *
      */
-    public void configure(String tool, List argList, String path, String outDir,
-                          String host, String masterhost, CmdAgent cmdAgent) {
+    public void configure(String tool, List<String> argList, String path,
+                          String outDir, String host, String masterhost,
+                          CmdAgentImpl cmdAgent, CountDownLatch latch) {
         toolName = tool;
         this.cmdAgent = cmdAgent;
+        timer = cmdAgent.getTimer();
+        this.latch = latch;
 
         outfile = getOutputFile(outDir, host);
         logfile = getLogFile();
@@ -99,27 +105,31 @@ public class Mysqlstats implements Tool {
             throw new IllegalArgumentException(
                     "MYSQL_HOME, USER, PASSWD not passed as argument");
 
-        String mysqlHome = (String) argList.get(0);
-        String mysqlUser = (String) argList.get(1);
-        String mysqlPass = (String) argList.get(2);
+        String mysqlHome = argList.get(0);
+        String mysqlUser = argList.get(1);
+        String mysqlPass = argList.get(2);
 
         if (mysqlHome.endsWith(File.separator))
             mysqlHome = mysqlHome.substring(0, mysqlHome.length() -
                                               File.separator.length());
 
         // Prepare the input
-        String stdin = "show global status\n" + "quit\n";
+        // String stdin = "show global status\n" + "quit\n";
         // Prepare the command
+        ArrayList<String> c = new ArrayList<String>();
         String cmd = "mysql";
         if (mysqlHome != null)
             cmd = mysqlHome + File.separator + "bin" + File.separator + cmd;
+        c.add(cmd);
 		if (mysqlUser != null)
-			cmd = cmd + " -u" + mysqlUser;
+            c.add("-u" + mysqlUser);
         if (mysqlPass != null)
-			cmd = cmd + " -p" + mysqlPass;
-		cmd = cmd + " -B -e \"show global status;\"";
-        logger.log(Level.FINE, "Setting up mysql command: " + cmd);
-        mysql = new Command(cmd);
+            c.add("-p" + mysqlPass);
+        c.add("-B");
+        c.add("-e");
+        c.add("show global status;");
+        logger.log(Level.FINE, "Setting up mysql command: " + c);
+        mysql = new Command(c);
 		/***
         mysql.setEnvironment(env);
         mysql.setInput(stdin.getBytes());
@@ -151,6 +161,7 @@ public class Mysqlstats implements Tool {
     public void kill() {
         // For most tools, we try to collect the output no matter what.
         stop(false);
+        finish();
     }
 
     /**
@@ -165,23 +176,16 @@ public class Mysqlstats implements Tool {
         this.duration = duration;
 
         if(this.start(delay)) {
-            Thread stopThread = new Thread() {
+            TimerTask stopTask = new TimerTask() {
                 public void run() {
-                    try {
-                        Thread.sleep(toolObj.delay*1000 + toolObj.duration*1000);
-                    }
-                    catch(Exception e) {
-                        logger.log(Level.SEVERE,
-                                "Cannot start Tool Stop thread.", e);
-                    }
-                    toolObj.stop();
+                    stop();
                 }
             };
-            stopThread.start();
+            timer.schedule(stopTask, (delay + duration) * 1000);
             return true;
-        }
-        else
+        } else {
             return false;
+        }
     }
 
     /**
@@ -189,32 +193,19 @@ public class Mysqlstats implements Tool {
      * @param delay int delay (sec) after which start should be called
      */
 
-    public boolean start (int delay) {
-        this.delay = delay;
-
-        // start the tool in a new thread
-        toolThread = new Thread(this);
-        // Set this tool thread as a daemon thread.  So that JVM can exit when 
-        // the only threads running are all daemon threads.        
-        toolThread.setDaemon(true);
-        toolThread.start();
-        return(true);
+    public boolean start(int delay) {
+        TimerTask startTask = new TimerTask() {
+            public void run() {
+                start();
+            }
+        };
+        timer.schedule(startTask, delay * 1000);
+        return true;
     }
 
-    /**
-     * The Runnable.run() is used to really start the tool after the delay.
-     */
-    public void run() {
-
+    protected void start() {
         try {
-            // Sleep for the delay secs.
-            Thread.sleep(delay*1000);
-        } catch(InterruptedException e) {
-            // the stop was called.
-            return;
-        }
-
-        try {
+            mysql.setSynchronous(false);
 		    mysql.setOutputFile(Command.STDOUT, logfile1);
             tool = cmdAgent.execute(mysql);
             logger.log(Level.FINE, "Calling mysql show status at start");
@@ -231,6 +222,7 @@ public class Mysqlstats implements Tool {
      */
     public void stop() {
         stop(true);
+        finish();
     }
 
 
@@ -259,18 +251,13 @@ public class Mysqlstats implements Tool {
             }
         else if (warn && toolStatus == NOT_STARTED)
             logger.warning("Tool not started but stop called for " + toolName);
-
-        // If the Thread start was called
-        if((toolThread != null) && (toolThread.isAlive()))
-            toolThread.interrupt();
     }
 
     /**
      * Get final report by diffing the two logfiles
      * @param log1 The first logfile
      * @param log2 The second logfile
-     * @param outputFile The output file
-     * @return void
+     * @param outFile The output file
      */
     protected void getReport(String log1, String log2,
                                                String outFile) {
@@ -307,6 +294,12 @@ public class Mysqlstats implements Tool {
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Error transferring " + logfile, e);
         }
+    }
+
+    protected void finish() {
+        if (!countedDown)
+            latch.countDown();
+        countedDown = true;
     }
 }
 
