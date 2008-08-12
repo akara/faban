@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DeployUtil.java,v 1.15 2008/06/03 18:00:32 akara Exp $
+ * $Id: DeployUtil.java,v 1.16 2008/08/12 17:17:18 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -224,6 +224,16 @@ public class DeployUtil {
                     }
                     File newName = new File(profile, configFileName + date);
                     configFile.renameTo(newName);
+                } else if (profile.isFile() &&
+                           configFileName.equals(profile.getName())) {
+                    if (date == null) {
+                        SimpleDateFormat format =
+                                new SimpleDateFormat("yyMMddHHmmss");
+                        date = "." + format.format(new Date());
+                    }
+                    File newName = new File(Config.PROFILES_DIR,
+                                                configFileName + date);
+                    profile.renameTo(newName);
                 }
             }
         }

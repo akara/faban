@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Result.java,v 1.21 2007/07/20 22:16:30 akara Exp $
+ * $Id: Result.java,v 1.22 2008/08/12 17:17:18 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -274,14 +274,17 @@ public class Result {
 
     public static TableModel getResultTable(Subject user) {
 
-        String dirs[] = new File(Config.OUT_DIR).list();
+        File[] dirs = new File(Config.OUT_DIR).listFiles();
         ArrayList<Result> resultList = new ArrayList<Result>(dirs.length);
         HashSet<String> scaleNames = new HashSet<String>();
         HashSet<String> scaleUnits = new HashSet<String>();
         HashSet<String> metricUnits = new HashSet<String>();
 
         Result result0 = null;
-        for (String runIdS : dirs)
+        for (File runDir : dirs) {
+            if (!runDir.isDirectory())
+                continue;
+            String runIdS = runDir.getName();
             try {
                 RunId runId = new RunId(runIdS);
                 if (!AccessController.isViewAllowed(user, runIdS))
@@ -294,6 +297,7 @@ public class Result {
             } catch (Exception e) {
                 logger.log(Level.WARNING, "Cannot read result dir " + runIdS);
             }
+        }
 
         TableModel table = new TableModel(8);
         table.setHeader(0, "RunID");

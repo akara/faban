@@ -43,6 +43,7 @@ HOSTNAME=`uname -n`
 # Use the client JVM. It is much lighter weight, less threads, less memory
 # and we do not need much performance for the agent.
 $JAVA -client -classpath $CLASSPATH \
+-Djava.rmi.server.RMIClassLoaderSpi=com.sun.faban.harness.agent.RMIClassLoaderProvider \
 -Dfaban.cli.command=$0 -Dfaban.home=$FABAN_HOME \
 -Djava.security.policy=$FABAN_HOME"/config/faban.policy" \
 com.sun.faban.harness.agent.AgentBootstrap $* >>agent.${HOSTNAME}.log 2>&1 &

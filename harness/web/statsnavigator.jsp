@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: statsnavigator.jsp,v 1.7 2008/04/04 22:09:29 akara Exp $
+ * $Id: statsnavigator.jsp,v 1.8 2008/08/12 17:17:20 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -142,15 +142,8 @@
             if (hostTypes != null) { // If we know the types, order by relevance in that type.
                 hosts = hostTypes.getHostsInOrder();
         %>
-        <link rel="stylesheet" type="text/css" href="css/balloontip.css" />
-        <script type="text/javascript" src="scripts/balloontip.js"/>
-        <!--
-   /***********************************************
-    * Rich HTML Balloon Tooltip- © Dynamic Drive DHTML code library (www.dynamicdrive.com)
-    * This notice MUST stay intact for legal use
-    * Visit Dynamic Drive at http://www.dynamicdrive.com/ for full source code
-    ***********************************************/
-         -->
+        <link rel="stylesheet" type="text/css" href="css/balloontip2.css" />
+        <script type="text/javascript" src="scripts/balloontip2.js"></script>
          <%
             } else { // If we don't know the types, order by name
                 Set<String> hostSet = allHosts.keySet();
@@ -165,7 +158,7 @@
                 for (String hostName : hosts) {
                     String[] types = hostTypes.getTypesByHost(hostName);
         %>
-        <div id="<%= hostName %>_balloon" class="balloonstyle" style="background-color: lightyellow">
+        <div id="<%= hostName %>_balloon" class="ballooncontent">
         <%
                     StringBuilder b = new StringBuilder();
                     for (String type : types) {
@@ -180,7 +173,7 @@
                             for (int i = 1; i < aliases.length; i++)
                                 b.append(", ").append(aliases[i]);
                         }
-                        b.append("<br/>\n");
+                        b.append("<br/>");
                     }
                     out.print(b.toString());
         %>
@@ -206,18 +199,19 @@
                         HashSet<String> toolSet = allHosts.get(host);
                         if (toolSet == null)
                             continue;
+                        String mouseover = "";
+                        if (hostTypes != null) {
+                            mouseover = "onmouseover=\"ddrivetip('" + host +
+                                    "_balloon')\" onmouseout=\"hideddrivetip()\"";
+                        }
                  %>
-                 <tr>
+                 <tr <%= mouseover%>>
                      <% if (toolSet.contains("SystemInfo")) {
                              String fullName = infoHostMap.get(host);
                              if (fullName == null)
                                  fullName = host;
-                             String relClause = " ";
-                             if (hostTypes != null)
-                                 relClause = "rel=\"" + host + "_balloon\" ";
-                                 
                      %>
-                        <td style="text-align: left;"><a <%= relClause %>href="output/<%= runId %>/sysinfo.<%= fullName %>.html"><%= host %></a></td>
+                        <td style="text-align: left;"><a href="output/<%= runId %>/sysinfo.<%= fullName %>.html"><%= host %></a></td>
                      <% } else { %>
                         <td style="text-align: left;"><%= host %></td>
                      <% }

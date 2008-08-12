@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgentImpl.java,v 1.22 2008/07/29 23:34:27 akara Exp $
+ * $Id: CmdAgentImpl.java,v 1.23 2008/08/12 17:17:17 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -77,7 +77,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
 
     private Timer timer;
 
-    private String[] baseClassPath;
+    String[] baseClassPath;
     Map<String, List<String>> binMap;
     private ArrayList<String> javaCmd;
 

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ServerConfig.java,v 1.11 2008/06/05 07:24:08 akara Exp $
+ * $Id: ServerConfig.java,v 1.12 2008/08/12 17:17:18 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -34,6 +34,7 @@ import java.text.DateFormat;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.rmi.RemoteException;
 
 /**
  * Class: ServerConfig.java
@@ -359,32 +360,47 @@ class ServerConfig {
 
         // Now, get /var/adm/messages and look for messages between
         // start and end
-        try {
-            CommandHandle handle;
-            Command c = new Command("messages", "\"" +
-                    startMon + " " + startDay + " " + stime + "\"",
-                    "\""  + endMon + " " + endDay + " " + etime + "\"");
-            c.setStreamHandling(Command.STDOUT, Command.CAPTURE);
-            logger.fine("Getting system messages");
+        CommandHandle handle;
+        Command c = new Command("messages", "\"" +
+                startMon + " " + startDay + " " + stime + "\"",
+                "\""  + endMon + " " + endDay + " " + etime + "\"");
+        c.setStreamHandling(Command.STDOUT, Command.CAPTURE);
+        logger.fine("Getting system messages");
 
-            for (int i = 0; i < serverMachines.length; i++)
-                for(int j = 0; j < serverMachines[i].length; j++) {
-                    String machine = serverMachines[i][j];
-                    File f = new File(sysfile + "." + machine);
-                    f.delete();
+        for (int i = 0; i < serverMachines.length; i++)
+            for(int j = 0; j < serverMachines[i].length; j++) {
+                String machine = serverMachines[i][j];
+                File f = new File(sysfile + "." + machine);
+                f.delete();
+                try {
                     syslog = new PrintStream(new FileOutputStream(f));
                     handle = cmds.execute(machine, c);
                     byte[] messages = handle.fetchOutput(Command.STDOUT);
                     syslog.println(linesep);
                     syslog.println("System messages during run from server " +
-                                                                    machine);
+                            machine);
                     syslog.println("\n");
                     if (messages != null) // Null if no messages.
                         syslog.write(messages);
                     syslog.println("\n");
+                } catch (RemoteException e) {
+                    Throwable cause = e.getCause();
+                    while (cause != null)
+                        cause = cause.getCause();
+                    String message = "Error processing system messages for " +
+                                                                    machine;
+                    // A remote IOException usually means the messages script
+                    // is not available for the target OS. We want to log
+                    // at a lower level.
+                    if (cause instanceof IOException)
+                        logger.log(Level.FINE, message, cause);
+                    else
+                        logger.log(Level.WARNING, message, cause);
+                } catch (Exception e) {
+                    logger.log(Level.WARNING,
+                            "Error collecting system messages from " + machine,
+                            e);
                 }
-        } catch (Exception ie) {
-            logger.log(Level.SEVERE, "Reporting failed!", ie);
-        }
+            }
     }
 }
