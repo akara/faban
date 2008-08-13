@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: HttpTransport.java,v 1.10 2007/09/05 23:32:28 noahcampbell Exp $
+ * $Id: HttpTransport.java,v 1.11 2008/08/13 19:03:32 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -32,10 +32,7 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -78,6 +75,8 @@ public class HttpTransport {
 	postHeadersBinary.put("Content-type", "application/octet-stream");
     }
 
+    private static final Set<String> TEXT_MIMETYPES = getTextMimetypes();  
+
     /** The main appendable buffer for the total results. */
     private StringBuilder charBuffer;
 
@@ -106,6 +105,13 @@ public class HttpTransport {
     private HashMap<String, String> defaultPostHeader;
 
     private boolean followRedirects = false;
+
+    private static Set<String> getTextMimetypes() {
+        HashSet<String> texttypes = new HashSet<String>();
+        texttypes.add("application/json");
+        // Add other text types as necessary
+        return Collections.unmodifiableSet(texttypes);
+    }
 
     /**
      * Constructs a new HttpTransport object.
@@ -578,7 +584,8 @@ public class HttpTransport {
         responseCode = connection.getResponseCode();
         responseHeader = connection.getHeaderFields();
         String contentType = connection.getContentType();
-        if (contentType != null && contentType.startsWith("text/")) {
+        if (contentType != null && (contentType.startsWith("text/") ||
+                                    TEXT_MIMETYPES.contains(contentType))) {
             InputStream is = connection.getInputStream();
             Reader reader = new InputStreamReader(is);
 
