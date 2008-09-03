@@ -29,6 +29,12 @@
             <fa:steadyState>300</fa:steadyState>
             <fa:rampDown>30</fa:rampDown>
         </fa:runControl>
+        <!-- Whether to sync the clock on all systems in the test rig to
+        the master's clock. This will make it much easier to interpret
+        log messages as it will be ordered by timestamp. If set to false,
+        log records coming from different systems are timestamped by the
+        source system and therefore may have vastly different times. -->
+        <fh:timeSync>true</fh:timeSync>        
         <!-- The place where results are written -->
         <outputDir>/tmp/output</outputDir>
         <!-- Audit is a flag for benchmarks to audit results
