@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: InitFilter.java,v 1.3 2008/02/05 07:33:42 akara Exp $
+ * $Id: InitFilter.java,v 1.4 2008/09/03 05:16:29 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -52,7 +52,6 @@ public class InitFilter implements Filter {
             resp = (HttpServletResponse) response;
             HttpServletRequest req = (HttpServletRequest) request;
             Engine.initIfNotInited(ctx, req);
-            chain.doFilter(request, response);
         } catch (Throwable e) {
             Logger.getLogger(this.getClass().getName()).
                                         log(Level.SEVERE, e.getMessage(), e);
@@ -61,7 +60,9 @@ public class InitFilter implements Filter {
                                 e.getMessage());
                 resp.flushBuffer();
             }
+            return;
         }
+        chain.doFilter(request, response);
     }
 
     public void destroy() {

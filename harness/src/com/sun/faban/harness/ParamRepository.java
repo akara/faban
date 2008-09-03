@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ParamRepository.java,v 1.10 2008/04/17 06:33:38 akara Exp $
+ * $Id: ParamRepository.java,v 1.11 2008/09/03 05:16:30 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -263,6 +263,13 @@ public class ParamRepository {
         return  Boolean.valueOf(reader.getValue(xpath)).booleanValue();
     }
 
+    public boolean getBooleanValue(String xpath, boolean defaultValue) {
+        String s = reader.getValue(xpath);
+        if (xpath == null || xpath.length() == 0)
+            return defaultValue;
+        else
+            return Boolean.parseBoolean(s);
 
+    }
 }
 

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.31 2008/07/26 07:36:09 akara Exp $
+ * $Id: GenericBenchmark.java,v 1.32 2008/09/03 05:16:29 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -169,8 +169,7 @@ public class GenericBenchmark {
                             ", does not match enabled, " +
                             enabled.size() + ".");
                     return;
-                }
-                else {
+                } else {
                     for(int i = 0; i < hosts.size(); i++) {
                         if(Boolean.valueOf((String) enabled.get(i)).
                                 booleanValue()) {
@@ -179,8 +178,10 @@ public class GenericBenchmark {
                     }
                     String[][] hostArray = (String[][])
                             enabledHosts.toArray(new String[1][1]);
+                    boolean clockSync = par.getBooleanValue(
+                                            "fa:runConfig/fh:timeSync", true);
                     if (!cmds.setup(benchDesc.shortName,
-                            hostArray, javaHome, jvmOpts)) {
+                            hostArray, javaHome, jvmOpts, clockSync)) {
                         logger.severe("CmdService setup failed. Exiting");
                         return;
                     }

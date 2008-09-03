@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.27 2007/10/12 01:32:10 akara Exp $
+ * $Id: Config.java,v 1.28 2008/09/03 05:16:27 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -193,7 +193,7 @@ public class Config {
 
     public static DaemonModes daemonMode;
     public static HostInfo[] pollHosts;
-    public static URL[] replicationURLs = null;
+    public static URL[] repositoryURLs = null;
 
     static {
         deriveConfig();
@@ -434,9 +434,9 @@ public class Config {
                     }
                 }
 
-                // Reading replication config
+                // Reading repository config
                 NodeList servers = (NodeList) xPath.evaluate(
-                        "replication/server[@enabled='true']", root,
+                        "repository/server[@enabled='true']", root,
                         XPathConstants.NODESET);
 
                 int serverCount;
@@ -458,8 +458,8 @@ public class Config {
                             }
                         }
                     }
-                    replicationURLs = new URL[serverList.size()];
-                    replicationURLs = serverList.toArray(replicationURLs);
+                    repositoryURLs = new URL[serverList.size()];
+                    repositoryURLs = serverList.toArray(repositoryURLs);
                 }
 
                 // Note: The logServer config is read by LogConfig, not here.

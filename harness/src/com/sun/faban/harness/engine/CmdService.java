@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.45 2008/07/29 23:34:28 akara Exp $
+ * $Id: CmdService.java,v 1.46 2008/09/03 05:16:28 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -181,7 +181,7 @@ final public class CmdService { 	// The final keyword prevents clones
      *
      */
     public boolean setup(String benchName, String[][] hosts,
-                         String home, String options) {
+                         String home, String options, boolean clockSync) {
 
             javaHome = home;
 
@@ -447,7 +447,8 @@ final public class CmdService { 	// The final keyword prevents clones
         for (int i = 0; i < machinesList.size(); i++)
             if (!getCmdAgent((String) machinesList.get(i)))
                 return false;
-        setClocks();
+        if (clockSync)
+            setClocks();
         return true;
     }
 
@@ -1396,7 +1397,7 @@ final public class CmdService { 	// The final keyword prevents clones
      * Gets a remote file to the Faban master.
      * @param srcmachine The source machine
      * @param srcfile The source file name
-     * @param destfile The destination file name
+     * @param destfile The destination file name, always full path
      * @return true if successful, false otherwise
      */
     public synchronized boolean get(String srcmachine, String srcfile,
@@ -1409,7 +1410,6 @@ final public class CmdService { 	// The final keyword prevents clones
             String src = InetAddress.getLocalHost().getHostName();
             String dest = hostTypes.getHostByAlias(srcmachine);
             if (dest.equals(src)) {
-                destfile = Config.OUT_DIR + destfile;
                 if (srcfile.equals(destfile))
                     return true;
                 else
