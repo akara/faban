@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: analyzeruns.jsp,v 1.6 2008/05/19 22:59:56 akara Exp $
+ * $Id: analyzeruns.jsp,v 1.7 2008/09/03 05:21:14 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -34,7 +34,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
         <meta name="Author" content="Akara Sucharitakul"/>
-        <meta name="Description" content="Reults JSP"/>
+        <meta name="Description" content="Results JSP"/>
         <title>Analyze Runs</title>
         <link rel="icon" type="image/gif" href="img/faban.gif">
     <%

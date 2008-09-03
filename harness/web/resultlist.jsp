@@ -19,11 +19,30 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultlist.jsp,v 1.8 2008/05/19 22:59:56 akara Exp $
+ * $Id: resultlist.jsp,v 1.9 2008/09/03 05:21:15 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 -->
+    <%@ page language="java" import="com.sun.faban.harness.webclient.Result,
+                                     com.sun.faban.harness.webclient.TableModel,
+                                     com.sun.faban.harness.common.Config"%>
+    <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
+    <%
+    response.setHeader("Cache-Control", "no-cache");
+    String processString = request.getParameter("action");
+    if ("Compare".equals(processString) ||
+        "Average".equals(processString)) {
+        RequestDispatcher rd = request.getRequestDispatcher("/analyzeruns.jsp");
+        rd.forward(request, response);
+    } else if ("Archive".equals(processString)) {
+        RequestDispatcher rd = request.getRequestDispatcher("/archiveruns.jsp");
+        rd.forward(request, response);
+    } else {
+        TableModel resultTable = Result.getResultTable(usrEnv.getSubject());
+        int rows = resultTable.rows();
+        if(resultTable != null && rows > 0) {
+    %>
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
@@ -33,19 +52,24 @@
         <link rel="icon" type="image/gif" href="img/faban.gif">
     </head>
     <body>
-    <%@ page language="java" import="com.sun.faban.harness.webclient.Result,
-                                     com.sun.faban.harness.webclient.TableModel"%>
-    <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
-    <%  TableModel resultTable = Result.getResultTable(usrEnv.getSubject());
-        int rows = resultTable.rows();
-        if(resultTable != null && rows > 0) {
-    %>
-            <form name="analyze" method="post" action="analyzeruns.jsp">
+            <form name="processrun" method="post" action="controller/result_action/take_action">
               <center>
                 <input type="submit" name="process" value="Compare">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 <!-- Commented out until FenXi supports averaging again.
                 <input type="submit" name="process" value="Average">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 -->
+    <%
+            boolean allowArchive = false;
+            if (Config.repositoryURLs != null &&
+                Config.repositoryURLs.length > 0)
+                allowArchive = true;
+
+            if (allowArchive) {
+    %>
+                <input type="submit" name="process" value="Archive">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <%
+            }
+    %>
                 <input type="reset">
               </center>
               <br>
@@ -75,8 +99,15 @@
      <center>
      <input type="submit" name="process" value="Compare">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
      <!-- Commented out until FenXi supports averaging again.
-     <input type="submit" name="process" value="Average">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+     <input type="submit" name="action" value="edit_average>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
      -->
+    <%
+            if (allowArchive) {
+    %>
+                <input type="submit" name="process" value="Archive">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <%
+            }
+    %>
      <input type="reset">
      </center>
     </form>
@@ -89,6 +120,7 @@
             <br/>
             <%
         }
+    }
     %>
     </body>
 </html>

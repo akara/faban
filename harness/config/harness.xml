@@ -60,10 +60,10 @@
             <proxyPort></proxyPort>
         </host>
     </runDaemon>
-    <replication>
+    <repository>
         <server enabled="false">http://faban.sfbay.sun.com:9980</server>
         <server enabled="false">http://faban.sunsource.net:9980</server>
-    </replication>
+    </repository>
     <logServer>  <!-- Don't touch this unless you really know what you're doing -->
         <port>9999</port>
         <listenerThreads>1</listenerThreads>

@@ -32,7 +32,10 @@
             <param-value>xslt</param-value>
         </init-param>
     </servlet>
-
+    <servlet>
+        <servlet-name>Dispatcher</servlet-name>
+        <servlet-class>com.sun.faban.harness.webclient.Dispatcher</servlet-class>
+    </servlet>
     <servlet>
         <servlet-name>LogReader</servlet-name>
         <servlet-class>com.sun.faban.harness.webclient.LogReader</servlet-class>
@@ -66,6 +69,11 @@
     <servlet-mapping>
         <servlet-name>LogReader</servlet-name>
         <url-pattern>/LogReader</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>Dispatcher</servlet-name>
+        <url-pattern>/controller/*</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>
