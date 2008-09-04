@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: XMLReader.java,v 1.13 2008/04/17 06:33:38 akara Exp $
+ * $Id: XMLReader.java,v 1.14 2008/09/04 03:26:12 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -357,22 +357,31 @@ public class XMLReader {
         }
     }
 
+    private boolean isHostNode(Node hostsNode) {
+        if (hostsNode.getNodeType() != Node.ELEMENT_NODE)
+            return false;
+        String nodeName = hostsNode.getNodeName();
+        if (nodeName == null)
+            return false;
+        if (!nodeName.endsWith(":host"))
+            return false;
+        if (!ParamReader.FABANURI.equals(hostsNode.getNamespaceURI()))
+            return false;
+        return true;
+    }
+
     private void processHostPorts(Node hostPortNode) {
 
         Node hostConfig = hostPortNode.getParentNode();
         Node firstChild = hostConfig.getFirstChild();
         Node hostsNode = firstChild;
-        if (hostsNode.getNodeType() != Node.ELEMENT_NODE ||
-                hostsNode.getNodeName().endsWith(":host") ||
-                !ParamReader.FABANURI.equals(hostsNode.getNamespaceURI())) {
+        if (!isHostNode(hostsNode)) {
             hostsNode = null;
             NodeList hostConfigNodes = hostConfig.getChildNodes();
             int length = hostConfigNodes.getLength();
-            for (int i = 0; i < length; i++) {
+            for (int i = 1; i < length; i++) {
                 Node pHost = hostConfigNodes.item(i);
-                if (pHost.getNodeType() == Node.ELEMENT_NODE &&
-                pHost.getNodeName().endsWith(":host") &&
-                ParamReader.FABANURI.equals(pHost.getNamespaceURI())) {
+                if (isHostNode(pHost)) {
                     hostsNode = pHost;
                     break;
                 }
@@ -392,7 +401,14 @@ public class XMLReader {
         }
 
         Node clientsNode = hostPortNode.getFirstChild();
-        String clients = clientsNode.getNodeValue();
+        String clients;
+        if (clientsNode == null) {
+            clients = "";
+        } else {
+            clients = clientsNode.getNodeValue();
+            if (clients == null)
+                clients = "";
+        }
 
         ArrayList<NameValuePair<Integer>> hostsPorts =
                                     new ArrayList<NameValuePair<Integer>>();

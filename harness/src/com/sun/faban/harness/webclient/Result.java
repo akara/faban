@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Result.java,v 1.22 2008/08/12 17:17:18 akara Exp $
+ * $Id: Result.java,v 1.23 2008/09/04 03:26:13 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -295,7 +295,7 @@ public class Result {
                 metricUnits.add(result0.metricUnit);
                 resultList.add(result0);
             } catch (Exception e) {
-                logger.log(Level.WARNING, "Cannot read result dir " + runIdS);
+                logger.log(Level.WARNING, "Cannot read result dir " + runIdS, e);
             }
         }
 
