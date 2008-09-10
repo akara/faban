@@ -14,4 +14,4 @@ BINDIR=`dirname $0`
 $JAVA_HOME/bin/java -XX:+DisableExplicitGC \
     -Djava.security.policy=security/driver.policy \
     -Djava.util.logging.config.file=logging.properties \
-    -Dbenchmark.config=run.xml com.sun.faban.driver.core.MasterImpl
+    -Dbenchmark.config=run.xml com.sun.faban.driver.engine.MasterImpl

@@ -10,5 +10,5 @@ BINDIR=`dirname $0`
 
 $JAVA_HOME/bin/java -Djava.security.policy=security/driver.policy \
     -Djava.util.logging.config.file=logging.properties \
-    -Dbenchmark.config=run.xml com.sun.faban.driver.core.AgentImpl \
+    -Dbenchmark.config=run.xml com.sun.faban.driver.engine.AgentImpl \
     MyDriver 1 sr1-umpk-18

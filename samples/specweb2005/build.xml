@@ -71,7 +71,7 @@
 
     <target name="run" depends="bench.jar" 
         description="Test runs the benchmark outside the Faban Harness">
-        <java classname="com.sun.faban.driver.core.MasterImpl"
+        <java classname="com.sun.faban.driver.engine.MasterImpl"
               classpathref="classpath"
               fork="true"
               failonerror="true"
@@ -100,7 +100,7 @@
         description="Start a Faban agent">
         <!-- To start the agent, properties driver.name, driver.id, 
              and master.host need to be declared -->
-        <java classname="com.sun.faban.driver.core.AgentImpl"
+        <java classname="com.sun.faban.driver.engine.AgentImpl"
               classpathref="classpath"
               fork="true"
               failonerror="true">
