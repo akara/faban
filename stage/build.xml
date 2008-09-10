@@ -19,7 +19,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: build.xml,v 1.18 2008/07/30 23:10:29 akara Exp $
+* $Id: build.xml,v 1.19 2008/09/10 18:55:38 akara Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 -->
@@ -28,6 +28,7 @@
     <property file="build.properties"/>
     <property name="jar.output" value="build/lib"/>
     <property name="lib.dir" value="lib"/>
+    <property name="docs.dir" value="${public.dir}/${faban.version}/docs"/>
     <tstamp>
         <format property="build.date" pattern="MMddyy"/>
     </tstamp>
@@ -317,9 +318,10 @@
             destdir="${docs.dir}/api"
             classpathref="class.path"
             verbose="false"
-            windowtitle="Faban Driver Framework 0.5">
+            windowtitle="Faban ${faban.version}">
             <fileset dir="${workspace.dir}/common" includes="src/**/*.java"/>
-            <fileset dir="${workspace.dir}/driver" includes="src/**/*.java"/>
+            <fileset dir="${workspace.dir}/driver" includes="src/**/*.java"
+                                                   excludes="**/asynchronous/**"/>
             <fileset dir="${workspace.dir}/harness" includes="src/**/*.java"/>
             <package name="com.sun.faban.**"/>
             <excludepackage name="**/*.html"/>
