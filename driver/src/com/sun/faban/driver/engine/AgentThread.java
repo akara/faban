@@ -17,11 +17,11 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentThread.java,v 1.12 2008/05/14 07:06:00 akara Exp $
+ * $Id: AgentThread.java,v 1.1 2008/09/10 18:25:53 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
-package com.sun.faban.driver.core;
+package com.sun.faban.driver.engine;
 
 import com.sun.faban.driver.BenchmarkOperation;
 import com.sun.faban.driver.FatalException;

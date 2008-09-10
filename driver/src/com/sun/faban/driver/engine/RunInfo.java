@@ -17,11 +17,11 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunInfo.java,v 1.17 2008/05/14 07:06:02 akara Exp $
+ * $Id: RunInfo.java,v 1.1 2008/09/10 18:25:55 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
-package com.sun.faban.driver.core;
+package com.sun.faban.driver.engine;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -194,7 +194,7 @@ public class RunInfo implements Serializable {
 			instance = this;
 		}
 
-        if (driverConfig.driverClass == null){
+        if (driverConfig.driverClass == null) {
             try{
                 //first try the default class loader
                 ClassLoader cl = this.getClass().getClassLoader();
@@ -575,7 +575,7 @@ public class RunInfo implements Serializable {
                 extends RunInfoDefinition {
 
             /**
-             * @see com.sun.faban.driver.core.RunInfo.ConfigurationReader.RunInfoDefinition#getStatics(int)
+             * @see com.sun.faban.driver.engine.RunInfo.ConfigurationReader.RunInfoDefinition#getStatics(int)
              */
 			public String getStatics(int opNum) throws Exception {
                 if (isBinary) {
@@ -600,7 +600,7 @@ public class RunInfo implements Serializable {
             }
 
             /**
-             * @see com.sun.faban.driver.core.RunInfo.ConfigurationReader.RunInfoDefinition#getURL(int)
+             * @see com.sun.faban.driver.engine.RunInfo.ConfigurationReader.RunInfoDefinition#getURL(int)
              */
 			public String getURL(int opNum) {
                 return new StringBuilder("\"").append(url).
@@ -608,7 +608,7 @@ public class RunInfo implements Serializable {
             }
 
             /**
-             * @see com.sun.faban.driver.core.RunInfo.ConfigurationReader.RunInfoDefinition#getPostRequest(int)
+             * @see com.sun.faban.driver.engine.RunInfo.ConfigurationReader.RunInfoDefinition#getPostRequest(int)
              */
 			public String getPostRequest(int opNum) throws Exception {
                 if (isBinary) {
@@ -634,7 +634,7 @@ public class RunInfo implements Serializable {
         private static class RunInfoPostDataDefinition
                 extends RunInfoPostFileDefinition {
             /**
-             * @see com.sun.faban.driver.core.RunInfo.ConfigurationReader.RunInfoPostFileDefinition#getStatics(int)
+             * @see com.sun.faban.driver.engine.RunInfo.ConfigurationReader.RunInfoPostFileDefinition#getStatics(int)
              */
             @Override
 			public String getStatics(int opNum) {
@@ -648,7 +648,7 @@ public class RunInfo implements Serializable {
             }
 
             /**
-             * @see com.sun.faban.driver.core.RunInfo.ConfigurationReader.RunInfoPostFileDefinition#getPostRequest(int)
+             * @see com.sun.faban.driver.engine.RunInfo.ConfigurationReader.RunInfoPostFileDefinition#getPostRequest(int)
              */
             @Override
 			public String getPostRequest(int opNum) throws Exception {
@@ -666,7 +666,7 @@ public class RunInfo implements Serializable {
 
         private static class RunInfoGetDefinition extends RunInfoDefinition {
             /**
-             * @see com.sun.faban.driver.core.RunInfo.ConfigurationReader.RunInfoDefinition#getStatics(int)
+             * @see com.sun.faban.driver.engine.RunInfo.ConfigurationReader.RunInfoDefinition#getStatics(int)
              */
 			public String getStatics(int opNum) {
                 if (doSubst) {
@@ -684,7 +684,7 @@ public class RunInfo implements Serializable {
             }
 
             /**
-             * @see com.sun.faban.driver.core.RunInfo.ConfigurationReader.RunInfoDefinition#getURL(int)
+             * @see com.sun.faban.driver.engine.RunInfo.ConfigurationReader.RunInfoDefinition#getURL(int)
              */
 			public String getURL(int opNum) {
                 if (doSubst) {
@@ -700,7 +700,7 @@ public class RunInfo implements Serializable {
             }
 
             /**
-             * @see com.sun.faban.driver.core.RunInfo.ConfigurationReader.RunInfoDefinition#getPostRequest(int)
+             * @see com.sun.faban.driver.engine.RunInfo.ConfigurationReader.RunInfoDefinition#getPostRequest(int)
              */
 			public String getPostRequest(int opNum) {
                 return "";

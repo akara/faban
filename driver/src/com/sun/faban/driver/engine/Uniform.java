@@ -17,11 +17,11 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Uniform.java,v 1.4 2008/05/14 07:06:03 akara Exp $
+ * $Id: Uniform.java,v 1.1 2008/09/10 18:25:55 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
-package com.sun.faban.driver.core;
+package com.sun.faban.driver.engine;
 
 import com.sun.faban.driver.util.Random;
 import com.sun.faban.driver.DefinitionException;

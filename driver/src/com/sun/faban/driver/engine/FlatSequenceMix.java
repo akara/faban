@@ -17,11 +17,11 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FlatSequenceMix.java,v 1.3 2007/09/07 15:49:04 noahcampbell Exp $
+ * $Id: FlatSequenceMix.java,v 1.1 2008/09/10 18:25:54 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
-package com.sun.faban.driver.core;
+package com.sun.faban.driver.engine;
 
 import com.sun.faban.driver.ConfigurationException;
 import com.sun.faban.driver.DefinitionException;
@@ -81,7 +81,6 @@ public class FlatSequenceMix extends Mix {
      * @throws com.sun.faban.driver.DefinitionException
      *          If there is an error in the annotation
      */
-    @Override
 	public void init(Class<?> driverClass, Annotation a)
             throws DefinitionException {
         com.sun.faban.driver.FlatSequenceMix fsMix =
@@ -210,8 +209,6 @@ public class FlatSequenceMix extends Mix {
      * @throws ConfigurationException   If the configuration is invalid
      *                                  for the mix
      */
-    @SuppressWarnings("unused")
-	@Override
 	public void configure(Element driverConfigNode)
             throws ConfigurationException {
     	// noop
@@ -223,7 +220,6 @@ public class FlatSequenceMix extends Mix {
      * @throws com.sun.faban.driver.DefinitionException Found missing or
      *                                                  invalid row/column
      */
-    @SuppressWarnings("unused")
 	public void validate() throws DefinitionException {
     	// noop
     }
@@ -234,7 +230,6 @@ public class FlatSequenceMix extends Mix {
      * amount but the selector (doMenu) will base the random number
      * generator to 1.
      */
-    @Override
 	public void normalize() {
         // if (logger.isLoggable(Level.FINEST))
         getLogger().finest("normalize - before\n" + toString());
@@ -257,7 +252,6 @@ public class FlatSequenceMix extends Mix {
      *
      * @return The flat mix representation.
      */
-    @Override
 	public FlatMix flatMix() {
         FlatMix fm = new FlatMix();
         fm.operations = operations;
@@ -298,7 +292,6 @@ public class FlatSequenceMix extends Mix {
      * @param random The per-thread random value generator
      * @return The selector to be used by the driver
      */
-    @Override
 	public Selector selector(Random random) {
         return new Selector(random, mix, operationSequences);
     }
@@ -331,7 +324,6 @@ public class FlatSequenceMix extends Mix {
          *
          * @return The operation index selected to run next
          */
-        @Override
 		public int select() {
             if (curIndex == operationSequences[curSequence].length) {
                 curIndex = 0;
@@ -349,7 +341,6 @@ public class FlatSequenceMix extends Mix {
          * Resets the selector's state to start at the first op,
          * if applicable.
          */
-        @Override
 		public void reset() {
             curSequence = 0;
             curIndex = operationSequences[0].length;

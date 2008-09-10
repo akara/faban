@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: HttpTransport.java,v 1.11 2008/08/13 19:03:32 akara Exp $
+ * $Id: HttpTransport.java,v 1.12 2008/09/10 18:25:57 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -514,24 +514,24 @@ public class HttpTransport {
         return fetchURL(url, postRequest, null);
     }
 
-    /**
-     * @param page
-     * @param images
-     * @return
-     * @throws IOException
-     */
-    @SuppressWarnings("unused")
+    /*
+     * Method not implemented. Makes a GET request. Fetches the main page
+     * and all other image or resource pages based on the given URLs.
+     *
+     * @param page The page URL
+     * @param images The image or other resource URLs to fetch with page
+     * @return The buffer of the main page
+     * @throws IOException If an I/O error occurred
+     *
 	public StringBuilder fetchPage(URL page, URL[] images) throws IOException {
         // TODO: implement method
         return null;
     }
+    */
 
-    /**
-     * @param page
-     * @param images
-     * @return
-     * @throws IOException
-     */
+    /*
+     * Fetch page and images in the same call. Currently not used.
+     *
     public StringBuilder fetchPage(String page, String[] images)
             throws IOException {
         URL[] imgURLs = new URL[images.length];
@@ -539,17 +539,18 @@ public class HttpTransport {
             imgURLs[i] = new URL(images[i]);
         return fetchPage(new URL(page), imgURLs);
     }
+    */
 
     /**
-     * 
-     * 
-     * @param page
-     * @param images
-     * @param postRequest
-     * @return
-     * @throws IOException
+     * Method not implemented. Makes a POST request. Fetches the main page
+     * and all other image or resource pages based on the given URLs.
+     *
+     * @param page The page URL
+     * @param images The image or other resource URLs to fetch with page
+     * @param postRequest The post string
+     * @return The buffer of the main page
+     * @throws IOException If an I/O error occurred
      */
-    @SuppressWarnings("unused")
 	public StringBuilder fetchURL(URL page, URL[] images, String postRequest)
             throws IOException {
         // TODO: implement method
@@ -557,11 +558,14 @@ public class HttpTransport {
     }
 
     /**
-     * @param page
-     * @param images
-     * @param postRequest
-     * @return
-     * @throws IOException
+     * Makes a POST request, fetches the main page and all other image or
+     * resource pages.
+     *
+     * @param page The page URL
+     * @param images The image or other resource URLs to fetch with page
+     * @param postRequest The post string
+     * @return The buffer of the main page
+     * @throws IOException If an I/O error occurred
      */
     public StringBuilder fetchPage(String page, String[] images,
                                   String postRequest) throws IOException {

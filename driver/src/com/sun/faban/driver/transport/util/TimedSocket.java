@@ -17,13 +17,13 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TimedSocket.java,v 1.5 2008/02/12 17:34:09 akara Exp $
+ * $Id: TimedSocket.java,v 1.6 2008/09/10 18:25:56 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver.transport.util;
 
-import com.sun.faban.driver.core.DriverContext;
+import com.sun.faban.driver.engine.DriverContext;
 
 import java.io.IOException;
 import java.io.InputStream;

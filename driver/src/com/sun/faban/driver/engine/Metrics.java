@@ -17,11 +17,11 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.29 2008/07/30 23:43:09 akara Exp $
+ * $Id: Metrics.java,v 1.1 2008/09/10 18:25:54 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
-package com.sun.faban.driver.core;
+package com.sun.faban.driver.engine;
 
 import com.sun.faban.common.TextTable;
 import com.sun.faban.driver.CustomMetrics;

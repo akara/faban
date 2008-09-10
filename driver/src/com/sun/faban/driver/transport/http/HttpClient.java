@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: HttpClient.java,v 1.4 2007/09/06 02:19:33 noahcampbell Exp $
+ * $Id: HttpClient.java,v 1.5 2008/09/10 18:25:56 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -50,28 +50,30 @@ public class HttpClient extends sun.net.www.http.HttpClient {
     private static SocketFactory socketFactory;
 
     /**
-     * @param url
-     * @param proxyHost
-     * @param proxyPort
-     * @param useCache
-     * @param timeout
-     * @return
-     * @throws IOException
+     * Instantiates a HttpClient.
+     * @param url The URL to connect
+     * @param proxyHost The proxy server, null if no proxy
+     * @param proxyPort The proxy server port
+     * @param useCache Whether to use a client from cache or not
+     * @param timeout The connect timeout, -1 if no timeout
+     * @return An instance of HttpClient
+     * @throws IOException An I/O error occurred
      */
     public static HttpClient New(URL url, String proxyHost, int proxyPort,
                                  boolean useCache, int timeout) 
             throws IOException {
-        return New(url, newHttpProxy(proxyHost, proxyPort, "http"),
-                -1, useCache);
+        return New(url, proxyHost == null ? null :
+                newHttpProxy(proxyHost, proxyPort, "http"), -1, useCache);
     }
 
     /**
-     * @param url
-     * @param p
-     * @param to
-     * @param useCache
-     * @return
-     * @throws IOException
+     * Instantiates a HttpClient.
+     * @param url The URL to connect
+     * @param p The proxy server, null if no proxy
+     * @param to The connect timeout, -1 if no timeout
+     * @param useCache Whether to use a client from cache or not
+     * @return An instance of HttpClient
+     * @throws IOException An I/O error occurred
      */
     public static HttpClient New(URL url, Proxy p, int to,
                                                   boolean useCache)

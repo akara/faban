@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ExpectedException.java,v 1.2 2007/09/05 23:32:28 noahcampbell Exp $
+ * $Id: ExpectedException.java,v 1.3 2008/09/10 18:25:57 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -95,14 +95,16 @@ public class ExpectedException extends RuntimeException {
     }
 
     /**
-     * logged
+     * Sets the flag indicating this exception has already been logged.
+     * This is used to avoid duplicate logging.
      */
     public void setLogged() {
         logged = true;
     }
 
     /**
-     * @return
+     * Checks whether this exception has already been logged.
+     * @return true if this exception was already logged, false otherwise.
      */
     public boolean wasLogged() {
         return logged;

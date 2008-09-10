@@ -17,11 +17,11 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FixedSequence.java,v 1.4 2007/09/07 15:49:05 noahcampbell Exp $
+ * $Id: FixedSequence.java,v 1.1 2008/09/10 18:25:53 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
-package com.sun.faban.driver.core;
+package com.sun.faban.driver.engine;
 
 import com.sun.faban.driver.ConfigurationException;
 import com.sun.faban.driver.DefinitionException;
@@ -51,7 +51,6 @@ public class FixedSequence extends Mix {
      * @throws com.sun.faban.driver.DefinitionException
      *          If there is an error in the annotation
      */
-    @Override
 	public void init(Class<?> driverClass, Annotation a)
             throws DefinitionException {
         com.sun.faban.driver.FixedSequence fixedMix =
@@ -70,7 +69,6 @@ public class FixedSequence extends Mix {
      * @param driverConfigNode The driverConfig DOM node
      * @throws ConfigurationException If operationMix element exists
      */
-    @Override
 	public void configure(Element driverConfigNode)
             throws ConfigurationException {
         NodeList operationList = driverConfigNode.
@@ -90,7 +88,6 @@ public class FixedSequence extends Mix {
      * The fixed sequence has no selection and does not need
      * normalization so this method is a noop.
      */
-    @Override
 	public void normalize() {
     	// noop
     }
@@ -101,7 +98,6 @@ public class FixedSequence extends Mix {
      *
      * @return The flat mix representation.
      */
-    @Override
 	public FlatMix flatMix() {
         FlatMix flatMix = new FlatMix();
         flatMix.operations = operations;
@@ -120,7 +116,6 @@ public class FixedSequence extends Mix {
      * @param random The per-thread random value generator
      * @return The selector to be used by the driver
      */
-    @Override
 	public Selector selector(Random random) {
         return new Selector(operations);
     }
@@ -142,7 +137,6 @@ public class FixedSequence extends Mix {
          *
          * @return The operation index selected to run next
          */
-        @Override
 		public int select() {
             ++currentOp;
             if (currentOp >= totalOps) {
@@ -155,7 +149,6 @@ public class FixedSequence extends Mix {
          * Resets the selector's state to start at the first op,
          * if applicable.
          */
-        @Override
 		public void reset() {
             currentOp = -1;
         }

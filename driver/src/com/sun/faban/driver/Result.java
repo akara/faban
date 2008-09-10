@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Result.java,v 1.4 2007/09/05 23:32:28 noahcampbell Exp $
+ * $Id: Result.java,v 1.5 2008/09/10 18:25:57 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -38,7 +38,7 @@ public abstract class Result {
      * @return instance
      */
     public static Result getInstance() {
-        return com.sun.faban.driver.core.Result.getInstance();
+        return com.sun.faban.driver.engine.Result.getInstance();
     }
 
     /**

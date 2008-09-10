@@ -18,11 +18,11 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MasterState.java,v 1.2 2007/09/07 15:49:05 noahcampbell Exp $
+ * $Id: MasterState.java,v 1.1 2008/09/10 18:25:54 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
-package com.sun.faban.driver.core;
+package com.sun.faban.driver.engine;
 
 
 /**

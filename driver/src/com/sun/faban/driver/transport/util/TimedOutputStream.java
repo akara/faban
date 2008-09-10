@@ -17,13 +17,13 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TimedOutputStream.java,v 1.3 2007/09/05 23:23:38 noahcampbell Exp $
+ * $Id: TimedOutputStream.java,v 1.4 2008/09/10 18:25:56 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver.transport.util;
 
-import com.sun.faban.driver.core.DriverContext;
+import com.sun.faban.driver.engine.DriverContext;
 
 import java.io.FilterOutputStream;
 import java.io.OutputStream;

@@ -17,11 +17,11 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Agent.java,v 1.6 2008/05/14 07:43:32 akara Exp $
+ * $Id: Agent.java,v 1.1 2008/09/10 18:25:53 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
-package com.sun.faban.driver.core;
+package com.sun.faban.driver.engine;
 
 import com.sun.faban.driver.util.Timer;
 
@@ -35,7 +35,7 @@ import java.rmi.RemoteException;
  * The Master gets a reference to all the agents from the Registry
  * and can then communicate with them using this (the Agent) interface.
  * @author Shanti Subrmanyam
- * @see com.sun.faban.driver.core.MasterImpl
+ * @see com.sun.faban.driver.engine.MasterImpl
  */
 public interface Agent extends Remote {
 
@@ -67,9 +67,9 @@ public interface Agent extends Remote {
 	 * Report stats from a run, aggregating across all threads of
 	 * the Agent.
 	 * The stats object is actually different for each Agent.
-	 * @return 
+	 * @return The stats of the run.
 	 * @throws RemoteException 
-	 * @see com.sun.faban.driver.core.Metrics
+	 * @see com.sun.faban.driver.engine.Metrics
 	 */
 	public Serializable getResults() throws RemoteException;
 

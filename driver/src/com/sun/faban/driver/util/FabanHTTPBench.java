@@ -17,13 +17,13 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FabanHTTPBench.java,v 1.6 2008/06/10 16:50:03 akara Exp $
+ * $Id: FabanHTTPBench.java,v 1.7 2008/09/10 18:25:57 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver.util;
 
-import com.sun.faban.driver.core.RunInfo;
+import com.sun.faban.driver.engine.RunInfo;
 import com.sun.faban.driver.ConfigurationException;
 import com.sun.faban.common.TextTable;
 import com.sun.faban.common.ParamReader;
@@ -307,7 +307,7 @@ public class FabanHTTPBench {
         System.setProperty("benchmark.config", runXmlFileName);
         System.setProperty("faban.sequence.path", outputDirectory);
         System.setProperty("faban.sequence.file", "fhb.seq");
-        Class c = com.sun.faban.driver.core.MasterImpl.class;
+        Class c = com.sun.faban.driver.engine.MasterImpl.class;
         Class[] arg = new Class[1];
         arg[0] = String[].class;
         Method m = c.getMethod("main", arg);

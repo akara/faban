@@ -17,14 +17,14 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DDGenerator.java,v 1.3 2006/11/16 01:02:09 akara Exp $
+ * $Id: DDGenerator.java,v 1.4 2008/09/10 18:25:57 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver.util;
 
-import com.sun.faban.driver.core.BenchmarkDefinition;
-import com.sun.faban.driver.core.RunInfo;
+import com.sun.faban.driver.engine.BenchmarkDefinition;
+import com.sun.faban.driver.engine.RunInfo;
 
 import java.util.logging.Logger;
 

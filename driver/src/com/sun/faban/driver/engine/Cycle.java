@@ -17,11 +17,11 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Cycle.java,v 1.5 2008/05/14 07:06:01 akara Exp $
+ * $Id: Cycle.java,v 1.1 2008/09/10 18:25:53 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
-package com.sun.faban.driver.core;
+package com.sun.faban.driver.engine;
 
 import com.sun.faban.driver.CycleType;
 import com.sun.faban.driver.DefinitionException;
@@ -64,7 +64,7 @@ public abstract class Cycle implements Serializable, Cloneable {
             ++cnBegin;
             String annotationName = typeName.substring(cnBegin);
             String pkgName = typeName.substring(0, cnBegin);
-            String cycleName = pkgName + "core." + annotationName;
+            String cycleName = pkgName + "engine." + annotationName;
             Cycle cycle = null;
             try {
                 cycle = Class.forName(cycleName).
@@ -93,7 +93,7 @@ public abstract class Cycle implements Serializable, Cloneable {
                 ++cnBegin;
                 String annotationName = typeName.substring(cnBegin);
                 String pkgName = typeName.substring(0, cnBegin);
-                String cycleName = pkgName + "core." + annotationName;
+                String cycleName = pkgName + "engine." + annotationName;
                 Cycle cycle = null;
                 try {
                     cycle = Class.forName(cycleName).

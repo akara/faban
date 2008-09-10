@@ -17,11 +17,11 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Result.java,v 1.6 2008/04/11 07:44:05 akara Exp $
+ * $Id: Result.java,v 1.1 2008/09/10 18:25:55 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
-package com.sun.faban.driver.core;
+package com.sun.faban.driver.engine;
 
 /**
  * The implementation of the Result abstract class.

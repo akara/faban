@@ -17,14 +17,14 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DriverContext.java,v 1.9 2008/05/14 07:06:04 akara Exp $
+ * $Id: DriverContext.java,v 1.10 2008/09/10 18:25:57 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver;
 
 import com.sun.faban.driver.util.Random;
-import com.sun.faban.driver.core.NullContext;
+import com.sun.faban.driver.engine.NullContext;
 
 import java.util.logging.Logger;
 
@@ -37,7 +37,7 @@ import javax.xml.xpath.XPathExpressionException;
  * developer-provided driver and the Faban driver framework.
  * Each thread has it's own context.<p>
  * The only concrete implementation of this abstract class
- * is in com.sun.faban.driver.core.DriverContext.
+ * is in com.sun.faban.driver.engine.DriverContext.
  *
  * @author Akara Sucharitakul
  */
@@ -49,7 +49,7 @@ public abstract class DriverContext {
      */
     public static DriverContext getContext() {
         DriverContext ctx =
-                com.sun.faban.driver.core.DriverContext.getContext();
+                com.sun.faban.driver.engine.DriverContext.getContext();
         if (ctx != null)
             return ctx;
         return new NullContext();
@@ -265,7 +265,7 @@ public abstract class DriverContext {
 
     /**
      * Obtains the resource directory used for this benchmark, if exists.
-     * @return
+     * @return The resource directory for this benchmark
      */ 
     public abstract String getResourceDir();
 }

@@ -17,11 +17,13 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CycleThread.java,v 1.9 2008/06/05 20:50:41 akara Exp $
+ * $Id: TimeThread.java,v 1.1 2008/09/10 18:25:55 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
-package com.sun.faban.driver.core;
+package com.sun.faban.driver.engine;
+
+import com.sun.faban.driver.FatalException;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Level;
@@ -29,11 +31,11 @@ import java.util.logging.Level;
 
 /**
  * A driver thread that controls the run by ramp up, steady state,
- * and ramp down cycles.
+ * and ramp down times.
  *
  * @author Akara Sucharitakul
  */
-public class CycleThread extends AgentThread {
+public class TimeThread extends AgentThread {
 
     /**
      * Allocates and initializes the timing structures which is specific
@@ -64,6 +66,7 @@ public class CycleThread extends AgentThread {
      * @see Metrics
      */
 	void doRun() {
+
         driverContext = new DriverContext(this, timer);
 
         try {
@@ -79,29 +82,42 @@ public class CycleThread extends AgentThread {
             agent.abortRun();
             return; // Terminate this thread immediately
         }
+
         // Call the preRun.
         preRun();
 
         // Notify the agent that we have started successfully.
         agent.threadStartLatch.countDown();
-        
-        if (runInfo.simultaneousStart) {
-			waitStartTime();
-		}
-
-        // Calculate cycle counts
-        endRampUp = runInfo.rampUp;
-        endStdyState = endRampUp + runInfo.stdyState;
-        endRampDown = endStdyState + runInfo.rampDown;
 
         selector = new Mix.Selector[1];
         selector[0] = driverConfig.mix[0].selector(random);
 
+        if (runInfo.simultaneousStart) {
+            waitStartTime();
+
+            // Calculate time periods
+            // Note that the time periods are in secs, need to convert
+            endRampUp = agent.startTime + runInfo.rampUp * 1000000000l;
+            endStdyState = endRampUp + runInfo.stdyState * 1000000000l;
+            endRampDown = endStdyState + runInfo.rampDown * 1000000000l;
+        }
+
         logger.fine(name + ": Start of run.");
 
-        // Loop until cycles are up
+        // Loop until time or cycles are up
         driverLoop:
         while (!stopped) {
+
+            if (!runInfo.simultaneousStart && !startTimeSet &&
+                    agent.timeSetLatch.getCount() == 0) {
+                startTimeSet = true;
+
+                // Calculate time periods
+                // Note that the time periods are in secs, need to convert
+                endRampUp = agent.startTime + runInfo.rampUp * 1000000000l;
+                endStdyState = endRampUp + runInfo.stdyState * 1000000000l;
+                endRampDown = endStdyState + runInfo.rampDown * 1000000000l;
+            }
 
             // Save the previous operation
             previousOperation[mixId] = currentOperation;
@@ -115,7 +131,22 @@ public class CycleThread extends AgentThread {
             BenchmarkDefinition.Operation op =
                     driverConfig.operations[currentOperation];
 
-            driverContext.setInvokeTime(getInvokeTime(previousOp, mixId));
+            // The invoke time is based on the delay after the previous op.
+            // so we need to use the previous op for calculating and recording.
+            long invokeTime = getInvokeTime(previousOp, mixId);
+
+            // endRampDown is only valid if start time is set.
+            // If the start time of next tx is beyond the end
+            // of the ramp down, just stop right here.
+            if (startTimeSet && invokeTime >= endRampDown) {
+				break driverLoop;
+			}
+
+            logger.finest(name + ": Invoking " + op.name + " at time " +
+                            invokeTime + ". Ramp down ends at time " +
+                            endRampDown + '.');
+
+            driverContext.setInvokeTime(invokeTime);
 
             // Invoke the operation
             try {
@@ -129,38 +160,45 @@ public class CycleThread extends AgentThread {
                 // exception thrown by the operation directly.
                 Throwable cause = e.getCause();
                 checkFatal(cause, op);
-                checkRamp();
-                metrics.recordError();
-                logError(cause, op);
 
                 // We have to fix up the invoke/respond times to have valid
-                // values and not -1.
+                // values and not TIME_NOT_SET.
 
                 // In case of exception, invokeTime or even respondTime may
-                // still be -1.
+                // still be TIME_NOT_SET.
                 DriverContext.TimingInfo timingInfo = driverContext.timingInfo;
                 // If it never waited, we'll see whether we can just use the
                 // previous start and end times.
                 if (timingInfo.invokeTime == TIME_NOT_SET) {
                     long currentTime = System.nanoTime();
                     if (currentTime < timingInfo.intendedInvokeTime) {
-                        timingInfo.invokeTime = startTime[mixId];
-                        timingInfo.respondTime = endTime[mixId];
-                    } else {
-                        // Too late, we'll need to use the real time
-                        // for both invoke and respond time.
-                        timingInfo.invokeTime = System.nanoTime();
-                        timingInfo.respondTime = timingInfo.invokeTime;
-                        // The delay time is invalid,
-                        // we cannot record in this case.
+                        // No time change, no need to checkRamp
+                        metrics.recordError();
+                        logError(cause, op);
+                        continue driverLoop;
                     }
+					// Too late, we'll need to use the real time
+					// for both invoke and respond time.
+					timingInfo.invokeTime = System.nanoTime();
+					timingInfo.respondTime = timingInfo.invokeTime;
+					checkRamp();
+					metrics.recordError();
+					logError(cause, op);
+					// The delay time is invalid,
+					// we cannot record in this case.
                 } else if (timingInfo.respondTime == TIME_NOT_SET) {
-                    timingInfo.respondTime = timingInfo.invokeTime;
+                    timingInfo.respondTime = System.nanoTime();
+                    checkRamp();
+                    metrics.recordError();
+                    logError(cause, op);
                     metrics.recordDelayTime();
-                } else {
+                } else { // All times are there
+                    checkRamp();
+                    metrics.recordError();
+                    logError(cause, op);
                     metrics.recordDelayTime();
                 }
-            } catch (IllegalAccessException e) {
+             } catch (IllegalAccessException e) {
                 logger.log(Level.SEVERE, name + "." + op.m.getName() + ": "
                         + e.getMessage(), e);
                 agent.abortRun();
@@ -170,7 +208,7 @@ public class CycleThread extends AgentThread {
             startTime[mixId] = driverContext.timingInfo.invokeTime;
             endTime[mixId] = driverContext.timingInfo.respondTime;
 
-            if (cycleCount > endRampDown) {
+            if (startTimeSet && endTime[mixId] >= endRampDown) {
 				break driverLoop;
 			}
         }
@@ -178,25 +216,29 @@ public class CycleThread extends AgentThread {
     }
 
     /**
+     * Checks whether the last operation is in the ramp-up or ramp-down or
+     * not. Updates the inRamp parameter accordingly.
+     */
+	void checkRamp() {
+        inRamp = !isSteadyState(driverContext.timingInfo.invokeTime,
+                                driverContext.timingInfo.respondTime);
+    }
+
+    /**
      * Tests whether the last operation is in steady state or not. This is
-     * called through the context from the driver from within the operation
-     * so we need to be careful not to change run control parameters. This
-     * method only reads the stats.
+     * called by the driver from within the operation so we need to be careful
+     * not to change run control parameters. This method only reads the stats.
      * @return True if the last operation is in steady state, false otherwise.
      */
 	boolean isSteadyState() {
-        if (!startTimeSet) {
-			return false;
+        if (driverContext.timingInfo.respondTime == TIME_NOT_SET) {
+			throw new FatalException("isTxSteadyState called before response " +
+                    "time capture. Cannot determine tx in steady state or " +
+                    "not. This is a bug in the driver code.");
 		}
-        // Copy out cycle count so we do not alternate it here.
-        // Remember, this method is controlled by the user-implemented
-        // driver through the context.
-        int cycleCount = this.cycleCount;
-        ++cycleCount;
-        if (cycleCount > endRampUp && cycleCount <= endStdyState) {
-			return true;
-		}
-		return false;	
+
+        return isSteadyState(driverContext.timingInfo.invokeTime,
+                                driverContext.timingInfo.respondTime);
     }
 
     /**
@@ -209,38 +251,6 @@ public class CycleThread extends AgentThread {
      * @return true if this time span is in steady state, false otherwise.
      */
 	boolean isSteadyState(long start, long end) {
-        return isSteadyState();
-    }
-
-    /**
-     * Checks whether the last operation is in the ramp-up or ramp-down or
-     * not. Updates the inRamp parameter accordingly.
-     */
-	void checkRamp() {
-        // Note: in cycle runs without simultaneous start, the startTimeSet
-        // flag is only set once the start time has reached. Unlike time runs
-        // without simultaneous starts where the startTimeSet is set to true
-        // once the start time is actually set.
-        if (!runInfo.simultaneousStart && !startTimeSet &&
-                agent.timeSetLatch.getCount() == 0) {
-            long invoke = driverContext.timingInfo.invokeTime;
-            if (invoke >= agent.startTime) {
-                ++cycleCount; // Count this tx which started after bench start.
-                startTimeSet = true;
-                inRamp = true;
-            } else if (invoke == -1 &&
-                    System.nanoTime() >= agent.startTime) {
-                // We need to set the start time as time has come.
-                startTimeSet = true;
-                inRamp = true;
-            }
-        } else if (startTimeSet) { // Cycle where start time set not counted.
-            ++cycleCount;
-            if (cycleCount > endRampUp && cycleCount <= endStdyState) {
-				inRamp = false;
-			} else {
-				inRamp = true;
-			}
-        }
+        return startTimeSet && start >= endRampUp && end < endStdyState;
     }
 }

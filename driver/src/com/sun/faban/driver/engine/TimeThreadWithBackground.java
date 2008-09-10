@@ -17,11 +17,11 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TimeThreadWithBackground.java,v 1.7 2008/06/05 20:50:41 akara Exp $
+ * $Id: TimeThreadWithBackground.java,v 1.1 2008/09/10 18:25:55 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
-package com.sun.faban.driver.core;
+package com.sun.faban.driver.engine;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Level;

@@ -17,11 +17,11 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MatrixMix.java,v 1.5 2007/09/07 15:49:05 noahcampbell Exp $
+ * $Id: MatrixMix.java,v 1.1 2008/09/10 18:25:54 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
-package com.sun.faban.driver.core;
+package com.sun.faban.driver.engine;
 
 import com.sun.faban.driver.ConfigurationException;
 import com.sun.faban.driver.DefinitionException;
@@ -57,7 +57,6 @@ public class MatrixMix extends Mix {
      * @throws com.sun.faban.driver.DefinitionException
      *          If there is an error in the annotation
      */
-    @Override
 	public void init(Class<?> driverClass, Annotation a)
             throws DefinitionException {
         com.sun.faban.driver.MatrixMix matrixMix =
@@ -144,8 +143,6 @@ public class MatrixMix extends Mix {
      * @param driverConfigNode The driverConfig DOM node
      * @throws ConfigurationException If there is a configuration error
      */
-    @SuppressWarnings("boxing")
-	@Override
 	public void configure(Element driverConfigNode)
             throws ConfigurationException {
         /* The format is as follows:
@@ -286,7 +283,6 @@ public class MatrixMix extends Mix {
      * amount but the selector (doMenu) will base the random number
      * generator to 1.
      */
-    @Override
 	public void normalize() {
 
         for (int i = 0; i < mix.length; i++) {
@@ -312,7 +308,6 @@ public class MatrixMix extends Mix {
      * runtime exceptions or divergence (infinite loops) may occur.
      * @return the flat mix equivalent of this mix
      */
-    @Override
 	public FlatMix flatMix() {
 
          getLogger().finer("flatMix - before\n" + toString());
@@ -450,7 +445,6 @@ public class MatrixMix extends Mix {
      * @param random The per-thread random value generator
      * @return The selector to be used by the driver
      */
-    @Override
 	public Selector selector(Random random) {
         getLogger().finest("Get selector: " + toString());
         Selector s = new Selector(random, mix);
@@ -483,7 +477,6 @@ public class MatrixMix extends Mix {
          *
          * @return The operation index selected to run next
          */
-        @Override
 		public int select() {
             if (op == -1) { // first selection
                 op = 0;
@@ -504,7 +497,6 @@ public class MatrixMix extends Mix {
          * Resets the selector's state to start at the first op,
          * if applicable.
          */
-        @Override
 		public void reset() {
             op = -1;
         }

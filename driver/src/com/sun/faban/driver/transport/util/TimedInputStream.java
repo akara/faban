@@ -3,12 +3,12 @@
  * This software is the proprietary information of Sun Microsystems, Inc.
  * Use is subject to license terms.
  *
- * $Id: TimedInputStream.java,v 1.3 2007/09/05 23:23:38 noahcampbell Exp $
+ * $Id: TimedInputStream.java,v 1.4 2008/09/10 18:25:56 akara Exp $
  *
  */
 package com.sun.faban.driver.transport.util;
 
-import com.sun.faban.driver.core.DriverContext;
+import com.sun.faban.driver.engine.DriverContext;
 
 import java.io.FilterInputStream;
 import java.io.InputStream;
@@ -33,7 +33,7 @@ import java.io.IOException;
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TimedInputStream.java,v 1.3 2007/09/05 23:23:38 noahcampbell Exp $
+ * $Id: TimedInputStream.java,v 1.4 2008/09/10 18:25:56 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */

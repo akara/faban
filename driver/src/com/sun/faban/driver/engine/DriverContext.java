@@ -17,13 +17,13 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DriverContext.java,v 1.15 2008/05/14 07:06:01 akara Exp $
+ * $Id: DriverContext.java,v 1.1 2008/09/10 18:25:53 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
-package com.sun.faban.driver.core;
+package com.sun.faban.driver.engine;
 
-import static com.sun.faban.driver.core.AgentThread.TIME_NOT_SET;
+import static com.sun.faban.driver.engine.AgentThread.TIME_NOT_SET;
 
 import com.sun.faban.driver.CustomMetrics;
 import com.sun.faban.driver.Timing;
@@ -47,7 +47,7 @@ import java.io.File;
  * developer-provided driver and the Faban driver framework.
  * Each thread has it's own context.<p>
  * This class provides the actual implementation and is
- * located in the core package to get direct access to all
+ * located in the engine package to get direct access to all
  * the restricted/needed classes and members.
  *
  * @author Akara Sucharitakul
@@ -627,8 +627,7 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
 
     /**
      * Obtains the resource directory used for this benchmark, if exists.
-     *
-     * @return
+     * @return The resource directory for this benchmark
      */
     public String getResourceDir() {
         return agentThread.agent.driverBase + File.separator + "resources";

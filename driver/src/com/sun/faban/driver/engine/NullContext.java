@@ -17,11 +17,11 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: NullContext.java,v 1.9 2008/05/14 07:06:02 akara Exp $
+ * $Id: NullContext.java,v 1.1 2008/09/10 18:25:54 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
-package com.sun.faban.driver.core;
+package com.sun.faban.driver.engine;
 
 import com.sun.faban.driver.CustomMetrics;
 import com.sun.faban.driver.DriverContext;
@@ -262,8 +262,7 @@ public class NullContext extends DriverContext {
 
     /**
      * Obtains the resource directory used for this benchmark, if exists.
-     *
-     * @return
+     * @return The resource directory for this benchmark
      */
     public String getResourceDir() {
         String driverBase = System.getProperty("faban.driver.base");

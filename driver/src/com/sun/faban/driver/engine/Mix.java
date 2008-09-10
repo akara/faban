@@ -17,11 +17,11 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Mix.java,v 1.3 2007/09/07 15:49:05 noahcampbell Exp $
+ * $Id: Mix.java,v 1.1 2008/09/10 18:25:54 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
-package com.sun.faban.driver.core;
+package com.sun.faban.driver.engine;
 
 import com.sun.faban.driver.ConfigurationException;
 import com.sun.faban.driver.DefinitionException;
@@ -61,7 +61,7 @@ public abstract class Mix implements Serializable, Cloneable {
             ++cnBegin;
             String annotationName = typeName.substring(cnBegin);
             String pkgName = typeName.substring(0, cnBegin);
-            String mixName = pkgName + "core." + annotationName;
+            String mixName = pkgName + "engine." + annotationName;
             Mix mix = null;
             try {
                 mix = Class.forName(mixName).

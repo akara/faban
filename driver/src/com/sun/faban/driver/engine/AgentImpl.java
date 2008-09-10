@@ -17,11 +17,11 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentImpl.java,v 1.12 2008/05/14 07:06:00 akara Exp $
+ * $Id: AgentImpl.java,v 1.1 2008/09/10 18:25:53 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
-package com.sun.faban.driver.core;
+package com.sun.faban.driver.engine;
 
 import com.sun.faban.common.RegistryLocator;
 import com.sun.faban.common.Utilities;
@@ -45,8 +45,8 @@ import java.util.logging.Logger;
  * the stats from all threads.
  *
  * @author Shanti Subramanyam
- * @see com.sun.faban.driver.core.Agent
- * @see com.sun.faban.driver.core.AgentThread
+ * @see com.sun.faban.driver.engine.Agent
+ * @see com.sun.faban.driver.engine.AgentThread
  */
 public class AgentImpl extends UnicastRemoteObject
         implements Agent, Unreferenced, Runnable {

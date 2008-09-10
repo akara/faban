@@ -17,11 +17,11 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MasterImpl.java,v 1.17 2008/05/14 07:06:01 akara Exp $
+ * $Id: MasterImpl.java,v 1.1 2008/09/10 18:25:54 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
-package com.sun.faban.driver.core;
+package com.sun.faban.driver.engine;
 
 import com.sun.faban.common.Registry;
 import com.sun.faban.common.RegistryLocator;
@@ -55,7 +55,7 @@ import java.util.logging.SimpleFormatter;
  * NOTE: The registry and agents must have been brought up before
  * starting the driver. The driver will fail otherwise.
  *
- * @see        com.sun.faban.driver.core.Agent
+ * @see        com.sun.faban.driver.engine.Agent
  * @see        com.sun.faban.common.Registry
  *
  */
