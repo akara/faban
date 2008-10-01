@@ -19,7 +19,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: build.xml,v 1.19 2008/09/10 18:55:38 akara Exp $
+* $Id: build.xml,v 1.20 2008/10/01 20:55:51 akara Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 -->
@@ -106,7 +106,7 @@
 
         <mkdir dir="output"/>
 
-        <mkdir dir="samples/web101"/>
+        <mkdir dir="samples/web101/lib"/>
         <copy todir="samples/web101"
             overwrite="true" preservelastmodified="true"
             includeEmptyDirs="true" verbose="true">
