@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: HttpTransport.java,v 1.12 2008/09/10 18:25:57 akara Exp $
+ * $Id: HttpTransport.java,v 1.13 2008/10/03 16:12:51 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -588,10 +588,24 @@ public class HttpTransport {
         responseCode = connection.getResponseCode();
         responseHeader = connection.getHeaderFields();
         String contentType = connection.getContentType();
+        String hdr = "charset=";
+        int hdrLen = hdr.length();
+        String encoding = "ISO-8859-1";
+        if (contentType != null) {
+            StringTokenizer t = new StringTokenizer(contentType, ";");
+            contentType = t.nextToken().trim();
+            while (t.hasMoreTokens()) {
+                String param = t.nextToken().trim();
+                if (param.startsWith(hdr)) {
+                    encoding = param.substring(hdrLen);
+                    break;
+                }
+            }
+        }
         if (contentType != null && (contentType.startsWith("text/") ||
                                     TEXT_MIMETYPES.contains(contentType))) {
             InputStream is = connection.getInputStream();
-            Reader reader = new InputStreamReader(is);
+            Reader reader = new InputStreamReader(is, encoding);
 
             // We have to close the input stream in order to return it to
             // the cache, so we get it for all content, even if we don't
