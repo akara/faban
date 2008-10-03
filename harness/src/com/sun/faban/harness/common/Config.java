@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.28 2008/09/03 05:16:27 akara Exp $
+ * $Id: Config.java,v 1.29 2008/10/03 16:14:16 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -106,7 +106,7 @@ public class Config {
             "d\351sign\351s, sont rigoureusement interdites.\n";
 
     public static final String HARNESS_NAME = "Faban";
-    public static final String HARNESS_VERSION = "0.9";
+    public static final String HARNESS_VERSION = "1.0";
 
     public static final String LOG_FILE = "log.xml";
 
