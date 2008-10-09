@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Utilities.java,v 1.5 2008/02/09 07:50:42 akara Exp $
+ * $Id: Utilities.java,v 1.6 2008/10/09 09:58:32 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -180,7 +180,7 @@ public class Utilities {
         hostPorts = hostPorts.replaceAll("\\s", " ");
 
         // Find the patterns that have either hostname or hostname:port values
-        Pattern p1 = Pattern.compile("([a-zA-Z_0-9-]+):?(\\w*)\\s*");
+        Pattern p1 = Pattern.compile("([a-zA-Z_0-9-\\.]+):?(\\w*)\\s*");
         Matcher m1 = p1.matcher(hostPorts + ' '); // add a whitespace at end
 
         //  Fill up the hosts set with names of all the hosts
