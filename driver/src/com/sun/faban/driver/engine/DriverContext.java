@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DriverContext.java,v 1.1 2008/09/10 18:25:53 akara Exp $
+ * $Id: DriverContext.java,v 1.2 2008/11/06 21:27:52 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -468,7 +468,7 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      * @return The relative time of the benchmark run
      */
     public long getNanoTime() {
-        return timer.getTime();
+       return timer.toRelTime(System.nanoTime());
     }
 
     /**
