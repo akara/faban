@@ -75,5 +75,8 @@
         </serviceThreads>
         <bufferSize>2048</bufferSize>
     </logServer>
+    <logView>
+        <bufferSize></bufferSize>
+    </logView>
     <rmiPort>9998</rmiPort>
 </FabanHarness>

@@ -17,12 +17,15 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TableHandler.java,v 1.3 2008/01/15 08:02:53 akara Exp $
+ * $Id: TableHandler.java,v 1.4 2008/11/10 23:02:34 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.webclient;
 
+import com.sun.faban.harness.common.Config;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.ServletOutputStream;
 import java.io.IOException;
@@ -34,29 +37,59 @@ import java.io.IOException;
  * @author Akara Sucharitakul
  */
 class TableHandler extends LogParseHandler {
-
-    LogBuffer logBuffer = new LogBuffer(20);
     boolean displayEnd = false;
+    boolean headerWritten = false;
+    String requestBase;
+    LogBuffer logBuffer;
+    
 
-    public TableHandler(long start) {
+    public TableHandler(long start, HttpServletRequest request, 
+                                ServletOutputStream out, String runId) {        
+        super(request, out, runId);
+        requestBase = request.getRequestURI() + "?runId=" + runId;
+        if (Config.LOG_VIEW_BUFFER_SIZE > 0){
+            logBuffer = new LogBuffer(Config.LOG_VIEW_BUFFER_SIZE);
+        }
         if (start == -1)
             displayEnd = true;
         else {
             begin = start;
             end = start + buffer.capacity();
         }
+        
+        if(logBuffer == null){
+            begin = start;
+            end = Long.MAX_VALUE;
+        }
+        
     }
 
+    @Override
     public void processRecord() {
+        if (logBuffer != null) {
+            LogRecord oldLog = logBuffer.add(logRecord);
 
-        LogRecord oldLog = logBuffer.add(logRecord);
-
-        // Recycle the old records.
-        if (oldLog == null)
-            logRecord = new LogRecord();
-        else {
-            logRecord = oldLog;
-            logRecord.clear();
+            // Recycle the old records.
+            if (oldLog == null)
+                logRecord = new LogRecord();
+            else {
+                logRecord = oldLog;
+                logRecord.clear();
+            }
+        }else{
+            if (headerWritten == false) {
+                try {
+                    printHeader(null);
+                    headerWritten = true;
+                } catch (IOException ex) {
+                    Logger.getLogger(TableHandler.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            try {
+                printRow(logRecord, requestBase);
+            } catch (IOException ex) {
+                Logger.getLogger(TableHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }
 
@@ -65,40 +98,53 @@ class TableHandler extends LogParseHandler {
             logRecord.exceptionFlag = true;
     }
 
-    public void printHtml(HttpServletRequest request,
-                          ServletOutputStream out, String runId)
+    public void printHtml()
             throws IOException {
+        
+        String naviBar = null;
+        
+        if (logBuffer != null) {
 
-        String requestBase = request.getRequestURI() + "?runId=" +
-                    runId;
+            // Recalculate the real begin based on the parser.
+            begin = recordCount - logBuffer.size();
+            if (begin < 0l) {
+                begin = 0l;
+            }
 
-        // Recalculate the real begin based on the parser.
-        begin = recordCount - logBuffer.size();
-        if (begin < 0l)
-            begin = 0l;
+            // Prepare the navigation links
+            StringBuilder naviBuffer = new StringBuilder(256);
+            if (begin > 0l) {
+                naviBuffer.append("<a href=\"" + requestBase + "\">Top</a>\n");
+                long prevPage = begin - logBuffer.capacity() / 2l;
+                if (prevPage < 0l) {
+                    prevPage = 0l;
+                }
+                naviBuffer.append("<a href=\"" + requestBase + "&startId=" +
+                        prevPage + "\">PgUp</a>\n");
+            } else {
+                naviBuffer.append("Top PgUp ");
+            }
 
-        // Prepare the navigation links
-        StringBuffer naviBuffer = new StringBuffer(256);
-        if (begin > 0l) {
-            naviBuffer.append("<a href=\"" + requestBase + "\">Top</a>\n");
-            long prevPage = begin - logBuffer.capacity() / 2l;
-            if (prevPage < 0l)
-                prevPage = 0l;
+            long nextPage = begin + logBuffer.size() / 2l;
             naviBuffer.append("<a href=\"" + requestBase + "&startId=" +
-                    prevPage + "\">PgUp</a>\n");
-        } else {
-            naviBuffer.append("Top PgUp ");
+                    nextPage + "\">PgDn</a>\n");
+
+            naviBuffer.append("<a href=\"" + requestBase +
+                    "&startId=end#end\">Bottom</a>");
+            naviBar = naviBuffer.toString();
+
+            printHeader(naviBar);
+
+            // Write the records.
+            int size = logBuffer.size();
+            for (int i = 0; i < size; i++) {
+                printRow(logBuffer.get(i), requestBase);
+            }
         }
-
-        long nextPage = begin + logBuffer.size() / 2l;
-        naviBuffer.append("<a href=\"" + requestBase  + "&startId=" +
-                nextPage + "\">PgDn</a>\n");
-
-        naviBuffer.append("<a href=\"" + requestBase +
-                "&startId=end#end\">Bottom</a>");
-        String naviBar = naviBuffer.toString();
-
-
+        printTrailer(naviBar);
+    }
+    
+    private void printHeader(String naviBar) throws IOException {
         // Write the header.
         out.println("<html>");
         out.print("<head><title>Logs: RunID " + runId);
@@ -108,7 +154,8 @@ class TableHandler extends LogParseHandler {
         if (displayEnd && !xmlComplete)
             out.print("<meta http-equiv=\"refresh\" content=\"10\">");
         out.println("</head><body>");
-        out.println(naviBar);
+        if (naviBar != null)
+            out.println(naviBar);
         out.println("<hr><table border=\"1\" cellpadding=\"2\" " +
                 "cellspacing=\"0\">");
         out.println("<tbody>");
@@ -119,21 +166,18 @@ class TableHandler extends LogParseHandler {
         out.println("<th>Message</th>");
         out.println("<th>Thread</th>");
         out.println("<th>Source</th>");
-        out.println("</tr>");
-
-        // Write the records.
-        int size = logBuffer.size();
-        for (int i = 0; i < size; i++)
-            printRow(logBuffer.get(i),out, requestBase);
-
+        out.println("</tr>");        
+    }
+    
+    private void printTrailer(String naviBar) throws IOException {
         // Write the trailer.
         out.println("</tbody></table><a name=\"end\"><hr></a>");
-        out.println(naviBar);
-        out.println("</body></html>");
+        if (naviBar != null)
+            out.println(naviBar);
+        out.println("</body></html>");        
     }
 
-    private void printRow(LogRecord record, ServletOutputStream out,
-                          String requestBase)
+    private void printRow(LogRecord record, String requestBase)
             throws IOException {
         out.println("<tr>");
         out.println("<td>" + record.date + "</td>");

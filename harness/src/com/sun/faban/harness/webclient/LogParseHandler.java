@@ -24,6 +24,22 @@ abstract class LogParseHandler extends DefaultHandler {
     StringBuffer buffer = new StringBuffer();
     LogRecord logRecord = new LogRecord();
     boolean xmlComplete = false; // Sets by the caller if parsing complete
+    protected HttpServletRequest request;
+    protected ServletOutputStream out;
+    protected String runId;
+    
+    /**
+     * Constructs the LogParseHandler, actually a subclass instance.
+     * @param request The servlet request
+     * @param out The servlet output stream
+     * @param runId The run id
+     */
+    protected LogParseHandler(HttpServletRequest request, 
+                                ServletOutputStream out, String runId) {
+        this.request = request;
+        this.out = out;
+        this.runId = runId;
+    }
 
     /**
      * Receive notification of the start of an element.
@@ -142,14 +158,9 @@ abstract class LogParseHandler extends DefaultHandler {
 
     /**
      * Prints the html result of the parsing to the servlet output.
-     * @param request The servlet request
-     * @param out The servlet output stream
-     * @param runId The run id
      * @throws java.io.IOException Error writing to the servlet output stream
      */
-    public abstract void printHtml(HttpServletRequest request,
-                          ServletOutputStream out, String runId)
-            throws IOException;
+    public abstract void printHtml() throws IOException;
 
     /**
      * The processDetail method allows subclasses to process

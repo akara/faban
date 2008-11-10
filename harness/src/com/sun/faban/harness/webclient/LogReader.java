@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: LogReader.java,v 1.3 2008/01/15 08:02:53 akara Exp $
+ * $Id: LogReader.java,v 1.4 2008/11/10 23:01:55 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -98,7 +98,9 @@ public class LogReader extends HttpServlet {
             showException = true;
         }
 
+        ServletOutputStream out = response.getOutputStream();
         LogParseHandler handler = null;
+
         try {
             SAXParserFactory sFact = SAXParserFactory.newInstance();
             sFact.setFeature("http://xml.org/sax/features/validation", false);
@@ -110,9 +112,9 @@ public class LogReader extends HttpServlet {
                     "load-external-dtd", false);
             SAXParser parser = sFact.newSAXParser();
             if (!showException)
-                handler = new TableHandler(start);
+                handler = new TableHandler(start, request, out, runId);
             else
-                handler = new RecordHandler(start);
+                handler = new RecordHandler(start, request, out, runId);
             parser.parse(is, handler);
             handler.xmlComplete = true; // If we get here, the XML is good.
         } catch (ParserConfigurationException e) {
@@ -128,8 +130,7 @@ public class LogReader extends HttpServlet {
             throw new ServletException(e);
         }
 
-        ServletOutputStream out = response.getOutputStream();
-        handler.printHtml(request, out, runId);
+        handler.printHtml();
         out.flush();
         out.close();
         response.flushBuffer();

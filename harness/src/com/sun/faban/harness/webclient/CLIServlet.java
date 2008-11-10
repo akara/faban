@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CLIServlet.java,v 1.4 2008/01/16 07:18:55 akara Exp $
+ * $Id: CLIServlet.java,v 1.5 2008/11/10 23:01:27 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -566,7 +566,7 @@ public class CLIServlet extends HttpServlet {
             implements XMLInputStream.EOFListener {
 
         private ServletResponse response;
-        private PrintWriter out;
+        private PrintWriter writer;
         private boolean[] options;
 
         LogRecordDetail detail = new LogRecordDetail();
@@ -575,8 +575,9 @@ public class CLIServlet extends HttpServlet {
         ArrayList stackFrames = new ArrayList();
         private CircularBuffer<LogRecord> recordBuffer;
 
-        LogOutputHandler(PrintWriter out, boolean[] options) {
-            this.out = out;
+        LogOutputHandler(PrintWriter writer, boolean[] options) {
+            super(null, null, null);
+            this.writer = writer;
             this.options = options;
             if (options[TAIL])
                 recordBuffer = new CircularBuffer<LogRecord>(10);
@@ -596,7 +597,7 @@ public class CLIServlet extends HttpServlet {
                     // Noop. If a client socket closes, we just don't care.
                 }
             else
-                out.flush();
+                writer.flush();
         }
 
         /**
@@ -680,8 +681,7 @@ public class CLIServlet extends HttpServlet {
          * @param runId   The run id
          * @throws java.io.IOException Error writing to the servlet output stream
          */
-        public void printHtml(HttpServletRequest request,
-                              ServletOutputStream out, String runId)
+        public void printHtml()
                 throws IOException {
             // We never print in html. So this is a noop here.
         }
@@ -703,12 +703,12 @@ public class CLIServlet extends HttpServlet {
         private void printRecord(LogRecord r) {
             // Print only the time, not the date.
             int timeIdx = r.date.indexOf('T') + 1;
-            out.println(r.date.substring(timeIdx) +
+            writer.println(r.date.substring(timeIdx) +
                         ':' + r.level + ':' + r.message);
             if (r.exception != null) {
-                out.println(r.exception.message);
+                writer.println(r.exception.message);
                 for (StackFrame s : r.exception.stackFrames) {
-                    out.println("    at " + s.clazz + '.' + s.method +
+                    writer.println("    at " + s.clazz + '.' + s.method +
                                 " (" + s.line + ')');
                 }
                 r.exception = null;

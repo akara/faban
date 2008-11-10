@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.29 2008/10/03 16:14:16 akara Exp $
+ * $Id: Config.java,v 1.30 2008/11/10 23:01:01 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -175,6 +175,7 @@ public class Config {
     public static String CONFIG_FILE;
 
     public static String DEFAULT_LOG_FILE;
+    public static int LOG_VIEW_BUFFER_SIZE = 20; 
 
     public static ExecutorService THREADPOOL;  // Generic thread pool.
 
@@ -463,6 +464,11 @@ public class Config {
                 }
 
                 // Note: The logServer config is read by LogConfig, not here.
+                
+                v = xPath.evaluate("logView/bufferSize", root);
+                if (v != null) {
+                    LOG_VIEW_BUFFER_SIZE = Integer.parseInt(v.trim());
+                }
 
                 v = xPath.evaluate("rmiPort", root);
                 if (v != null) {
