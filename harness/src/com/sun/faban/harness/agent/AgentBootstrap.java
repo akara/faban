@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentBootstrap.java,v 1.12 2008/03/21 01:33:13 akara Exp $
+ * $Id: AgentBootstrap.java,v 1.13 2008/11/14 17:08:19 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -66,7 +66,7 @@ public class AgentBootstrap {
     static ArrayList<String> extClassPath = new ArrayList<String>();
     static CmdAgentImpl cmd;
     static FileAgentImpl file;
-    static Set<String> registeredNames =
+    static final Set<String> registeredNames =
                     Collections.synchronizedSet(new HashSet<String>());
     static Properties origLogProperties = new Properties();
 
@@ -78,8 +78,8 @@ public class AgentBootstrap {
 
         if (args.length < 2) {
             if (args.length == 1) {
-                if ("-h".equals(args[0]) || "--help".equals(args) ||
-                                            "-?".equals(args)) {
+                if ("-h".equals(args[0]) || "--help".equals(args[0]) ||
+                                            "-?".equals(args[0])) {
                     System.err.println(usage);
                     System.exit(0);
                 } else {
