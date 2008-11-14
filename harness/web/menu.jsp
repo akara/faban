@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: menu.jsp,v 1.6 2006/08/22 22:19:15 akara Exp $
+ * $Id: menu.jsp,v 1.7 2008/11/14 17:17:23 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -70,7 +70,7 @@
 <% } else { %>
             <tr><td VALIGN="CENTER" style="color: rgb(102, 102, 102);"><br/>Switch Profile</td></tr>
 <% } %>
-            <tr><td VALIGN="CENTER"><br/><a href="http://faban.sunsource.net/docs/guide/harness/toc.html" target="_blank">Help</a></td></tr>
+            <tr><td VALIGN="CENTER"><br/><a href="http://faban.sunsource.net/0.9/docs/toc.html" target="_blank">Help</a></td></tr>
             <tr><td VALIGN="TOP"></td></tr>
         </table>
     </body>
