@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: BenchmarkLoader.java,v 1.3 2008/01/15 08:02:51 akara Exp $
+ * $Id: BenchmarkLoader.java,v 1.4 2008/11/15 01:57:39 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -33,6 +33,9 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.logging.Logger;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.methods.GetMethod;
 
 /**
  * The benchmark loader is called by the command agent to download benchmarks
@@ -87,6 +90,54 @@ public class BenchmarkLoader {
         logger.finer("Creating directory " + dirName + " from "
                 + url.toString());
         dir.mkdir();
+
+        GetMethod get = new GetMethod(url.toString());
+        HttpClient client = new HttpClient();
+        client.setConnectionTimeout(2000);
+        int status = client.executeMethod(get);
+        if (status != HttpStatus.SC_OK)
+            throw new IOException("Download request for " + url + " returned " +
+                                    HttpStatus.getStatusText(status) + '.');
+        InputStream stream = get.getResponseBodyAsStream();
+        DirectoryParser parser = new DirectoryParser();
+        
+        int length = 0;
+        int bufEnd = 0;
+        while (length != -1) {
+            length = stream.read(buffer, bufEnd, buffer.length - bufEnd);
+            if (length != -1)
+                bufEnd += length;
+            if (bufEnd > buffer.length / 4 * 3 || length == -1) {
+                if (!parser.parse(buffer, bufEnd)) {
+                    String msg = "URL " + url.toString() + " is not a directory!";
+                    logger.severe(msg);
+                    throw new IOException(msg);
+                }
+                bufEnd = 0;
+            }
+        }
+        stream.close();
+
+        String[] entries = parser.getEntries();
+        for (int i = 0; i < entries.length; i++) {
+            String entry = entries[i];
+            if ("META-INF/".equals(entry))
+                continue;
+            String name = entry.substring(0, entry.length() - 1);
+            if (entry.endsWith("/")) { // Directory
+                downloadDir(new URL(url, entry), new File(dir, name));
+            } else {
+                downloadFile(new URL(url, name), new File(dir, name));
+            }
+        }
+
+    }
+
+    private void downloadDir2(URL url, File dir) throws IOException {
+        String dirName = dir.getName();
+        logger.finer("Creating directory " + dirName + " from "
+                + url.toString());
+        dir.mkdir();
         InputStream stream = url.openStream();
         DirectoryParser parser = new DirectoryParser();
 
@@ -122,6 +173,28 @@ public class BenchmarkLoader {
     }
 
     private void downloadFile(URL url, File file) throws IOException {
+        logger.finer("Downloading file " + url.toString());
+        GetMethod get = new GetMethod(url.toString());
+        HttpClient client = new HttpClient();
+        client.setConnectionTimeout(2000);
+        int status = client.executeMethod(get);
+        if (status != HttpStatus.SC_OK)
+            throw new IOException("Download request for " + url + " returned " +
+                                    HttpStatus.getStatusText(status) + '.');
+        InputStream in = get.getResponseBodyAsStream();
+        FileOutputStream out = new FileOutputStream(file);
+
+        int length = in.read(buffer);
+        while (length != -1) {
+            out.write(buffer, 0, length);
+            length = in.read(buffer);
+        }
+        out.flush();
+        out.close();
+        in.close();
+    }
+
+    private void downloadFile2(URL url, File file) throws IOException {
         logger.finer("Downloading file " + url.toString());
         InputStream in = url.openStream();
         FileOutputStream out = new FileOutputStream(file);
