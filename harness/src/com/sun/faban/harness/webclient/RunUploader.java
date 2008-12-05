@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunUploader.java,v 1.8 2006/10/26 00:07:51 akara Exp $
+ * $Id: RunUploader.java,v 1.9 2008/12/05 22:08:25 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -268,19 +268,8 @@ public class RunUploader extends HttpServlet {
 
         // 2. Jar up the run
         String[] files = new File(Config.OUT_DIR, runId).list();
-
-        StringBuilder fileList = new StringBuilder();
-        for (String file : files)
-            fileList.append(file).append(' ');
-
-        // trim off the trailing space.
-        int length = fileList.length();
-        if (length > 0)
-            fileList.setLength(length - 1);
-
         File jarFile = new File(Config.TMP_DIR, runId + ".jar");
-        jar(Config.OUT_DIR + runId, fileList.toString(),
-                jarFile.getAbsolutePath());
+        jar(Config.OUT_DIR + runId, files, jarFile.getAbsolutePath());
 
         // 3. Upload the run
         MultipartPostMethod post = new MultipartPostMethod(target.toString());
@@ -305,4 +294,26 @@ public class RunUploader extends HttpServlet {
     }
 
     // TODO: General upload client for result server.
+    public static void uploadRun(File jarFile) throws IOException {
+        // 3. Upload the run
+
+        for (URL repository : Config.repositoryURLs) {
+            URL repos = new URL(repository, "upload");
+            MultipartPostMethod post = new MultipartPostMethod(repos.toString());          
+            post.addParameter("host",Config.FABAN_HOST);
+            post.addParameter("jarfile", jarFile);
+            HttpClient client = new HttpClient();
+            client.setConnectionTimeout(5000);
+            int status = client.executeMethod(post);
+
+            if (status == HttpStatus.SC_FORBIDDEN)
+                logger.severe("Server denied permission to upload run !");
+            else if (status == HttpStatus.SC_NOT_ACCEPTABLE)
+                logger.severe("Run origin error!");
+            else if (status != HttpStatus.SC_CREATED)
+                logger.severe("Server responded with status code " +
+                        status + ". Status code 201 (SC_CREATED) expected.");
+            jarFile.delete();
+        }
+    }
 }

@@ -17,12 +17,14 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Run.java,v 1.5 2006/10/25 23:04:42 akara Exp $
+ * $Id: Run.java,v 1.6 2008/12/05 22:02:14 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.common;
 import java.io.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * This is the benchmark run object. The run can either be in the
@@ -41,6 +43,11 @@ public class Run implements Serializable {
     private String runSeq;
     private String runId;
     private boolean inRunQ;
+
+    // Formatter is used to format dates with the status changes.
+    private SimpleDateFormat formatter = new SimpleDateFormat(
+                              "EEE MMM dd HH:mm:ss z yyyy");
+
 
     public Run(String runSeq, BenchmarkDescription benchDesc) {
         this.benchDesc = benchDesc;
@@ -125,7 +132,8 @@ public class Run implements Serializable {
         resultInfo.delete();
         resultInfo.createNewFile();
         FileWriter writer = new FileWriter(resultInfo);
-        writer.write(status);
+        String content = status + '\t' + formatter.format(new Date());
+        writer.write(content);
         writer.flush();
         writer.close();
     }

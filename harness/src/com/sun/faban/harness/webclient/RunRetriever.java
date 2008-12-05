@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunRetriever.java,v 1.11 2007/05/24 01:04:39 akara Exp $
+ * $Id: RunRetriever.java,v 1.12 2008/12/05 22:08:25 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -205,22 +205,11 @@ public class RunRetriever extends HttpServlet {
         String jarName = runId + ".jar";
         File jar = new File(Config.TMP_DIR, jarName);
 
-        String[] files = new File(Config.OUT_DIR, runId).list();
-
-        StringBuilder fileList = new StringBuilder();
-        for (String file : files)
-            fileList.append(file).append(' ');
-
-        // trim off the trailing space.
-        int length = fileList.length();
-        if (length > 0)
-            fileList.setLength(length - 1);
-        
+        String[] files = new File(Config.OUT_DIR, runId).list();        
         if (jar.exists())
             jar.delete();
 
-        FileHelper.jar(Config.OUT_DIR + runId, fileList.toString(),
-                       jar.getAbsolutePath());
+        FileHelper.jar(Config.OUT_DIR + runId, files, jar.getAbsolutePath());
         return jar;
     }
 

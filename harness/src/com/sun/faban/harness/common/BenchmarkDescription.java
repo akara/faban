@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: BenchmarkDescription.java,v 1.11 2008/06/03 18:00:32 akara Exp $
+ * $Id: BenchmarkDescription.java,v 1.12 2008/12/05 22:02:14 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -48,6 +48,9 @@ public class BenchmarkDescription implements Serializable {
 
     /** The max time to cache a map, 10 secs. */
     public static final int MAP_TIMEOUT = 10000;
+    
+    /** Banner page for the benchmark. */
+    public String bannerPage;
 
     /** The short name of the benchmark, and also the directory names. */
     public String shortName;
@@ -125,6 +128,28 @@ public class BenchmarkDescription implements Serializable {
     public static BenchmarkDescription getDescription(String dir) {
         checkMaps(true);
         return (BenchmarkDescription) benchDirMap.get(dir);
+    }
+    
+    /**
+     * Returns the banner page supplied by the user.
+     * @return banner page
+     */
+    public static String getBannerPage() {
+        String bannerPage;
+        if (benchDirMap.size() == 1) {
+            BenchmarkDescription desc = (BenchmarkDescription) benchDirMap.
+                    values().iterator().next();
+            bannerPage = desc.bannerPage;
+            if (desc.bannerPage != null){
+                bannerPage = "/benchmarks/" + desc.shortName + "/" + 
+                                desc.bannerPage;
+            }else{
+                bannerPage = "banner.jsp";
+            }
+        } else {
+            bannerPage = "banner.jsp";
+        }
+        return bannerPage;
     }
 
     /**
@@ -241,6 +266,10 @@ public class BenchmarkDescription implements Serializable {
                 value = xPath.evaluate("config-stylesheet", root);
                 if (value != null && value.length() > 0)
                     desc.configStylesheet = value;
+                
+                value = xPath.evaluate("banner-page", root);
+                if (value != null && value.length() > 0)
+                    desc.bannerPage = value;                
 
                 if (desc.benchmarkClass == null ||
                     desc.benchmarkClass.length() == 0)

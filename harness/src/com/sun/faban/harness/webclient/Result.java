@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Result.java,v 1.23 2008/09/04 03:26:13 akara Exp $
+ * $Id: Result.java,v 1.24 2008/12/05 22:08:25 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -167,7 +167,9 @@ public class Result {
         if(href != null)
             result.text = href + result.value + "</a>";
 
-        status.value = getStatus(runId.toString());
+        String[] statusFileContent = getStatus(runId.toString());
+
+        status.value = statusFileContent[0];
         StringBuilder b = new StringBuilder(
             "<a href=\"resultframe.jsp?runId=");
         b.append(this.runId);
@@ -181,13 +183,32 @@ public class Result {
         String paramFileName = resultDir.getAbsolutePath() +
                 File.separator + desc.configFileName;
         File paramFile = new File(paramFileName);
+        if (dateTime == null && statusFileContent[1] != null) {
+            try {
+                Date runTime = parseFormat.parse(statusFileContent[1]);
+                dateTime = new ResultField<Long>();
+                dateTime.text = dateFormat.format(runTime);
+                dateTime.value = runTime.getTime();
+            } catch (ParseException e) {
+                // Do nothing. result.dateTime will be null and
+                // later we'll use the param file's mod dateTime
+                // for this field instead.
+            }
+        }
         if (paramFile.isFile()) {
+
+            // Compatible with old versions of Config.RESULT_INFO
+            // Old version does not have timestamp in RESULT_INFO
+            // So we need to establish it from the paramFile timestamp.
+            // This block may be removed in future.
             if (dateTime == null) {
                 dateTime = new ResultField<Long>();
                 dateTime.value = paramFile.lastModified();
                 dateTime.text = dateFormat.format(
                         new Date(dateTime.value.longValue()));
             }
+            // End compatibility block
+
             ParamRepository par = new ParamRepository(paramFileName, false);
             description = par.getParameter("fa:runConfig/fh:description");
             scale = par.getParameter("fa:runConfig/fa:scale");
@@ -250,26 +271,33 @@ public class Result {
      * @param runId The id of the run in question
      * @return The current status string or "UNKNOWN" in error cases
      */
-    public static String getStatus(String runId) {
+    public static String[] getStatus(String runId) {
         char[] cBuf = null;
+        String[] status = new String[2];
         int length = -1;
         try {
             FileReader reader = new FileReader(Config.OUT_DIR + runId +
-                    "/resultinfo");
-            cBuf = new char[64];
+                    '/' + Config.RESULT_INFO);
+            cBuf = new char[128];
             length = reader.read(cBuf);
             reader.close();
         } catch (IOException e) {
             // Do nothing, length = -1.
         }
 
-        String status;
-        if (length == -1)
-            status = "UNKNOWN";
-        else
-            status = new String(cBuf, 0, length);
-
-        return status.trim();
+        if (length == -1) {
+            status[0] = "UNKNOWN";
+        } else {
+            String content = new String(cBuf, 0, length);
+            int idx = content.indexOf('\t');
+            if (idx != -1) {
+                status[0] = content.substring(0, idx).trim();
+                status[1] = content.substring(++idx);
+            } else {
+                status[0] = content.trim();
+            }
+        }
+        return status;
     }
 
     public static TableModel getResultTable(Subject user) {

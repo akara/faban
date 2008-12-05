@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileHelper.java,v 1.14 2008/04/11 07:52:54 akara Exp $
+ * $Id: FileHelper.java,v 1.15 2008/12/05 22:03:32 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -34,6 +34,7 @@ import com.sun.faban.harness.common.Config;
 
 import java.io.*;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -337,21 +338,29 @@ public class FileHelper {
      * @param jarPath The pathname of the jar file
      * @throws IOException There is a problem jarring up
      */
-    public static void jar(String dir, String fileNames, String jarPath)
+    public static void jar(String dir, String[] fileNames, String jarPath)
             throws IOException {
 
         logger.fine("Jar'ring up " + dir + " to " + jarPath + '.');
 
+        ArrayList<String> cmdList = new ArrayList<String>(fileNames.length + 3);
         String jarCmd = Utilities.getJavaHome() + File.separator + "bin" +
                 File.separator + "jar";
-        Command cmd = new Command(jarCmd, "cf", jarPath, fileNames);
+        cmdList.add(jarCmd);
+        cmdList.add("cf");
+        cmdList.add(jarPath);
+        for (String fileName : fileNames) {
+            cmdList.add(fileName);
+        }
+        Command cmd = new Command(cmdList);
         cmd.setWorkingDirectory(dir);
         try {
             CommandHandle handle = cmd.execute();
             int exitValue = handle.exitValue();
-            if (exitValue != 0)
-                throw new IOException("Command \"jar cf\" has exit value " +
-                                      exitValue);
+            if (exitValue != 0){
+                handle.destroy();
+                //throw new IOException("Command \"jar cf\" has exit value " + exitValue);
+            }
         } catch (InterruptedException e) {
             logger.log(Level.SEVERE, "Jar interrupted", e);
         }

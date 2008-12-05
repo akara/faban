@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.30 2008/11/10 23:01:01 sheetalpatil Exp $
+ * $Id: Config.java,v 1.31 2008/12/05 22:02:14 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -465,8 +465,8 @@ public class Config {
 
                 // Note: The logServer config is read by LogConfig, not here.
                 
-                v = xPath.evaluate("logView/bufferSize", root);
-                if (v != null) {
+                v = xPath.evaluate("logView/bufferSize", root).trim();
+                if (v != null && v.length() > 0) {
                     LOG_VIEW_BUFFER_SIZE = Integer.parseInt(v.trim());
                 }
 

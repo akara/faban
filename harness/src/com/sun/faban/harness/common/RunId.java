@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunId.java,v 1.5 2006/11/29 21:11:52 akara Exp $
+ * $Id: RunId.java,v 1.6 2008/12/05 22:02:14 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -168,19 +168,30 @@ public class RunId implements Comparable {
      */
     public int compareSeq(RunId o) {
         // Split the run sequence into the number and trailing char
-        int postIdx = runSeq.length() - 1;
+        int postIdx = 0;
+        for (; postIdx < runSeq.length(); postIdx++) {
+            if (Character.isLetter(runSeq.charAt(postIdx)))
+                    break;
+        }
         String pre = runSeq.substring(0, postIdx);
         char post = runSeq.charAt(postIdx);
+        String dup = runSeq.substring(++postIdx);
 
         String seq = o.runSeq;
-        postIdx = seq.length() - 1;
+        for (postIdx = 0; postIdx < seq.length(); postIdx++) {
+            if (Character.isLetter(seq.charAt(postIdx)))
+                    break;
+        }
         String pre1 = seq.substring(0, postIdx);
         char post1 = seq.charAt(postIdx);
+        String dup1 = seq.substring(++postIdx);
 
         int compare = Integer.parseInt(pre) - Integer.parseInt(pre1);
         if (compare == 0)
             compare = post - post1;
+        if (compare == 0)
+            compare = dup.compareTo(dup1);
 
-        return compare;
+        return compare; 
     }
 }
