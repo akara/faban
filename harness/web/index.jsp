@@ -19,19 +19,35 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: index.jsp,v 1.3 2006/08/15 02:39:03 akara Exp $
+ * $Id: index.jsp,v 1.4 2008/12/05 22:10:13 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 -->
-<%@ page language="java" import="com.sun.faban.harness.common.BenchmarkDescription"%>
+<%@ page language="java" import="com.sun.faban.harness.common.BenchmarkDescription,
+                                 com.sun.faban.harness.common.Config"%>
 <html>
     <head>
         <title><%=BenchmarkDescription.getBannerName()%> Administration</title>
         <link rel="icon" type="image/gif" href="img/faban.gif">
     </head>
+    <%
+        String bannerPage = BenchmarkDescription.getBannerPage();
+        boolean defaultBanner = bannerPage.equals("banner.jsp");
+
+        if (defaultBanner || !Config.SECURITY_ENABLED) {
+    %>
     <frameset rows="80,*">
-        <frame name="banner" src="banner.jsp" scrolling="no" noresize="noresize" frameborder="0"/>
+        <frame name="loginstat" src="<%=bannerPage%>"
+               scrolling="no" noresize="noresize" frameborder="0"/>
+    <% } else { %>
+    <frameset rows="120,*">
+        <frameset rows="80,*">
+            <frame name="banner" src="<%=bannerPage%>" scrolling="no" noresize="noresize" frameborder="0"/>
+            <frame name="loginstat" src="loginstat.jsp" scrolling="no" noresize="noresize" frameborder="0"/>
+        </frameset>
+    <% } %>
+
         <frameset cols="15%,*">
             <frame name="menu" src="menu.jsp" frameborder="0"/>
             <frame name="main" src="welcome.jsp" frameborder="0"/>

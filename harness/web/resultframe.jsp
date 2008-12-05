@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultframe.jsp,v 1.3 2006/07/26 18:19:09 akara Exp $
+ * $Id: resultframe.jsp,v 1.4 2008/12/05 22:10:13 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -33,9 +33,10 @@
     String runId = request.getParameter("runId");
     String resultFile = request.getParameter("result");
     String show = request.getParameter("show");
+    String[] statusFileContent = Result.getStatus(runId);
     String displayFrame = null;
     if ("logs".equals(show)) {
-        if ("STARTED".equals(Result.getStatus(runId)))
+        if ("STARTED".equals(statusFileContent[0]))
             displayFrame = "LogReader?runId=" + runId + "&startId=end#end";
         else
             displayFrame = "LogReader?runId=" + runId;

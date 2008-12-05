@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: login.jsp,v 1.6 2006/10/08 08:36:57 akara Exp $
+ * $Id: login.jsp,v 1.7 2008/12/05 22:10:13 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -44,7 +44,7 @@
 </head>
 <%  String bodyHdr = "<body><br/><br/><br/>";
     if (Config.SECURITY_ENABLED) {
-        String reloadFrameBody = "<body onLoad=\"top.banner.document." +
+        String reloadFrameBody = "<body onLoad=\"top.loginstat.document." +
                 "location.reload(); top.menu.document.location.reload()\">" +
                 "<br/><br/><br/>";
         String id = null;

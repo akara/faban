@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultnavigator.jsp,v 1.9 2007/07/20 22:16:31 akara Exp $
+ * $Id: resultnavigator.jsp,v 1.10 2008/12/05 22:10:13 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -43,9 +43,9 @@
 
     // If not, we fetch it from the benchmark meta info.
     desc = BenchmarkDescription.getDescription(benchmark);
-    String status = Result.getStatus(runId);
+    String[] status = Result.getStatus(runId);
     boolean finished = true;
-    if ("STARTED".equals(status))
+    if ("STARTED".equals(status[0]))
         finished = false;
     String scale = "";
     if (desc != null) {

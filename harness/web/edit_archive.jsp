@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: edit_archive.jsp,v 1.1 2008/09/03 05:21:15 akara Exp $
+ * $Id: edit_archive.jsp,v 1.2 2008/12/05 22:10:13 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -27,8 +27,9 @@
 <%@ page language="java" import="com.sun.faban.harness.webclient.ResultAction,
                                  com.sun.faban.harness.webclient.Result"
  %>
- <%  ResultAction.EditArchiveModel model = (ResultAction.EditArchiveModel)
+ <% ResultAction.EditArchiveModel model = (ResultAction.EditArchiveModel)
                                     request.getAttribute("editarchive.model");
+ 	request.setAttribute("archive.model", model);
  %>
 
 <html>
@@ -49,32 +50,30 @@
           <th style="vertical-align: top;">RunId</th>
           <th style="vertical-align: top;">Description</th>
         </tr>
-    <%
-        for (Result result : model.results) {
-    %>
-        <tr>
-          <td style="vertical-align: top;"><%=result.runId%>
-            <input type="hidden" name="select" value="<%=result.runId%>"/><br>
+        <% for (int i = 0; i < model.runIds.length; i++) {
+            String runId = model.runIds[i];
+        %>
+            <tr>
+              <td style="vertical-align: top;"><%=runId%>
+                <input type="hidden" name="select" value="<%=runId%>"/><br>
      <%
-            if (model.duplicates.contains(result.runId)) {
+            if (model.duplicates.contains(runId)) {
      %>
             <br/><input type="checkbox" name="replace"
                 title="Check this box if you want to replace the old archive."
-                value="false">Run already archived. Replace?</input>
+                value="<%=runId%>">Run already archived. Replace?</input>
      <%
             }
      %>
-          </td>
-          <td style="vertical-align: top;">
-            <textarea name="<%=result.runId%>_description"
-                   title="Input/modify the description of run <%=result.runId%>"
-                   rows="3" style="width: 98%;"
-                   ><%=result.description%></textarea>
-          </td>
-        </tr>
-    <%
-        }
-    %>
+              </td>
+              <td style="vertical-align: top;">
+                <textarea name="<%=runId%>_description"
+                       title="Input/modify the description of run <%=runId%>"
+                       rows="3" style="width: 98%;"
+                       ><%=model.results[i].description%></textarea>
+              </td>
+            </tr>
+       <% } %>
       </tbody>
     </table><br>
     <center><input type="submit" name="process" value="Archive"
