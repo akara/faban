@@ -17,7 +17,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: Uploader.java,v 1.1 2008/12/05 22:07:59 sheetalpatil Exp $
+* $Id: Uploader.java,v 1.2 2008/12/09 23:59:09 sheetalpatil Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 */
@@ -51,9 +51,10 @@ import static com.sun.faban.harness.util.FileHelper.*;
  */
 
 public class Uploader {
-        private static Logger logger = Logger.getLogger(ResultAction.class.getName());
+  private static Logger logger = Logger.getLogger(ResultAction.class.getName());
 
-        public String checkRuns(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+  public String checkRuns(HttpServletRequest request, HttpServletResponse
+                                response) throws IOException, ServletException {
             HashSet<String> duplicateSet = new HashSet<String>();
             String host = request.getParameter("host");
             String[] runIds = request.getParameterValues("runId");
@@ -78,7 +79,8 @@ public class Uploader {
             String[] status = new String[2];
             int length = -1;
             try {
-               FileReader reader = new FileReader(Config.OUT_DIR + runId + '/' + Config.RESULT_INFO);
+               FileReader reader = new FileReader(Config.OUT_DIR + runId + '/'
+                                                         + Config.RESULT_INFO);
                cBuf = new char[128];
                length = reader.read(cBuf);
                reader.close();
@@ -119,12 +121,14 @@ public class Uploader {
         
         private boolean checkIfArchived(String runId) throws IOException {
             boolean found = false;
-            File file = new File(Config.OUT_DIR + runId + '/' + Config.RESULT_INFO);
+            File file = new File(Config.OUT_DIR + runId + '/' +
+                                                            Config.RESULT_INFO);
             found = file.exists();
             return found;
         }
 
-        public String uploadRuns(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        public String uploadRuns(HttpServletRequest request, HttpServletResponse
+                                response) throws IOException, ServletException {
             // 3. Upload the run
             HashSet<String> duplicateSet = new HashSet<String>();
             HashSet<String> replaceSet = new HashSet<String>();
@@ -218,7 +222,8 @@ public class Uploader {
                 // Ignore all non-jarfiles.
                 if (!fileName.toLowerCase().endsWith(".jar"))
                     continue;
-                File uploadFile = new File(Config.TMP_DIR, host + '.' + fileName);
+                File uploadFile = new File(Config.TMP_DIR, host + '.' +
+                                                                     fileName);
                 try {
                     item.write(uploadFile);
                 } catch (Exception e) {
@@ -227,11 +232,13 @@ public class Uploader {
                 int runIdx = fileName.lastIndexOf(".");
                 String runName = host + '.' + fileName.substring(0, runIdx);
                 File runTmp = unjarTmp(uploadFile);
-                if ( checkIfArchived(runName) && !(replaceSet.contains(fileName.substring(0, runIdx))) ) {
+                if ( checkIfArchived(runName) &&
+                       !(replaceSet.contains(fileName.substring(0, runIdx))) ) {
                     char[] cBuf = null;
                     int length = -1;
                     try {
-                       FileReader reader = new FileReader(Config.TMP_DIR + runName + '/' + Config.RESULT_INFO);
+                       FileReader reader = new FileReader(Config.TMP_DIR +
+                                           runName + '/' + Config.RESULT_INFO);
                        cBuf = new char[128];
                        length = reader.read(cBuf);
                        reader.close();
@@ -245,12 +252,15 @@ public class Uploader {
                         duplicateSet.add(fileName.substring(0, runIdx));
                     }else{
                         String runId = getNextRunId(runName);
-                        if (recursiveCopy(runTmp, new File(Config.OUT_DIR, runId))) {
+                        if (recursiveCopy(runTmp, new File(Config.OUT_DIR,
+                                                                      runId))) {
                             uploadFile.delete();
                             recursiveDelete(runTmp);
                         } else {
-                            logger.warning("Origin upload requested. Copy error!");
-                            response.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE);
+                            logger.warning("Origin upload requested. " +
+                                                                "Copy error!");
+                            response.sendError(
+                                    HttpServletResponse.SC_NOT_ACCEPTABLE);
                             break;
                         }
                         response.setStatus(HttpServletResponse.SC_CREATED);
@@ -265,8 +275,8 @@ public class Uploader {
                         File metaInf = new File(runTmp, "META-INF");
                         File originFile = new File(metaInf, "origin");
                         if (!originFile.exists()) {
-                            logger.warning("Origin upload requested. Origin file" +
-                                           "does not exist!");
+                            logger.warning("Origin upload requested. " +
+                                           "Origin file does not exist!");
                             response.sendError(
                                     HttpServletResponse.SC_NOT_ACCEPTABLE,
                                     "Origin file does not exist!");
@@ -275,20 +285,24 @@ public class Uploader {
 
                         RunId origRun;
                         try {
-                            origRun = new RunId(readStringFromFile(originFile).trim());
+                            origRun = new RunId(
+                                    readStringFromFile(originFile).trim());
                         } catch (IndexOutOfBoundsException e) {
-                            response.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE,
+                            response.sendError(
+                                    HttpServletResponse.SC_NOT_ACCEPTABLE,
                                     "Origin file error. " + e.getMessage());
                             break;
                         }
 
-                        runId = origRun.getBenchName() + '.' + origRun.getRunSeq();
+                        runId = origRun.getBenchName() + '.' +
+                                                            origRun.getRunSeq();
                         String localHost = origRun.getHostName();
                         if (!localHost.equals(Config.FABAN_HOST)) {
-                            logger.warning("Origin upload requested. Origin host " +
-                                           localHost + " does not match this host " +
+                            logger.warning("Origin upload requested. Origin " +
+                            "host" + localHost + " does not match this host " +
                                            Config.FABAN_HOST + '!');
-                            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                            response.sendError(
+                                    HttpServletResponse.SC_FORBIDDEN);
                             break;
                         }
                         writeStringToFile(runTmp.getName(), originFile);
@@ -296,12 +310,13 @@ public class Uploader {
                         runId = runTmp.getName();
                     }
 
-                    if (recursiveCopy(runTmp, new File(Config.OUT_DIR, runId))) {
+                    if (recursiveCopy(runTmp, new File(Config.OUT_DIR, runId))){
                         uploadFile.delete();
                         recursiveDelete(runTmp);
                     } else {
                         logger.warning("Origin upload requested. Copy error!");
-                        response.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE);
+                        response.sendError(
+                                HttpServletResponse.SC_NOT_ACCEPTABLE);
                         break;
                     }
                 }

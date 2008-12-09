@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: edit_archive.jsp,v 1.2 2008/12/05 22:10:13 sheetalpatil Exp $
+ * $Id: edit_archive.jsp,v 1.3 2008/12/09 23:59:24 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -29,7 +29,7 @@
  %>
  <% ResultAction.EditArchiveModel model = (ResultAction.EditArchiveModel)
                                     request.getAttribute("editarchive.model");
- 	request.setAttribute("archive.model", model);
+
  %>
 
 <html>
@@ -76,6 +76,9 @@
        <% } %>
       </tbody>
     </table><br>
+     <%for (String dup : model.duplicates){%>
+        <input type="hidden" name="duplicates" value="<%=dup%>"/><br>
+     <%}%>
     <center><input type="submit" name="process" value="Archive"
             >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="reset"></center>
     </form>

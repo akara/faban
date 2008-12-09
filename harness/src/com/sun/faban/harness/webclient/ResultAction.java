@@ -17,7 +17,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: ResultAction.java,v 1.2 2008/12/05 22:08:25 sheetalpatil Exp $
+* $Id: ResultAction.java,v 1.3 2008/12/09 23:58:55 sheetalpatil Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 */
@@ -51,11 +51,13 @@ import org.apache.commons.httpclient.methods.PostMethod;
  */
 public class ResultAction {
 
-    private static Logger logger = Logger.getLogger(ResultAction.class.getName());
+    private static Logger logger =
+            Logger.getLogger(ResultAction.class.getName());
     private SimpleDateFormat dateFormat = new SimpleDateFormat(
                               "EEE MM/dd/yy HH:mm:ss z");
     public String takeAction(HttpServletRequest request,
-                           HttpServletResponse response) throws IOException, FileNotFoundException, ParseException {
+                           HttpServletResponse response) throws IOException,
+                           FileNotFoundException, ParseException {
         String process = request.getParameter("process");
         if ("Compare".equals(process))
             return editAnalysis(process, request, response);
@@ -74,7 +76,8 @@ public class ResultAction {
     }
 
     String editArchive(HttpServletRequest request,
-                              HttpServletResponse response) throws IOException, FileNotFoundException, ParseException {
+                              HttpServletResponse response) throws IOException,
+                              FileNotFoundException, ParseException {
         String[] runIds = request.getParameterValues("select");
 
         if (runIds == null || runIds.length < 1) {
@@ -104,7 +107,7 @@ public class ResultAction {
         return "/edit_archive.jsp";
     }
 
-    /*private Set<String> checkArchivedRuns(String[] runIds) throws IOException {
+    /*private Set<String> checkArchivedRuns(String[] runIds) throws IOException{
         StringBuilder b = new StringBuilder();
         b.append("/controller/uploader/check_runs");
         int endPath = b.length();      
@@ -119,7 +122,8 @@ public class ResultAction {
         HashSet<String> existingRuns = new HashSet<String>();
         for (String runId : runIds){
             for (URL repository : Config.repositoryURLs) {
-                URL request = new URL(repository, "/output/"+ Config.FABAN_HOST+"."+runId);
+                URL request = new URL(repository, "/output/"+
+                                                 Config.FABAN_HOST+"."+runId);
                 URLConnection c = request.openConnection();
                 int len = c.getContentLength();
                 if (len < 0){
@@ -130,7 +134,8 @@ public class ResultAction {
         return existingRuns;
     }*/
 
-    private String editResultInfo(String runID) throws FileNotFoundException, IOException, ParseException {
+    private String editResultInfo(String runID) throws FileNotFoundException,
+                                                IOException, ParseException {
         RunId runId = new RunId(runID);
         String ts = null;
         String[] status = new String[2];
@@ -165,7 +170,8 @@ public class ResultAction {
         return ts;
     }
 
-    private Set<String> checkArchivedRuns(String[] runIds) throws FileNotFoundException, IOException, ParseException {
+    private Set<String> checkArchivedRuns(String[] runIds) throws
+                            FileNotFoundException, IOException, ParseException {
         HashSet<String> existingRuns = new HashSet<String>();
         String[] runIdTimeStamps = new  String[runIds.length];
         for (int r=0; r< runIds.length ; r++){
@@ -173,26 +179,26 @@ public class ResultAction {
             runIdTimeStamps[r] = editResultInfo(runId);
         }
         for (URL repository : Config.repositoryURLs) {
-                URL repos = new URL(repository, "/controller/uploader/check_runs");
-                PostMethod post = new PostMethod(repos.toString());
-                post.addParameter("host",Config.FABAN_HOST);
-                for (String runId : runIds){
-                    post.addParameter("runId",runId);
-                }
-                for (String ts : runIdTimeStamps){
-                    post.addParameter("ts",ts);
-                }
-                HttpClient client = new HttpClient();
-                client.setConnectionTimeout(5000);
-                int status = client.executeMethod(post);
-                if (status == HttpStatus.SC_OK)
-                    logger.info("SC_OK");
+            URL repos = new URL(repository, "/controller/uploader/check_runs");
+            PostMethod post = new PostMethod(repos.toString());
+            post.addParameter("host",Config.FABAN_HOST);
+            for (String runId : runIds){
+                post.addParameter("runId",runId);
+            }
+            for (String ts : runIdTimeStamps){
+                post.addParameter("ts",ts);
+            }
+            HttpClient client = new HttpClient();
+            client.setConnectionTimeout(5000);
+            int status = client.executeMethod(post);
+            if (status != HttpStatus.SC_OK)
+                logger.info("SC_OK not ok");
 
-                String response = post.getResponseBodyAsString();
-                StringTokenizer t = new StringTokenizer(response.trim(),"\n");
-                while (t.hasMoreTokens()) {
-                    existingRuns.add(t.nextToken().trim());
-                }
+            String response = post.getResponseBodyAsString();
+            StringTokenizer t = new StringTokenizer(response.trim(),"\n");
+            while (t.hasMoreTokens()) {
+                existingRuns.add(t.nextToken().trim());
+            }
         }
         return existingRuns;
     }
@@ -296,22 +302,33 @@ public class ResultAction {
     }
 
     public String archive(HttpServletRequest request,
-                        HttpServletResponse response) throws IOException, FileNotFoundException, ParseException {
+                        HttpServletResponse response) throws IOException,
+                        FileNotFoundException, ParseException {
+        //Reading values from request
+        String[] duplicateIds = request.getParameterValues("duplicates");
         String[] replaceIds = request.getParameterValues("replace");
+        String[] runIds = request.getParameterValues("select");
+        String submitAction = request.getParameter("process");
+
+        HashSet<String> modelDuplicates = new HashSet<String>();
         HashSet<String> replaceSet = new HashSet<String>();
         HashSet<File> uploadSet = new HashSet<File>();
         HashSet<String> uploadedRuns = new HashSet<String>();
         HashSet<String> duplicateSet = new HashSet<String>();
         if(replaceIds != null) {
-            for(int i = 0; i < replaceIds.length; i++){
-                replaceSet.add(replaceIds[i]);
+            for(String replaceId : replaceIds){
+                replaceSet.add(replaceId);
             }
         }
-        String[] runIds = request.getParameterValues("select");
+        
         EditArchiveModel model = new EditArchiveModel();
         model.runIds = runIds;
-        model.duplicates = checkArchivedRuns(runIds);
-
+        if (duplicateIds != null) {
+            for (String duplicateId : duplicateIds){
+                modelDuplicates.add(duplicateId);
+            }
+        }
+        model.duplicates = modelDuplicates;
         if (Config.repositoryURLs != null &&
                 Config.repositoryURLs.length > 1)
             model.head = "Repositories";
@@ -322,66 +339,74 @@ public class ResultAction {
         for (int i = 0; i < runIds.length; i++) {
             model.results[i] = Result.getInstance(new RunId(runIds[i]));
         }
-      
-        if(request.getParameter("process").equalsIgnoreCase("Archive")){
+
+        if (submitAction.equals("Archive")) {
             for (int i = 0; i < model.runIds.length; i++) {
-            String runId = model.runIds[i];
-                if ( model.duplicates.contains(runId) && (replaceIds != null) && replaceSet.contains(runId) ){                  
-                    model.results[i].description = request.getParameter(runId+"_description");
-                    editXML(model.results[i]);
-                    //Jar up and Send the runs
-                    //RunUploader.uploadRun(jarUpRun(runId));
-                    uploadedRuns.add(runId);
-                    uploadSet.add(jarUpRun(runId));
-                }else if ( model.duplicates.contains(runId) && (replaceIds != null) && !replaceSet.contains(runId) ){
-                    if (!model.results[i].description.equals(request.getParameter(runId+"_description"))){
-                        model.results[i].description = request.getParameter(runId+"_description");
-                        editXML(model.results[i]);
-                        uploadedRuns.add(runId);
-                        replaceSet.add(runId);
-                        uploadSet.add(jarUpRun(runId));
+                String runId = model.runIds[i];
+                if (model.duplicates.contains(runId)) {
+                    if (replaceIds != null) {
+                        if (replaceSet.contains(runId)) {
+                            prepareUpload(request, model.results[i],
+                                    uploadedRuns, uploadSet);
+                        } else { // Description got changed, replace anyway...
+                            if (!model.results[i].description.equals(request.
+                                    getParameter(runId + "_description"))) {
+                                replaceSet.add(runId);
+                                prepareUpload(request, model.results[i],
+                                        uploadedRuns, uploadSet);
+                            }
+                        }
+                    } else { // Single run, description changed, replace anyway.
+                        if (!model.results[i].description.equals(
+                                request.getParameter(runId + "_description"))) {
+                            replaceSet.add(runId);
+                            prepareUpload(request, model.results[i],
+                                    uploadedRuns, uploadSet);
+                        }
                     }
-                }else if ( model.duplicates.contains(runId) && (replaceIds == null) ){
-                    if (!model.results[i].description.equals(request.getParameter(runId+"_description"))){
-                        model.results[i].description = request.getParameter(runId+"_description");
-                        editXML(model.results[i]);
-                        uploadedRuns.add(runId);
-                        replaceSet.add(runId);
-                        uploadSet.add(jarUpRun(runId));
-                    }
-                }else{                 
-                    model.results[i].description = request.getParameter(runId+"_description");
-                    editXML(model.results[i]);
-                    //Jar up and Send the runs
-                    //uploadRun(jarUpRun(runId));
-                    uploadedRuns.add(runId);
-                    uploadSet.add(jarUpRun(runId));
+                } else {
+                    prepareUpload(request, model.results[i],
+                            uploadedRuns, uploadSet);
                 }
             }
         }
-        duplicateSet = (HashSet<String>) uploadRuns(uploadSet,replaceSet);
+        duplicateSet = uploadRuns(uploadSet,replaceSet);
         request.setAttribute("archive.model", model);
         request.setAttribute("uploadedRuns", uploadedRuns);
         request.setAttribute("duplicateRuns", duplicateSet);
         return "/archive_results.jsp";
+    }
 
+    private void prepareUpload(HttpServletRequest request, Result result,
+                    HashSet<String> uploadedRuns, HashSet<File> uploadSet)
+            throws IOException {
+        String runId = result.runId.toString();
+        result.description =
+                request.getParameter(runId + "_description");
+        editXML(result);
+        uploadedRuns.add(runId);
+        uploadSet.add(jarUpRun(runId));
     }
 
     /**
-     * Edit the XML
+     * Edit run.xml file
      * @param result
      */
     private void editXML(Result result){
         try {
             File resultDir = result.runId.getResultDir();
             String shortName = result.runId.getBenchName();
-            BenchmarkDescription desc = BenchmarkDescription.readDescription(shortName, resultDir.getAbsolutePath());
-            String paramFileName = resultDir.getAbsolutePath() + File.separator + desc.configFileName;
+            BenchmarkDescription desc = BenchmarkDescription.readDescription(
+                                        shortName, resultDir.getAbsolutePath());
+            String paramFileName = resultDir.getAbsolutePath() + File.separator
+                                                          + desc.configFileName;
             ParamRepository param = new ParamRepository(paramFileName, false);
-            param.setParameter("fa:runConfig/fh:description", result.description);
+            param.setParameter("fa:runConfig/fh:description",
+                                                            result.description);
             param.save();
         } catch (Exception ex) {
-            Logger.getLogger(ResultAction.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ResultAction.class.getName()).
+                    log(Level.SEVERE, null, ex);
         }
     }
 
@@ -399,38 +424,39 @@ public class ResultAction {
         //return new File(Config.TMP_DIR, "test.jar");
     }   
 
-    public static Set<String> uploadRuns(HashSet<File> uploadSet, HashSet<String> replaceSet) throws IOException {
+    public static HashSet<String> uploadRuns(HashSet<File> uploadSet,
+                               HashSet<String> replaceSet) throws IOException {
         // 3. Upload the run
         HashSet<String> duplicates = new HashSet<String>();
         for (URL repository : Config.repositoryURLs) {
-            URL repos = new URL(repository, "/controller/uploader/upload_runs");
-            MultipartPostMethod post = new MultipartPostMethod(repos.toString());
-            post.addParameter("host",Config.FABAN_HOST);
-            for (String replaceId : replaceSet){
+           URL repos = new URL(repository, "/controller/uploader/upload_runs");
+           MultipartPostMethod post = new MultipartPostMethod(repos.toString());
+           post.addParameter("host",Config.FABAN_HOST);
+           for (String replaceId : replaceSet){
                 post.addParameter("replace", replaceId);
-            }
-            for (File jarFile : uploadSet) {
+           }
+           for (File jarFile : uploadSet) {
                 post.addParameter("jarfile", jarFile);
-            }
-            HttpClient client = new HttpClient();
-            client.setConnectionTimeout(5000);
-            int status = client.executeMethod(post);
+           }
+           HttpClient client = new HttpClient();
+           client.setConnectionTimeout(5000);
+           int status = client.executeMethod(post);
 
-            if (status == HttpStatus.SC_FORBIDDEN)
+           if (status == HttpStatus.SC_FORBIDDEN)
                 logger.severe("Server denied permission to upload run !");
-            else if (status == HttpStatus.SC_NOT_ACCEPTABLE)
+           else if (status == HttpStatus.SC_NOT_ACCEPTABLE)
                 logger.severe("Run origin error!");
-            else if (status != HttpStatus.SC_CREATED)
+           else if (status != HttpStatus.SC_CREATED)
                 logger.severe("Server responded with status code " +
                         status + ". Status code 201 (SC_CREATED) expected.");
-            for (File jarFile : uploadSet) {
+           for (File jarFile : uploadSet) {
                 jarFile.delete();
-            }
-            String response = post.getResponseBodyAsString();
-            StringTokenizer t = new StringTokenizer(response.trim(),"\n");
-            while (t.hasMoreTokens()) {
+           }
+           String response = post.getResponseBodyAsString();
+           StringTokenizer t = new StringTokenizer(response.trim(),"\n");
+           while (t.hasMoreTokens()) {
                 duplicates.add(t.nextToken().trim());
-            }
+           }
         }
         return duplicates;
     }
