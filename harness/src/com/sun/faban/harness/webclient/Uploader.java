@@ -17,7 +17,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: Uploader.java,v 1.2 2008/12/09 23:59:09 sheetalpatil Exp $
+* $Id: Uploader.java,v 1.3 2008/12/11 01:22:10 sheetalpatil Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 */
@@ -30,14 +30,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.io.File;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.Set;
 import java.util.HashSet;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.Iterator;
 import java.util.List;
 import javax.servlet.ServletException;
@@ -62,11 +56,12 @@ public class Uploader {
             for (int r=0; r< runIds.length ; r++){
                 String runId = runIds[r];
                 if (checkIfArchived(host+"."+runId)){
-                        //check for runId timestamp
-                        String reposTs = getRunIdTimestamp(host+"."+runId);
-                        if (ts[r].equals(reposTs)) {
-                            duplicateSet.add(runId);
-                        }
+                    //check for runId timestamp
+                    String reposTs =
+                          getRunIdTimestamp(host + "." + runId, Config.OUT_DIR);
+                    if (ts[r].equals(reposTs)) {
+                        duplicateSet.add(runId);
+                    }
                 }
                 response.setStatus(HttpServletResponse.SC_OK);
             }
@@ -74,12 +69,12 @@ public class Uploader {
             return "/duplicates.jsp";
         }
 
-        private String getRunIdTimestamp(String runId) {
+        private String getRunIdTimestamp(String runId,  String dir) {
             char[] cBuf = null;
             String[] status = new String[2];
             int length = -1;
             try {
-               FileReader reader = new FileReader(Config.OUT_DIR + runId + '/'
+               FileReader reader = new FileReader(dir + runId + '/'
                                                          + Config.RESULT_INFO);
                cBuf = new char[128];
                length = reader.read(cBuf);
@@ -100,22 +95,23 @@ public class Uploader {
 
         private String getNextRunId(String runId) {
             RunId current = new RunId(runId);
-            String seq = current.getRunSeq();
+            String seq = current.getRunSeq(); // Say "1A1"
             int i = 0;
             for (; i < seq.length(); i++) {
                 if (Character.isLetter(seq.charAt(i)))
                     break;
-            }
-            String cDup = seq.substring(i + 1);
+            } // i now points to 'A'
+            String origSeq = seq.substring(0, i + 1); // origSeq = "1A"
+            String cDup = seq.substring(i + 1);       // cDup = "1"
             String nDup = null;
             if (cDup.length() == 0) {
                 nDup = "0";
             } else {
-                int x = Integer.parseInt(cDup, 16);
-                nDup = Integer.toHexString(++x).toUpperCase();
+                int x = Integer.parseInt(cDup, 16);  // x = (int) 1
+                nDup = Integer.toHexString(++x).toUpperCase(); // nDup - "2"
             }
             RunId next = new RunId(current.getHostName(),
-                    current.getBenchName(), seq + nDup);
+                    current.getBenchName(), origSeq + nDup);
             return next.toString();
         }
         
@@ -141,7 +137,8 @@ public class Uploader {
             fu.setSizeMax(-1);
             // maximum size that will be stored in memory
             fu.setSizeThreshold(4096);
-            // the location for saving data that is larger than getSizeThreshold()
+            // the location for saving data that is larger than
+            // getSizeThreshold()
             fu.setRepositoryPath(Config.TMP_DIR);
 
             List fileItems = null;
@@ -232,38 +229,38 @@ public class Uploader {
                 int runIdx = fileName.lastIndexOf(".");
                 String runName = host + '.' + fileName.substring(0, runIdx);
                 File runTmp = unjarTmp(uploadFile);
-                if ( checkIfArchived(runName) &&
-                       !(replaceSet.contains(fileName.substring(0, runIdx))) ) {
-                    char[] cBuf = null;
-                    int length = -1;
-                    try {
-                       FileReader reader = new FileReader(Config.TMP_DIR +
-                                           runName + '/' + Config.RESULT_INFO);
-                       cBuf = new char[128];
-                       length = reader.read(cBuf);
-                       reader.close();
-                    } catch (IOException e) {
-                       // Do nothing, length = -1.
-                    }
-                    String content = new String(cBuf, 0, length);
-                    int idx = content.indexOf('\t');
-                    String ts = content.substring(++idx);
-                    if (ts.equals(getRunIdTimestamp(runName))){
-                        duplicateSet.add(fileName.substring(0, runIdx));
-                    }else{
-                        String runId = getNextRunId(runName);
-                        if (recursiveCopy(runTmp, new File(Config.OUT_DIR,
-                                                                      runId))) {
-                            uploadFile.delete();
-                            recursiveDelete(runTmp);
-                        } else {
-                            logger.warning("Origin upload requested. " +
+                //Check if archived recently
+                if (checkIfArchived(runName) &&
+                       !(replaceSet.contains(fileName.substring(0, runIdx)))) {
+                    //Now check if timestamps are same
+                    //Get the timestamp of run being uploaded at this point
+                    //ts is timestamp of run being uploaded
+                    String ts = getRunIdTimestamp(runName,Config.TMP_DIR);
+                    l1: while (true) {                      
+                        //reposTs is timestamp of run being compared in the
+                        //repository
+                        String reposTs =
+                                getRunIdTimestamp(runName,Config.OUT_DIR);
+                        if (reposTs.equals(ts)){
+                            duplicateSet.add(fileName.substring(0, runIdx));
+                        }else{
+                            runName = getNextRunId(runName);
+                            if (checkIfArchived(runName))
+                                continue l1;
+                            if (recursiveCopy(runTmp, new File(Config.OUT_DIR,
+                                                                  runName))) {
+                                uploadFile.delete();
+                                recursiveDelete(runTmp);
+                            } else {
+                                logger.warning("Origin upload requested. " +
                                                                 "Copy error!");
-                            response.sendError(
-                                    HttpServletResponse.SC_NOT_ACCEPTABLE);
-                            break;
+                                response.sendError(
+                                        HttpServletResponse.SC_NOT_ACCEPTABLE);
+                                break;
+                            }
+                            response.setStatus(HttpServletResponse.SC_CREATED);
                         }
-                        response.setStatus(HttpServletResponse.SC_CREATED);
+                        break;
                     }
                 }else{
                     //File runTmp = unjarTmp(uploadFile);
@@ -295,7 +292,7 @@ public class Uploader {
                         }
 
                         runId = origRun.getBenchName() + '.' +
-                                                            origRun.getRunSeq();
+                                                           origRun.getRunSeq();
                         String localHost = origRun.getHostName();
                         if (!localHost.equals(Config.FABAN_HOST)) {
                             logger.warning("Origin upload requested. Origin " +
