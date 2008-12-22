@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.32 2008/09/03 05:16:29 akara Exp $
+ * $Id: GenericBenchmark.java,v 1.33 2008/12/22 21:32:38 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -58,7 +58,8 @@ public class GenericBenchmark {
     private Run run;
     private CmdService cmds = null;
     private ToolService tools = null;
-    private Benchmark bm = null;
+    //private Benchmark bm = null;
+    private static BenchmarkWrapper bmw = null;
 
     private static Logger logger =
             Logger.getLogger(GenericBenchmark.class.getName());
@@ -72,11 +73,13 @@ public class GenericBenchmark {
 
     // Flag to detect failed run
     private int runStatus = FAILED;
+    private int stdyState;
 
     public GenericBenchmark(Run r) {
         this.run = r;
     }
 
+    @SuppressWarnings("static-access")
     public void start() {
         ParamRepository par = null;
         ServerConfig server;
@@ -90,8 +93,10 @@ public class GenericBenchmark {
         // Create benchmark object.
         logger.fine("Instantiating benchmark class " +
                 benchDesc.benchmarkClass);
-        bm = newInstance(benchDesc);
-        if (bm == null)
+        //bm = newInstance(benchDesc);
+        bmw = BenchmarkWrapper.getInstance(benchDesc);
+
+        if (bmw == null)
             return;
 
         startTime = System.currentTimeMillis();
@@ -121,7 +126,7 @@ public class GenericBenchmark {
             RunFacade.newInstance(run, par);
 
             try {
-                bm.validate();
+                bmw.validate();
             } catch (Throwable t) {
                 logger.log(Level.SEVERE, "Benchmark validation failed.", t);
                 return;
@@ -222,27 +227,31 @@ public class GenericBenchmark {
                 return;
             }
 
+            int len = -1;
             s = par.getParameter("fa:runControl/fa:steadyState");
-            if (s != null)
+            if (s != null) {
                 s = s.trim();
-            if (s == null || s.length() == 0) {
-                logger.severe("Configuration runControl/steadyState not set.");
-                return;
+                len = s.length();
             }
+            if (len > 0) {
+                //if (s == null || s.length() == 0) {
+                    //logger.severe("Configuration runControl/steadyState not set.");
+                    //return;
+                    //logger.info("Configuration runControl/steadyState left open");
+                //}
 
-            int stdyState = 0;
-            try {
-                stdyState = Integer.parseInt(s);
-            } catch (NumberFormatException e) {
-                logger.log(Level.SEVERE,
-                        "Parameter steadyState is not a number.", e);
-                return;
+                try {
+                    stdyState = Integer.parseInt(s);
+                } catch (NumberFormatException e) {
+                    logger.log(Level.SEVERE,
+                            "Parameter steadyState is not a number.", e);
+                    return;
+                }
+                if (stdyState <= 0) {
+                    logger.severe("Parameter steadyState must be more than zero.");
+                    return;
+                }
             }
-            if (stdyState <= 0) {
-                logger.severe("Parameter steadyState must be more than zero.");
-                return;
-            }
-
             // Initialize ToolService, call setup with cmds as parameter
             logger.fine("Initializing Tool Service");
             tools = ToolService.getHandle();
@@ -252,7 +261,10 @@ public class GenericBenchmark {
             tools.setup(par, run.getOutDir());	// If Tools setup fails,
                                                 // we ignore it
             logger.finer("Tool Service Set Up");
-
+            if (s == null || s.length() == 0) {
+                    tools.start(delay);
+                    logger.info("Started tools with tools.start(delay)");
+            }
             // Now, process generic server parameters
             logger.fine("Processing Generic Parameters");
             server = new ServerConfig(run, par);
@@ -272,7 +284,7 @@ public class GenericBenchmark {
 
             // Configure benchmark
             try {
-                bm.configure();
+                bmw.configure();
                 logger.fine("Configured benchmark " + benchDesc.name);
             } catch (Throwable t) {
                 logger.log(Level.SEVERE, "Run configuration failed!", t);
@@ -281,7 +293,7 @@ public class GenericBenchmark {
 
             // Now run the benchmark
             try {
-                bm.start();
+                bmw.start();
                 logger.fine("Started benchmark " + benchDesc.name);
             } catch (Throwable t) {
                 logger.log(Level.SEVERE, "Run start failed!", t);
@@ -290,7 +302,11 @@ public class GenericBenchmark {
 
             // Start the tools
             try {
-                ToolService.getHandle().start(delay, stdyState);
+                if (stdyState > 0) {
+                    ToolService.getHandle().start(delay, stdyState);
+                    logger.info("Started tools with ToolService.getHandle()." +
+                            "start(delay, stdyState)");
+                }
             } catch (Exception e) {
                 logger.log(Level.WARNING, "ToolService not started.", e);
                 // Keep running. Failing the tools should not fail the
@@ -299,9 +315,21 @@ public class GenericBenchmark {
 
             // Wait and end the benchmark
             try {
-                bm.end();
+                bmw.end();
             } catch (Throwable t) {
                 logger.log(Level.SEVERE, "Run end failed!", t);
+                return;
+            }
+
+            if (s == null || s.length() == 0) {
+                logger.info("Stop called for tools");
+                tools.stop();
+                logger.info("Stopped tools");
+            }
+            try {
+                bmw.postRun();
+            } catch (Throwable t) {
+                logger.log(Level.SEVERE, "Post run failed!", t);
                 return;
             }
 
@@ -393,10 +421,10 @@ public class GenericBenchmark {
             logger.log(Level.SEVERE,  "Failed to update run status.", e);
         }
 
-        if(bm != null) {
+        if(bmw != null) {
             logger.info("Killing benchmark");
             try {
-                bm.kill();
+                bmw.kill();
             } catch (Throwable t) {
                 logger.log(Level.WARNING, "Exceptions killing benchmark.", t);
             }
