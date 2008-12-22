@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentImpl.java,v 1.1 2008/09/10 18:25:53 akara Exp $
+ * $Id: AgentImpl.java,v 1.2 2008/12/22 21:46:09 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -227,7 +227,7 @@ public class AgentImpl extends UnicastRemoteObject
         // Create the required number of threads
         numThreads = runInfo.agentInfo.threads;
         agentThreads = new AgentThread[numThreads];
-        long nsBetweenThreadStart = runInfo.msBetweenThreadStart * 1000000;
+        long nsBetweenThreadStart = runInfo.msBetweenThreadStart * 1000000L;
         try {
             // We use System.nanoTime() here directly
             // instead of timer.getTime().
