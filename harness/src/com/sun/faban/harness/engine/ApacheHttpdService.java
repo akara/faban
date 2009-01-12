@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ApacheHttpdService.java,v 1.5 2008/05/02 21:16:35 akara Exp $
+ * $Id: ApacheHttpdService.java,v 1.6 2009/01/12 23:23:21 akara Exp $
  *
  * Copyright 2007 Sun Microsystems Inc. All Rights Reserved
  */
@@ -359,7 +359,8 @@ final public class ApacheHttpdService implements WebServerService {
     public void xferLogs(int totalRunTime) {
 
         for (int i = 0; i < myServers.length; i++) {
-            String outFile = RunContext.getOutDir() + "error_log." + myServers[i];
+            String outFile = RunContext.getOutDir() + "httpd_err.log." +
+                             RunContext.getHostName(myServers[i]);
 
             // copy the error_log to the master
             if (!RunContext.getFile(myServers[i], errlogFile, outFile)) {

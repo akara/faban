@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: LighttpdService.java,v 1.5 2008/05/08 22:04:35 akara Exp $
+ * $Id: LighttpdService.java,v 1.6 2009/01/12 23:23:07 akara Exp $
  *
  * Copyright 2008 Sun Microsystems Inc. All Rights Reserved
  */
@@ -345,7 +345,8 @@ final public class LighttpdService implements WebServerService {
     public void xferLogs(int totalRunTime) {
 
         for (int i = 0; i < myServers.length; i++) {
-            String outFile = RunContext.getOutDir() + "error_log." + myServers[i];
+            String outFile = RunContext.getOutDir() + "httpd_err.log." +
+                             RunContext.getHostName(myServers[i]);
 
             // copy the error_log to the master
             if (!RunContext.getFile(myServers[i], errlogFile, outFile)) {
