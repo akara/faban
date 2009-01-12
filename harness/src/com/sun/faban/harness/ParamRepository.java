@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ParamRepository.java,v 1.11 2008/09/03 05:16:30 akara Exp $
+ * $Id: ParamRepository.java,v 1.12 2009/01/12 23:07:24 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -265,7 +265,7 @@ public class ParamRepository {
 
     public boolean getBooleanValue(String xpath, boolean defaultValue) {
         String s = reader.getValue(xpath);
-        if (xpath == null || xpath.length() == 0)
+        if (s == null || s.length() == 0)
             return defaultValue;
         else
             return Boolean.parseBoolean(s);
