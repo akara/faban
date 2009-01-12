@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Mysqlstats.java,v 1.2 2008/07/30 23:11:32 akara Exp $
+ * $Id: Mysqlstats.java,v 1.3 2009/01/12 23:15:51 akara Exp $
  *
  * Copyright 2008 Sun Microsystems Inc. All Rights Reserved
  */
@@ -142,6 +142,8 @@ public class Mysqlstats implements Tool {
      */
     protected String getLogFile() {
         return Config.TMP_DIR + toolName + ".out." + this.hashCode();
+
+        // TODO: Take out hashcode, replace with other value.
     }
 
     /**
@@ -204,8 +206,7 @@ public class Mysqlstats implements Tool {
     }
 
     protected void start() {
-        try {
-            mysql.setSynchronous(false);
+        try {            
 		    mysql.setOutputFile(Command.STDOUT, logfile1);
             tool = cmdAgent.execute(mysql);
             logger.log(Level.FINE, "Calling mysql show status at start");
