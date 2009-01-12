@@ -13,12 +13,12 @@ fi
 FENXI_HOST=localhost
 export FENXI_HOST
 
-LOG_FILE=/net/romulus.sfbay/export/home/fenxi2/usage-log/log
+# LOG_FILE=/net/romulus.sfbay/export/home/fenxi2/usage-log/log
 
-if [ -w $LOG_FILE ] ; then
-    who am i | awk '{print $3, $4, $5, $1};' >> $LOG_FILE
-    uname -a | awk '{print $2, $3, $5};' >> $LOG_FILE
-fi
+# if [ -w $LOG_FILE ] ; then
+#    who am i | awk '{print $3, $4, $5, $1};' >> $LOG_FILE
+#    uname -a | awk '{print $2, $3, $5};' >> $LOG_FILE
+# fi
 
 if [ -n "$JAVA_HOME" ] ; then
     PATH=$JAVA_HOME/bin:$PATH
