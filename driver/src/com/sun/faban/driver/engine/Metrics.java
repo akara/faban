@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.1 2008/09/10 18:25:54 akara Exp $
+ * $Id: Metrics.java,v 1.2 2009/01/13 01:02:42 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -652,8 +652,8 @@ public class Metrics implements Serializable, Cloneable {
         mixRatio = new double[txTypes];
         boolean success = true;
         double avg, tavg;
-        long resp90;
-        int sumtx, cnt90;
+        long resp90, resp99;
+        int sumtx, cnt90, cnt99;
         RunInfo runInfo = RunInfo.getInstance();
         Formatter formatter = new Formatter(buffer);
 
@@ -817,11 +817,38 @@ public class Metrics implements Serializable, Cloneable {
                 }
                 space(16, buffer).append("<passed>").append(pass90).
                         append("</passed>\n");
+
+                // 99th% hack for Berkeley.
+                sumtx = 0;
+                cnt99 = (int)(txCntStdy[i] * .99d);
+                j = 0;
+                for (; j < respHist[i].length; j++) {
+                    sumtx += respHist[i][j];
+                    if (sumtx >= cnt99)	{	/* 90% of tx. got */
+                        break;
+                    }
+                }
+                // We report the base of the next bucket.
+                ++j;
+                if (j < FINE_RESPBUCKETS)
+                    resp99 = j * fineRespBucketSize;
+                else if (j < RESPBUCKETS)
+                    resp99 = (j - FINE_RESPBUCKETS) * coarseRespBucketSize +
+                            fineRespHistMax;
+                else
+                    resp99 = coarseRespHistMax;
+
+                space(16, buffer);
+                formatter.format("<p99th>%5.3f</p99th>\n", resp99 / precision);
+                // end hack.
             } else {
                 space(16, buffer).append("<avg/>\n");
                 space(16, buffer).append("<max/>\n");
                 space(16, buffer).append("<p90th/>\n");
                 space(16, buffer).append("<passed/>\n");
+                // 99th% hack for Berkeley.
+                space(16, buffer).append("<p99th/>\n");
+                // End 99th% hack.
             }
             space(12, buffer).append("</operation>\n");
         }

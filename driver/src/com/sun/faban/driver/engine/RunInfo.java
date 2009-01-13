@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunInfo.java,v 1.1 2008/09/10 18:25:55 akara Exp $
+ * $Id: RunInfo.java,v 1.2 2009/01/13 01:02:42 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -105,6 +105,10 @@ public class RunInfo implements Serializable {
      */
     public int stdyState;
     
+    public boolean variableLoad = false;
+    public String variableLoadFile;
+    public VariableLoadHandler variableLoadHandler;
+
     /**
      * Simultaneous Start
      */
@@ -1018,6 +1022,26 @@ public class RunInfo implements Serializable {
             } catch (NumberFormatException e) {
                 throw new ConfigurationException(
                         "<rampDown> must be an integer.");
+            }
+
+            v = xp.evaluate("fa:runControl/fa:variableLoad", runConfigNode);
+            if (v != null && v.length() > 0) {
+              try {
+                runInfo.variableLoad = relaxedParseBoolean(v);
+              } catch (NumberFormatException e) {
+                throw new ConfigurationException(
+                    "<variableLoad> must be true or false.");
+              }
+            }
+
+            if (runInfo.variableLoad) {
+                runInfo.variableLoadFile = xp.evaluate(
+                        "fa:runControl/fa:variableLoadFile", runConfigNode);
+                if (runInfo.variableLoadFile == null ||
+                    runInfo.variableLoadFile.length() == 0) {
+                    throw new ConfigurationException(
+                            "Element <variableLoadFile> not found.");
+                }
             }
 
             runInfo.resultsDir = xp.evaluate("fd:outputDir", runConfigNode);

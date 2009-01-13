@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TimeThread.java,v 1.1 2008/09/10 18:25:55 akara Exp $
+ * $Id: TimeThread.java,v 1.2 2009/01/13 01:02:43 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -67,6 +67,7 @@ public class TimeThread extends AgentThread {
      */
 	void doRun() {
 
+        boolean active = true;
         driverContext = new DriverContext(this, timer);
 
         try {
@@ -108,109 +109,129 @@ public class TimeThread extends AgentThread {
         driverLoop:
         while (!stopped) {
 
-            if (!runInfo.simultaneousStart && !startTimeSet &&
-                    agent.timeSetLatch.getCount() == 0) {
-                startTimeSet = true;
-
-                // Calculate time periods
-                // Note that the time periods are in secs, need to convert
-                endRampUp = agent.startTime + runInfo.rampUp * 1000000000l;
-                endStdyState = endRampUp + runInfo.stdyState * 1000000000l;
-                endRampDown = endStdyState + runInfo.rampDown * 1000000000l;
+            if (runInfo.variableLoad) {
+                if (id >= agent.runningThreads) {
+                    try {
+                        logger.log(Level.FINE, "Current load level: (" + 
+                                agent.runningThreads + ") Thread " + id + 
+                                " sleeping.");
+                        sleep(agent.timeToRunFor * 1000);
+                        active = false;
+                    } catch (InterruptedException e) {
+                        logger.log(Level.FINE, e.getMessage(), e);
+                    }
+                } else {
+                    active = true;
+                }
             }
 
-            // Save the previous operation
-            previousOperation[mixId] = currentOperation;
-            BenchmarkDefinition.Operation previousOp = null;
-            if (previousOperation[mixId] >= 0) {
-				previousOp = driverConfig.operations[currentOperation];
-			}
+            if (active) {
 
-            // Select the operation
-            currentOperation = selector[0].select();
-            BenchmarkDefinition.Operation op =
-                    driverConfig.operations[currentOperation];
+                if (!runInfo.simultaneousStart && !startTimeSet &&
+                        agent.timeSetLatch.getCount() == 0) {
+                    startTimeSet = true;
 
-            // The invoke time is based on the delay after the previous op.
-            // so we need to use the previous op for calculating and recording.
-            long invokeTime = getInvokeTime(previousOp, mixId);
+                    // Calculate time periods
+                    // Note that the time periods are in secs, need to convert
+                    endRampUp = agent.startTime + runInfo.rampUp * 1000000000l;
+                    endStdyState = endRampUp + runInfo.stdyState * 1000000000l;
+                    endRampDown = endStdyState + runInfo.rampDown * 1000000000l;
+                }
 
-            // endRampDown is only valid if start time is set.
-            // If the start time of next tx is beyond the end
-            // of the ramp down, just stop right here.
-            if (startTimeSet && invokeTime >= endRampDown) {
-				break driverLoop;
-			}
+                // Save the previous operation
+                previousOperation[mixId] = currentOperation;
+                BenchmarkDefinition.Operation previousOp = null;
+                if (previousOperation[mixId] >= 0) {
+                    previousOp = driverConfig.operations[currentOperation];
+                }
 
-            logger.finest(name + ": Invoking " + op.name + " at time " +
-                            invokeTime + ". Ramp down ends at time " +
-                            endRampDown + '.');
+                // Select the operation
+                currentOperation = selector[0].select();
+                BenchmarkDefinition.Operation op =
+                        driverConfig.operations[currentOperation];
 
-            driverContext.setInvokeTime(invokeTime);
+                // The invoke time is based on the delay after the previous op.
+                // so we need to use previous op for calculating and recording.
+                long invokeTime = getInvokeTime(previousOp, mixId);
 
-            // Invoke the operation
-            try {
-                op.m.invoke(driver);
-                validateTimeCompletion(op);
-                checkRamp();
-                metrics.recordTx();
-                metrics.recordDelayTime();
-            } catch (InvocationTargetException e) {
-                // An invocation target exception is caused by another
-                // exception thrown by the operation directly.
-                Throwable cause = e.getCause();
-                checkFatal(cause, op);
+                // endRampDown is only valid if start time is set.
+                // If the start time of next tx is beyond the end
+                // of the ramp down, just stop right here.
+                if (startTimeSet && invokeTime >= endRampDown) {
+                    break driverLoop;
+                }
 
-                // We have to fix up the invoke/respond times to have valid
-                // values and not TIME_NOT_SET.
+                logger.finest(name + ": Invoking " + op.name + " at time " +
+                        invokeTime + ". Ramp down ends at time " +
+                        endRampDown + '.');
 
-                // In case of exception, invokeTime or even respondTime may
-                // still be TIME_NOT_SET.
-                DriverContext.TimingInfo timingInfo = driverContext.timingInfo;
-                // If it never waited, we'll see whether we can just use the
-                // previous start and end times.
-                if (timingInfo.invokeTime == TIME_NOT_SET) {
-                    long currentTime = System.nanoTime();
-                    if (currentTime < timingInfo.intendedInvokeTime) {
-                        // No time change, no need to checkRamp
+                driverContext.setInvokeTime(invokeTime);
+
+                // Invoke the operation
+                try {
+                    op.m.invoke(driver);
+                    validateTimeCompletion(op);
+                    checkRamp();
+                    metrics.recordTx();
+                    metrics.recordDelayTime();
+                } catch (InvocationTargetException e) {
+                    // An invocation target exception is caused by another
+                    // exception thrown by the operation directly.
+                    Throwable cause = e.getCause();
+                    checkFatal(cause, op);
+
+                    // We have to fix up the invoke/respond times to have valid
+                    // values and not TIME_NOT_SET.
+
+                    // In case of exception, invokeTime or even respondTime may
+                    // still be TIME_NOT_SET.
+                    DriverContext.TimingInfo timingInfo =
+                            driverContext.timingInfo;
+                    // If it never waited, we'll see whether we can just use the
+                    // previous start and end times.
+                    if (timingInfo.invokeTime == TIME_NOT_SET) {
+                        long currentTime = System.nanoTime();
+                        if (currentTime < timingInfo.intendedInvokeTime) {
+                            // No time change, no need to checkRamp
+                            metrics.recordError();
+                            logError(cause, op);
+                            continue driverLoop;
+                        }
+                        // Too late, we'll need to use the real time
+                        // for both invoke and respond time.
+                        timingInfo.invokeTime = System.nanoTime();
+                        timingInfo.respondTime = timingInfo.invokeTime;
+                        checkRamp();
                         metrics.recordError();
                         logError(cause, op);
-                        continue driverLoop;
+                    // The delay time is invalid,
+                    // we cannot record in this case.
+                    } else if (timingInfo.respondTime == TIME_NOT_SET) {
+                        timingInfo.respondTime = System.nanoTime();
+                        checkRamp();
+                        metrics.recordError();
+                        logError(cause, op);
+                        metrics.recordDelayTime();
+                    } else { // All times are there
+                        checkRamp();
+                        metrics.recordError();
+                        logError(cause, op);
+                        metrics.recordDelayTime();
                     }
-					// Too late, we'll need to use the real time
-					// for both invoke and respond time.
-					timingInfo.invokeTime = System.nanoTime();
-					timingInfo.respondTime = timingInfo.invokeTime;
-					checkRamp();
-					metrics.recordError();
-					logError(cause, op);
-					// The delay time is invalid,
-					// we cannot record in this case.
-                } else if (timingInfo.respondTime == TIME_NOT_SET) {
-                    timingInfo.respondTime = System.nanoTime();
-                    checkRamp();
-                    metrics.recordError();
-                    logError(cause, op);
-                    metrics.recordDelayTime();
-                } else { // All times are there
-                    checkRamp();
-                    metrics.recordError();
-                    logError(cause, op);
-                    metrics.recordDelayTime();
+                } catch (IllegalAccessException e) {
+                    logger.log(Level.SEVERE, name + "." + op.m.getName() +
+                            ": " + e.getMessage(), e);
+                    agent.abortRun();
+                    return;
                 }
-             } catch (IllegalAccessException e) {
-                logger.log(Level.SEVERE, name + "." + op.m.getName() + ": "
-                        + e.getMessage(), e);
-                agent.abortRun();
-                return;
+
+                startTime[mixId] = driverContext.timingInfo.invokeTime;
+                endTime[mixId] = driverContext.timingInfo.respondTime;
+
+                if (startTimeSet && endTime[mixId] >= endRampDown) {
+                    break driverLoop;
+                }
             }
-
-            startTime[mixId] = driverContext.timingInfo.invokeTime;
-            endTime[mixId] = driverContext.timingInfo.respondTime;
-
-            if (startTimeSet && endTime[mixId] >= endRampDown) {
-				break driverLoop;
-			}
         }
         logger.fine(name + ": End of run.");
     }

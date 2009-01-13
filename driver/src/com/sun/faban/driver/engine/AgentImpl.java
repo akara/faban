@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentImpl.java,v 1.2 2008/12/22 21:46:09 sheetalpatil Exp $
+ * $Id: AgentImpl.java,v 1.3 2009/01/13 01:02:43 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -73,6 +73,10 @@ public class AgentImpl extends UnicastRemoteObject
     CountDownLatch preRunLatch;
     CountDownLatch postRunLatch;
     private boolean runAborted = false;
+
+    public int timeToRunFor = 1;
+    public int runningThreads = 0;
+    public VariableLoadHandlerThread threadController;
 
     /**
      * Constructor
@@ -180,44 +184,45 @@ public class AgentImpl extends UnicastRemoteObject
      * @throws RemoteException A network error occurred.
      */
     private void calibrateTime() throws RemoteException {
-        long t1 = 0;
-        long tm = 0;
-        int diff = 0;
-        int retries = 0;
+        int tries = 25;
+        int minLatency = Integer.MAX_VALUE;
+        int offset = 0;
 
         // Just in case we run into GC situations, the times can be nasty.
-        // In that case we retry up to 5 times.
-        for (; retries < 5; retries++) {
-            t1 = System.currentTimeMillis();
-            tm = master.currentTimeMillis();
-            long t2 = System.currentTimeMillis();
+        // So we try 25 times to obtain the best.
+        for (int i = 0; i < tries; i++) {
 
             // We really don't know when between t1 and t2 tm occurred.
             // but if we assume it to be short enough, we can savely
-            // use the avg with errors in the 5 millisec range.
-            diff  = (int) (t2 - t1);
-            if (diff <= 10) {
-				break;
-			}
+            // use the avg.
+            long t1 = System.currentTimeMillis();
+            long tm = master.currentTimeMillis();
+            long t2 = System.currentTimeMillis();
+
+            int latency  = (int) (t2 - t1);
+
+            // Capture the best latency.
+            if (latency < minLatency) {
+                minLatency = latency;
+                offset = (int) (t1 - tm);
+            }
+
             try {
-                Thread.sleep(5000);
+                Thread.sleep(100);
             } catch (InterruptedException e) {
             	logger.fine("Sleep Interrupted: " + e.getMessage());
             }
         }
 
-        // After 5 retries, if the simple call to Master.currentTimeMillis
-        // is still too time consuming, we abort the whole thing.
-        if (retries >= 5) {
-                logger.log(Level.SEVERE, "Roundtrip to master took " + diff +
-                        " ms. Too high latency!");
-                master.abortRun();
+        if (minLatency > 10) {
+            logger.log(Level.SEVERE, "This run may be invalid! Minimum " +
+                    "achieved roundtrip time to master is " + minLatency +
+                    " ms. Latencies beyond 10ms are too high and will impact " +
+                    "the accuracy of the run startup and steady state times " +
+                    "across driver instances.");
         }
 
-        // Doing a simple avg on millis can overwhelm the long system.
-        // So we subtract first.
-        int offset = diff / 2 + ((int) (t1 - tm));
-        timer.adjustBaseTime(offset);
+        timer.adjustBaseTime(offset + minLatency / 2);
     }
 
     /**
@@ -276,6 +281,12 @@ public class AgentImpl extends UnicastRemoteObject
 				logger.info(displayName + ": Successfully started " +
                         numThreads + " driver threads.");
 			}
+            if (runInfo.variableLoad) {
+              runInfo.variableLoadHandler =
+                      new VariableLoadHandler(runInfo.variableLoadFile);
+              threadController = new VariableLoadHandlerThread(this);
+              threadController.run();
+            }
         } catch (Exception e) {
             logger.log(Level.SEVERE, e.getMessage(), e);
             try {
