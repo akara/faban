@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentBootstrap.java,v 1.13 2008/11/14 17:08:19 akara Exp $
+ * $Id: AgentBootstrap.java,v 1.14 2009/01/13 02:08:44 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -173,8 +173,10 @@ public class AgentBootstrap {
         jvmOptions.add("-Dfaban.home=" + escapedHome);
         jvmOptions.add("-Djava.security.policy=" + escapedHome + "config" +
                                                         fs + "faban.policy");
+        host = InetAddress.getLocalHost().getHostName();
         jvmOptions.add("-Djava.util.logging.config.file=" + escapedHome +
-                                        "config" + fs + "logging.properties");
+                                        "config" + fs + "logging" + host +
+                                        ".properties");
 
         // There may be optional JVM args
         boolean isClassPath = false;
@@ -272,9 +274,6 @@ public class AgentBootstrap {
         registry = RegistryLocator.getRegistry(master, Config.RMI_PORT);
         logger.fine("Succeeded obtaining registry.");
 
-        // host and ident will be unique
-        host = InetAddress.getLocalHost().getHostName();
-
         // Sometimes we get the host name with the whole domain baggage.
         // The host name is widely used in result files, tools, etc. We
         // do not want that baggage. So we make sure to crop it off.
@@ -283,6 +282,7 @@ public class AgentBootstrap {
         if (dotIdx > 0)
             host = host.substring(0, dotIdx);
 
+        //ident will be unique
         ident = Config.CMD_AGENT + "@" + host;
 
         // Make sure there is only one agent running in a machine
@@ -395,7 +395,7 @@ public class AgentBootstrap {
     }
 
     static void terminateAgents() {
-        resetLogger();
+        //resetLogger();
         if (!daemon) {
             System.exit(0);
         }
@@ -446,18 +446,19 @@ public class AgentBootstrap {
                  log.getProperty("java.util.logging.SocketHandler.port", "").
                     equals(String.valueOf(Config.LOGGING_PORT)))){
 
-                logger.fine("Updating " + Config.CONFIG_DIR +
-                                                        "logging.properties");
+                logger.fine("Updating " + Config.CONFIG_DIR + "logging" +
+                                           host + ".properties");
                 log.setProperty("java.util.logging.SocketHandler.host", master);
                 log.setProperty("java.util.logging.SocketHandler.port",
                                         String.valueOf(Config.LOGGING_PORT));
                 FileOutputStream out = new FileOutputStream(
-                        new File(Config.CONFIG_DIR + "logging.properties"));
+                        new File(Config.CONFIG_DIR + "logging" + host +
+                                                                ".properties"));
                 log.store(out, "Faban logging properties");
                 out.close();
             }
             LogManager.getLogManager().readConfiguration(new FileInputStream(
-                    Config.CONFIG_DIR + "logging.properties"));
+                    Config.CONFIG_DIR + "logging" + host + ".properties"));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -466,7 +467,8 @@ public class AgentBootstrap {
     private static void resetLogger() {
         try {
             FileOutputStream out = new FileOutputStream(
-                    new File(Config.CONFIG_DIR + "logging.properties"));
+                    new File(Config.CONFIG_DIR + "logging" + host +
+                                                             ".properties"));
             origLogProperties.store(out, "Faban logging properties");
             out.close();
             LogManager.getLogManager().readConfiguration(new FileInputStream(
