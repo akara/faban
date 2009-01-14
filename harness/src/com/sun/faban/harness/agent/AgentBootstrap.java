@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentBootstrap.java,v 1.15 2009/01/14 19:03:59 sheetalpatil Exp $
+ * $Id: AgentBootstrap.java,v 1.16 2009/01/14 20:09:00 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -175,7 +175,7 @@ public class AgentBootstrap {
                                                         fs + "faban.policy");
         host = InetAddress.getLocalHost().getHostName();
         jvmOptions.add("-Djava.util.logging.config.file=" + escapedHome +
-                                        "config" + fs + "logging" + host +
+                                        "config" + fs + "logging." + host +
                                         ".properties");
 
         // There may be optional JVM args
@@ -446,13 +446,13 @@ public class AgentBootstrap {
                  log.getProperty("java.util.logging.SocketHandler.port", "").
                     equals(String.valueOf(Config.LOGGING_PORT)))){
 
-                logger.fine("Updating " + Config.CONFIG_DIR + "logging" +
+                logger.fine("Updating " + Config.CONFIG_DIR + "logging." +
                                            host + ".properties");
                 log.setProperty("java.util.logging.SocketHandler.host", master);
                 log.setProperty("java.util.logging.SocketHandler.port",
                                         String.valueOf(Config.LOGGING_PORT));
                 FileOutputStream out = new FileOutputStream(
-                        new File(Config.CONFIG_DIR + "logging" + host +
+                        new File(Config.CONFIG_DIR + "logging." + host +
                                                                 ".properties"));
                 log.store(out, "Faban logging properties");
                 out.close();
@@ -467,7 +467,7 @@ public class AgentBootstrap {
     private static void resetLogger() {
         try {
             FileOutputStream out = new FileOutputStream(
-                    new File(Config.CONFIG_DIR + "logging" + host +
+                    new File(Config.CONFIG_DIR + "logging." + host +
                                                              ".properties"));
             origLogProperties.store(out, "Faban logging properties");
             out.close();
