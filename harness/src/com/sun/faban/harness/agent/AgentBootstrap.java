@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentBootstrap.java,v 1.16 2009/01/14 20:09:00 sheetalpatil Exp $
+ * $Id: AgentBootstrap.java,v 1.17 2009/01/23 03:32:05 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -68,7 +68,6 @@ public class AgentBootstrap {
     static FileAgentImpl file;
     static final Set<String> registeredNames =
                     Collections.synchronizedSet(new HashSet<String>());
-    static Properties origLogProperties = new Properties();
 
     public static void main(String[] args) {
         System.setSecurityManager (new RMISecurityManager());
@@ -395,7 +394,6 @@ public class AgentBootstrap {
     }
 
     static void terminateAgents() {
-        //resetLogger();
         if (!daemon) {
             System.exit(0);
         }
@@ -434,45 +432,19 @@ public class AgentBootstrap {
             log.load(in);
             in.close();
 
-            // Make a copy of the properties
-            Set<Map.Entry<Object, Object>> entrySet = log.entrySet();
-            for (Map.Entry entry : entrySet)
-                origLogProperties.setProperty((String) entry.getKey(),
-                                                (String) entry.getValue());
-
-            // Update if it has changed.
-            if(!(log.getProperty("java.util.logging.SocketHandler.host","").
-                    equals(master) &&
-                 log.getProperty("java.util.logging.SocketHandler.port", "").
-                    equals(String.valueOf(Config.LOGGING_PORT)))){
-
-                logger.fine("Updating " + Config.CONFIG_DIR + "logging." +
-                                           host + ".properties");
-                log.setProperty("java.util.logging.SocketHandler.host", master);
-                log.setProperty("java.util.logging.SocketHandler.port",
-                                        String.valueOf(Config.LOGGING_PORT));
-                FileOutputStream out = new FileOutputStream(
-                        new File(Config.CONFIG_DIR + "logging." + host +
-                                                                ".properties"));
-                log.store(out, "Faban logging properties");
-                out.close();
-            }
-            LogManager.getLogManager().readConfiguration(new FileInputStream(
-                    Config.CONFIG_DIR + "logging.properties"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static void resetLogger() {
-        try {
+            logger.fine("Updating " + Config.CONFIG_DIR + "logging." +
+                    host + ".properties");
+            log.setProperty("java.util.logging.SocketHandler.host", master);
+            log.setProperty("java.util.logging.SocketHandler.port",
+                    String.valueOf(Config.LOGGING_PORT));
             FileOutputStream out = new FileOutputStream(
                     new File(Config.CONFIG_DIR + "logging." + host +
-                                                             ".properties"));
-            origLogProperties.store(out, "Faban logging properties");
+                    ".properties"));
+            log.store(out, "Faban logging properties");
             out.close();
+
             LogManager.getLogManager().readConfiguration(new FileInputStream(
-                    Config.CONFIG_DIR + "logging.properties"));
+                    Config.CONFIG_DIR + "logging." + host + ".properties"));
         } catch (IOException e) {
             e.printStackTrace();
         }
