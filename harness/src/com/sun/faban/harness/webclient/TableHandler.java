@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TableHandler.java,v 1.7 2008/12/05 22:05:46 sheetalpatil Exp $
+ * $Id: TableHandler.java,v 1.8 2009/01/23 23:42:33 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -62,7 +62,7 @@ class TableHandler extends LogParseHandler {
     }
 
     @Override
-    public void processRecord() {
+    public void processRecord() throws IOException {
         if (logBuffer != null) {
             LogRecord oldLog = logBuffer.add(logRecord);
 
@@ -75,19 +75,11 @@ class TableHandler extends LogParseHandler {
             }
         }else{
             if (headerWritten == false) {
-                try {
-                    printHeader(null);
-                    headerWritten = true;
-                } catch (IOException ex) {
-                    Logger.getLogger(TableHandler.class.getName()).log(Level.SEVERE, null, ex);
-                }
+                printHeader(null);
+                headerWritten = true;
             }
-            try {
-                printRow(logRecord, requestBase);
-                logRecord.clear();
-            } catch (IOException ex) {
-                Logger.getLogger(TableHandler.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            printRow(logRecord, requestBase);
+            logRecord.clear();
         }
     }
 

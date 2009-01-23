@@ -1,5 +1,7 @@
 package com.sun.faban.harness.webclient;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -101,7 +103,31 @@ abstract class LogParseHandler extends DefaultHandler {
         if ("record".equals(qName)) {
             logRecord.id = recordCount;
             if (recordCount >= begin)
-                processRecord();
+                try {
+                    processRecord();
+                } catch (IOException e) {
+                    String message = e.getMessage();
+                    Throwable t = e;
+                    Throwable tt = e;
+                    // Trace down the causes to find meaningful messages.
+                    while (message == null) {
+                        tt = t.getCause();
+                        if (tt == null)
+                            break;
+                        t = tt;
+                        message = t.getMessage();
+                    }
+                    // Still no meaningful messages, create one and use top
+                    // level exception.
+                    if (message == null) {
+                        t = e;
+                        message = t.getClass().getName();
+                    }
+
+                    Logger.getLogger(LogParseHandler.class.getName()).
+                            log(Level.FINER, message, t);
+                    throw new SAXException(e);
+                }
             if (++recordCount >= end)
                 throw new SAXParseException(
                         "End request range, abort processing!", null);
@@ -152,9 +178,10 @@ abstract class LogParseHandler extends DefaultHandler {
     /**
      * The processRecord method allows subclasses to define
      * how a record should be processed.
-     * @throws org.xml.sax.SAXException If the processing should stop.
+     * @throws org.xml.sax.SAXException A parsing error occurred
+     * @throws java.io.IOException An I/O error occurred
      */
-    public abstract void processRecord() throws SAXException;
+    public abstract void processRecord() throws SAXException, IOException;
 
     /**
      * Prints the html result of the parsing to the servlet output.

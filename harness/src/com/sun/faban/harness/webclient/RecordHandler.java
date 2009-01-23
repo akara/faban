@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RecordHandler.java,v 1.4 2008/11/10 23:02:19 sheetalpatil Exp $
+ * $Id: RecordHandler.java,v 1.5 2009/01/23 23:42:33 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -50,7 +50,7 @@ class RecordHandler extends LogParseHandler {
         end = recordId + 1;
     }
 
-    public void processRecord() throws SAXException {
+    public void processRecord() {
         // Noop. All work is done in the superclass.
     }
 
