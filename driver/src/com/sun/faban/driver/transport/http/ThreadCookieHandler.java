@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ThreadCookieHandler.java,v 1.11 2008/06/17 17:02:17 akara Exp $
+ * $Id: ThreadCookieHandler.java,v 1.12 2009/01/23 03:14:01 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -687,6 +687,12 @@ public class ThreadCookieHandler {
             // Figure out the applicable domains
             InetAddress[] address = null;
             String hostName = request.getHost();
+            
+            if (hostName == null) {
+                logger.warning("Request " + request + " does not contain a " +
+                               "hostname or has an invalid hostname.");
+            }
+
             try {
                 address = InetAddress.getAllByName(hostName);
             } catch (UnknownHostException e) {
