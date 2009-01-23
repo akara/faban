@@ -32,7 +32,7 @@ cat ${logfile}  | nawk -v smon="$smon" -v sday="$sday" -v stime="$stime" \
                     if (eday > xday) print $0
                 } else if (smon == xmon && eday > xday) {
                             print $0                                                  
-                } else if (smon == xmon && sday == xday) {                         
+                } else if (smon == xmon && sday == xday) {
                          if (startArr[1] < arr[1] && endArr[1] > arr[1]) {
                                 print $0
                          } else if (startArr[1] == arr[1] && endArr[1] > arr[1]) { 
@@ -49,8 +49,7 @@ cat ${logfile}  | nawk -v smon="$smon" -v sday="$sday" -v stime="$stime" \
                          } 
                      
                 
-                 }
-                if (emon ==xmon && eday == xday) {                     
+                 } else if (emon ==xmon && eday == xday) {                     
                      if (endArr[1] > arr[1]) print $0
                      if (endArr[1] == arr[1] && endArr[2] > arr[2]) print $0  
                 }
