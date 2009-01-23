@@ -59,7 +59,7 @@ public class InterfaceBenchmarkWrapper extends BenchmarkWrapper {
 
     @Override
     void postRun() throws Exception {
-        throw new UnsupportedOperationException("Not supported yet.");
+        // Noop.
     }
 
     @Override
