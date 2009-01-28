@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.33 2008/12/22 21:32:38 sheetalpatil Exp $
+ * $Id: GenericBenchmark.java,v 1.34 2009/01/28 19:21:40 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,6 +25,7 @@ package com.sun.faban.harness.engine;
 
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
+import com.sun.faban.common.Utilities;
 import com.sun.faban.harness.Benchmark;
 import com.sun.faban.harness.ParamRepository;
 import com.sun.faban.harness.common.BenchmarkDescription;
@@ -39,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.text.StyledEditorKit.ItalicAction;
 
 /**
  * GenericBenchmark.java
@@ -147,10 +149,17 @@ public class GenericBenchmark {
                 runIdFile.write(run.getRunId());
                 runIdFile.close();
 
-
-
                 String javaHome =
-                        par.getParameter("fh:jvmConfig/fh:javaHome").trim();
+                        par.getParameter("fh:jvmConfig/fh:javaHome");
+
+                if (javaHome != null)
+                    javaHome = javaHome.trim();
+
+                if (javaHome == null || javaHome.length() == 0) {
+                    javaHome = Utilities.getJavaHome();
+                    logger.config("JAVA_HOME set to " + javaHome);
+                }
+
                 if(!(new File(javaHome)).isDirectory()) {
                     logger.severe("Cannot set JAVA_HOME. " + javaHome +
                             " is not a valid JAVA_HOME. Exiting");
@@ -158,8 +167,12 @@ public class GenericBenchmark {
                 }
 
                 String jvmOpts =
-                        par.getParameter("fh:jvmConfig/fh:jvmOptions").trim();
-                if((jvmOpts == null) || (jvmOpts.trim().length() == 0))
+                        par.getParameter("fh:jvmConfig/fh:jvmOptions");
+
+                if (jvmOpts != null)
+                    jvmOpts = jvmOpts.trim();
+
+                if((jvmOpts == null) || (jvmOpts.length() == 0))
                     jvmOpts = "";
 
                 // Start CmdAgent on all ENABLED hosts using the JAVA HOME
