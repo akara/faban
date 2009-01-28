@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Command.java,v 1.13 2008/07/26 07:33:33 akara Exp $
+ * $Id: Command.java,v 1.14 2009/01/28 19:17:21 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -93,6 +93,7 @@ public class Command implements Serializable {
     String[] streamMatch = new String[2];
     InputStream[] stream = new InputStream[2];
     String[] outputFile = new String[2];
+    boolean[] outputFileAppend = { false, false };
     boolean[] forceFile = new boolean[2];
     boolean daemon = false;
     byte[] input;
@@ -430,14 +431,28 @@ public class Command implements Serializable {
     }
 
     /**
-     * Directs the command to save the output from the stream to an output file.
+     * Directs the command to save the output from the stream to an output file,
+     * overwriting the output file if it already exists.
      * Note that this option will implicitly set the stream handling mode to
      * CAPTURE.
      * @param streamId The stream identifier, STDOUT or STDERR
      * @param fileName The target file name on the target machine
      */
     public void setOutputFile(int streamId, String fileName) {
+        setOutputFile(streamId, fileName, false);
+    }
+
+    /**
+     * Directs the command to save the output from the stream to an output file.
+     * Note that this option will implicitly set the stream handling mode to
+     * CAPTURE.
+     * @param streamId The stream identifier, STDOUT or STDERR
+     * @param fileName The target file name on the target machine
+     * @param append Whether to append to the file or overwrite the file
+     */
+    public void setOutputFile(int streamId, String fileName, boolean append) {
         outputFile[streamId] = fileName;
+        outputFileAppend[streamId] = append;
         streamHandling[streamId] = CAPTURE;
     }
 

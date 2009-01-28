@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CommandHandleImpl.java,v 1.10 2008/03/15 07:26:38 akara Exp $
+ * $Id: CommandHandleImpl.java,v 1.11 2009/01/28 19:17:22 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -353,7 +353,8 @@ public class CommandHandleImpl implements CommandHandle {
                     if (outStream == null) {
                         logger.finest("Writing " + Command.STREAM_NAME[streamId]
                                 + " to " + outputFile);
-                        outStream = new FileOutputStream(outputFile);
+                        outStream = new FileOutputStream(outputFile,
+                                        command.outputFileAppend[streamId]);
                     }
                     outStream.write(buffer, 0, offset);
                     offset = 0;
@@ -370,7 +371,8 @@ public class CommandHandleImpl implements CommandHandle {
                     offset > 0) {
                 logger.finest("Writing " + Command.STREAM_NAME[streamId] +
                         " to " + outputFile);
-                outStream = new FileOutputStream(outputFile);
+                outStream = new FileOutputStream(outputFile,
+                                command.outputFileAppend[streamId]);
             }
 
             if (outStream != null) {
