@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.34 2009/01/28 19:21:40 akara Exp $
+ * $Id: GenericBenchmark.java,v 1.35 2009/01/29 21:02:08 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -75,7 +75,7 @@ public class GenericBenchmark {
 
     // Flag to detect failed run
     private int runStatus = FAILED;
-    private int stdyState;
+    private int stdyState = 0;
 
     public GenericBenchmark(Run r) {
         this.run = r;
@@ -274,10 +274,6 @@ public class GenericBenchmark {
             tools.setup(par, run.getOutDir());	// If Tools setup fails,
                                                 // we ignore it
             logger.finer("Tool Service Set Up");
-            if (s == null || s.length() == 0) {
-                    tools.start(delay);
-                    logger.info("Started tools with tools.start(delay)");
-            }
             // Now, process generic server parameters
             logger.fine("Processing Generic Parameters");
             server = new ServerConfig(run, par);
@@ -319,6 +315,9 @@ public class GenericBenchmark {
                     ToolService.getHandle().start(delay, stdyState);
                     logger.info("Started tools with ToolService.getHandle()." +
                             "start(delay, stdyState)");
+                }else{
+                    ToolService.getHandle().start(delay);
+                    logger.info("Started tools with tools.start(delay)");
                 }
             } catch (Exception e) {
                 logger.log(Level.WARNING, "ToolService not started.", e);
