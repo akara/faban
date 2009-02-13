@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.35 2009/01/29 21:02:08 sheetalpatil Exp $
+ * $Id: GenericBenchmark.java,v 1.36 2009/02/13 20:34:59 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -211,7 +211,7 @@ public class GenericBenchmark {
 
             // Extract host metadata and save it.
             HostTypes ht = new HostTypes(par);
-            cmds.hostTypes = ht;
+            cmds.setHostTypes(ht);
             try {
                 ht.write(run.getOutDir() + File.separator + "META-INF" +
                                         File.separator + "hosttypes");
