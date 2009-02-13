@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgentImpl.java,v 1.23 2008/08/12 17:17:17 akara Exp $
+ * $Id: CmdAgentImpl.java,v 1.24 2009/02/13 20:29:24 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -70,9 +70,9 @@ public class CmdAgentImpl extends UnicastRemoteObject
 
     // This is actually deprecated. The field is responsible for old style
     // ident based executions.
-    private Map processMap = Collections.synchronizedMap(new HashMap());
+    private final Map processMap = Collections.synchronizedMap(new HashMap());
 
-    private List<CommandHandle> handleList = Collections.synchronizedList(
+    private final List<CommandHandle> handleList = Collections.synchronizedList(
                                                 new ArrayList<CommandHandle>());
 
     private Timer timer;
@@ -161,7 +161,15 @@ public class CmdAgentImpl extends UnicastRemoteObject
     public CommandHandle execute(Command c)
             throws IOException, InterruptedException {
         c.register(handleList);
-        return c.execute(this);
+        try {
+            return c.execute(this);
+        } catch (IOException ex) {
+            logger.log(Level.WARNING, ex.getMessage(), ex);
+            throw ex;
+        } catch (InterruptedException ex) {
+            logger.log(Level.WARNING, ex.getMessage(), ex);
+            throw ex;
+        }
     }
 
     /**
@@ -174,7 +182,15 @@ public class CmdAgentImpl extends UnicastRemoteObject
     public CommandHandle java(Command c)
             throws IOException, InterruptedException {
         c.register(handleList);
-        return c.executeJava(this);
+        try {
+            return c.executeJava(this);
+        } catch (IOException ex) {
+            logger.log(Level.WARNING, ex.getMessage(), ex);
+            throw ex;
+        } catch (InterruptedException ex) {
+            logger.log(Level.WARNING, ex.getMessage(), ex);
+            throw ex;
+        }
     }
 
     /**
@@ -187,7 +203,12 @@ public class CmdAgentImpl extends UnicastRemoteObject
     public <V extends Serializable> V exec(RemoteCallable<V> callable)
             throws Exception {
 
-        return callable.call();
+        try {
+            return callable.call();
+        } catch (Exception ex) {
+            logger.log(Level.WARNING, ex.getMessage(), ex);
+            throw ex;
+        }
     }
 
     /**
@@ -678,6 +699,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
         // *** If the System.exit(0) is called in this method
         // *** the Service will get a RemoteException
         Thread exitThread = new Thread() {
+            @Override
             public void run() {
                 try {
                     Thread.sleep(5000);
@@ -1019,6 +1041,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
          * Run, copying input stream's contents to output until no
          * more data in input file. Exit thread automatically.
          */
+        @Override
         public void run() {
             try {
                 String str = in.readLine();
