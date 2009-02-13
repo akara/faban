@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileHelper.java,v 1.15 2008/12/05 22:03:32 sheetalpatil Exp $
+ * $Id: FileHelper.java,v 1.16 2009/02/13 20:24:43 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -247,6 +247,12 @@ public class FileHelper {
         // Does a post-order traversal of the directory hierarchy and deletes
         // all the nodes in its path.
 	
+        // Logging file deletions at fine so we can turn on if there's
+        // anything spooky. We use an exception to capture the stack, but
+        // do not really throw the exception. After all, nothing is wrong.
+        Exception te = new Exception("Deleting all files in " + file.getName());
+        logger.log(Level.FINE, te.getMessage(), te);
+
         boolean success = true;
  
 	    try {
