@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileHelper.java,v 1.16 2009/02/13 20:24:43 akara Exp $
+ * $Id: FileHelper.java,v 1.17 2009/02/14 05:34:17 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -37,6 +37,7 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Properties;
+import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -447,6 +448,34 @@ public class FileHelper {
     }
 
 
+    public static void writeContentToFile(String string, File file)
+            throws IOException {
+        //StringTokenizer t = new StringTokenizer(string," \n,\t");
+        file.delete();
+        file.createNewFile();
+        RandomAccessFile rf = new RandomAccessFile(file, "rwd");
+        long size = rf.length();
+        byte[] buffer = new byte[(int) size];
+        rf.readFully(buffer);
+        rf.seek(rf.length());
+        rf.writeBytes(string);
+        //while (t.hasMoreTokens()) {
+               // rf.writeBytes(t.nextToken().trim() + "\n");
+        //}
+        rf.close();
+    }
+
+    public static String readContentFromFile(File file) throws IOException {
+        String content = null;
+        StringBuilder formattedTags = new StringBuilder();
+        if (file.isFile())
+            content = new String(getContent(file.getAbsolutePath()));
+        StringTokenizer t = new StringTokenizer(content,"\n");
+        while (t.hasMoreTokens()) {
+                formattedTags.append(t.nextToken().trim() + " ");
+        }
+        return formattedTags.toString();
+    }
     /**
      * Transfers a file from the current host to the Faban master.
      * @param inFile The input file name on the current host

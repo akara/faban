@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: switchprofile.jsp,v 1.1 2006/08/12 06:54:25 akara Exp $
+ * $Id: switchprofile.jsp,v 1.2 2009/02/14 05:35:09 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -33,6 +33,7 @@
 
 <%
     session.removeAttribute("faban.profile");
+    session.removeAttribute("faban.profile.tags");
     session.removeAttribute("faban.benchmark");
 %>
 <meta HTTP-EQUIV=REFRESH CONTENT="0;URL=selectprofile.jsp">

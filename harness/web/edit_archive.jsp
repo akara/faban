@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: edit_archive.jsp,v 1.3 2008/12/09 23:59:24 sheetalpatil Exp $
+ * $Id: edit_archive.jsp,v 1.4 2009/02/14 05:35:09 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -48,6 +48,7 @@
       <tbody>
         <tr>
           <th style="vertical-align: top;">RunId</th>
+          <th style="vertical-align: top;">Tags</th>
           <th style="vertical-align: top;">Description</th>
         </tr>
         <% for (int i = 0; i < model.runIds.length; i++) {
@@ -65,6 +66,12 @@
      <%
             }
      %>
+              </td>
+              <td style="vertical-align: top;">
+                  <textarea name="<%=runId%>_tags"
+                       title="Tags associated for run <%=runId%>"
+                       rows="2" style="width: 98%;"
+                       ><%=model.results[i].tags%></textarea>
               </td>
               <td style="vertical-align: top;">
                 <textarea name="<%=runId%>_description"

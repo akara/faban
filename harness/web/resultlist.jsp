@@ -19,17 +19,21 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultlist.jsp,v 1.9 2008/09/03 05:21:15 akara Exp $
+ * $Id: resultlist.jsp,v 1.10 2009/02/14 05:35:09 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 -->
     <%@ page language="java" import="com.sun.faban.harness.webclient.Result,
                                      com.sun.faban.harness.webclient.TableModel,
+                                     com.sun.faban.harness.webclient.TagEngine,
+                                     java.io.File,java.io.*,
+                                     java.util.Set,java.util.*,
                                      com.sun.faban.harness.common.Config"%>
     <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
     <%
     response.setHeader("Cache-Control", "no-cache");
+    String tag = request.getParameter("inputtag");
     String processString = request.getParameter("action");
     if ("Compare".equals(processString) ||
         "Average".equals(processString)) {
@@ -39,7 +43,20 @@
         RequestDispatcher rd = request.getRequestDispatcher("/archiveruns.jsp");
         rd.forward(request, response);
     } else {
-        TableModel resultTable = Result.getResultTable(usrEnv.getSubject());
+        TableModel resultTable = null;
+        if(tag != null) {
+           TagEngine te = new TagEngine();
+           File filename = new File(Config.OUT_DIR + "/tagenginefile");
+           if (filename.exists()) {
+               ObjectInputStream in = new ObjectInputStream(new FileInputStream(filename));
+               te = (TagEngine) in.readObject();
+               in.close();
+           }
+           Set<String> answer = te.search(tag.trim());
+           resultTable = Result.getTagSearchResultTable(answer,te);
+        }else{
+           resultTable = Result.getResultTable(usrEnv.getSubject());
+        }
         int rows = resultTable.rows();
         if(resultTable != null && rows > 0) {
     %>

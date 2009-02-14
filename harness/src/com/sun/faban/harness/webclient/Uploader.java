@@ -17,7 +17,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: Uploader.java,v 1.3 2008/12/11 01:22:10 sheetalpatil Exp $
+* $Id: Uploader.java,v 1.4 2009/02/14 05:34:17 sheetalpatil Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 */
@@ -26,14 +26,17 @@ package com.sun.faban.harness.webclient;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.RunId;
 
+import com.sun.faban.harness.util.FileHelper;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.io.File;
+import java.util.HashMap;
 import java.util.logging.Logger;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.StringTokenizer;
 import javax.servlet.ServletException;
 import org.apache.commons.fileupload.DiskFileUpload;
 import org.apache.commons.fileupload.FileItem;
@@ -123,8 +126,38 @@ public class Uploader {
             return found;
         }
 
+        private void uploadTags(String runId) throws IOException, ClassNotFoundException {
+            File file = new File(Config.OUT_DIR + runId + "/META-INF/tags");
+            String tags = FileHelper.readContentFromFile(file);
+            TagEngine te = new TagEngine();
+            File filename = new File(Config.OUT_DIR + "/tagenginefile");
+            if (filename.exists()) {
+            ObjectInputStream in = new ObjectInputStream(
+                    new FileInputStream(filename));
+            te = (TagEngine) in.readObject();
+            in.close();
+            }
+            String[] tagsArray;
+            if(!tags.equals("")){
+                StringTokenizer tok = new StringTokenizer(tags," ");
+                tagsArray = new String[tok.countTokens()];
+                int count = tok.countTokens();
+                int i=0;
+                while(i < count){
+                    String nextT = tok.nextToken().trim();
+                    tagsArray[i] = nextT;
+                    i++;
+                }
+                te.add(runId, tagsArray);
+            }
+            ObjectOutputStream out = new ObjectOutputStream(
+                                            new FileOutputStream(filename));
+            out.writeObject(te);
+            out.close();
+        }
+
         public String uploadRuns(HttpServletRequest request, HttpServletResponse
-                                response) throws IOException, ServletException {
+                                response) throws IOException, ServletException, ClassNotFoundException {
             // 3. Upload the run
             HashSet<String> duplicateSet = new HashSet<String>();
             HashSet<String> replaceSet = new HashSet<String>();
@@ -249,6 +282,7 @@ public class Uploader {
                                 continue l1;
                             if (recursiveCopy(runTmp, new File(Config.OUT_DIR,
                                                                   runName))) {
+                                uploadTags(runName);
                                 uploadFile.delete();
                                 recursiveDelete(runTmp);
                             } else {
@@ -309,6 +343,7 @@ public class Uploader {
 
                     if (recursiveCopy(runTmp, new File(Config.OUT_DIR, runId))){
                         uploadFile.delete();
+                        uploadTags(runId);
                         recursiveDelete(runTmp);
                     } else {
                         logger.warning("Origin upload requested. Copy error!");

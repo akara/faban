@@ -17,7 +17,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: ResultAction.java,v 1.3 2008/12/09 23:58:55 sheetalpatil Exp $
+* $Id: ResultAction.java,v 1.4 2009/02/14 05:34:17 sheetalpatil Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 */
@@ -27,6 +27,7 @@ import com.sun.faban.harness.ParamRepository;
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.RunId;
+import com.sun.faban.harness.util.FileHelper;
 import static com.sun.faban.harness.util.FileHelper.*;
 import java.text.ParseException;
 import javax.servlet.http.HttpServletRequest;
@@ -40,6 +41,7 @@ import java.net.URL;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.StringTokenizer;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
@@ -303,7 +305,7 @@ public class ResultAction {
 
     public String archive(HttpServletRequest request,
                         HttpServletResponse response) throws IOException,
-                        FileNotFoundException, ParseException {
+                        FileNotFoundException, ParseException, ClassNotFoundException {
         //Reading values from request
         String[] duplicateIds = request.getParameterValues("duplicates");
         String[] replaceIds = request.getParameterValues("replace");
@@ -379,10 +381,51 @@ public class ResultAction {
 
     private void prepareUpload(HttpServletRequest request, Result result,
                     HashSet<String> uploadedRuns, HashSet<File> uploadSet)
-            throws IOException {
+            throws IOException, ClassNotFoundException {
         String runId = result.runId.toString();
-        result.description =
-                request.getParameter(runId + "_description");
+        StringBuilder formattedTags = new StringBuilder();
+        File file = new File(Config.OUT_DIR + runId + "/META-INF/tags");
+        String tags = request.getParameter(runId + "_tags").trim();
+        if(!tags.equals("")){
+            StringTokenizer t = new StringTokenizer(tags," \n,");
+            while (t.hasMoreTokens()) {
+                String nextT = t.nextToken().trim();
+                if( !nextT.equals("") ){
+                    formattedTags.append(nextT + "\n");
+                }
+            }          
+            FileHelper.writeContentToFile(formattedTags.toString(), file);
+            result.tags = FileHelper.readContentFromFile(file);
+            TagEngine te = new TagEngine();
+            File filename = new File(Config.OUT_DIR + "/tagenginefile");
+            if (filename.exists()) {
+            ObjectInputStream in = new ObjectInputStream(
+                    new FileInputStream(filename));
+            te = (TagEngine) in.readObject();
+            in.close();
+            }
+            String[] tagsArray;
+            if(!result.tags.equals("")){
+                StringTokenizer tok = new StringTokenizer(result.tags," ");
+                tagsArray = new String[tok.countTokens()];
+                int count = tok.countTokens();
+                int i=0;
+                while(i < count){
+                    String nextT = tok.nextToken().trim();
+                    tagsArray[i] = nextT;
+                    i++;
+                }
+                te.add(runId, tagsArray);
+            }
+            ObjectOutputStream out = new ObjectOutputStream(
+                                            new FileOutputStream(filename));
+            out.writeObject(te);
+            out.close();
+        }else{
+            result.tags = "N/A";
+            FileHelper.writeContentToFile("N/A", file);
+        }
+        result.description = request.getParameter(runId + "_description");
         editXML(result);
         uploadedRuns.add(runId);
         uploadSet.add(jarUpRun(runId));

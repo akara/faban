@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: new-run.jsp,v 1.8 2007/09/08 01:21:15 akara Exp $
+ * $Id: new-run.jsp,v 1.9 2009/02/14 05:35:09 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -31,9 +31,11 @@
 <meta name="Description" content="JSP to setup run.xml for the XForms servlet"/>
 <title>Failed</title>
 <%@ page language="java" import="java.util.Map,
+                                 java.util.StringTokenizer,
                                  com.sun.faban.harness.common.BenchmarkDescription,
                                  com.sun.faban.harness.security.AccessController,
                                  com.sun.faban.harness.webclient.UserEnv,
+                                 com.sun.faban.harness.util.FileHelper,
                                  com.sun.faban.harness.common.Config,
                                  java.io.File"%>
 <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
@@ -42,6 +44,24 @@
     if (profile == null) {
         profile = request.getParameter("profile");
         session.setAttribute("faban.profile", profile);
+    }
+    String tags = (String)session.getAttribute("faban.profile.tags");
+    if (tags == null) {
+        File tagsFile = new File(Config.PROFILES_DIR + "/tags." + profile);
+        StringBuilder formattedTags = new StringBuilder();
+        tags = request.getParameter("tags");
+        if(!tags.equals("")){
+            StringTokenizer t = new StringTokenizer(tags," \n,");
+            while (t.hasMoreTokens()) {
+                String nextT = t.nextToken().trim();
+                if( !nextT.equals("") ){
+                    formattedTags.append(nextT + "\n");
+                }
+            }
+            FileHelper.writeContentToFile(formattedTags.toString(), tagsFile);
+            tags = FileHelper.readContentFromFile(tagsFile);
+        }    
+        session.setAttribute("faban.profile.tags", tags);
     }
     BenchmarkDescription desc = (BenchmarkDescription)
                                         session.getAttribute("faban.benchmark");

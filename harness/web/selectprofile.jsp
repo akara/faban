@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: selectprofile.jsp,v 1.5 2008/02/08 18:27:51 akara Exp $
+ * $Id: selectprofile.jsp,v 1.6 2009/02/14 05:35:09 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -32,14 +32,24 @@
 <meta name="Description" content="Form to display profile selection"/>
 <%@ page language="java" import="java.util.Map,
                                  java.util.HashMap,
+                                 java.io.File,
                                  javax.security.auth.Subject,
+                                 com.sun.faban.harness.util.FileHelper,
+                                 com.sun.faban.harness.common.Config,
                                  com.sun.faban.harness.common.BenchmarkDescription,
                                  com.sun.faban.harness.security.AccessController,
                                  com.sun.faban.harness.webclient.UserEnv"%>
 
 <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
-<%
-    String profile = (String)session.getAttribute("faban.profile");
+<%  String tagsForProfile = null;
+    String profile = request.getParameter("profileselected");
+    if (profile == null){
+        profile = (String)session.getAttribute("faban.profile");
+    }
+    File tagsFile = new File(Config.PROFILES_DIR + "/tags." + profile);
+    if(tagsFile.exists() && tagsFile.length()>0){
+        tagsForProfile = FileHelper.readContentFromFile(tagsFile).trim();
+    }
     BenchmarkDescription desc =  (BenchmarkDescription) session.getAttribute(
             "faban.benchmark");
     String benchmark = desc == null ? null : desc.name;
@@ -86,7 +96,8 @@
 
 <script>
 function updateProfile() {
-    document.bench.profile.value=document.bench.profilelist.value
+    document.bench.profile.value=document.bench.profilelist.value;
+    location.href = "selectprofile.jsp?profileselected="+escape(document.bench.profile.value);
 }
 </script>
 
@@ -112,7 +123,7 @@ function updateProfile() {
                 <% } %>
             >
             <select name="profilelist" title="Please select profile or enter new profile name"
-                ONCHANGE="updateProfile()">
+                ONCHANGE="updateProfile();">
               <% for(int i = 0; i < profiles.length; i++) { %>
                 <option
                   <% if(((profile != null) && profiles[i].equals(profile)) ||
@@ -151,6 +162,15 @@ function updateProfile() {
           </td>
         </tr>
       <% } %>
+      <tr>
+         <td>Tags for this profile</td>
+         <td>
+             <textarea name="tags" title="Tags associated for profile <%=profile%>"
+                       rows="2" style="width: 98%;">
+               <%=tagsForProfile%>
+             </textarea>
+         </td>
+       </tr>
     </tbody>
   </table>
   <% if (benchmarks.length == 1) { %>

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunQ.java,v 1.23 2008/06/02 21:02:09 akara Exp $
+ * $Id: RunQ.java,v 1.24 2009/02/14 05:34:18 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -31,10 +31,12 @@ import com.sun.faban.harness.common.Run;
 import com.sun.faban.harness.common.RunId;
 import com.sun.faban.harness.util.FileHelper;
 
+import com.sun.faban.harness.webclient.TagEngine;
 import java.io.*;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Map;
+import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -184,6 +186,12 @@ public class RunQ {
                     paramRepFileName);
             FileHelper.copyFile(paramSourceFileName, paramRepFileName, false);
 
+            // copying the tags file from the profile dir
+            String tagsRepFileName =
+                runDir + File.separator + "META-INF/tags";
+            String tagsSrcFileName =
+                Config.PROFILES_DIR + "/tags." + profile;
+            FileHelper.copyFile(tagsSrcFileName, tagsRepFileName, false);
             seq.next();
             runqLock.signal();  // Signal a new run is submitted.
             return runId;
@@ -336,7 +344,7 @@ public class RunQ {
      * @return The run object representing this run
      * @throws RunEntryException There is an error in the run queue entry
      */
-    public Run fetchNextRun(String runId) throws RunEntryException {
+    public Run fetchNextRun(String runId) throws RunEntryException, IOException, ClassNotFoundException {
         if (runId == null)
             throw new NullPointerException("Run name cannot be null!");
         return runDaemon.fetchNextRun(runId);

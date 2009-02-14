@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Result.java,v 1.24 2008/12/05 22:08:25 sheetalpatil Exp $
+ * $Id: Result.java,v 1.25 2009/02/14 05:34:17 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -33,8 +33,10 @@ import com.sun.faban.harness.util.XMLReader;
 
 import javax.security.auth.Subject;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -62,6 +64,7 @@ public class Result {
     private long modTime = 0;
     public RunId runId;
     public String description;
+    public String tags;
     public ResultField<String> result = new ResultField<String>();
     private String scaleName;
     public String scale;
@@ -264,6 +267,19 @@ public class Result {
 
         if (submitter == null)
             submitter = "N/A";
+
+        File tagsFile = new File(resultDir, "META-INF" + File.separator +
+                                            "tags");
+        if (tagsFile.exists())
+             try {
+                tags = FileHelper.readContentFromFile(tagsFile).trim();
+            } catch (IOException e) {
+                logger.log(Level.WARNING, "Error reading tags file for " +
+                        "run " + runId, e);
+            }
+
+        if (tags == null)
+            tags = "N/A";
     }
 
     /**
@@ -300,6 +316,123 @@ public class Result {
         return status;
     }
 
+    public static TableModel getTagSearchResultTable(Set<String> runIds, TagEngine te) {
+        ArrayList<Result> resultList = new ArrayList<Result>(runIds.size());
+        HashSet<String> scaleNames = new HashSet<String>();
+        HashSet<String> scaleUnits = new HashSet<String>();
+        HashSet<String> metricUnits = new HashSet<String>();
+        Result res = null;
+        for (String runid : runIds) {
+            try {
+                RunId runId = new RunId(runid);
+                res = getInstance(runId);
+                if (res == null){
+                    te.removeRunId(runid);
+                    File filename = new File(Config.OUT_DIR + "/tagenginefile");
+                    ObjectOutputStream out = new ObjectOutputStream(
+                            new FileOutputStream(filename));
+                    out.writeObject(te);
+                    out.close();
+                }
+                scaleNames.add(res.scaleName);
+                scaleUnits.add(res.scaleUnit);
+                metricUnits.add(res.metricUnit);
+                resultList.add(res);
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Cannot read result dir " + runid, e);
+            }
+        }
+        TableModel table = new TableModel(9);
+        table.setHeader(0, "RunID");
+        table.setHeader(1, "Description");
+        table.setHeader(2, "Result");
+
+        boolean singleScale = false;
+        if (scaleNames.size() == 1 && scaleUnits.size() == 1) {
+            singleScale = true;
+            if (res.scaleName.length() > 0 &&
+                    res.scaleUnit.length() > 0)
+                table.setHeader(3, res.scaleName + " (" +
+                        res.scaleUnit + ')');
+            else if (res.scaleName.length() > 0)
+                table.setHeader(3, res.scaleName);
+            else if (res.scaleUnit.length() > 0)
+                table.setHeader(3, res.scaleUnit);
+            else
+                table.setHeader(3, "Scale");
+
+        } else {
+            table.setHeader(3, "Scale");
+        }
+
+        boolean singleMetric = false;
+        if (metricUnits.size() == 1) {
+            singleMetric = true;
+            if (res.metricUnit.length() > 0)
+                table.setHeader(4, res.metricUnit);
+            else
+                table.setHeader(4, "Metric");
+        } else {
+            table.setHeader(4, "Metric");
+        }
+
+        table.setHeader(5, "Status");
+        table.setHeader(6, "Date/Time");
+        table.setHeader(7, "Submitter");
+        table.setHeader(8, "Tags");
+
+        StringBuilder b = new StringBuilder();
+
+        for (Result result : resultList) {
+            int idx = table.addRow();
+            Comparable[] row = table.getRow(idx);
+            row[0] = result.runId;
+            row[1] = result.description;
+            row[2] = result.result;
+            ResultField<Integer> scale = new ResultField<Integer>();
+            row[3] = scale;
+            if (result.scale == null || result.scale.length() < 1) {
+                scale.text = "N/A";
+                scale.value = Integer.MIN_VALUE;
+            } else if (singleScale) {
+                scale.text = result.scale;
+                scale.value = new Integer(result.scale);
+            } else {
+                if (result.scaleName.length() > 0)
+                    b.append(result.scaleName).append(' ');
+                b.append(result.scale);
+                if (result.scaleUnit.length() > 0)
+                    b.append(' ').append(result.scaleUnit);
+                scale.text = b.toString();
+                scale.value = new Integer(res.scale);
+                b.setLength(0);
+            }
+
+            ResultField<Double> metric = new ResultField<Double>();
+            row[4] = metric;
+            if (result.metric.text == null) {
+                metric.text = "N/A";
+                metric.value = -1d;
+            } else if (singleMetric) {
+                metric.text = result.metric.text;
+                metric.value = result.metric.value;
+            } else {
+                b.append(result.metric);
+                if (result.metricUnit.length() > 0)
+                    b.append(' ').append(result.metricUnit);
+                metric.text = b.toString();
+                metric.value = result.metric.value;
+                b.setLength(0);
+            }
+            row[5] = result.status;
+            row[6] = result.dateTime;
+            row[7] = result.submitter;
+            row[8] = result.tags;
+        }
+        table.sort(6, SortDirection.DESCENDING);
+        return table;
+    }
+    
     public static TableModel getResultTable(Subject user) {
 
         File[] dirs = new File(Config.OUT_DIR).listFiles();
@@ -327,7 +460,7 @@ public class Result {
             }
         }
 
-        TableModel table = new TableModel(8);
+        TableModel table = new TableModel(9);
         table.setHeader(0, "RunID");
         table.setHeader(1, "Description");
         table.setHeader(2, "Result");
@@ -364,6 +497,7 @@ public class Result {
         table.setHeader(5, "Status");
         table.setHeader(6, "Date/Time");
         table.setHeader(7, "Submitter");
+        table.setHeader(8, "Tags");
 
         StringBuilder b = new StringBuilder();
 
@@ -411,6 +545,7 @@ public class Result {
             row[5] = result.status;
             row[6] = result.dateTime;
             row[7] = result.submitter;
+            row[8] = result.tags;
         }
 
         table.sort(6, SortDirection.DESCENDING);

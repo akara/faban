@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunRetriever.java,v 1.12 2008/12/05 22:08:25 sheetalpatil Exp $
+ * $Id: RunRetriever.java,v 1.13 2009/02/14 05:34:17 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -97,7 +97,11 @@ public class RunRetriever extends HttpServlet {
         }
         v = request.getParameter("runid");
         if (v != null) {
-            fetchNextRun(v, response);
+            try {
+                fetchNextRun(v, response);
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(RunRetriever.class.getName()).log(Level.SEVERE, null, ex);
+            }
             return;
         }
 
@@ -146,7 +150,7 @@ public class RunRetriever extends HttpServlet {
     }
 
     private void fetchNextRun(String runId, HttpServletResponse response)
-            throws IOException {
+            throws IOException, ClassNotFoundException {
 
         Run nextRun = null;
         for (;;)

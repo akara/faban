@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: menu.jsp,v 1.7 2008/11/14 17:17:23 akara Exp $
+ * $Id: menu.jsp,v 1.8 2009/02/14 05:35:09 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -37,6 +37,12 @@
     <head>
         <title></title>
         <link rel="icon" type="image/gif" href="img/faban.gif">
+        <script type="text/javascript">
+            function loadResults() {
+                var str = document.tagsearch.inputtag.value;
+                parent.main.location.href= "resultlist.jsp?inputtag=" + escape(str);
+            }
+        </script>
     </head>
     <body>
         <table BORDER="0" WIDTH="100%" BGCOLOR="#FFFFFF" color="#666699" >
@@ -70,7 +76,15 @@
 <% } else { %>
             <tr><td VALIGN="CENTER" style="color: rgb(102, 102, 102);"><br/>Switch Profile</td></tr>
 <% } %>
-            <tr><td VALIGN="CENTER"><br/><a href="http://faban.sunsource.net/0.9/docs/toc.html" target="_blank">Help</a></td></tr>
+            <tr><td VALIGN="CENTER"><br/><a href="http://faban.sunsource.net/docs/guide/harness/toc.html" target="_blank">Help</a></td></tr>
+            <tr><td VALIGN="CENTER"><br/></td></tr>
+            <tr><td VALIGN="CENTER">
+               <form name="tagsearch" method="get" onsubmit="loadResults();">
+                   Tag Search<br>
+                   <input type="text" name="inputtag" title="tag search" size="15"><br>
+                   <input type="submit" value="Search" onclick="loadResults();">&nbsp;&nbsp;<input type="reset" value="Reset">
+               </form>
+            </td></tr>
             <tr><td VALIGN="TOP"></td></tr>
         </table>
     </body>

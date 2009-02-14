@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunDaemon.java,v 1.24 2007/05/24 01:04:38 akara Exp $
+ * $Id: RunDaemon.java,v 1.25 2009/02/14 05:34:18 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -33,14 +33,19 @@ import com.sun.faban.harness.util.FileHelper;
 import com.sun.faban.harness.webclient.RunRetriever;
 import com.sun.faban.harness.webclient.RunUploader;
 
+import com.sun.faban.harness.webclient.TagEngine;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Properties;
+import java.util.StringTokenizer;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
@@ -127,7 +132,7 @@ public class RunDaemon implements Runnable {
      * @param name The name of the run to fetch
      * @return The run object for the next run
      */
-    public Run fetchNextRun(String name) throws RunEntryException {
+    public Run fetchNextRun(String name) throws RunEntryException, IOException, ClassNotFoundException {
 
         // get the lock for the runq.
         runqLock.grabLock();
@@ -209,9 +214,41 @@ public class RunDaemon implements Runnable {
 
         FileHelper.recursiveDelete(new File(Config.RUNQ_DIR), runId);
         runqLock.releaseLock();
+        uploadTags(runId);
 
         return new Run(runIdObj.getRunSeq(), benchDesc);
     }
+
+    private void uploadTags(String runId) throws IOException, ClassNotFoundException {
+            File file = new File(Config.OUT_DIR + runId + "/META-INF/tags");
+            String tags = FileHelper.readContentFromFile(file);
+            TagEngine te = new TagEngine();
+            File filename = new File(Config.OUT_DIR + "/tagenginefile");
+            if (filename.exists()) {
+            ObjectInputStream in = new ObjectInputStream(
+                    new FileInputStream(filename));
+            te = (TagEngine) in.readObject();
+            in.close();
+            }
+            String[] tagsArray;
+            if(!tags.equals("")){
+                StringTokenizer tok = new StringTokenizer(tags," ");
+                tagsArray = new String[tok.countTokens()];
+                int count = tok.countTokens();
+                int i=0;
+                while(i < count){
+                    String nextT = tok.nextToken().trim();
+                    tagsArray[i] = nextT;
+                    i++;
+                }
+                te.add(runId, tagsArray);
+            }
+            ObjectOutputStream out = new ObjectOutputStream(
+                                            new FileOutputStream(filename));
+            out.writeObject(te);
+            out.close();
+        }
+
     /**
      * The run method for the RunDaemonThread. It loops indefinitely and blocks
      * when there are no runs in the runq. It continues when notified of a new
@@ -269,7 +306,13 @@ public class RunDaemon implements Runnable {
             boolean remoteRun = true;
             if (run == null)
                 try {
+                try {
                     run = fetchNextRun(runId); // runId null if not poller.
+                } catch (IOException ex) {
+                    Logger.getLogger(RunDaemon.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (ClassNotFoundException ex) {
+                    Logger.getLogger(RunDaemon.class.getName()).log(Level.SEVERE, null, ex);
+                }
                     remoteRun = false;
                 } catch (RunEntryException e) {
                     // If there is a run entry issue, just skip to the next run
