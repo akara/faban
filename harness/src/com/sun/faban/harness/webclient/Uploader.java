@@ -17,7 +17,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: Uploader.java,v 1.4 2009/02/14 05:34:17 sheetalpatil Exp $
+* $Id: Uploader.java,v 1.5 2009/02/17 22:39:18 sheetalpatil Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 */
@@ -37,6 +37,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.servlet.ServletException;
 import org.apache.commons.fileupload.DiskFileUpload;
 import org.apache.commons.fileupload.FileItem;
@@ -132,13 +134,15 @@ public class Uploader {
             TagEngine te = new TagEngine();
             File filename = new File(Config.OUT_DIR + "/tagenginefile");
             if (filename.exists()) {
-            ObjectInputStream in = new ObjectInputStream(
-                    new FileInputStream(filename));
-            te = (TagEngine) in.readObject();
-            in.close();
+                ObjectInputStream in = new ObjectInputStream(
+                        new FileInputStream(filename));
+                te = (TagEngine) in.readObject();
+                in.close();
             }
             String[] tagsArray;
             if(!tags.equals("")){
+                ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
+                Lock wlock = rwl.writeLock();
                 StringTokenizer tok = new StringTokenizer(tags," ");
                 tagsArray = new String[tok.countTokens()];
                 int count = tok.countTokens();
@@ -148,7 +152,13 @@ public class Uploader {
                     tagsArray[i] = nextT;
                     i++;
                 }
-                te.add(runId, tagsArray);
+                if (wlock.tryLock()) {
+                    try {
+                        te.add(runId, tagsArray);
+                    } finally {
+                        wlock.unlock();
+                    }
+                }
             }
             ObjectOutputStream out = new ObjectOutputStream(
                                             new FileOutputStream(filename));

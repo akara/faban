@@ -17,7 +17,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: ResultAction.java,v 1.4 2009/02/14 05:34:17 sheetalpatil Exp $
+* $Id: ResultAction.java,v 1.5 2009/02/17 22:39:03 sheetalpatil Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 */
@@ -43,6 +43,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.StringTokenizer;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.MultipartPostMethod;
@@ -387,6 +389,8 @@ public class ResultAction {
         File file = new File(Config.OUT_DIR + runId + "/META-INF/tags");
         String tags = request.getParameter(runId + "_tags").trim();
         if(!tags.equals("")){
+            ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
+            Lock wlock = rwl.writeLock();
             StringTokenizer t = new StringTokenizer(tags," \n,");
             while (t.hasMoreTokens()) {
                 String nextT = t.nextToken().trim();
@@ -399,10 +403,10 @@ public class ResultAction {
             TagEngine te = new TagEngine();
             File filename = new File(Config.OUT_DIR + "/tagenginefile");
             if (filename.exists()) {
-            ObjectInputStream in = new ObjectInputStream(
-                    new FileInputStream(filename));
-            te = (TagEngine) in.readObject();
-            in.close();
+                ObjectInputStream in = new ObjectInputStream(
+                        new FileInputStream(filename));
+                te = (TagEngine) in.readObject();
+                in.close();
             }
             String[] tagsArray;
             if(!result.tags.equals("")){
@@ -415,7 +419,13 @@ public class ResultAction {
                     tagsArray[i] = nextT;
                     i++;
                 }
-                te.add(runId, tagsArray);
+                if (wlock.tryLock()) {
+                    try {
+                        te.add(runId, tagsArray);
+                    } finally {
+                        wlock.unlock();
+                    }
+                }
             }
             ObjectOutputStream out = new ObjectOutputStream(
                                             new FileOutputStream(filename));
