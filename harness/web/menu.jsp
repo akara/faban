@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: menu.jsp,v 1.8 2009/02/14 05:35:09 sheetalpatil Exp $
+ * $Id: menu.jsp,v 1.9 2009/02/17 20:11:59 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -82,7 +82,7 @@
                <form name="tagsearch" method="get" onsubmit="loadResults();">
                    Tag Search<br>
                    <input type="text" name="inputtag" title="tag search" size="15"><br>
-                   <input type="submit" value="Search" onclick="loadResults();">&nbsp;&nbsp;<input type="reset" value="Reset">
+                   <input type="submit" value="Search">&nbsp;&nbsp;<input type="reset" value="Reset">
                </form>
             </td></tr>
             <tr><td VALIGN="TOP"></td></tr>
