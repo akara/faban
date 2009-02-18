@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunDaemon.java,v 1.26 2009/02/17 22:39:36 sheetalpatil Exp $
+ * $Id: RunDaemon.java,v 1.27 2009/02/18 20:47:18 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -46,8 +46,6 @@ import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Properties;
 import java.util.StringTokenizer;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
@@ -233,9 +231,7 @@ public class RunDaemon implements Runnable {
             in.close();
             }
             String[] tagsArray;
-            if(!tags.equals("")){
-                ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
-                Lock wlock = rwl.writeLock();
+            if(!tags.equals("")){                
                 StringTokenizer tok = new StringTokenizer(tags," ");
                 tagsArray = new String[tok.countTokens()];
                 int count = tok.countTokens();
@@ -245,13 +241,7 @@ public class RunDaemon implements Runnable {
                     tagsArray[i] = nextT;
                     i++;
                 }
-                if (wlock.tryLock()) {
-                    try {
-                        te.add(runId, tagsArray);
-                    } finally {
-                        wlock.unlock();
-                    }
-                }
+                te.add(runId, tagsArray);
             }
             ObjectOutputStream out = new ObjectOutputStream(
                                             new FileOutputStream(filename));

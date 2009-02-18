@@ -19,16 +19,14 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultlist.jsp,v 1.11 2009/02/17 22:39:55 sheetalpatil Exp $
+ * $Id: resultlist.jsp,v 1.12 2009/02/18 20:48:09 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 -->
     <%@ page language="java" import="com.sun.faban.harness.webclient.Result,
                                      com.sun.faban.harness.webclient.TableModel,
-                                     com.sun.faban.harness.webclient.TagEngine,
-                                     java.util.concurrent.locks.ReentrantReadWriteLock,
-                                     java.util.concurrent.locks.*,
+                                     com.sun.faban.harness.webclient.TagEngine,                                 
                                      java.io.File,java.io.*,
                                      java.util.Set,java.util.*,
                                      com.sun.faban.harness.common.Config"%>
@@ -45,9 +43,7 @@
         RequestDispatcher rd = request.getRequestDispatcher("/archiveruns.jsp");
         rd.forward(request, response);
     } else {
-        TableModel resultTable = null;
-        ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
-        Lock rlock = rwl.readLock();
+        TableModel resultTable = null;      
         if(tag != null) {
            TagEngine te = new TagEngine();
            File filename = new File(Config.OUT_DIR + "/tagenginefile");
@@ -56,14 +52,7 @@
                te = (TagEngine) in.readObject();
                in.close();
            }
-           Set<String> answer = null;
-           if (rlock.tryLock()) {
-              try {
-                  answer = te.search(tag.trim());
-              } finally {
-                  rlock.unlock();
-              }
-           } 
+           Set<String> answer = te.search(tag.trim());
            resultTable = Result.getTagSearchResultTable(answer,te);
         }else{
            resultTable = Result.getResultTable(usrEnv.getSubject());

@@ -17,7 +17,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: ResultAction.java,v 1.5 2009/02/17 22:39:03 sheetalpatil Exp $
+* $Id: ResultAction.java,v 1.6 2009/02/18 20:46:55 sheetalpatil Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 */
@@ -41,10 +41,7 @@ import java.net.URL;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.StringTokenizer;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.MultipartPostMethod;
@@ -389,8 +386,6 @@ public class ResultAction {
         File file = new File(Config.OUT_DIR + runId + "/META-INF/tags");
         String tags = request.getParameter(runId + "_tags").trim();
         if(!tags.equals("")){
-            ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
-            Lock wlock = rwl.writeLock();
             StringTokenizer t = new StringTokenizer(tags," \n,");
             while (t.hasMoreTokens()) {
                 String nextT = t.nextToken().trim();
@@ -419,13 +414,7 @@ public class ResultAction {
                     tagsArray[i] = nextT;
                     i++;
                 }
-                if (wlock.tryLock()) {
-                    try {
-                        te.add(runId, tagsArray);
-                    } finally {
-                        wlock.unlock();
-                    }
-                }
+                te.add(runId, tagsArray);
             }
             ObjectOutputStream out = new ObjectOutputStream(
                                             new FileOutputStream(filename));

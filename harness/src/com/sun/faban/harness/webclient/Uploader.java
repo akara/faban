@@ -17,7 +17,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: Uploader.java,v 1.5 2009/02/17 22:39:18 sheetalpatil Exp $
+* $Id: Uploader.java,v 1.6 2009/02/18 20:47:03 sheetalpatil Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 */
@@ -31,14 +31,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.io.File;
-import java.util.HashMap;
 import java.util.logging.Logger;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.servlet.ServletException;
 import org.apache.commons.fileupload.DiskFileUpload;
 import org.apache.commons.fileupload.FileItem;
@@ -140,9 +137,7 @@ public class Uploader {
                 in.close();
             }
             String[] tagsArray;
-            if(!tags.equals("")){
-                ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
-                Lock wlock = rwl.writeLock();
+            if(!tags.equals("")){                
                 StringTokenizer tok = new StringTokenizer(tags," ");
                 tagsArray = new String[tok.countTokens()];
                 int count = tok.countTokens();
@@ -152,13 +147,7 @@ public class Uploader {
                     tagsArray[i] = nextT;
                     i++;
                 }
-                if (wlock.tryLock()) {
-                    try {
-                        te.add(runId, tagsArray);
-                    } finally {
-                        wlock.unlock();
-                    }
-                }
+                te.add(runId, tagsArray);
             }
             ObjectOutputStream out = new ObjectOutputStream(
                                             new FileOutputStream(filename));
