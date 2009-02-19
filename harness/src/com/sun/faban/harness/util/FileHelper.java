@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileHelper.java,v 1.17 2009/02/14 05:34:17 sheetalpatil Exp $
+ * $Id: FileHelper.java,v 1.18 2009/02/19 19:50:43 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -468,11 +468,12 @@ public class FileHelper {
     public static String readContentFromFile(File file) throws IOException {
         String content = null;
         StringBuilder formattedTags = new StringBuilder();
-        if (file.isFile())
+        if (file.isFile()) {
             content = new String(getContent(file.getAbsolutePath()));
         StringTokenizer t = new StringTokenizer(content,"\n");
         while (t.hasMoreTokens()) {
                 formattedTags.append(t.nextToken().trim() + " ");
+        }
         }
         return formattedTags.toString();
     }

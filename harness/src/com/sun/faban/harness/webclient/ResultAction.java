@@ -17,7 +17,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: ResultAction.java,v 1.6 2009/02/18 20:46:55 sheetalpatil Exp $
+* $Id: ResultAction.java,v 1.7 2009/02/19 19:51:55 sheetalpatil Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 */
@@ -395,14 +395,7 @@ public class ResultAction {
             }          
             FileHelper.writeContentToFile(formattedTags.toString(), file);
             result.tags = FileHelper.readContentFromFile(file);
-            TagEngine te = new TagEngine();
-            File filename = new File(Config.OUT_DIR + "/tagenginefile");
-            if (filename.exists()) {
-                ObjectInputStream in = new ObjectInputStream(
-                        new FileInputStream(filename));
-                te = (TagEngine) in.readObject();
-                in.close();
-            }
+            TagEngine te = TagEngine.getInstance();
             String[] tagsArray;
             if(!result.tags.equals("")){
                 StringTokenizer tok = new StringTokenizer(result.tags," ");
@@ -416,10 +409,7 @@ public class ResultAction {
                 }
                 te.add(runId, tagsArray);
             }
-            ObjectOutputStream out = new ObjectOutputStream(
-                                            new FileOutputStream(filename));
-            out.writeObject(te);
-            out.close();
+            te.save();
         }else{
             result.tags = "N/A";
             FileHelper.writeContentToFile("N/A", file);

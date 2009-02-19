@@ -17,7 +17,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: Uploader.java,v 1.6 2009/02/18 20:47:03 sheetalpatil Exp $
+* $Id: Uploader.java,v 1.7 2009/02/19 19:51:30 sheetalpatil Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 */
@@ -128,14 +128,7 @@ public class Uploader {
         private void uploadTags(String runId) throws IOException, ClassNotFoundException {
             File file = new File(Config.OUT_DIR + runId + "/META-INF/tags");
             String tags = FileHelper.readContentFromFile(file);
-            TagEngine te = new TagEngine();
-            File filename = new File(Config.OUT_DIR + "/tagenginefile");
-            if (filename.exists()) {
-                ObjectInputStream in = new ObjectInputStream(
-                        new FileInputStream(filename));
-                te = (TagEngine) in.readObject();
-                in.close();
-            }
+            TagEngine te = TagEngine.getInstance();
             String[] tagsArray;
             if(!tags.equals("")){                
                 StringTokenizer tok = new StringTokenizer(tags," ");
@@ -149,10 +142,7 @@ public class Uploader {
                 }
                 te.add(runId, tagsArray);
             }
-            ObjectOutputStream out = new ObjectOutputStream(
-                                            new FileOutputStream(filename));
-            out.writeObject(te);
-            out.close();
+            te.save();
         }
 
         public String uploadRuns(HttpServletRequest request, HttpServletResponse
@@ -279,8 +269,10 @@ public class Uploader {
                             runName = getNextRunId(runName);
                             if (checkIfArchived(runName))
                                 continue l1;
-                            if (recursiveCopy(runTmp, new File(Config.OUT_DIR,
-                                                                  runName))) {
+                            File newRunNameFile = new File(Config.OUT_DIR,
+                                    runName);
+                            if (recursiveCopy(runTmp, newRunNameFile)) {
+                                newRunNameFile.setLastModified(runTmp.lastModified());
                                 uploadTags(runName);
                                 uploadFile.delete();
                                 recursiveDelete(runTmp);
@@ -339,8 +331,9 @@ public class Uploader {
                     }  else {
                         runId = runTmp.getName();
                     }
-
-                    if (recursiveCopy(runTmp, new File(Config.OUT_DIR, runId))){
+                    File newRunFile = new File(Config.OUT_DIR, runId);
+                    if (recursiveCopy(runTmp, newRunFile)){
+                        newRunFile.setLastModified(runTmp.lastModified());
                         uploadFile.delete();
                         uploadTags(runId);
                         recursiveDelete(runTmp);

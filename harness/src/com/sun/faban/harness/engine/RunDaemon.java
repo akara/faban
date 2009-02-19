@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunDaemon.java,v 1.27 2009/02/18 20:47:18 sheetalpatil Exp $
+ * $Id: RunDaemon.java,v 1.28 2009/02/19 19:51:19 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -222,14 +222,7 @@ public class RunDaemon implements Runnable {
     private void uploadTags(String runId) throws IOException, ClassNotFoundException {
             File file = new File(Config.OUT_DIR + runId + "/META-INF/tags");
             String tags = FileHelper.readContentFromFile(file);
-            TagEngine te = new TagEngine();
-            File filename = new File(Config.OUT_DIR + "/tagenginefile");
-            if (filename.exists()) {
-            ObjectInputStream in = new ObjectInputStream(
-                    new FileInputStream(filename));
-            te = (TagEngine) in.readObject();
-            in.close();
-            }
+            TagEngine te = TagEngine.getInstance();
             String[] tagsArray;
             if(!tags.equals("")){                
                 StringTokenizer tok = new StringTokenizer(tags," ");
@@ -243,10 +236,7 @@ public class RunDaemon implements Runnable {
                 }
                 te.add(runId, tagsArray);
             }
-            ObjectOutputStream out = new ObjectOutputStream(
-                                            new FileOutputStream(filename));
-            out.writeObject(te);
-            out.close();
+            te.save();
         }
 
     /**

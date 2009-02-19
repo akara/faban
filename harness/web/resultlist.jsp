@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultlist.jsp,v 1.12 2009/02/18 20:48:09 sheetalpatil Exp $
+ * $Id: resultlist.jsp,v 1.13 2009/02/19 19:51:07 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -45,13 +45,7 @@
     } else {
         TableModel resultTable = null;      
         if(tag != null) {
-           TagEngine te = new TagEngine();
-           File filename = new File(Config.OUT_DIR + "/tagenginefile");
-           if (filename.exists()) {
-               ObjectInputStream in = new ObjectInputStream(new FileInputStream(filename));
-               te = (TagEngine) in.readObject();
-               in.close();
-           }
+           TagEngine te = TagEngine.getInstance();
            Set<String> answer = te.search(tag.trim());
            resultTable = Result.getTagSearchResultTable(answer,te);
         }else{
