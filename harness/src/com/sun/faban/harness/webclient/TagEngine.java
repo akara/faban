@@ -23,7 +23,6 @@
 package com.sun.faban.harness.webclient;
 
 import com.sun.faban.harness.common.Config;
-import com.sun.faban.harness.common.RunId;
 import com.sun.faban.harness.util.FileHelper;
 import java.io.File;
 import java.io.FileInputStream;
@@ -39,8 +38,6 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -52,19 +49,29 @@ public class TagEngine implements Serializable{
 
     
     HashMap<String, Entry> tagEntries = new HashMap<String, Entry>();
-    HashMap<String, HashSet<Entry>> runEntries = new HashMap<String, HashSet<Entry>>();
+    HashMap<String, HashSet<Entry>> runEntries =
+                                    new HashMap<String, HashSet<Entry>>();
     private final ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
     private final Lock wlock = rwl.writeLock();
     private final Lock rlock = rwl.readLock();
 
-    private static TagEngine createInstance() throws IOException, ClassNotFoundException {
+    /**
+     * Creates the singleton instance of the tag engine, reads it from the
+     * serialized tag engine if available. Otherwise it will re-index.
+     * @return The tag engine
+     * @throws java.io.IOException Error reading from the file
+     * @throws java.lang.ClassNotFoundException Error loading TagEngine class
+     */
+    private static TagEngine createInstance()
+            throws IOException, ClassNotFoundException {
         // 1. Check for existence of ser file
         // 2. If exists, load ser file
         // 3. If not exists, scan and create tag engine
         // 4. Save output to ser file
-        File filename = new File(Config.OUT_DIR + "/tagenginefile.ser");
-        if (filename.exists()) {
-            ObjectInputStream in = new ObjectInputStream(new FileInputStream(filename));
+        File serFile = new File(Config.CONFIG_DIR + "/tagengine.ser");
+        if (serFile.exists()) {
+            ObjectInputStream in = new ObjectInputStream(
+                                        new FileInputStream(serFile));
             instance = (TagEngine) in.readObject();
             in.close();
         }else{
@@ -81,7 +88,8 @@ public class TagEngine implements Serializable{
             instance.wlock.lock();
             try {
                 for (String runId : runIdList){
-                    File file = new File(Config.OUT_DIR + runId + "/META-INF/tags");
+                    File file = new File(Config.OUT_DIR + runId +
+                                                        "/META-INF/tags");
                     String tags = FileHelper.readContentFromFile(file);
                     String[] tagsArray;
                     if(!tags.equals("")){
@@ -101,14 +109,25 @@ public class TagEngine implements Serializable{
                 instance.wlock.unlock();
             }
             ObjectOutputStream out = new ObjectOutputStream(
-                                            new FileOutputStream(filename));
+                                            new FileOutputStream(serFile));
             out.writeObject(instance);
             out.close();
         }
         return instance;
     }
 
-    public static TagEngine getInstance() throws IOException, ClassNotFoundException {
+    /**
+     * Obtains the singleton instance of the tag engine.
+     * @return The singleton instance of the tag engine
+     * @throws java.io.IOException Error reading tag information
+     * @throws java.lang.ClassNotFoundException Error creating the singleton
+     */
+    public static TagEngine getInstance()
+            throws IOException, ClassNotFoundException {
+        // There should not be concurrency on first access at all.
+        // We know, double-checks are not absolutely safe, but are by far safe
+        // enough for the task at hand. We also do not want to pay the
+        // synchronize overhead for every getInstance call.
         if (instance == null) {
             synchronized (TagEngine.class) {
                 if (instance == null)
@@ -118,16 +137,25 @@ public class TagEngine implements Serializable{
         return instance;
     }
 
+    /**
+     * Private constructor. Nobody should ever construct TagEngine.
+     */
     private TagEngine() {
     }
 
+    /**
+     * Serializes the tag engine to file. It is located at
+     * $FABAN/config/tagengine.ser.
+     * @throws java.io.IOException Error writing to the file.
+     */
     public void save()throws IOException{
-       File filename = new File(Config.OUT_DIR + "/tagenginefile.ser");
+       File filename = new File(Config.CONFIG_DIR + "/tagengine.ser");
        ObjectOutputStream out = new ObjectOutputStream(
                                             new FileOutputStream(filename));
        out.writeObject(this);
        out.close();
     }
+
     /**
      * Searches the tag engine for runs matching the given tags.
      * @param tags The tag in question, '/' seperated from sub-tags
@@ -204,7 +232,11 @@ public class TagEngine implements Serializable{
         return entry;
     }
 
-    public void removeRunId(String runId) {            
+    /**
+     * Removes a run from the tag engine.
+     * @param runId The id of the run
+     */
+    public void removeRunId(String runId) {
         wlock.lock();
         try {
             HashSet<Entry> removeSet = runEntries.get(runId);
@@ -300,6 +332,9 @@ public class TagEngine implements Serializable{
         }
     }
 
+    /**
+     * Represents a chainable entry in the tag engine.
+     */
     static class Entry implements Serializable{
         String fullTagName;
         HashSet<String> runIds = new HashSet<String>();
