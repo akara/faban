@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Result.java,v 1.25 2009/02/14 05:34:17 sheetalpatil Exp $
+ * $Id: Result.java,v 1.26 2009/02/20 06:26:48 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -87,7 +87,13 @@ public class Result {
         Result oldResult = resultCache.putIfAbsent(runId.toString(), result);
         if (oldResult != null)
             result = oldResult;
-        result.refresh();
+        try {
+            result.refresh();
+        } catch (RuntimeException e) {
+            logger.log(Level.WARNING, runId.toString() +
+                    ": Error reading run.", e);
+            result.description = "Error reading this result";
+        }
         return result;
     }
 
@@ -127,6 +133,10 @@ public class Result {
                     BenchmarkDescription.getBenchDirMap();
             desc = (BenchmarkDescription) benchMap.get(shortName);
         }
+        if (desc == null) {
+            logger.warning(runId.toString() + ": Cannot find benchmark " +
+                    "description in result and benchmark not deployed");
+        }
         String href = null;
 
         // run result and HREF to the summary or log file.
@@ -164,6 +174,8 @@ public class Result {
                     break;
                 }
             }
+        } else {
+            logger.warning(runId.toString() + ": No summary.xml");
         }
 
         // Put the hyperlink to the results
@@ -215,44 +227,55 @@ public class Result {
             ParamRepository par = new ParamRepository(paramFileName, false);
             description = par.getParameter("fa:runConfig/fh:description");
             scale = par.getParameter("fa:runConfig/fa:scale");
+        } else {
+            logger.warning(runId.toString() +
+                        ": Parameter file invalid or non-existent.");
+        }
 
-            if (desc.scaleName == null)
-                desc.scaleName = "";
-            if (desc.scaleUnit == null)
-                desc.scaleUnit = "";
-            if (desc.metric == null)
-                desc.metric = "";
-            scaleName = desc.scaleName;
-            scaleUnit = desc.scaleUnit;
-            metricUnit = desc.metric;
-            // Now we need to fix up all the nulls.
+        // Now we need to fix up the values in case of any incompleteness.
+        if (scale == null || scale.length() == 0)
+            scale = "0";
 
-            // First, if we're dealing with totally blank results or just
-            // a directory, we just ignore this directory altogether.
-            if (result.value == null && status.value == null &&
-                    dateTime.value == null)
-                return;
+        if (desc.scaleName == null) {
+            desc.scaleName = "";
+        }
+        if (desc.scaleUnit == null) {
+            desc.scaleUnit = "";
+        }
+        if (desc.metric == null) {
+            desc.metric = "";
+        }
+        scaleName = desc.scaleName;
+        scaleUnit = desc.scaleUnit;
+        metricUnit = desc.metric;
+        // Now we need to fix up all the nulls.
 
-            // Then if individual pieces are missing
-            if (result.value == null) {
-                result.value = "zzzzzz";
-                result.text = "N/A";
-            }
+        // First, if we're dealing with totally blank results or just
+        // a directory, we just ignore this directory altogether.
+        if (result.value == null && status.value == null &&
+                dateTime.value == null) {
+            return;
+        }
 
-            if (status.value == null) {
-                status.value = "zzzzzz";
-                status.text = "N/A";
-            }
+        // Then if individual pieces are missing
+        if (result.value == null) {
+            result.value = "zzzzzz";
+            result.text = "N/A";
+        }
 
-            if (dateTime == null) {
-                dateTime = new ResultField<Long>();
-                dateTime.text = "N/A";
-                dateTime.value = 0l;
-            }
+        if (status.value == null) {
+            status.value = "zzzzzz";
+            status.text = "N/A";
+        }
 
-            if (description == null ||
-                description.length() == 0)
-                description = "UNAVAILABLE";
+        if (dateTime == null) {
+            dateTime = new ResultField<Long>();
+            dateTime.text = "N/A";
+            dateTime.value = 0l;
+        }
+
+        if (description == null || description.length() == 0) {
+            description = "UNAVAILABLE";
         }
 
         File submitterFile = new File(resultDir, "META-INF" + File.separator +
