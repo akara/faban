@@ -161,8 +161,8 @@ public class TagEngine implements Serializable{
      * @param tags The tag in question, '/' seperated from sub-tags
      * @return The set of run ids matching the given tags
      */
-    public Set<String> search(String tags) {
-        String[] tagsArray = null;
+    public Set<String> search(String[] tags) {
+        /*String[] tagsArray = null;
         if (!tags.equals("")) {
             StringTokenizer tok = new StringTokenizer(tags, " ,:;");
             tagsArray = new String[tok.countTokens()];
@@ -173,13 +173,13 @@ public class TagEngine implements Serializable{
                 tagsArray[i] = nextT;
                 i++;
             }
-        }
+        }*/
 
         HashSet<String> finalAnswer = new HashSet<String>();
         int count = 0;
         rlock.lock();
         try {
-            for (String tag : tagsArray){
+            for (String tag : tags){
                 HashSet<String> answer = new HashSet<String>();
                 Entry entry = findEntry(tag);
                 if (entry != null) {
@@ -236,7 +236,7 @@ public class TagEngine implements Serializable{
      * Removes a run from the tag engine.
      * @param runId The id of the run
      */
-    public void removeRunId(String runId) {
+    public void removeRun(String runId) {
         wlock.lock();
         try {
             HashSet<Entry> removeSet = runEntries.get(runId);

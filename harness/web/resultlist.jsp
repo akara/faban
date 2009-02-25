@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultlist.jsp,v 1.13 2009/02/19 19:51:07 sheetalpatil Exp $
+ * $Id: resultlist.jsp,v 1.14 2009/02/25 23:36:42 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -32,27 +32,10 @@
                                      com.sun.faban.harness.common.Config"%>
     <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
     <%
-    response.setHeader("Cache-Control", "no-cache");
-    String tag = request.getParameter("inputtag");
-    String processString = request.getParameter("action");
-    if ("Compare".equals(processString) ||
-        "Average".equals(processString)) {
-        RequestDispatcher rd = request.getRequestDispatcher("/analyzeruns.jsp");
-        rd.forward(request, response);
-    } else if ("Archive".equals(processString)) {
-        RequestDispatcher rd = request.getRequestDispatcher("/archiveruns.jsp");
-        rd.forward(request, response);
-    } else {
-        TableModel resultTable = null;      
-        if(tag != null) {
-           TagEngine te = TagEngine.getInstance();
-           Set<String> answer = te.search(tag.trim());
-           resultTable = Result.getTagSearchResultTable(answer,te);
-        }else{
-           resultTable = Result.getResultTable(usrEnv.getSubject());
-        }
-        int rows = resultTable.rows();
-        if(resultTable != null && rows > 0) {
+    TableModel resultTable = (TableModel) request.getAttribute("table.model");
+    response.setHeader("Cache-Control", "no-cache");    
+    int rows = resultTable.rows();
+    if(resultTable != null && rows > 0) {
     %>
 <html>
     <head>
@@ -98,7 +81,10 @@
     %>
             <tr>
                 <td><input type="checkbox" name="select" value="<%= row[0] %>"></input></td>
-    <%          for (int j = 0; j < row.length; j++) { %>
+    <%          for (int j = 0; j < row.length; j++) { 
+                    if (row[j] == null)
+                        row[j] = "null";
+    %>
                 <td><%= row[j] %></td>
     <%          } %>
             </tr>
@@ -131,7 +117,6 @@
             <br/>
             <%
         }
-    }
     %>
     </body>
 </html>

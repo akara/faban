@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Result.java,v 1.26 2009/02/20 06:26:48 akara Exp $
+ * $Id: Result.java,v 1.27 2009/02/25 23:35:23 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -133,10 +133,9 @@ public class Result {
                     BenchmarkDescription.getBenchDirMap();
             desc = (BenchmarkDescription) benchMap.get(shortName);
         }
-        if (desc == null) {
-            logger.warning(runId.toString() + ": Cannot find benchmark " +
-                    "description in result and benchmark not deployed");
-        }
+
+        String[] statusFileContent = getStatus(runId.toString());
+
         String href = null;
 
         // run result and HREF to the summary or log file.
@@ -174,15 +173,11 @@ public class Result {
                     break;
                 }
             }
-        } else {
-            logger.warning(runId.toString() + ": No summary.xml");
-        }
 
         // Put the hyperlink to the results
-        if(href != null)
+            if (href != null) {
             result.text = href + result.value + "</a>";
-
-        String[] statusFileContent = getStatus(runId.toString());
+            }
 
         status.value = statusFileContent[0];
         StringBuilder b = new StringBuilder(
@@ -194,10 +189,10 @@ public class Result {
         b.append(status.value);
         b.append("</a>");
         status.text = b.toString();
+        } else {
+            logger.warning(runId.toString() + ": No summary.xml");
+        }
 
-        String paramFileName = resultDir.getAbsolutePath() +
-                File.separator + desc.configFileName;
-        File paramFile = new File(paramFileName);
         if (dateTime == null && statusFileContent[1] != null) {
             try {
                 Date runTime = parseFormat.parse(statusFileContent[1]);
@@ -210,50 +205,64 @@ public class Result {
                 // for this field instead.
             }
         }
-        if (paramFile.isFile()) {
+        if (desc != null) {
+            String paramFileName = resultDir.getAbsolutePath() +
+                File.separator + desc.configFileName;
+            File paramFile = new File(paramFileName);
+        
+            if (paramFile.isFile()) {
 
-            // Compatible with old versions of Config.RESULT_INFO
-            // Old version does not have timestamp in RESULT_INFO
-            // So we need to establish it from the paramFile timestamp.
-            // This block may be removed in future.
-            if (dateTime == null) {
-                dateTime = new ResultField<Long>();
-                dateTime.value = paramFile.lastModified();
-                dateTime.text = dateFormat.format(
-                        new Date(dateTime.value.longValue()));
+                // Compatible with old versions of Config.RESULT_INFO
+                // Old version does not have timestamp in RESULT_INFO
+                // So we need to establish it from the paramFile timestamp.
+                // This block may be removed in future.
+                if (dateTime == null) {
+                    dateTime = new ResultField<Long>();
+                    dateTime.value = paramFile.lastModified();
+                    dateTime.text = dateFormat.format(
+                            new Date(dateTime.value.longValue()));
+                }
+                // End compatibility block
+
+                ParamRepository par = new ParamRepository(paramFileName, false);
+                description = par.getParameter("fa:runConfig/fh:description");
+                scale = par.getParameter("fa:runConfig/fa:scale");
+            } else {
+                logger.warning(runId.toString() +
+                            ": Parameter file invalid or non-existent.");
             }
-            // End compatibility block
 
-            ParamRepository par = new ParamRepository(paramFileName, false);
-            description = par.getParameter("fa:runConfig/fh:description");
-            scale = par.getParameter("fa:runConfig/fa:scale");
+            // Now we need to fix up the values in case of any incompleteness.
+            if (scale == null || scale.length() == 0)
+                scale = "0";
+
+            if (desc.scaleName == null) {
+                desc.scaleName = "";
+            }
+            if (desc.scaleUnit == null) {
+                desc.scaleUnit = "";
+            }
+            if (desc.metric == null) {
+                desc.metric = "";
+            }
+            scaleName = desc.scaleName;
+            scaleUnit = desc.scaleUnit;
+            metricUnit = desc.metric;
         } else {
-            logger.warning(runId.toString() +
-                        ": Parameter file invalid or non-existent.");
+            logger.warning(runId.toString() + ": Cannot find benchmark " +
+                    "description in result and benchmark not deployed");
         }
-
-        // Now we need to fix up the values in case of any incompleteness.
-        if (scale == null || scale.length() == 0)
-            scale = "0";
-
-        if (desc.scaleName == null) {
-            desc.scaleName = "";
-        }
-        if (desc.scaleUnit == null) {
-            desc.scaleUnit = "";
-        }
-        if (desc.metric == null) {
-            desc.metric = "";
-        }
-        scaleName = desc.scaleName;
-        scaleUnit = desc.scaleUnit;
-        metricUnit = desc.metric;
         // Now we need to fix up all the nulls.
 
         // First, if we're dealing with totally blank results or just
         // a directory, we just ignore this directory altogether.
-        if (result.value == null && status.value == null &&
-                dateTime.value == null) {
+        if (dateTime == null) {
+            dateTime = new ResultField<Long>();
+            dateTime.text = "N/A";
+            dateTime.value = 0l;
+        }
+
+        if (result.value == null && status.value == null) {
             return;
         }
 
@@ -266,12 +275,6 @@ public class Result {
         if (status.value == null) {
             status.value = "zzzzzz";
             status.text = "N/A";
-        }
-
-        if (dateTime == null) {
-            dateTime = new ResultField<Long>();
-            dateTime.text = "N/A";
-            dateTime.value = 0l;
         }
 
         if (description == null || description.length() == 0) {
@@ -339,7 +342,8 @@ public class Result {
         return status;
     }
 
-    public static TableModel getTagSearchResultTable(Set<String> runIds, TagEngine te) {
+    public static TableModel getTagSearchResultTable(Set<String> runIds,
+            Subject user) {
         ArrayList<Result> resultList = new ArrayList<Result>(runIds.size());
         HashSet<String> scaleNames = new HashSet<String>();
         HashSet<String> scaleUnits = new HashSet<String>();
@@ -348,14 +352,17 @@ public class Result {
         for (String runid : runIds) {
             try {
                 RunId runId = new RunId(runid);
+                if (!AccessController.isViewAllowed(user, runid))
+                    continue;
                 res = getInstance(runId);
                 if (res == null){
-                    te.removeRunId(runid);
-                    File filename = new File(Config.OUT_DIR + "/tagenginefile");
-                    ObjectOutputStream out = new ObjectOutputStream(
-                            new FileOutputStream(filename));
-                    out.writeObject(te);
-                    out.close();
+                    try{
+                        TagEngine te = TagEngine.getInstance();
+                        te.removeRun(runid);
+                        te.save();
+                    } catch (Exception e) {
+                        logger.log(Level.WARNING, "Cannot remove run " + runid, e);
+                    }
                 }
                 scaleNames.add(res.scaleName);
                 scaleUnits.add(res.scaleUnit);

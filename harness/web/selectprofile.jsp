@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: selectprofile.jsp,v 1.6 2009/02/14 05:35:09 sheetalpatil Exp $
+ * $Id: selectprofile.jsp,v 1.7 2009/02/25 23:37:27 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -166,9 +166,7 @@ function updateProfile() {
          <td>Tags for this profile</td>
          <td>
              <textarea name="tags" title="Tags associated for profile <%=profile%>"
-                       rows="2" style="width: 98%;">
-               <%=tagsForProfile%>
-             </textarea>
+                       rows="2" style="width: 98%;"><%=tagsForProfile%></textarea>
          </td>
        </tr>
     </tbody>

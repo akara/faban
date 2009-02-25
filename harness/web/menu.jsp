@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: menu.jsp,v 1.9 2009/02/17 20:11:59 sheetalpatil Exp $
+ * $Id: menu.jsp,v 1.10 2009/02/25 23:36:27 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -37,12 +37,6 @@
     <head>
         <title></title>
         <link rel="icon" type="image/gif" href="img/faban.gif">
-        <script type="text/javascript">
-            function loadResults() {
-                var str = document.tagsearch.inputtag.value;
-                parent.main.location.href= "resultlist.jsp?inputtag=" + escape(str);
-            }
-        </script>
     </head>
     <body>
         <table BORDER="0" WIDTH="100%" BGCOLOR="#FFFFFF" color="#666699" >
@@ -65,7 +59,7 @@
 <% } else { %>
             <tr><td VALIGN="CENTER" style="color: rgb(102, 102, 102);"><br/>Kill Current Run</td></tr>
 <% } %>
-            <tr><td VALIGN="CENTER"><br/><a href="resultlist.jsp" target="main">View Results</a></td></tr>
+            <tr><td VALIGN="CENTER"><br/><a href="/controller/results/list" target="main">View Results</a></td></tr>
 <% if (submitAllowed || manageAllowed) { %>
             <tr><td VALIGN="CENTER"><br/><a href="pending-runs.jsp" target="main">View Pending Runs</a></td></tr>
 <% } else { %>
@@ -79,7 +73,7 @@
             <tr><td VALIGN="CENTER"><br/><a href="http://faban.sunsource.net/docs/guide/harness/toc.html" target="_blank">Help</a></td></tr>
             <tr><td VALIGN="CENTER"><br/></td></tr>
             <tr><td VALIGN="CENTER">
-               <form name="tagsearch" method="get" onsubmit="loadResults();">
+               <form name="tagsearch" method="get" target="main" action="controller/results/list">
                    Tag Search<br>
                    <input type="text" name="inputtag" title="tag search" size="15"><br>
                    <input type="submit" value="Search">&nbsp;&nbsp;<input type="reset" value="Reset">

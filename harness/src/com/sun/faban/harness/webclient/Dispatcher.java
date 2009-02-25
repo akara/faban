@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Dispatcher.java,v 1.1 2008/09/03 05:21:13 akara Exp $
+ * $Id: Dispatcher.java,v 1.2 2009/02/25 23:36:17 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -73,6 +73,12 @@ public class Dispatcher extends HttpServlet {
     static final ConcurrentHashMap<String, Method> METHOD_CACHE =
             new ConcurrentHashMap<String, Method>();
 
+    @Override protected void doGet(HttpServletRequest request,
+                                    HttpServletResponse response)
+            throws ServletException, IOException {
+        doPost(request, response);
+    }
+
     @Override protected void doPost(HttpServletRequest request,
                                     HttpServletResponse response)
             throws ServletException, IOException {
@@ -107,10 +113,17 @@ public class Dispatcher extends HttpServlet {
         // pathElements[2]. But sometimes the action is also passed by the
         // request parameter "action" in case multiple submit buttons are used.
         String action;
-        if (pathElements.length < 3)
+        if (pathElements.length < 3) {
             action = request.getParameter("action");
-        else
+        } else {
             action = pathElements[2];
+            if (pathElements.length > 3) {
+                String[] restRequest = new String[pathElements.length - 3];
+                for (int i = 3; i < pathElements.length; i++)
+                    restRequest[i - 3] = pathElements[i];
+                request.setAttribute("rest.request", restRequest);
+            }
+        }
 
 
         // For now, we use hard-coded dispatching. It is a little ugly and
