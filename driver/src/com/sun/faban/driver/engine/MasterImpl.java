@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MasterImpl.java,v 1.1 2008/09/10 18:25:54 akara Exp $
+ * $Id: MasterImpl.java,v 1.2 2009/02/25 19:41:29 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -755,22 +755,26 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
      * @throws IOException 
      */
     public void generateReports(Metrics[] results) throws IOException {
-        String runOutputDir = runInfo.resultsDir + fs;
-        FileWriter summary = new FileWriter(runOutputDir + "summary.xml");
-        FileWriter detail = new FileWriter(runOutputDir + "detail.xan");
 
-        // As all stats from each agentImpl are of the same type, we can
-        // create a new instance from any instance.
-        logger.info("Printing Summary report...");
-        summary.append(createSummaryReport(results));
-        summary.close();
+        CharSequence summaryContent = createSummaryReport(results);
+        if (summaryContent != null) {
+            String runOutputDir = runInfo.resultsDir + fs;
+            FileWriter summary = new FileWriter(runOutputDir + "summary.xml");
+            FileWriter detail = new FileWriter(runOutputDir + "detail.xan");
 
-        logger.info("Summary finished. Now printing detail ...");
-        detail.append(createDetailReport(results));
-        detail.close();
+            // As all stats from each agentImpl are of the same type, we can
+            // create a new instance from any instance.
+            logger.info("Printing Summary report...");
+            summary.append(summaryContent);
+            summary.close();
 
-        logger.info("Detail finished. Results written to " +
-                runInfo.resultsDir + '.');
+            logger.info("Summary finished. Now printing detail ...");
+            detail.append(createDetailReport(results));
+            detail.close();
+
+            logger.info("Detail finished. Results written to " +
+                    runInfo.resultsDir + '.');
+        }
     }
 
     /**
@@ -787,7 +791,6 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         boolean passed = true;
 
         StringBuilder buffer = new StringBuilder(8192);
-        StringBuilder hdrBuffer = new StringBuilder(1024);
 
         for (int i = 0; i < results.length; i++) {
             if (results[i] == null) {
@@ -807,32 +810,43 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 			}
             metric += results[i].metric;
         }
-        String xslPath = System.getProperty("faban.xsl.path", "../../xslt/");
-        if (!xslPath.endsWith("/")) {
-			xslPath += '/';
-		}
-        hdrBuffer.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-        hdrBuffer.append("<?xml-stylesheet type=\"text/xsl\" href=\"").
-                append(xslPath).append("summary_report.xsl\"?>\n");
-        hdrBuffer.append("<benchResults>\n");
-        hdrBuffer.append("    <benchSummary name=\"").append(benchDef.name).
-                append("\" version=\"").append(benchDef.version).
-                append("\">\n");
-        hdrBuffer.append("        <runId>").append(runInfo.runId).
-                append("</runId>\n");
-        hdrBuffer.append("        <startTime>").append(new Date(startTime)).
-                append("</startTime>\n");
-        hdrBuffer.append("        <endTime>").append(new Date(endTime)).
-                append("</endTime>\n");
-        Formatter formatter = new Formatter(hdrBuffer);
-        formatter.format("        <metric unit=\"%s\">%.03f</metric>\n",
-                benchDef.metric, metric);
-        hdrBuffer.append("        <passed>").append(passed).
-                append("</passed>\n");
-        hdrBuffer.append("    </benchSummary>\n");
 
-        buffer.insert(0, hdrBuffer);
-        buffer.append("</benchResults>\n");
+        // If we did not get any results for any reason, there's no need to
+        // proceed. In that case startTime will still be Long.MAX_VALUE and
+        // end time will still be 0.
+        if (startTime == Long.MAX_VALUE || endTime == 0l) {
+            logger.severe("Unable to obtain any results");
+            buffer = null;
+        } else {
+            StringBuilder hdrBuffer = new StringBuilder(1024);
+            String xslPath =
+                    System.getProperty("faban.xsl.path", "../../xslt/");
+            if (!xslPath.endsWith("/")) {
+                xslPath += '/';
+            }
+            hdrBuffer.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+            hdrBuffer.append("<?xml-stylesheet type=\"text/xsl\" href=\"").
+                    append(xslPath).append("summary_report.xsl\"?>\n");
+            hdrBuffer.append("<benchResults>\n");
+            hdrBuffer.append("    <benchSummary name=\"").append(benchDef.name).
+                    append("\" version=\"").append(benchDef.version).
+                    append("\">\n");
+            hdrBuffer.append("        <runId>").append(runInfo.runId).
+                    append("</runId>\n");
+            hdrBuffer.append("        <startTime>").append(new Date(startTime)).
+                    append("</startTime>\n");
+            hdrBuffer.append("        <endTime>").append(new Date(endTime)).
+                    append("</endTime>\n");
+            Formatter formatter = new Formatter(hdrBuffer);
+            formatter.format("        <metric unit=\"%s\">%.03f</metric>\n",
+                    benchDef.metric, metric);
+            hdrBuffer.append("        <passed>").append(passed).
+                    append("</passed>\n");
+            hdrBuffer.append("    </benchSummary>\n");
+
+            buffer.insert(0, hdrBuffer);
+            buffer.append("</benchResults>\n");
+        }
         return buffer;
     }
 
