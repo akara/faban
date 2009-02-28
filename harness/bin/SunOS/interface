@@ -17,11 +17,17 @@ if [ -z "${TARGET}" ] ; then
     usage
 fi
 
-ROUTE=`/usr/sbin/ping -s -R -v "${TARGET}" 64 1 2> /dev/null`
+ROUTE=`/usr/sbin/ping -s -R -v "${TARGET}" 64 1 2>/tmp/interface.$$.err`
 
 if [ "$?" != "0" ] ; then
+    echo ${ROUTE} >&2
+    cat /tmp/interface.$$.err >&2
     echo "Cannot contact ${TARGET}" >&2
     exit 1
+fi
+
+if [ -e "/tmp/interface.$$.err" ] ; then
+    rm /tmp/interface.$$.err
 fi
 
 LASTLINE=""
