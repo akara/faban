@@ -19,17 +19,11 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: selectprofile.jsp,v 1.7 2009/02/25 23:37:27 sheetalpatil Exp $
+ * $Id: selectprofile.jsp,v 1.8 2009/02/28 18:03:50 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 -->
-<html>
-<head>
-<link rel="icon" type="image/gif" href="img/faban.gif">
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
-<meta name="Author" content="Ramesh Ramachandran"/>
-<meta name="Description" content="Form to display profile selection"/>
 <%@ page language="java" import="java.util.Map,
                                  java.util.HashMap,
                                  java.io.File,
@@ -41,6 +35,13 @@
                                  com.sun.faban.harness.webclient.UserEnv"%>
 
 <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
+<html>
+     <head>
+         <link rel="icon" type="image/gif" href="img/faban.gif">
+         <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+         <meta name="Author" content="Ramesh Ramachandran"/>
+         <meta name="Description" content="Form to display profile selection"/>
+         <title>Select Profile [<%= Config.FABAN_HOST %>]</title>
 <%  String tagsForProfile = null;
     String profile = request.getParameter("profileselected");
     if (profile == null){
@@ -58,7 +59,7 @@
     if(profile != null && benchmark != null && 
        AccessController.isSubmitAllowed(user, desc.shortName)) {
 %>
-<meta HTTP-EQUIV=REFRESH CONTENT="0;URL=new-run.jsp">
+         <meta HTTP-EQUIV=REFRESH CONTENT="0;URL=new-run.jsp">
 <%
     }
     else {
@@ -78,8 +79,8 @@
         int benchCount = allowedBench.size();
         if (benchNameMap.size() < 1) {
 %>
-</head>
-<body>
+    </head>
+    <body>
 <h3><center>Sorry, Faban could not find or successfully deploy any benchmarks.</center></h3>
 <%
         } else if (benchCount < 1) {

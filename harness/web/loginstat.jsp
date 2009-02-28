@@ -27,7 +27,7 @@
 <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
 <html>
     <head>
-        <title></title>
+        <title>Login Status [<%= Config.FABAN_HOST %>]</title>
         <link rel="icon" type="image/gif" href="img/faban.gif">
     </head>
     <body>

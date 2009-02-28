@@ -19,13 +19,14 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: pending-runs.jsp,v 1.6 2007/05/03 23:13:19 akara Exp $
+ * $Id: pending-runs.jsp,v 1.7 2009/02/28 18:03:50 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 -->
 <html>
     <%@ page language="java" import="javax.security.auth.Subject,
+                                     com.sun.faban.harness.common.Config,
                                      com.sun.faban.harness.engine.RunQ,
                                      com.sun.faban.harness.security.AccessController"%>
     <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
@@ -33,7 +34,7 @@
         <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
         <meta name="Author" content="Ramesh Ramachandran"/>
         <meta name="Description" content="Pending Runs"/>
-        <title>Benchmark results</title>
+        <title>Pending Runs [<%= Config.FABAN_HOST %>]</title>
 
         <link rel="icon" type="image/gif" href="img/faban.gif">
     </head>

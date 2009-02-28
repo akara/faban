@@ -19,12 +19,13 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultlist2.jsp,v 1.4 2009/02/28 04:34:16 akara Exp $
+ * $Id: resultlist2.jsp,v 1.5 2009/02/28 18:03:50 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 -->
-<%@ page language="java" import="com.sun.faban.harness.webclient.RunResult,
+<%@ page language="java" import="com.sun.faban.harness.common.Config,
+                                 com.sun.faban.harness.webclient.RunResult,
                                  com.sun.faban.harness.webclient.TableModel"%>
 <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
 <html>
@@ -32,7 +33,7 @@
         <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
         <meta name="Author" content="Akara Sucharitakul"/>
         <meta name="Description" content="Results Table"/>
-        <title>Benchmark Results</title>
+        <title>Benchmark Results [<%= Config.FABAN_HOST %>]</title>
         <link rel="icon" type="image/gif" href="img/faban.gif">
 <%  TableModel resultTable = RunResult.getResultTable(usrEnv.getSubject());
     int pageSize = 10;

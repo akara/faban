@@ -19,12 +19,13 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: menu.jsp,v 1.10 2009/02/25 23:36:27 sheetalpatil Exp $
+ * $Id: menu.jsp,v 1.11 2009/02/28 18:03:50 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 -->
 <%@ page language="java" import="javax.security.auth.Subject,
+                                 com.sun.faban.harness.common.Config,
                                  com.sun.faban.harness.security.AccessController"%>
 <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
 <%
@@ -35,7 +36,7 @@
 %>
 <html>
     <head>
-        <title></title>
+        <title>Faban Menu [<%= Config.FABAN_HOST %>]</title>
         <link rel="icon" type="image/gif" href="img/faban.gif">
     </head>
     <body>

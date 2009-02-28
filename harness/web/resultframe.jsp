@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultframe.jsp,v 1.5 2009/02/28 04:34:17 akara Exp $
+ * $Id: resultframe.jsp,v 1.6 2009/02/28 18:03:49 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -47,7 +47,7 @@
 %>
 <html>
     <head>
-        <title><%=BenchmarkDescription.getBannerName()%> Result for Run <%= runId %></title>
+        <title><%=BenchmarkDescription.getBannerName()%> Result for Run <%= runId %> [<%= Config.FABAN_HOST %>]</title>
         <link rel="icon" type="image/gif" href="img/faban.gif">
     </head>
     <frameset rows="80,*">

@@ -19,24 +19,25 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: delete-runs.jsp,v 1.3 2008/01/15 08:02:53 akara Exp $
+ * $Id: delete-runs.jsp,v 1.4 2009/02/28 18:03:50 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 -->
+<%@ page language="java" import="com.sun.faban.harness.common.Config,
+                                 com.sun.faban.harness.engine.RunQ,
+                                 com.sun.faban.harness.security.AccessController,
+                                 java.io.Reader" %>
+<%@ page session="true" %>
+<%@ page errorPage="error.jsp" %>
+<jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
 <html>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
   <meta name="Author" content="Ramesh Ramachandran"/>
   <meta name="Description" content="JSP to Delete selected runs"/>
-  <title>Failed</title>
-  <link rel="icon" type="image/gif" href=img/faban.gif">
-  <%@ page language="java" import="java.io.Reader, com.sun.faban.harness.engine.RunQ,
-                                   com.sun.faban.harness.security.AccessController" %>
-  <%@ page session="true" %>
-  <%@ page errorPage="error.jsp" %>
-  <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
-
+  <title>Delete Runs from Queue [<%= Config.FABAN_HOST %>]</title>
+  <link rel="icon" type="image/gif" href="img/faban.gif">
 </head>
 <body>
 <br/>

@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: new-run.jsp,v 1.9 2009/02/14 05:35:09 sheetalpatil Exp $
+ * $Id: new-run.jsp,v 1.10 2009/02/28 18:03:51 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -29,7 +29,6 @@
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
 <meta name="Author" content="Ramesh Ramachandran"/>
 <meta name="Description" content="JSP to setup run.xml for the XForms servlet"/>
-<title>Failed</title>
 <%@ page language="java" import="java.util.Map,
                                  java.util.StringTokenizer,
                                  com.sun.faban.harness.common.BenchmarkDescription,
@@ -39,6 +38,7 @@
                                  com.sun.faban.harness.common.Config,
                                  java.io.File"%>
 <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
+<title>Please select profile [<%= Config.FABAN_HOST %>]</title>
 <%
     String profile = (String)session.getAttribute("faban.profile");
     if (profile == null) {

@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: login.jsp,v 1.7 2008/12/05 22:10:13 sheetalpatil Exp $
+ * $Id: login.jsp,v 1.8 2009/02/28 18:03:49 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -41,6 +41,7 @@
                                  com.sun.faban.harness.common.Config"%>
 
 <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
+<title>Login [<%= Config.FABAN_HOST %>]</title>
 </head>
 <%  String bodyHdr = "<body><br/><br/><br/>";
     if (Config.SECURITY_ENABLED) {

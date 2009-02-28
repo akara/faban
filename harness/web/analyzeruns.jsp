@@ -19,12 +19,13 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: analyzeruns.jsp,v 1.7 2008/09/03 05:21:14 akara Exp $
+ * $Id: analyzeruns.jsp,v 1.8 2009/02/28 18:03:50 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 -->
 <%@ page language="java" import="java.util.logging.Logger,
+                                 com.sun.faban.harness.common.Config,
                                  com.sun.faban.harness.webclient.RunAnalyzer,
                                  java.io.IOException,
                                  java.util.logging.Level"%>
@@ -35,7 +36,7 @@
         <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
         <meta name="Author" content="Akara Sucharitakul"/>
         <meta name="Description" content="Results JSP"/>
-        <title>Analyze Runs</title>
+        <title>Analyze Runs [<%= Config.FABAN_HOST %>]</title>
         <link rel="icon" type="image/gif" href="img/faban.gif">
     <%
         Logger logger = Logger.getLogger(this.getClass().getName());

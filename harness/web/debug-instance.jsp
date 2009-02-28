@@ -19,19 +19,20 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: debug-instance.jsp,v 1.2 2006/06/29 19:38:44 akara Exp $
+ * $Id: debug-instance.jsp,v 1.3 2009/02/28 18:03:49 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 -->
-<%@ page import="java.io.*,
-                 org.w3c.dom.Node" %>
-<%@ page import="java.util.*" %>
-<%@ page import="java.text.DateFormat" %>
-<%@ page import="org.w3c.dom.Document" %>
-<%@ page import="org.chiba.xml.util.*" %>
-<%@ page import="org.chiba.xml.xforms.*" %>
-<%@ page import="org.chiba.util.DateUtil" %>
+<%@ page import="com.sun.faban.harness.common.Config,
+                 java.io.*,
+                 org.w3c.dom.Node,
+                 java.util.*,
+                 java.text.DateFormat,
+                 org.w3c.dom.Document,
+                 org.chiba.xml.util.*,
+                 org.chiba.xml.xforms.*,
+                 org.chiba.util.DateUtil" %>
 
 <%@ page session="true" %>
 <%@ page errorPage="error.jsp" %>
@@ -39,7 +40,7 @@
 
 <html>
     <head>
-        <title>Instance Data</title>
+        <title>Instance Data [<%= Config.FABAN_HOST %>]</title>
         <link rel="icon" type="image/gif" href="img/faban.gif">
      </head>
 <body bgcolor="#aabbdd">

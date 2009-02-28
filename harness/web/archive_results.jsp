@@ -28,7 +28,8 @@
  * @author Sheetal Patil
  */
  -->
-<%@ page language="java" import="com.sun.faban.harness.webclient.ResultAction,
+<%@ page language="java" import="com.sun.faban.harness.common.Config,
+                                 com.sun.faban.harness.webclient.ResultAction,
                                  java.util.HashSet"
  %>
  <%  ResultAction.EditArchiveModel model = (ResultAction.EditArchiveModel)
@@ -40,7 +41,7 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>JSP Page</title>
+        <title>Archived Runs [<%= Config.FABAN_HOST %>]</title>
     </head>
     <body>
         <%if( !(uploadedRuns.isEmpty()) ) {%>

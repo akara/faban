@@ -19,19 +19,18 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: error.jsp,v 1.4 2006/08/15 02:39:03 akara Exp $
+ * $Id: error.jsp,v 1.5 2009/02/28 18:03:50 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 -->
+<%@ page import="com.sun.faban.harness.common.Config,
+                 java.io.PrintWriter"%>
+<%@ page session="true" isErrorPage="true" %>
 <html>
 <head>
-	<title>Error</title>
+	<title>Error [<%= Config.FABAN_HOST %>]</title>
     <link rel="icon" type="image/gif" href="img/faban.gif">
-
-<%@ page import="java.io.PrintWriter"%>
-<%@ page session="true" isErrorPage="true" %>
-
 </head>
 <body>
 <br>

@@ -19,15 +19,16 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: welcome.jsp,v 1.3 2006/08/12 06:54:25 akara Exp $
+ * $Id: welcome.jsp,v 1.4 2009/02/28 18:03:50 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 -->
-<%@ page language="java" import="com.sun.faban.harness.common.BenchmarkDescription"%>
+<%@ page language="java" import="com.sun.faban.harness.common.Config,
+                                 com.sun.faban.harness.common.BenchmarkDescription"%>
 <html>
   <head>
-    <title></title>
+    <title>Welcome to Faban [<%= Config.FABAN_HOST %>]</title>
     <link rel="icon" type="image/gif" href="img/faban.gif">
   </head>
   <body>

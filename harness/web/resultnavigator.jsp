@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultnavigator.jsp,v 1.11 2009/02/28 04:34:16 akara Exp $
+ * $Id: resultnavigator.jsp,v 1.12 2009/02/28 18:03:50 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -56,7 +56,7 @@
 %>
 <html>
     <head>
-        <title>Result for Run <%=runId%></title>
+        <title>Result for Run <%=runId%> [<%= Config.FABAN_HOST %>]</title>
         <link rel="icon" type="image/gif" href="img/faban.gif">
         <% if (!finished) { %>
             <meta http-equiv="refresh" content="10">

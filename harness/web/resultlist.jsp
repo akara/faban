@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultlist.jsp,v 1.15 2009/02/28 04:34:16 akara Exp $
+ * $Id: resultlist.jsp,v 1.16 2009/02/28 18:03:50 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -68,7 +68,7 @@
         <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
         <meta name="Author" content="Ramesh Ramachandran"/>
         <meta name="Description" content="Reults JSP"/>
-        <title>Benchmark results</title>
+        <title>Benchmark Results [<%= Config.FABAN_HOST %>]</title>
         <link rel="icon" type="image/gif" href="img/faban.gif">
     </head>
     <body>

@@ -19,24 +19,25 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: schedule-run.jsp,v 1.6 2006/08/22 07:13:09 akara Exp $
+ * $Id: schedule-run.jsp,v 1.7 2009/02/28 18:03:50 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 -->
+<%@ page language="java" session="true" errorPage="error.jsp"
+         import="java.io.Reader, com.sun.faban.harness.engine.RunQ,
+                 com.sun.faban.harness.common.Config,
+                 java.util.logging.Logger,
+                 com.sun.faban.harness.common.BenchmarkDescription,
+                 java.security.AccessControlException,
+                 com.sun.faban.harness.security.AccessController" %>
+<jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
 <html>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
   <meta name="Author" content="Ramesh Ramachandran"/>
   <meta name="Description" content="JSP to setup run.xml for the XForms servlet"/>
-  <title>Failed</title>
-  <%@ page language="java" session="true" errorPage="error.jsp"
-           import="java.io.Reader, com.sun.faban.harness.engine.RunQ,
-                   java.util.logging.Logger,
-                   com.sun.faban.harness.common.BenchmarkDescription,
-                   java.security.AccessControlException,
-                   com.sun.faban.harness.security.AccessController" %>
-  <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
+  <title>Run Scheduled [<%= Config.FABAN_HOST %>]</title>
   <link rel="icon" type="image/gif" href="img/faban.gif">
 </head>
 <body>

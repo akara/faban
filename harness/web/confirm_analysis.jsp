@@ -19,12 +19,13 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: confirm_analysis.jsp,v 1.1 2008/09/03 05:21:14 akara Exp $
+ * $Id: confirm_analysis.jsp,v 1.2 2009/02/28 18:03:49 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 -->
-<%@ page language="java" import="com.sun.faban.harness.webclient.ResultAction"%>
+<%@ page language="java" import="com.sun.faban.harness.common.Config,
+                                 com.sun.faban.harness.webclient.ResultAction"%>
 <%
     ResultAction.EditAnalysisModel model = (ResultAction.EditAnalysisModel)
              request.getAttribute("editanalysis.model");
@@ -34,7 +35,7 @@
         <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
         <meta name="Author" content="Akara Sucharitakul"/>
         <meta name="Description" content="Results JSP"/>
-        <title>Analyze Runs</title>
+        <title>Analyze Runs [<%= Config.FABAN_HOST %>]</title>
         <link rel="icon" type="image/gif" href="img/faban.gif">
     </head>
     <body>

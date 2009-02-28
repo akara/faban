@@ -19,22 +19,23 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resume-runs.jsp,v 1.3 2006/08/19 03:06:12 akara Exp $
+ * $Id: resume-runs.jsp,v 1.4 2009/02/28 18:03:50 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 -->
+<%@ page language="java" import="com.sun.faban.harness.common.Config,
+                                 com.sun.faban.harness.engine.RunQ,
+                                 com.sun.faban.harness.security.AccessController,
+                                 java.util.logging.Logger"
+    session="true" errorPage="error.jsp"%>
+<jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
 <html>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
   <meta name="Author" content="Ramesh Ramachandran"/>
   <meta name="Description" content="JSP to resume the run queue"/>
-  <title>Resume Run Queue</title>
-  <%@ page language="java" import="com.sun.faban.harness.engine.RunQ,
-                                   com.sun.faban.harness.security.AccessController,
-                                   java.util.logging.Logger"
-      session="true" errorPage="error.jsp"%>
-  <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
+  <title>Resume Run Queue [<%= Config.FABAN_HOST %>]</title>
   <link rel="icon" type="image/gif" href="img/faban.gif">
 </head>
 <body>
