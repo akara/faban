@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultnavigator.jsp,v 1.10 2008/12/05 22:10:13 sheetalpatil Exp $
+ * $Id: resultnavigator.jsp,v 1.11 2009/02/28 04:34:16 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -30,7 +30,7 @@
                                  java.io.File,
                                  com.sun.faban.harness.common.BenchmarkDescription,
                                  java.io.IOException,
-                                 com.sun.faban.harness.webclient.Result,
+                                 com.sun.faban.harness.webclient.RunResult,
                                  com.sun.faban.harness.common.RunId"%>
 <%
     String runId = request.getParameter("runId");
@@ -43,7 +43,7 @@
 
     // If not, we fetch it from the benchmark meta info.
     desc = BenchmarkDescription.getDescription(benchmark);
-    String[] status = Result.getStatus(runId);
+    String[] status = RunResult.getStatus(runId);
     boolean finished = true;
     if ("STARTED".equals(status[0]))
         finished = false;

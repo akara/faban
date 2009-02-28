@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileHelper.java,v 1.18 2009/02/19 19:50:43 sheetalpatil Exp $
+ * $Id: FileHelper.java,v 1.19 2009/02/28 04:35:06 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -471,11 +471,25 @@ public class FileHelper {
         if (file.isFile()) {
             content = new String(getContent(file.getAbsolutePath()));
         StringTokenizer t = new StringTokenizer(content,"\n");
-        while (t.hasMoreTokens()) {
+            while (t.hasMoreTokens()) {
                 formattedTags.append(t.nextToken().trim() + " ");
-        }
+            }
         }
         return formattedTags.toString();
+    }
+
+    public static String[] readArrayContentFromFile(File file)
+            throws IOException {
+        String content = null;
+        ArrayList<String> contentList = new ArrayList<String>();
+        if (file.isFile()) {
+            content = new String(getContent(file.getAbsolutePath()));
+            StringTokenizer t = new StringTokenizer(content, "\n");
+            while (t.hasMoreTokens()) {
+                contentList.add(t.nextToken().trim());
+            }
+        }
+        return contentList.toArray(new String[contentList.size()]);
     }
     /**
      * Transfers a file from the current host to the Faban master.

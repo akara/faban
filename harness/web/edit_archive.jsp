@@ -19,13 +19,12 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: edit_archive.jsp,v 1.4 2009/02/14 05:35:09 sheetalpatil Exp $
+ * $Id: edit_archive.jsp,v 1.5 2009/02/28 04:34:16 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 -->
-<%@ page language="java" import="com.sun.faban.harness.webclient.ResultAction,
-                                 com.sun.faban.harness.webclient.Result"
+<%@ page language="java" import="com.sun.faban.harness.webclient.ResultAction"
  %>
  <% ResultAction.EditArchiveModel model = (ResultAction.EditArchiveModel)
                                     request.getAttribute("editarchive.model");

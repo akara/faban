@@ -19,23 +19,49 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultlist.jsp,v 1.14 2009/02/25 23:36:42 sheetalpatil Exp $
+ * $Id: resultlist.jsp,v 1.15 2009/02/28 04:34:16 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 -->
-    <%@ page language="java" import="com.sun.faban.harness.webclient.Result,
+    <%@ page language="java" import="com.sun.faban.harness.webclient.RunResult,
                                      com.sun.faban.harness.webclient.TableModel,
                                      com.sun.faban.harness.webclient.TagEngine,                                 
                                      java.io.File,java.io.*,
                                      java.util.Set,java.util.*,
+                                     java.net.URLEncoder,
                                      com.sun.faban.harness.common.Config"%>
     <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
     <%
-    TableModel resultTable = (TableModel) request.getAttribute("table.model");
-    response.setHeader("Cache-Control", "no-cache");    
-    int rows = resultTable.rows();
-    if(resultTable != null && rows > 0) {
+    response.setHeader("Cache-Control", "no-cache");
+    String tag = request.getParameter("inputtag");
+    TableModel resultTable = null;
+    boolean tagSearch = false;
+    String feedURL = "/controller/results/feed";
+    if (tag != null) {
+        tag = tag.trim();
+        if (tag.length() > 0) {
+            tagSearch = true;
+        } 
+    }
+    if (tagSearch) {
+        resultTable = RunResult.getResultTable(usrEnv.getSubject(), tag);
+        StringTokenizer t = new StringTokenizer(tag, " ,;:");
+        StringBuilder b = new StringBuilder(tag.length());
+        b.append(feedURL);
+        while (t.hasMoreTokens()) {
+            b.append('/');
+            String tagName = t.nextToken();
+            tagName = tagName.replace("/", "+");
+            b.append(tagName);
+        }
+        feedURL = b.toString();
+    } else {
+        resultTable = RunResult.getResultTable(usrEnv.getSubject());
+    }
+
+    int rows;
+    if (resultTable != null && (rows = resultTable.rows()) > 0) {
     %>
 <html>
     <head>
@@ -46,6 +72,11 @@
         <link rel="icon" type="image/gif" href="img/faban.gif">
     </head>
     <body>
+        <div style="text-align: right;"><a
+             href="<%= feedURL %>"><img
+             style="border: 0px solid ; width: 16px; height: 16px;"
+             alt="Feed" src="/img/feed.gif"></a></div>
+
             <form name="processrun" method="post" action="controller/result_action/take_action">
               <center>
                 <input type="submit" name="process" value="Compare">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -109,14 +140,13 @@
      </center>
     </form>
     <%
-        }
-        else {
-            %>
+    } else {
+    %>
             <br/>
             <center><b>There are no results</b></center>
             <br/>
-            <%
-        }
+    <%
+    }
     %>
     </body>
 </html>

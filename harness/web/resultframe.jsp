@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultframe.jsp,v 1.4 2008/12/05 22:10:13 sheetalpatil Exp $
+ * $Id: resultframe.jsp,v 1.5 2009/02/28 04:34:17 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -28,12 +28,12 @@
                                  java.io.FileReader,
                                  com.sun.faban.harness.common.BenchmarkDescription,
                                  java.io.IOException,
-                                 com.sun.faban.harness.webclient.Result"%>
+                                 com.sun.faban.harness.webclient.RunResult"%>
 <%
     String runId = request.getParameter("runId");
     String resultFile = request.getParameter("result");
     String show = request.getParameter("show");
-    String[] statusFileContent = Result.getStatus(runId);
+    String[] statusFileContent = RunResult.getStatus(runId);
     String displayFrame = null;
     if ("logs".equals(show)) {
         if ("STARTED".equals(statusFileContent[0]))

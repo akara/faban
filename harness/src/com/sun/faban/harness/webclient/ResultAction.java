@@ -17,7 +17,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: ResultAction.java,v 1.7 2009/02/19 19:51:55 sheetalpatil Exp $
+* $Id: ResultAction.java,v 1.8 2009/02/28 04:35:05 akara Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 */
@@ -40,6 +40,7 @@ import java.util.HashSet;
 import java.net.URL;
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.StringTokenizer;
 import org.apache.commons.httpclient.HttpClient;
@@ -73,7 +74,7 @@ public class ResultAction {
         public String head;
         public String[] runIds;
         public Set<String> duplicates;
-        public Result[] results;
+        public RunResult[] results;
     }
 
     String editArchive(HttpServletRequest request,
@@ -99,9 +100,9 @@ public class ResultAction {
         else
             model.head = "Repository";
 
-        model.results = new Result[runIds.length];
+        model.results = new RunResult[runIds.length];
         for (int i = 0; i < runIds.length; i++) {
-            model.results[i] = Result.getInstance(new RunId(runIds[i]));
+            model.results[i] = RunResult.getInstance(new RunId(runIds[i]));
         }
         // We use request attributes as not to reflect session state.
         request.setAttribute("editarchive.model", model);
@@ -336,9 +337,9 @@ public class ResultAction {
         else
             model.head = "Repository";
 
-        model.results = new Result[runIds.length];
+        model.results = new RunResult[runIds.length];
         for (int i = 0; i < runIds.length; i++) {
-            model.results[i] = Result.getInstance(new RunId(runIds[i]));
+            model.results[i] = RunResult.getInstance(new RunId(runIds[i]));
         }
 
         if (submitAction.equals("Archive")) {
@@ -378,41 +379,40 @@ public class ResultAction {
         return "/archive_results.jsp";
     }
 
-    private void prepareUpload(HttpServletRequest request, Result result,
+    private void prepareUpload(HttpServletRequest request, RunResult result,
                     HashSet<String> uploadedRuns, HashSet<File> uploadSet)
             throws IOException, ClassNotFoundException {
         String runId = result.runId.toString();
         StringBuilder formattedTags = new StringBuilder();
-        File file = new File(Config.OUT_DIR + runId + "/META-INF/tags");
+        File runTagFile = new File(Config.OUT_DIR + runId + "/META-INF/tags");
         String tags = request.getParameter(runId + "_tags").trim();
         if(!tags.equals("")){
             StringTokenizer t = new StringTokenizer(tags," \n,");
+            ArrayList<String> tagList = new ArrayList<String>(t.countTokens());
             while (t.hasMoreTokens()) {
                 String nextT = t.nextToken().trim();
                 if( !nextT.equals("") ){
                     formattedTags.append(nextT + "\n");
+                    tagList.add(nextT);
                 }
             }          
-            FileHelper.writeContentToFile(formattedTags.toString(), file);
-            result.tags = FileHelper.readContentFromFile(file);
-            TagEngine te = TagEngine.getInstance();
-            String[] tagsArray;
-            if(!result.tags.equals("")){
-                StringTokenizer tok = new StringTokenizer(result.tags," ");
-                tagsArray = new String[tok.countTokens()];
-                int count = tok.countTokens();
-                int i=0;
-                while(i < count){
-                    String nextT = tok.nextToken().trim();
-                    tagsArray[i] = nextT;
-                    i++;
+            FileHelper.writeContentToFile(formattedTags.toString(), runTagFile);
+            result.tags = tagList.toArray(new String[tagList.size()]);
+            
+            boolean tagsChanged = true;
+            if (result.tags == null && result.tags.length == 0) {
+                if (tags == null || "".equals(tags)) {
+                    tagsChanged = false;
                 }
-                te.add(runId, tagsArray);
             }
-            te.save();
-        }else{
-            result.tags = "N/A";
-            FileHelper.writeContentToFile("N/A", file);
+
+            if (tagsChanged) {
+                TagEngine te = TagEngine.getInstance();
+                te.add(runId, result.tags);
+                te.save();
+            }
+        } else {
+            runTagFile.delete();
         }
         result.description = request.getParameter(runId + "_description");
         editXML(result);
@@ -424,7 +424,7 @@ public class ResultAction {
      * Edit run.xml file
      * @param result
      */
-    private void editXML(Result result){
+    private void editXML(RunResult result){
         try {
             File resultDir = result.runId.getResultDir();
             String shortName = result.runId.getBenchName();

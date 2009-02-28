@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CLIServlet.java,v 1.5 2008/11/10 23:01:27 sheetalpatil Exp $
+ * $Id: CLIServlet.java,v 1.6 2009/02/28 04:35:05 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -185,7 +185,7 @@ public class CLIServlet extends HttpServlet {
         }
         String status = null;
         RunId runId = new RunId(reqC[1]);
-        Result result = Result.getInstance(runId);
+        RunResult result = RunResult.getInstance(runId);
         if (result == null) {
             // Perhaps the runId is still in the pending queue.
             String[] pending = listPending();
@@ -200,8 +200,11 @@ public class CLIServlet extends HttpServlet {
                 return;
             }
         } else {
-            status = result.status.value;
+            status = result.status;
         }
+        if (status == null) // Worse come to worse, the run dir is in bad shape.
+            status = "UNKNOWN";
+
         Writer w = response.getWriter();
         w.write(status + '\n');
         w.flush();
@@ -347,19 +350,19 @@ public class CLIServlet extends HttpServlet {
         boolean found = false;
         boolean queued = false;
         String terminateStatus = null;
-        Result result = Result.getInstance(runId);
+        RunResult result = RunResult.getInstance(runId);
         if (result != null) {
             found = true;
-            if ( "COMPLETED".equals(result.status.value) ||
-                    "FAILED".equals(result.status.value) ||
-                    "KILLED".equals(result.status.value) ) {
-                terminateStatus = result.status.value;
+            if ( "COMPLETED".equals(result.status) ||
+                    "FAILED".equals(result.status) ||
+                    "KILLED".equals(result.status) ) {
+                terminateStatus = result.status;
             }
         } else { // If not found, look in queue
             String[] pending = listPending();
             if (pending != null) {
                 for (String run : pending) {
-                    if (run.equals(runId)) {
+                    if (run.equals(runId.toString())) {
                         found = true;
                         queued = true;
                         break;
@@ -396,12 +399,12 @@ public class CLIServlet extends HttpServlet {
                         != null) {
                     terminateStatus = "KILLING";
                 } else { // Or the run may have already terminated...
-                    result = Result.getInstance(runId);
+                    result = RunResult.getInstance(runId);
                     if (result != null) {
-                        if ( "COMPLETED".equals(result.status.value) ||
-                                "FAILED".equals(result.status.value) ||
-                                "KILLED".equals(result.status.value) ) {
-                            terminateStatus = result.status.value;
+                        if ( "COMPLETED".equals(result.status) ||
+                                "FAILED".equals(result.status) ||
+                                "KILLED".equals(result.status) ) {
+                            terminateStatus = result.status;
                         }
                     } else if (queued) { // Or it still is in the queue
                         RunQ.getHandle().deleteRun(runId.toString());

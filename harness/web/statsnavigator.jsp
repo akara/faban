@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: statsnavigator.jsp,v 1.9 2008/12/22 21:27:19 sheetalpatil Exp $
+ * $Id: statsnavigator.jsp,v 1.10 2009/02/28 04:34:16 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -30,11 +30,11 @@
                                  java.io.File,
                                  com.sun.faban.harness.common.BenchmarkDescription,
                                  java.util.*,
-                                 com.sun.faban.harness.webclient.Result,
+                                 com.sun.faban.harness.webclient.RunResult,
                                  com.sun.faban.harness.common.HostTypes"%>
 <%
     String runId = request.getParameter("runId");
-    String[] statusFileContent = Result.getStatus(runId);
+    String[] statusFileContent = RunResult.getStatus(runId);
     boolean finished = true;
     if ("STARTED".equals(statusFileContent[0]))
         finished = false;

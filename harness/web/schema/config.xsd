@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema targetNamespace="http://wwww.sun.com/faban/schema/config"
+    xmlns="http://www.sun.com/faban/schema/config"
+    xmlns:xs="www.w3.org/2001/XMLSchema">
+
+    <xs:complexType name="JVMConfigType">
+        <xs:annotation>
+            <xs:documentation>JVM Configuration</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="javaHome" type="xs:token"/>
+            <xs:element name="jvmOptions" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="HostConfigType">
+        <xs:sequence>
+            <xs:element name="host" type="xs:normalizedString"/>
+            <xs:element name="enabled" type="xs:normalizedString"/>
+            <xs:element name="cpus" type="xs:unsignedShort"/>
+            <xs:element name="tools" type="xs:string"/>
+            <xs:element name="userCommands" type="xs:string"/>
+    </xs:complexType>
+    
+    <xs:simpleType name="PropertyType">
+        <xs:union>
+            <xs:complexType>
+                <xs:sequence>
+                    <xs:element name="name" type="xs:normalizedString"/>
+                    <xs:element name="value" type="xs:normalizedString" minOccurs="1" maxOccurs="unbounded"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="PropertyType2">
+                <xs:sequence>
+                    <xs:element name="value" type="xs:normalizedString" minOccurs="1" maxOccurs="unbounded"/>
+                </xs:sequence>
+                <xs:attribute name="name" type="xs:normalizedString" use="required"/>
+            </xs:complexType>
+            <xs:simpleType name="PropertyType3">
+                <xs:restriction base="xsd:normalizedString"/>
+                <xs:attribute name="name" type="xs:normalizedString" use="required/>
+            </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
+
+    <xs:complexType name="DriverConfigType">
+        <xs:sequence>
+            <xs:element name="agents" type="xs:unsignedShort"/>
+            <xs:element name="statistics">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="interval" type="xs:unsignedShort"/>
+                    </xs:sequence>
+                    <xs:attribute name="dumping" type="xs:boolean" use="required"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="properties" minOccurs="0">
+                <xs:complexType>
+                    
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="operationMix" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="name" type="xs:normalizedString"/>
+                        <xs:element name="r" type="xs:double" minoccurs="1"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:normalizedString" use="required"/>
+    </xs:complexType>
+    <xs:complexType name="RunConfigType">
+    </xs:complexType>
+</xs:schema>

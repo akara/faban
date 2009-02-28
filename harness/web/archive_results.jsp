@@ -29,8 +29,7 @@
  */
  -->
 <%@ page language="java" import="com.sun.faban.harness.webclient.ResultAction,
-                                 java.util.HashSet,
-                                 com.sun.faban.harness.webclient.Result"
+                                 java.util.HashSet"
  %>
  <%  ResultAction.EditArchiveModel model = (ResultAction.EditArchiveModel)
                                     request.getAttribute("archive.model");

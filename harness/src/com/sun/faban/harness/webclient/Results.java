@@ -17,19 +17,21 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
+ * $Id: Results.java,v 1.2 2009/02/28 04:35:05 akara Exp $
+ *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.webclient;
 
-import com.sun.faban.harness.webclient.Result.ResultField;
+import com.sun.faban.harness.webclient.RunResult.FeedRecord;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Set;
-import java.util.StringTokenizer;
+import java.util.List;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 /**
  *
@@ -38,66 +40,59 @@ import javax.servlet.http.HttpServletResponse;
 public class Results {
     private static Logger logger =
         Logger.getLogger(Results.class.getName());
+    private static SimpleDateFormat formatOrig =
+            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 
     public String list(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
-        UserEnv usrEnv = (UserEnv) req.getSession().getAttribute("usrEnv");
+        UserEnv usrEnv = getUserEnv(req);
         String tags = req.getParameter("inputtag");
-        String[] tagsArray = null;
-        if (tags != null || "".equals(tags)) {
-            StringTokenizer tok = new StringTokenizer(tags, " ,:;");
-            tagsArray = new String[tok.countTokens()];
-            int count = tok.countTokens();
-            int i = 0;
-            while (i < count) {
-                String nextT = tok.nextToken().trim();
-                tagsArray[i] = nextT;
-                i++;
-            }
-        }
         TableModel resultTable = null;
-        if(tagsArray != null){
-            try {
-                TagEngine tagEngine = TagEngine.getInstance();
-                Set<String> answer = tagEngine.search(tagsArray);
-                resultTable = Result.getTagSearchResultTable(answer, usrEnv.getSubject());
-            } catch (ClassNotFoundException ex) {
-                throw new IOException("Error obtaining tag engine.", ex);
-            }
-        }else {
-            resultTable = Result.getResultTable(usrEnv.getSubject());
-        }
+        if (tags != null) {
+            resultTable = RunResult.getResultTable(usrEnv.getSubject(), tags);
+        } else {
+            resultTable = RunResult.getResultTable(usrEnv.getSubject());
+    }
         req.setAttribute("table.model", resultTable);
         return "/resultlist.jsp";
     }
 
-    public String feed(HttpServletRequest req, HttpServletResponse resp)
+    public void feed(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
-        UserEnv usrEnv = (UserEnv) req.getSession().getAttribute("usrEnv");
+        UserEnv usrEnv = getUserEnv(req);
         String[] restRequest = (String[]) req.getAttribute("rest.request");
-        TableModel resultTable = null;
+        List<FeedRecord> itemList;
         if (restRequest != null) {
-            try {
-                TagEngine tagEngine = TagEngine.getInstance();
-                Set<String> answer = tagEngine.search(restRequest);
-                resultTable = Result.getTagSearchResultTable(answer, usrEnv.getSubject());
-            } catch (ClassNotFoundException ex) {
-                throw new IOException("Error obtaining tag engine.", ex);
-            }
+            itemList = RunResult.getFeeds(usrEnv.getSubject(), restRequest);
         } else {
-            resultTable = Result.getResultTable(usrEnv.getSubject());
+            itemList = RunResult.getFeeds(usrEnv.getSubject());
         }
+
         // The first result is the most up-to-date.
-        ResultField<Long> updatedField = (ResultField<Long>)
-                resultTable.getField(0, 6);
-        long updated = updatedField.value;
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-ddTHH:mm:ssZ");
-        req.setAttribute("table.model", resultTable);
+        SimpleDateFormat format = (SimpleDateFormat) formatOrig.clone();
+        for (FeedRecord feedItem : itemList) {
+            feedItem.updated = format.format(new Date(feedItem.date));
+        }
+        req.setAttribute("feed.model", itemList);
         req.setAttribute("request.url", req.getRequestURL());
-        req.setAttribute("feed.updated", new Date(updated));
-        req.setAttribute("feed.dateformat", format);
 
-        return "/feed.jsp";
+        String updated;
+        if (itemList.size() > 0) {
+            FeedRecord item0 = itemList.get(0);
+            updated = item0.updated;
+        } else {
+            updated = format.format(new Date(0));
+        }
+        req.setAttribute("feed.updated", updated);
+    }
 
+    private UserEnv getUserEnv(HttpServletRequest req) {
+        HttpSession session = req.getSession();
+        UserEnv usrEnv = (UserEnv) session.getAttribute("usrEnv");
+        if (usrEnv == null) {
+            usrEnv = new UserEnv();
+            session.setAttribute("usrEnv", usrEnv);
+        }
+        return usrEnv;
     }
 }

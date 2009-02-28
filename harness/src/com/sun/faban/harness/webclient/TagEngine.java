@@ -90,28 +90,15 @@ public class TagEngine implements Serializable{
                 for (String runId : runIdList){
                     File file = new File(Config.OUT_DIR + runId +
                                                         "/META-INF/tags");
-                    String tags = FileHelper.readContentFromFile(file);
-                    String[] tagsArray;
-                    if(!tags.equals("")){
-                        StringTokenizer tok = new StringTokenizer(tags," ");
-                        tagsArray = new String[tok.countTokens()];
-                        int count = tok.countTokens();
-                        int i=0;
-                        while(i < count){
-                            String nextT = tok.nextToken().trim();
-                            tagsArray[i] = nextT;
-                            i++;
-                        }
-                        instance.add(runId, tagsArray);
+                    String[] tags = FileHelper.readArrayContentFromFile(file);
+                    if (tags != null && tags.length > 0) {
+                        instance.add(runId, tags);
                     }
                 }
             }finally {
                 instance.wlock.unlock();
             }
-            ObjectOutputStream out = new ObjectOutputStream(
-                                            new FileOutputStream(serFile));
-            out.writeObject(instance);
-            out.close();
+            instance.save();
         }
         return instance;
     }
@@ -157,13 +144,14 @@ public class TagEngine implements Serializable{
     }
 
     /**
-     * Searches the tag engine for runs matching the given tags.
+     * Searches the tag engine for runs matching the given tags. The tags
+     * are given as a string separated by space, comma, colon, or semicolon.
      * @param tags The tag in question, '/' seperated from sub-tags
      * @return The set of run ids matching the given tags
      */
-    public Set<String> search(String[] tags) {
-        /*String[] tagsArray = null;
-        if (!tags.equals("")) {
+    public Set<String> search(String tags) {
+        String[] tagsArray = null;
+        if (tags != null && !"".equals(tags)) {
             StringTokenizer tok = new StringTokenizer(tags, " ,:;");
             tagsArray = new String[tok.countTokens()];
             int count = tok.countTokens();
@@ -173,13 +161,26 @@ public class TagEngine implements Serializable{
                 tagsArray[i] = nextT;
                 i++;
             }
-        }*/
+        }
+        return search(tagsArray);
+    }
+
+    /**
+     * Searches the tag engine for runs matching the given tags given
+     * an array of tags.
+     * @param tags The tags in question, '/' seperated from sub-tags
+     * @return The set of run ids matching the given tags
+     */
+    public Set<String> search(String[] tags) {
 
         HashSet<String> finalAnswer = new HashSet<String>();
         int count = 0;
         rlock.lock();
         try {
-            for (String tag : tags){
+            for (String tag : tags) {
+                // In many instances, the separator is URL encoded from '/'
+                // to "+", so we have to change them back.
+                tag = tag.replace("+", "/");
                 HashSet<String> answer = new HashSet<String>();
                 Entry entry = findEntry(tag);
                 if (entry != null) {
