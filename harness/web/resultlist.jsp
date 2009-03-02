@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultlist.jsp,v 1.16 2009/02/28 18:03:50 akara Exp $
+ * $Id: resultlist.jsp,v 1.17 2009/03/02 23:20:50 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -69,7 +69,9 @@
         <meta name="Author" content="Ramesh Ramachandran"/>
         <meta name="Description" content="Reults JSP"/>
         <title>Benchmark Results [<%= Config.FABAN_HOST %>]</title>
-        <link rel="icon" type="image/gif" href="img/faban.gif">
+        <link rel="icon" type="image/gif" href="/img/faban.gif"/>
+        <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="<%= feedURL %>"/>
+
     </head>
     <body>
         <div style="text-align: right;"><a
@@ -77,7 +79,7 @@
              style="border: 0px solid ; width: 16px; height: 16px;"
              alt="Feed" src="/img/feed.gif"></a></div>
 
-            <form name="processrun" method="post" action="controller/result_action/take_action">
+            <form name="processrun" method="post" action="/controller/result_action/take_action">
               <center>
                 <input type="submit" name="process" value="Compare">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 <!-- Commented out until FenXi supports averaging again.
