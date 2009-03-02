@@ -45,6 +45,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 public class TagEngine implements Serializable{
 
+    private static final long serialVersionUID = 20090302L;
+
     private static TagEngine instance = null;
 
     
