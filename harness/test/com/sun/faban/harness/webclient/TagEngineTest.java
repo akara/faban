@@ -17,6 +17,7 @@ import static org.junit.Assert.*;
  */
 public class TagEngineTest extends TestCase {
 
+    TagEngine tagEngine;
     public TagEngineTest() {
     }
 
@@ -36,42 +37,46 @@ public class TagEngineTest extends TestCase {
         System.out.println("* TagEngineTest: testEqual() method");
     }
 
-    public void testAdd() {
+    public void testAdd() throws Exception {
         String[] tagsadd1 = {"Hadoop/fs/gridmix", "Hadoop"};
         String[] tagsadd2 = {"Solaris/9", "Oracle/10", "gridmix"};
         String[] tagsadd3 = {"Solaris/10"};
         String[] tagsadd4 = {"web20/workload/sample", "web20"};
         String[] tagsadd5 = {"web20", "workload"};
         String[] tagsadd6 = {"Solaris/9", "Oracle/10"};
+        try {
+            tagEngine = TagEngine.getInstance();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         Set<String> answer;
-        TagEngine te = TagEngine.getInstance();
-        te.add("HadoopGridMix.5G",tagsadd1);
-        te.add("HadoopGridMix.5F",tagsadd2);
-        te.add("HadoopGridMix.5E",tagsadd3);
-        te.add("web101.5D",tagsadd4);
-        te.add("web101.5C",tagsadd5);
+        tagEngine.add("HadoopGridMix.5G",tagsadd1);
+        tagEngine.add("HadoopGridMix.5F",tagsadd2);
+        tagEngine.add("HadoopGridMix.5E",tagsadd3);
+        tagEngine.add("web101.5D",tagsadd4);
+        tagEngine.add("web101.5C",tagsadd5);
         System.out.println("------------------------------------------------");
         System.out.println("Testing Intersection multiple tags");
         System.out.println("------------------------------------------------");
-        answer = te.search("Solaris Solaris/10 Oracle/10");
+        answer = tagEngine.search("Solaris Solaris/10 Oracle/10");
         for(String ans : answer){
             System.out.println(ans);
         }
         System.out.println("------------------------------------------------");
         System.out.println("Searching for solaris, single tag");
         System.out.println("------------------------------------------------");
-        answer = te.search("solaris");
+        answer = tagEngine.search("solaris");
         for(String ans : answer){
             System.out.println(ans);
         }
         System.out.println("------------------------------------------------");
         System.out.println("Searching for solaris with te.removeRunId(ans)");
         System.out.println("------------------------------------------------");
-        answer = te.search("solaris");
+        answer = tagEngine.search("solaris");
         int i= 0;
         for(String ans : answer){
             if(i==1){
-                te.removeRunId(ans);
+                tagEngine.removeRun(ans);
                 break;
             }
             i++;
@@ -80,22 +85,22 @@ public class TagEngineTest extends TestCase {
         System.out.println("------------------------------------------------");
         System.out.println("Searching for solaris after te.removeRunId(ans)");
         System.out.println("------------------------------------------------");
-        answer = te.search("solaris");
+        answer = tagEngine.search("solaris");
         for(String ans : answer){
             System.out.println(ans);
         }
         System.out.println("------------------------------------------------");
         System.out.println("Searching for gridmix, before removeEntry");
         System.out.println("------------------------------------------------");
-        answer = te.search("gridmix");
+        answer = tagEngine.search("gridmix");
         for(String ans : answer){
             System.out.println(ans);
         }
-        te.add("HadoopGridMix.5F",tagsadd6);
+        tagEngine.add("HadoopGridMix.5F",tagsadd6);
         System.out.println("------------------------------------------------");
         System.out.println("Searching for gridmix, after removeEntry");
         System.out.println("------------------------------------------------");
-        answer = te.search("gridmix");
+        answer = tagEngine.search("gridmix");
         for(String ans : answer){
             System.out.println(ans);
         }
