@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: new-run.jsp,v 1.10 2009/02/28 18:03:51 akara Exp $
+ * $Id: new-run.jsp,v 1.11 2009/03/03 02:32:51 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -50,18 +50,18 @@
         File tagsFile = new File(Config.PROFILES_DIR + "/tags." + profile);
         StringBuilder formattedTags = new StringBuilder();
         tags = request.getParameter("tags");
-        if(!tags.equals("")){
+        if (tags != null && !"".equals(tags)) {
             StringTokenizer t = new StringTokenizer(tags," \n,");
             while (t.hasMoreTokens()) {
                 String nextT = t.nextToken().trim();
-                if( !nextT.equals("") ){
+                if( nextT != null && !"".equals(nextT) ){
                     formattedTags.append(nextT + "\n");
                 }
             }
             FileHelper.writeContentToFile(formattedTags.toString(), tagsFile);
             tags = FileHelper.readContentFromFile(tagsFile);
-        }    
-        session.setAttribute("faban.profile.tags", tags);
+            session.setAttribute("faban.profile.tags", tags);
+        }           
     }
     BenchmarkDescription desc = (BenchmarkDescription)
                                         session.getAttribute("faban.benchmark");

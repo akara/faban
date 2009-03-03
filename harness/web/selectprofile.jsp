@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: selectprofile.jsp,v 1.8 2009/02/28 18:03:50 akara Exp $
+ * $Id: selectprofile.jsp,v 1.9 2009/03/03 02:32:51 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -42,15 +42,15 @@
          <meta name="Author" content="Ramesh Ramachandran"/>
          <meta name="Description" content="Form to display profile selection"/>
          <title>Select Profile [<%= Config.FABAN_HOST %>]</title>
-<%  String tagsForProfile = null;
+<%  //String tagsForProfile = "";
     String profile = request.getParameter("profileselected");
     if (profile == null){
         profile = (String)session.getAttribute("faban.profile");
     }
-    File tagsFile = new File(Config.PROFILES_DIR + "/tags." + profile);
-    if(tagsFile.exists() && tagsFile.length()>0){
-        tagsForProfile = FileHelper.readContentFromFile(tagsFile).trim();
-    }
+    //File tagsFile = new File(Config.PROFILES_DIR + "/tags." + profile);
+    //if(tagsFile.exists() && tagsFile.length()>0){
+       // tagsForProfile = FileHelper.readContentFromFile(tagsFile).trim();
+    //}
     BenchmarkDescription desc =  (BenchmarkDescription) session.getAttribute(
             "faban.benchmark");
     String benchmark = desc == null ? null : desc.name;
@@ -96,10 +96,31 @@
 
 
 <script>
+var req;
+
 function updateProfile() {
     document.bench.profile.value=document.bench.profilelist.value;
-    location.href = "selectprofile.jsp?profileselected="+escape(document.bench.profile.value);
+    var url = "/controller/result_action/profileTagList?profileselected="+escape(document.bench.profile.value);
+    if (typeof XMLHttpRequest != "undefined") {
+       req = new XMLHttpRequest();
+   } else if (window.ActiveXObject) {
+       req = new ActiveXObject("Microsoft.XMLHTTP");
+   }
+   req.open("GET", url, true);
+   req.onreadystatechange = callback;
+   req.send(null);
 }
+
+function callback() {
+    if (req.readyState == 4) {
+        if (req.status == 200) {
+            //update tags field
+            var result = req.responseText;
+            document.getElementById("tags").innerHTML=result;
+        }
+    }
+}
+
 </script>
 
 </head>
@@ -166,8 +187,8 @@ function updateProfile() {
       <tr>
          <td>Tags for this profile</td>
          <td>
-             <textarea name="tags" title="Tags associated for profile <%=profile%>"
-                       rows="2" style="width: 98%;"><%=tagsForProfile%></textarea>
+             <textarea id="tags" name="tags" title="Tags associated for profile <%=profile%>"
+                       rows="2" style="width: 98%;"></textarea>
          </td>
        </tr>
     </tbody>

@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: edit_archive.jsp,v 1.6 2009/02/28 18:03:50 akara Exp $
+ * $Id: edit_archive.jsp,v 1.7 2009/03/03 02:32:51 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -53,6 +53,16 @@
         </tr>
         <% for (int i = 0; i < model.runIds.length; i++) {
             String runId = model.runIds[i];
+            String tags = null;
+            if (model.results[i].tags != null && model.results[i].tags.length > 0) {
+                StringBuilder b = new StringBuilder();
+                for (String tag : model.results[i].tags) {
+                    b.append(tag).append(' ');
+                }
+                b.setLength(b.length() - 1);
+                tags = b.toString();
+                b.setLength(0);
+            }
         %>
             <tr>
               <td style="vertical-align: top;"><%=runId%>
@@ -71,7 +81,7 @@
                   <textarea name="<%=runId%>_tags"
                        title="Tags associated for run <%=runId%>"
                        rows="2" style="width: 98%;"
-                       ><%=model.results[i].tags%></textarea>
+                       ><% if(tags != null && !"".equals(tags)){ %><%=tags%><% } %></textarea>
               </td>
               <td style="vertical-align: top;">
                 <textarea name="<%=runId%>_description"
