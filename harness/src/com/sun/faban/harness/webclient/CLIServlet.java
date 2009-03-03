@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CLIServlet.java,v 1.6 2009/02/28 04:35:05 akara Exp $
+ * $Id: CLIServlet.java,v 1.7 2009/03/03 21:44:47 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -152,7 +152,7 @@ public class CLIServlet extends HttpServlet {
     }
 
     private void sendPending(HttpServletResponse response) throws IOException {
-        String[] pending = listPending();
+        String[] pending = RunQ.listPending();
         if (pending == null) {
             response.sendError(HttpServletResponse.SC_NO_CONTENT,
                     "No pending runs");
@@ -165,17 +165,6 @@ public class CLIServlet extends HttpServlet {
         }
     }
 
-    private String[] listPending() {
-        String[][] pendingA = RunQ.getHandle().listRunQ();
-        String[]  pendingL = null;
-        if (pendingA != null) {
-            pendingL = new String[pendingA.length];
-            for (int i = 0; i < pendingA.length; i++)
-                pendingL[i] = pendingA[i][1] + '.' + pendingA[i][0];
-        }
-        return pendingL;
-    }
-
     private void sendStatus(String[] reqC, HttpServletResponse response)
             throws IOException {
         if (reqC.length < 2) {
@@ -183,32 +172,17 @@ public class CLIServlet extends HttpServlet {
                                         "Missing RunId.");
             return;
         }
-        String status = null;
-        RunId runId = new RunId(reqC[1]);
-        RunResult result = RunResult.getInstance(runId);
-        if (result == null) {
-            // Perhaps the runId is still in the pending queue.
-            String[] pending = listPending();
-            for (String run : pending)
-                if (run.equals(runId.toString())) {
-                    status = "QUEUED";
-                    break;
-                }
-            if (status == null) {
+        String runId = reqC[1];
+        String status = RunResult.getStatus(new RunId(runId));
+        if (status == null) {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND,
                                         "No such runId: " + runId);
-                return;
-            }
         } else {
-            status = result.status;
+            Writer w = response.getWriter();
+            w.write(status + '\n');
+            w.flush();
+            w.close();
         }
-        if (status == null) // Worse come to worse, the run dir is in bad shape.
-            status = "UNKNOWN";
-
-        Writer w = response.getWriter();
-        w.write(status + '\n');
-        w.flush();
-        w.close();
     }
 
     private void sendLogs(String[] reqC, HttpServletResponse response)
@@ -238,7 +212,7 @@ public class CLIServlet extends HttpServlet {
         response.setContentType("text/plain");
         PrintWriter out = response.getWriter();
         while (!logFile.exists()) {
-            String[] pending = listPending();
+            String[] pending = RunQ.listPending();
             if (pending == null) {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND,
                                             "RunId " + runId +" not found");
@@ -359,7 +333,7 @@ public class CLIServlet extends HttpServlet {
                 terminateStatus = result.status;
             }
         } else { // If not found, look in queue
-            String[] pending = listPending();
+            String[] pending = RunQ.listPending();
             if (pending != null) {
                 for (String run : pending) {
                     if (run.equals(runId.toString())) {

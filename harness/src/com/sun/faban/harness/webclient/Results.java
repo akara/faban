@@ -17,12 +17,14 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Results.java,v 1.2 2009/02/28 04:35:05 akara Exp $
+ * $Id: Results.java,v 1.3 2009/03/03 21:44:47 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.webclient;
 
+import com.sun.faban.harness.common.RunId;
+import com.sun.faban.harness.engine.RunQ;
 import com.sun.faban.harness.webclient.RunResult.FeedRecord;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -84,6 +86,33 @@ public class Results {
             updated = format.format(new Date(0));
         }
         req.setAttribute("feed.updated", updated);
+    }
+
+    public void location(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+        String[] restRequest = (String[]) req.getAttribute("rest.request");
+        String runId = restRequest[0];
+
+        RunResult result = RunResult.getInstance(new RunId(runId));
+        if (result == null) {
+            // Perhaps the runId is still in the pending queue.
+            boolean found = false;
+            String[] pending = RunQ.listPending();
+            for (String run : pending)
+                if (run.equals(runId)) {
+                    resp.sendRedirect("/pending-runs.jsp");
+                    found = true;
+                    break;
+                }
+            if (!found) {
+                resp.sendError(HttpServletResponse.SC_NOT_FOUND,
+                                "Run " + runId + " not found");
+            }
+        } else if ("COMPLETED".equals(result.status)){
+            resp.sendRedirect(result.resultLink);
+        } else {
+            resp.sendRedirect(result.logLink);
+        }
     }
 
     private UserEnv getUserEnv(HttpServletRequest req) {

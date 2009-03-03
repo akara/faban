@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunQ.java,v 1.25 2009/03/03 02:28:51 sheetalpatil Exp $
+ * $Id: RunQ.java,v 1.26 2009/03/03 21:44:47 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -237,12 +237,12 @@ public class RunQ {
     }
 
 
-    /** Returns a list of the runs currently in the runq
-      *
-      * @return an array of RunInfo objects.
-      *
-      **/
-
+    /**
+     * Returns a list of the runs currently in the runq. The list is an array
+     * of run sequence, benchmark name, and description.
+     * @return an array of RunInfo objects.
+     *
+     */
     public String[][] listRunQ() {
         String[][] data = null;
 
@@ -284,6 +284,23 @@ public class RunQ {
             logger.log(Level.SEVERE, "Could not list the runQ.", e);
         }
         return data;
+    }
+
+    /**
+     * Obtains the list of pending runs in the run queue. This is the list
+     * of formatted runids. This is a convenience method and it internally
+     * calls listRunQ.
+     * @return The list of pending runs
+     */
+    public static String[] listPending() {
+        String[][] pendingA = getHandle().listRunQ();
+        String[]  pendingL = null;
+        if (pendingA != null) {
+            pendingL = new String[pendingA.length];
+            for (int i = 0; i < pendingA.length; i++)
+                pendingL[i] = pendingA[i][1] + '.' + pendingA[i][0];
+        }
+        return pendingL;
     }
 
 

@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InvalidClassException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -38,6 +39,8 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -47,6 +50,7 @@ public class TagEngine implements Serializable{
 
     private static final long serialVersionUID = 20090302L;
 
+    private static Logger logger = Logger.getLogger(TagEngine.class.getName());
     private static TagEngine instance = null;
 
     
@@ -72,11 +76,18 @@ public class TagEngine implements Serializable{
         // 4. Save output to ser file
         File serFile = new File(Config.CONFIG_DIR + "/tagengine.ser");
         if (serFile.exists()) {
+            try {
             ObjectInputStream in = new ObjectInputStream(
                                         new FileInputStream(serFile));
             instance = (TagEngine) in.readObject();
             in.close();
-        }else{
+            } catch (InvalidClassException e) {
+                logger.log(Level.WARNING,
+                        "Old tagengine.ser may be incompatible, ignoring.", e);
+            }
+        }
+
+        if (instance == null) {
             instance = new TagEngine();
             File[] dirs = new File(Config.OUT_DIR).listFiles();
             ArrayList<String> runIdList = new ArrayList<String>(dirs.length);

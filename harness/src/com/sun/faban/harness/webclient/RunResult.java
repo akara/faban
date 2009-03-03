@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunResult.java,v 1.1 2009/02/28 04:35:05 akara Exp $
+ * $Id: RunResult.java,v 1.2 2009/03/03 21:44:47 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -27,6 +27,7 @@ import com.sun.faban.harness.ParamRepository;
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.RunId;
+import com.sun.faban.harness.engine.RunQ;
 import com.sun.faban.harness.security.AccessController;
 import com.sun.faban.harness.util.FileHelper;
 import com.sun.faban.harness.util.XMLReader;
@@ -162,14 +163,14 @@ public class RunResult {
             metricUnit = desc.metric;
         }
 
-        String[] statusFileContent = getStatus(runId.toString());
+        String[] statusFileContent = readStatus(runId.toString());
 
         // run result and HREF to the summary or log file.
         File resultFile = new File(resultDir, "summary.xml");
         if (resultFile.exists() && resultFile.length() > 0) {
             result = "PASSED";
             resultLink = "/resultframe.jsp?runId=" +
-                    this.runId + "&amp;result=" +
+                    this.runId + "&result=" +
                     resultFilePath;
 
             //Use the XMLReader and locate the <passed> elements
@@ -202,9 +203,9 @@ public class RunResult {
         StringBuilder b = new StringBuilder(
             "/resultframe.jsp?runId=");
         b.append(this.runId);
-        b.append("&amp;result=");
+        b.append("&result=");
         b.append(resultFilePath);
-        b.append("&amp;show=logs");
+        b.append("&show=logs");
         logLink = b.toString();
 
         if (dateTime == null && statusFileContent[1] != null) {
@@ -267,7 +268,7 @@ public class RunResult {
      * @param runId The id of the run in question
      * @return The current status string or "UNKNOWN" in error cases
      */
-    public static String[] getStatus(String runId) {
+    public static String[] readStatus(String runId) {
         char[] cBuf = null;
         String[] status = new String[2];
         int length = -1;
@@ -295,6 +296,34 @@ public class RunResult {
         }
         return status;
     }
+
+    /**
+     * Obtains the status of a given run. If it is queued, returns "QUEUED"
+     * @param runId The run id to obtain status
+     * @return The status string, or null if run cannot be found.
+     */
+    public static String getStatus(RunId runId) {
+        String status = null;
+        RunResult result = getInstance(runId);
+        if (result == null) {
+            // Perhaps the runId is still in the pending queue.
+            String[] pending = RunQ.listPending();
+            for (String run : pending)
+                if (run.equals(runId.toString())) {
+                    status = "QUEUED";
+                    break;
+                }
+            if (status == null) {
+                return null;
+            }
+        } else {
+            status = result.status;
+        }
+        if (status == null) // Worse come to worse, the run dir is in bad shape.
+            status = "UNKNOWN";
+        return status;
+    }
+
 
     public static TableModel getResultTable(Subject user, String tags)
             throws IOException {
@@ -581,10 +610,7 @@ public class RunResult {
             summary = result.description;
             id = runId.toString();
 
-            if (result.result != null)
-                link = result.resultLink;
-            else
-                link = result.logLink;
+            link = "/controller/results/location/" + runId;
 
             date = result.dateTime.getTime();
             if (result.tags == null)
