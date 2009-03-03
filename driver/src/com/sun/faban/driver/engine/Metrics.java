@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.2 2009/01/13 01:02:42 akara Exp $
+ * $Id: Metrics.java,v 1.3 2009/03/03 00:40:25 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -439,17 +439,17 @@ public class Metrics implements Serializable, Cloneable {
             delayMin[txType] = actualDelayTime;
 		}
 
-        int bucket = (int) (actualDelayTime / delayBucketSize);
+        long bucket = actualDelayTime / delayBucketSize;
         if (bucket >= DELAYBUCKETS) {
             delayHist[txType][DELAYBUCKETS - 1]++;
 		} else {
-            delayHist[txType][bucket]++;
+            delayHist[txType][(int) bucket]++;
 		}
-        bucket = (int) (thread.delayTime[thread.mixId] / delayBucketSize);
+        bucket = thread.delayTime[thread.mixId] / delayBucketSize;
         if (bucket >= DELAYBUCKETS) {
             targetedDelayHist[txType][DELAYBUCKETS - 1]++;
 		} else {
-            targetedDelayHist[txType][bucket]++;
+            targetedDelayHist[txType][(int) bucket]++;
         }
     }
 
