@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: selectprofile.jsp,v 1.11 2009/03/03 20:53:45 sheetalpatil Exp $
+ * $Id: selectprofile.jsp,v 1.12 2009/03/03 22:32:32 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -97,10 +97,6 @@
 
 <script>
 var req;
-<!--
-String.prototype.trim = function () {
-    return this.replace(/^\s*/, "").replace(/\s*$/, "");
-}
 function updateProfile() {
     document.bench.profile.value=document.bench.profilelist.value;
     var url = "/controller/result_action/profile_tag_list?profileselected="+escape(document.bench.profile.value);
