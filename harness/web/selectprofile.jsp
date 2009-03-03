@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: selectprofile.jsp,v 1.12 2009/03/03 22:32:32 sheetalpatil Exp $
+ * $Id: selectprofile.jsp,v 1.13 2009/03/03 23:04:57 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -115,7 +115,7 @@ function callback() {
         if (req.status == 200) {
             //update tags field
             var result = req.responseText;
-            document.getElementById("tags").innerHTML=result.trim();
+            document.getElementById("tags").innerHTML=result;
         }
     }
 }

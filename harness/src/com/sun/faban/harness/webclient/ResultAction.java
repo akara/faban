@@ -17,7 +17,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: ResultAction.java,v 1.10 2009/03/03 20:54:20 sheetalpatil Exp $
+* $Id: ResultAction.java,v 1.11 2009/03/03 23:04:41 sheetalpatil Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 */
@@ -109,7 +109,7 @@ public class ResultAction {
         return "/edit_archive.jsp";
     }
 
-    public String profileTagList (HttpServletRequest req,
+    public void profileTagList (HttpServletRequest req,
             HttpServletResponse resp) throws IOException {
         String profile = req.getParameter("profileselected");
         File tagsFile = new File(Config.PROFILES_DIR + "/tags." + profile);
@@ -117,8 +117,10 @@ public class ResultAction {
         if(tagsFile.exists() && tagsFile.length()>0){
             tagsForProfile = FileHelper.readContentFromFile(tagsFile).trim();
         }
-        req.setAttribute("tagsForProfile",tagsForProfile.trim());
-        return "/tagsforprofile.jsp";
+        Writer w = resp.getWriter();
+        w.write(tagsForProfile);
+        w.flush();
+        w.close();
     }
 
     /*private Set<String> checkArchivedRuns(String[] runIds) throws IOException{
