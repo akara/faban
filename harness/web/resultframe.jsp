@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultframe.jsp,v 1.6 2009/02/28 18:03:49 akara Exp $
+ * $Id: resultframe.jsp,v 1.7 2009/03/03 21:39:35 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -33,7 +33,7 @@
     String runId = request.getParameter("runId");
     String resultFile = request.getParameter("result");
     String show = request.getParameter("show");
-    String[] statusFileContent = RunResult.getStatus(runId);
+    String[] statusFileContent = RunResult.readStatus(runId);
     String displayFrame = null;
     if ("logs".equals(show)) {
         if ("STARTED".equals(statusFileContent[0]))

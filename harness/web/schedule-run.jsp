@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: schedule-run.jsp,v 1.7 2009/02/28 18:03:50 akara Exp $
+ * $Id: schedule-run.jsp,v 1.8 2009/03/03 21:39:35 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -70,7 +70,7 @@
         String runId = RunQ.getHandle().addRun(usrEnv.getUser(), profile, benchmark);
 %>
 <h3>Run scheduled </h3>
-Run ID for this run is : <b><%= runId %></b>
+Run ID for this run is : <b><a href="/controller/results/location/<%= runId %>"><%= runId %></a></b>
 <br/>
 <br/>
 <b><%=RunQ.getHandle().getRunDaemonStatus() %></b>
