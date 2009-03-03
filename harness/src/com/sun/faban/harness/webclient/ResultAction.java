@@ -17,7 +17,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: ResultAction.java,v 1.9 2009/03/03 02:29:47 sheetalpatil Exp $
+* $Id: ResultAction.java,v 1.10 2009/03/03 20:54:20 sheetalpatil Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 */
@@ -118,7 +118,7 @@ public class ResultAction {
             tagsForProfile = FileHelper.readContentFromFile(tagsFile).trim();
         }
         req.setAttribute("tagsForProfile",tagsForProfile.trim());
-        return "/tagsForProfile.jsp";
+        return "/tagsforprofile.jsp";
     }
 
     /*private Set<String> checkArchivedRuns(String[] runIds) throws IOException{
