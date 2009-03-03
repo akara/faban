@@ -254,7 +254,7 @@ public class TagEngine implements Serializable{
 
     private String[] getTagsArray(String tag) {
         String[] tagsArray = null;
-        if (!tag.equals("")) {
+        if (tag != null && !"".equals(tag)) {
             StringTokenizer tok = new StringTokenizer(tag, "/");
             tagsArray = new String[tok.countTokens()];
             int count = tok.countTokens();

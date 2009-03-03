@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunDaemon.java,v 1.29 2009/02/19 22:23:22 akara Exp $
+ * $Id: RunDaemon.java,v 1.30 2009/03/03 02:28:35 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -221,7 +221,7 @@ public class RunDaemon implements Runnable {
             String tags = FileHelper.readContentFromFile(file);
             TagEngine te = TagEngine.getInstance();
             String[] tagsArray;
-            if(!tags.equals("")){                
+            if (tags != null && !"".equals(tags)) {
                 StringTokenizer tok = new StringTokenizer(tags," ");
                 tagsArray = new String[tok.countTokens()];
                 int count = tok.countTokens();

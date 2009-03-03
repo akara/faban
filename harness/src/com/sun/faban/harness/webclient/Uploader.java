@@ -17,7 +17,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: Uploader.java,v 1.7 2009/02/19 19:51:30 sheetalpatil Exp $
+* $Id: Uploader.java,v 1.8 2009/03/03 02:30:59 sheetalpatil Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 */
@@ -130,7 +130,7 @@ public class Uploader {
             String tags = FileHelper.readContentFromFile(file);
             TagEngine te = TagEngine.getInstance();
             String[] tagsArray;
-            if(!tags.equals("")){                
+            if (tags != null && !"".equals(tags)) {
                 StringTokenizer tok = new StringTokenizer(tags," ");
                 tagsArray = new String[tok.countTokens()];
                 int count = tok.countTokens();

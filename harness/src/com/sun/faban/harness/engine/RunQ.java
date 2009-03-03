@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunQ.java,v 1.24 2009/02/14 05:34:18 sheetalpatil Exp $
+ * $Id: RunQ.java,v 1.25 2009/03/03 02:28:51 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -30,7 +30,7 @@ import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.Run;
 import com.sun.faban.harness.common.RunId;
 import com.sun.faban.harness.util.FileHelper;
-
+import com.sun.faban.harness.util.FileHelper.*;
 import com.sun.faban.harness.webclient.TagEngine;
 import java.io.*;
 import java.util.Arrays;
@@ -187,11 +187,18 @@ public class RunQ {
             FileHelper.copyFile(paramSourceFileName, paramRepFileName, false);
 
             // copying the tags file from the profile dir
-            String tagsRepFileName =
-                runDir + File.separator + "META-INF/tags";
-            String tagsSrcFileName =
-                Config.PROFILES_DIR + "/tags." + profile;
-            FileHelper.copyFile(tagsSrcFileName, tagsRepFileName, false);
+            String tagsForProfile = null;
+            File tagsFile = new File(Config.PROFILES_DIR + "/tags." + profile);
+            if(tagsFile.exists() && tagsFile.length()>0){
+                tagsForProfile = FileHelper.readContentFromFile(tagsFile).trim();
+            }
+            if(tagsForProfile != null) {
+                String tagsRepFileName =
+                    runDir + File.separator + "META-INF/tags";
+                String tagsSrcFileName =
+                    Config.PROFILES_DIR + "/tags." + profile;
+                FileHelper.copyFile(tagsSrcFileName, tagsRepFileName, false);
+            }
             seq.next();
             runqLock.signal();  // Signal a new run is submitted.
             return runId;

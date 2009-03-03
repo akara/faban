@@ -17,7 +17,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: ResultAction.java,v 1.8 2009/02/28 04:35:05 akara Exp $
+* $Id: ResultAction.java,v 1.9 2009/03/03 02:29:47 sheetalpatil Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 */
@@ -107,6 +107,18 @@ public class ResultAction {
         // We use request attributes as not to reflect session state.
         request.setAttribute("editarchive.model", model);
         return "/edit_archive.jsp";
+    }
+
+    public String profileTagList (HttpServletRequest req,
+            HttpServletResponse resp) throws IOException {
+        String profile = req.getParameter("profileselected");
+        File tagsFile = new File(Config.PROFILES_DIR + "/tags." + profile);
+        String tagsForProfile = "";
+        if(tagsFile.exists() && tagsFile.length()>0){
+            tagsForProfile = FileHelper.readContentFromFile(tagsFile).trim();
+        }
+        req.setAttribute("tagsForProfile",tagsForProfile.trim());
+        return "/tagsForProfile.jsp";
     }
 
     /*private Set<String> checkArchivedRuns(String[] runIds) throws IOException{
@@ -386,12 +398,12 @@ public class ResultAction {
         StringBuilder formattedTags = new StringBuilder();
         File runTagFile = new File(Config.OUT_DIR + runId + "/META-INF/tags");
         String tags = request.getParameter(runId + "_tags").trim();
-        if(!tags.equals("")){
+        if (tags != null && !"".equals(tags)) {
             StringTokenizer t = new StringTokenizer(tags," \n,");
             ArrayList<String> tagList = new ArrayList<String>(t.countTokens());
             while (t.hasMoreTokens()) {
                 String nextT = t.nextToken().trim();
-                if( !nextT.equals("") ){
+                if( nextT != null && !"".equals(nextT) ){
                     formattedTags.append(nextT + "\n");
                     tagList.add(nextT);
                 }
