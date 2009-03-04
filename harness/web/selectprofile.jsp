@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: selectprofile.jsp,v 1.13 2009/03/03 23:04:57 sheetalpatil Exp $
+ * $Id: selectprofile.jsp,v 1.14 2009/03/04 21:50:10 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -42,15 +42,11 @@
          <meta name="Author" content="Ramesh Ramachandran"/>
          <meta name="Description" content="Form to display profile selection"/>
          <title>Select Profile [<%= Config.FABAN_HOST %>]</title>
-<%  //String tagsForProfile = "";
-    String profile = request.getParameter("profileselected");
-    if (profile == null){
-        profile = (String)session.getAttribute("faban.profile");
-    }
-    //File tagsFile = new File(Config.PROFILES_DIR + "/tags." + profile);
-    //if(tagsFile.exists() && tagsFile.length()>0){
-       // tagsForProfile = FileHelper.readContentFromFile(tagsFile).trim();
-    //}
+<%  String tagsForProfile = "";
+    File tagsFile = null;
+    String profile = (String)session.getAttribute("faban.profile");
+    
+    
     BenchmarkDescription desc =  (BenchmarkDescription) session.getAttribute(
             "faban.benchmark");
     String benchmark = desc == null ? null : desc.name;
@@ -64,6 +60,13 @@
     }
     else {
         String[] profiles = usrEnv.getProfiles();
+        if(profile == null){
+            profile = profiles[0];
+        }
+        tagsFile = new File(Config.PROFILES_DIR + "/tags." + profile);
+        if(tagsFile.exists() && tagsFile.length()>0){
+            tagsForProfile = FileHelper.readContentFromFile(tagsFile).trim();
+        }
         Map<String, BenchmarkDescription> benchNameMap =
                 BenchmarkDescription.getBenchNameMap();
         // We need to ensure only benchmarks the user is allowed to submit are shown.
@@ -139,12 +142,10 @@ function callback() {
                 name="profile" size="10"
                 <% if (profile != null) { %>
                     value=<%=profile %>
-                <% } else { %>
-                    value=<%=profiles[0] %>
                 <% } %>
             >
             <select name="profilelist" title="Please select profile or enter new profile name"
-                ONCHANGE="updateProfile();">
+                ONCHANGE="updateProfile()">
               <% for(int i = 0; i < profiles.length; i++) { %>
                 <option
                   <% if(((profile != null) && profiles[i].equals(profile)) ||
@@ -186,8 +187,8 @@ function callback() {
       <tr>
          <td>Tags for this profile</td>
          <td>
-             <textarea id="tags" name="tags" title="Tags associated for profile <%=profile%>"
-                       rows="2" style="width: 98%;"></textarea>
+             <textarea id="tags" name="tags" title="Tags associated for profile"
+                       rows="2" style="width: 98%;"><%= tagsForProfile%></textarea>
          </td>
        </tr>
     </tbody>

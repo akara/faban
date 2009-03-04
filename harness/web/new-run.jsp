@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: new-run.jsp,v 1.11 2009/03/03 02:32:51 sheetalpatil Exp $
+ * $Id: new-run.jsp,v 1.12 2009/03/04 21:50:24 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -47,21 +47,23 @@
     }
     String tags = (String)session.getAttribute("faban.profile.tags");
     if (tags == null) {
-        File tagsFile = new File(Config.PROFILES_DIR + "/tags." + profile);
-        StringBuilder formattedTags = new StringBuilder();
         tags = request.getParameter("tags");
-        if (tags != null && !"".equals(tags)) {
-            StringTokenizer t = new StringTokenizer(tags," \n,");
-            while (t.hasMoreTokens()) {
-                String nextT = t.nextToken().trim();
-                if( nextT != null && !"".equals(nextT) ){
-                    formattedTags.append(nextT + "\n");
+        if (profile != null && !"".equals(profile)){
+            File tagsFile = new File(Config.PROFILES_DIR + "/tags." + profile);
+            if ( (tags != null && !"".equals(tags)) || tagsFile.exists()) {
+                StringBuilder formattedTags = new StringBuilder();
+                StringTokenizer t = new StringTokenizer(tags," \n,");
+                while (t.hasMoreTokens()) {
+                    String nextT = t.nextToken().trim();
+                    if( nextT != null && !"".equals(nextT) ){
+                        formattedTags.append(nextT + "\n");
+                    }
                 }
+                FileHelper.writeContentToFile(formattedTags.toString(), tagsFile);
+                //tags = FileHelper.readContentFromFile(tagsFile);
             }
-            FileHelper.writeContentToFile(formattedTags.toString(), tagsFile);
-            tags = FileHelper.readContentFromFile(tagsFile);
             session.setAttribute("faban.profile.tags", tags);
-        }           
+        }
     }
     BenchmarkDescription desc = (BenchmarkDescription)
                                         session.getAttribute("faban.benchmark");
