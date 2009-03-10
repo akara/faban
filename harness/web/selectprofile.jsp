@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: selectprofile.jsp,v 1.14 2009/03/04 21:50:10 sheetalpatil Exp $
+ * $Id: selectprofile.jsp,v 1.15 2009/03/10 00:11:25 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -61,12 +61,15 @@
     else {
         String[] profiles = usrEnv.getProfiles();
         if(profile == null){
-            profile = profiles[0];
+            if((profiles != null) && (profiles.length > 0)) {
+                profile = profiles[0];
+                tagsFile = new File(Config.PROFILES_DIR + "/tags." + profile);
+                if(tagsFile.exists() && tagsFile.length()>0){
+                    tagsForProfile = FileHelper.readContentFromFile(tagsFile).trim();
+                }
+            }
         }
-        tagsFile = new File(Config.PROFILES_DIR + "/tags." + profile);
-        if(tagsFile.exists() && tagsFile.length()>0){
-            tagsForProfile = FileHelper.readContentFromFile(tagsFile).trim();
-        }
+        
         Map<String, BenchmarkDescription> benchNameMap =
                 BenchmarkDescription.getBenchNameMap();
         // We need to ensure only benchmarks the user is allowed to submit are shown.
