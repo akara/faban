@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DefaultFabanBenchmark2.java,v 1.1 2008/12/22 21:35:09 sheetalpatil Exp $
+ * $Id: DefaultFabanBenchmark2.java,v 1.2 2009/03/15 07:22:19 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -48,6 +48,7 @@ public class DefaultFabanBenchmark2 {
     protected List<String> agents;
     protected String[] agentHosts;
     protected Map<String, List<String>> hostAgents;
+    protected Map<String, List<String>> agentEnv;
     protected CommandHandle masterHandle;
 
     /**
@@ -71,11 +72,30 @@ public class DefaultFabanBenchmark2 {
 
         hostAgents = new HashMap<String, List<String>>(agentHosts.length + 5);
 
+        agentEnv = new HashMap<String, List<String>>();
+
         HashMap<String, Integer> anyHostAgents = new HashMap<String, Integer>();
         for (String agentName : agents) {
-            String[] agentSpecs = params.getTokenizedValue("fa:runConfig/" +
-                    "fd:driverConfig[@name=\"" + agentName +
-                    "\"]/fd:agents");
+
+            String qb = "fa:runConfig/fd:driverConfig[@name=\"" + agentName +
+                         "\"]/";
+
+            // Obtain the environment needed for the agent type...
+            List<String> env = params.getParameters(qb + "fd:environment");
+            if (env != null && env.size() > 0) {
+                agentEnv.put(agentName, env);
+                if (logger.isLoggable(Level.FINER)) {
+                    StringBuilder b = new StringBuilder();
+                    b.append("Env for ").append(agentName).append("Agents: ");
+                    for (String envEntry : env) {
+                        b.append('[').append(envEntry).append(']');
+                    }
+                    logger.finer(b.toString());
+                }
+            }
+
+            // Prepare the agent distribution...
+            String[] agentSpecs = params.getTokenizedValue(qb + "fd:agents");
 
             switch (agentSpecs.length) {
                 case 0: // Empty agents field, throw exception.
@@ -276,6 +296,14 @@ public class DefaultFabanBenchmark2 {
                 Command agent = new Command("com.sun.faban.driver.engine." +
                         "AgentImpl", agentType, String.valueOf(agentId),
                         getMasterIP());
+
+                List<String> env = agentEnv.get(agentType);
+                if (env != null) {
+                    String[] e = new String[env.size()];
+                    e = env.toArray(e);
+                    agent.setEnvironment(e);
+                }
+
                 agent.setSynchronous(false);
                 java(hostName, agent);
                 agentStarted = true;
