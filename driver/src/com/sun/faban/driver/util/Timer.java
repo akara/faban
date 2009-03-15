@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Timer.java,v 1.7 2008/07/29 23:26:41 akara Exp $
+ * $Id: Timer.java,v 1.8 2009/03/15 07:26:13 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -87,6 +87,8 @@ public class Timer implements Serializable {
         int limit = 1000;  // Limit the number of total loops...
         long[] diffms = new long[iterations];
         int[] diffns = new int[iterations];
+        int[] clockStep = new int[iterations];
+        int msStep = Integer.MAX_VALUE;
         Logger logger = getLogger();
         System.gc(); // We don't want gc during calibration. So we try to gc
                      // now, on best effort.
@@ -106,18 +108,53 @@ public class Timer implements Serializable {
                millis = System.currentTimeMillis();
             } while (millis == millisBefore);
 
-            if (++millisBefore == millis) { // Only use the edges.
-                diffms[i] = millis - nanos / 1000000l;
-                diffns[i] = (int) (nanos % 1000000l);
-                logger.finer("iter: " + i + ", millis: " + millis +
-                        ", nanos: " + nanos + ", diffms: " + diffms[i] +
-                        ", diffns: " + diffns[i]);
-                tooLong = 0; // Reset retry counters on success.
-                ++i;
-            } else {
+            // Now we're on the edge of a new ms value
+            // Find the ms clock step for this system
+            // by iterating down the min step value.
+            clockStep[i] = (int) (millis - millisBefore);
+            if (clockStep[i] < msStep)
+                msStep = clockStep[i];
+
+            // If we discover any step bigger than the best recorded step,
+            // ignore the iteration.
+            if (msStep != Integer.MAX_VALUE && clockStep[i] > msStep) {
                 ++tooLong;
+                continue;
+            }
+
+            diffms[i] = millis - nanos / 1000000l;
+            diffns[i] = (int) (nanos % 1000000l);
+            logger.finer("iter: " + i + ", millis: " + millis +
+                    ", nanos: " + nanos + ", diffms: " + diffms[i] +
+                    ", diffns: " + diffns[i] + ", stepms: " + clockStep[i]);
+            tooLong = 0; // Reset retry counters on success.
+            ++i;
+        }
+        logger.fine("System.currentTimeMillis() granularity is " + msStep +
+                    "ms");
+
+        // There might still be some records left at the beginning before
+        // that have the step > minstep. This happens before the minstep
+        // is established. We must not use these records. Count them and
+        // report. If more than 25% are bad, don't continue.
+        int badRecords = 0;
+        for (int i = 0; i < clockStep.length; i++) {
+            if (clockStep[i] > msStep) {
+                logger.finer("Rejected bad record " + i + 
+                             "Edge mis-detection. Clock step of " +
+                             clockStep[i] + "ms higher than granularity.");
+                ++badRecords;
             }
         }
+        if (badRecords > iterations / 4) {
+            throw new FatalException("Cannot establish clock offset " +
+                    "(ms->ns), edge mis-detections beyond threshold - " +
+                    badRecords + " out of " + iterations +
+                    ". Perhaps system is too busy.");
+        } else {
+            logger.fine("Rejected " + badRecords + " bad records.");
+        }
+        int goodRecords = iterations - badRecords;
 
         // Find the granularity of the nanosec results.
         int granularity = 6;
@@ -135,17 +172,21 @@ public class Timer implements Serializable {
             if (granularity == 0)
                 break;
         }
-        logger.fine("Nanosec timer granularity: " + granularity);
+        logger.fine("Nanosec timer granularity: 1e" + granularity);
 
         // Find the max ms difference.
         long maxDiffMs = Long.MIN_VALUE;
         for (int i = 0; i < diffms.length; i++) {
+            if (clockStep[i] > msStep) // ignore bad records
+                continue;
             if (diffms[i] > maxDiffMs)
                 maxDiffMs = diffms[i];
         }
 
         // Adjust the ms difference to be the same, the rest goes into ns.
         for (int i = 0; i < diffms.length; i++) {
+            if (clockStep[i] > msStep) // again, ignore bad records
+                continue;
             if (diffms[i] < maxDiffMs) {
                 diffns[i] += (maxDiffMs - diffms[i]) * 1000000l;
                 diffms[i] = maxDiffMs;
@@ -154,18 +195,22 @@ public class Timer implements Serializable {
 
         // Find the avg diffns
         double avgDiffNs = 0d;
-        for (int i = 0; i < diffns.length; i++)
-            avgDiffNs += diffns[i];
-        avgDiffNs /= diffns.length;
+        for (int i = 0; i < diffns.length; i++) {
+            if (clockStep[i] == msStep) // again, ignore bad records
+                avgDiffNs += diffns[i];
+        }
+        avgDiffNs /= goodRecords;
 
         // Find the standard deviation
         double sdevDiffNs = 0d;
         for (int i = 0; i < diffns.length; i++) {
-            double dev = diffns[i] - avgDiffNs;
-            dev *= dev;
-            sdevDiffNs += dev;
+            if (clockStep[i] == msStep) { // again, use only good records
+                double dev = diffns[i] - avgDiffNs;
+                dev *= dev;
+                sdevDiffNs += dev;
+            }
         }
-        sdevDiffNs = Math.sqrt(sdevDiffNs / diffns.length);
+        sdevDiffNs = Math.sqrt(sdevDiffNs / goodRecords);
         logger.fine("Sdev nsec: " + sdevDiffNs);
 
         // Now, eliminate the outliers beyond 2x sdev.
@@ -176,20 +221,24 @@ public class Timer implements Serializable {
         int count = 0;
         double avgDiffNs2 = 0;
         for (int i = 0; i < diffns.length; i++) {
+            if (clockStep[i] > msStep) // again, ignore bad records
+                continue;
             double dev = Math.abs(diffns[i] - avgDiffNs);
             if (dev <= sdevDiffNs * 2d) { // Outliers are beyond 2x sdev.
                 ++count;
                 avgDiffNs2 += diffns[i];
             } else {
-                logger.fine("Excluded: " + i);
+                logger.fine("Excluded outlier record " + i + ". " +
+                            "Nanosec diff beyond 2*sdev or about 95th% " +
+                            "according to empirical rule");
             }
         }
         avgDiffNs2 /= count;
 
         // Warn if we have a lot of outliers, allow 10% on each side.
-        if (count < (int) 0.8d * iterations)
+        if (count < (int) 0.8d * goodRecords)
             logger.warning("Too many outliers in calibration. " +
-                    (iterations - count) + " of " + iterations);
+                    (goodRecords - count) + " of " + goodRecords);
 
         // Round the average to the granularity
         int grainSize = 1;
