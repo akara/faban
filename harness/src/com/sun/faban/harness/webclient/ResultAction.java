@@ -17,7 +17,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: ResultAction.java,v 1.12 2009/03/17 00:37:10 sheetalpatil Exp $
+* $Id: ResultAction.java,v 1.13 2009/03/17 22:49:03 sheetalpatil Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 */
@@ -366,11 +366,8 @@ public class ResultAction {
                                     uploadedRuns, uploadSet);
                         } else { // Description or tags got changed, replace anyway...
                             if (!model.results[i].description.equals(request.
-                                    getParameter(runId + "_description"))) {
-                                replaceSet.add(runId);
-                                prepareUpload(request, model.results[i],
-                                        uploadedRuns, uploadSet);
-                            }else if (!model.results[i].tags.toString().equals(request.
+                                    getParameter(runId + "_description")) ||
+                                !model.results[i].tags.toString().equals(request.
                                     getParameter(runId + "_tags"))) {
                                 replaceSet.add(runId);
                                 prepareUpload(request, model.results[i],
@@ -379,7 +376,9 @@ public class ResultAction {
                         }
                     } else { // Single run, description changed, replace anyway.
                         if (!model.results[i].description.equals(
-                                request.getParameter(runId + "_description"))) {
+                                request.getParameter(runId + "_description")) ||
+                                !model.results[i].tags.toString().equals(request.
+                                    getParameter(runId + "_tags"))) {
                             replaceSet.add(runId);
                             prepareUpload(request, model.results[i],
                                     uploadedRuns, uploadSet);

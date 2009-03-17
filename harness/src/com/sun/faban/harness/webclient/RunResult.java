@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunResult.java,v 1.2 2009/03/03 21:44:47 akara Exp $
+ * $Id: RunResult.java,v 1.3 2009/03/17 22:49:03 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -260,6 +260,9 @@ public class RunResult {
                 logger.log(Level.WARNING, "Error reading tags file for " +
                         "run " + runId, e);
             }
+        }else{
+            tags = new String[1];
+            tags[0] = "&nbsp";
         }
     }
 
@@ -344,10 +347,9 @@ public class RunResult {
                     continue;
                 RunResult res = getInstance(runId);
                 if (res == null){
-                    try{
-                        TagEngine te = TagEngine.getInstance();
-                        te.removeRun(runid);
-                        te.save();
+                    try{                        
+                        tagEngine.removeRun(runid);
+                        tagEngine.save();
                     } catch (Exception e) {
                         logger.log(Level.WARNING, "Cannot remove run " + runid, e);
                     }

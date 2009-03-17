@@ -17,7 +17,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: Uploader.java,v 1.8 2009/03/03 02:30:59 sheetalpatil Exp $
+* $Id: Uploader.java,v 1.9 2009/03/17 22:49:04 sheetalpatil Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 */
@@ -141,6 +141,8 @@ public class Uploader {
                     i++;
                 }
                 te.add(runId, tagsArray);
+            }else{
+                te.add(runId, new String[0]);
             }
             te.save();
         }
@@ -271,6 +273,9 @@ public class Uploader {
                                 continue l1;
                             File newRunNameFile = new File(Config.OUT_DIR,
                                     runName);
+                            if (newRunNameFile.exists()) {
+                                recursiveDelete(newRunNameFile);
+                            }
                             if (recursiveCopy(runTmp, newRunNameFile)) {
                                 newRunNameFile.setLastModified(runTmp.lastModified());
                                 uploadTags(runName);
@@ -332,6 +337,9 @@ public class Uploader {
                         runId = runTmp.getName();
                     }
                     File newRunFile = new File(Config.OUT_DIR, runId);
+                    if(newRunFile.exists()){
+                        recursiveDelete(newRunFile);
+                    }
                     if (recursiveCopy(runTmp, newRunFile)){
                         newRunFile.setLastModified(runTmp.lastModified());
                         uploadFile.delete();
