@@ -19,7 +19,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: build.xml,v 1.20 2008/10/01 20:55:51 akara Exp $
+* $Id: build.xml,v 1.21 2009/03/17 22:51:12 sheetalpatil Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 -->
@@ -99,7 +99,7 @@
             overwrite="true" preservelastmodified="true"
             includeEmptyDirs="true" verbose="true">
             <fileset dir="${workspace.dir}/harness/lib"
-                includes="commons-httpclient-2.0.1.jar, commons-logging.jar"/>
+                includes="commons-httpclient-3.1.jar, commons-logging.jar"/>
         </copy>
 
         <mkdir dir="logs"/>
