@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: new-run.jsp,v 1.12 2009/03/04 21:50:24 sheetalpatil Exp $
+ * $Id: new-run.jsp,v 1.13 2009/03/17 00:36:46 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -49,7 +49,10 @@
     if (tags == null) {
         tags = request.getParameter("tags");
         if (profile != null && !"".equals(profile)){
-            File tagsFile = new File(Config.PROFILES_DIR + "/tags." + profile);
+            File profileDir = new File(Config.PROFILES_DIR + profile);
+            if(!profileDir.exists())
+                profileDir.mkdir();
+            File tagsFile = new File(Config.PROFILES_DIR + profile + "/tags");
             if ( (tags != null && !"".equals(tags)) || tagsFile.exists()) {
                 StringBuilder formattedTags = new StringBuilder();
                 StringTokenizer t = new StringTokenizer(tags," \n,");
@@ -59,9 +62,12 @@
                         formattedTags.append(nextT + "\n");
                     }
                 }
-                FileHelper.writeContentToFile(formattedTags.toString(), tagsFile);
-                //tags = FileHelper.readContentFromFile(tagsFile);
+                FileHelper.writeContentToFile(formattedTags.toString(), tagsFile);             
             }
+            if(!(tagsFile.length() > 0L))
+                    tagsFile.delete();
+            if(profileDir.list().length == 0)
+                    profileDir.delete();
             session.setAttribute("faban.profile.tags", tags);
         }
     }

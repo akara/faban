@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: selectprofile.jsp,v 1.15 2009/03/10 00:11:25 sheetalpatil Exp $
+ * $Id: selectprofile.jsp,v 1.16 2009/03/17 00:36:35 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -63,7 +63,7 @@
         if(profile == null){
             if((profiles != null) && (profiles.length > 0)) {
                 profile = profiles[0];
-                tagsFile = new File(Config.PROFILES_DIR + "/tags." + profile);
+                tagsFile = new File(Config.PROFILES_DIR + profile + "/tags");
                 if(tagsFile.exists() && tagsFile.length()>0){
                     tagsForProfile = FileHelper.readContentFromFile(tagsFile).trim();
                 }
@@ -140,13 +140,9 @@ function callback() {
       <tr>
         <td>Profile</td>
         <td>
-          <% if((profiles != null) && (profiles.length > 0)) { %>
+          <% if(profile != null) { %>
             <input type="text" title="Please select profile or enter new profile name"
-                name="profile" size="10"
-                <% if (profile != null) { %>
-                    value=<%=profile %>
-                <% } %>
-            >
+                name="profile" size="10" value=<%=profile %> >
             <select name="profilelist" title="Please select profile or enter new profile name"
                 ONCHANGE="updateProfile()">
               <% for(int i = 0; i < profiles.length; i++) { %>
@@ -161,11 +157,7 @@ function callback() {
             </select>
           <% } else { %>
             <input type="text" title="Please enter new profile name for your runs"
-                name="profile" size="10"
-                <% if(profile != null) { %>
-                    value= <%=profile %>
-                <% } %>
-            >
+                name="profile" size="10">
           <% } %>
         </td>
       </tr>

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunQ.java,v 1.26 2009/03/03 21:44:47 akara Exp $
+ * $Id: RunQ.java,v 1.27 2009/03/17 00:36:56 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -187,17 +187,19 @@ public class RunQ {
             FileHelper.copyFile(paramSourceFileName, paramRepFileName, false);
 
             // copying the tags file from the profile dir
-            String tagsForProfile = null;
-            File tagsFile = new File(Config.PROFILES_DIR + "/tags." + profile);
-            if(tagsFile.exists() && tagsFile.length()>0){
-                tagsForProfile = FileHelper.readContentFromFile(tagsFile).trim();
-            }
-            if(tagsForProfile != null) {
-                String tagsRepFileName =
-                    runDir + File.separator + "META-INF/tags";
-                String tagsSrcFileName =
-                    Config.PROFILES_DIR + "/tags." + profile;
-                FileHelper.copyFile(tagsSrcFileName, tagsRepFileName, false);
+            if (profile != null && !"".equals(profile)){
+                String tagsForProfile = null;
+                File tagsFile = new File(Config.PROFILES_DIR + profile + "/tags");
+                if(tagsFile.exists() && tagsFile.length()>0){
+                    tagsForProfile = FileHelper.readContentFromFile(tagsFile).trim();
+                }
+                if(tagsForProfile != null) {
+                    String tagsRepFileName =
+                        runDir + File.separator + "META-INF/tags";
+                    String tagsSrcFileName =
+                        Config.PROFILES_DIR + profile + "/tags";
+                    FileHelper.copyFile(tagsSrcFileName, tagsRepFileName, false);
+                }
             }
             seq.next();
             runqLock.signal();  // Signal a new run is submitted.

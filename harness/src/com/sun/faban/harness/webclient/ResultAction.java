@@ -17,7 +17,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: ResultAction.java,v 1.11 2009/03/03 23:04:41 sheetalpatil Exp $
+* $Id: ResultAction.java,v 1.12 2009/03/17 00:37:10 sheetalpatil Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 */
@@ -112,7 +112,7 @@ public class ResultAction {
     public void profileTagList (HttpServletRequest req,
             HttpServletResponse resp) throws IOException {
         String profile = req.getParameter("profileselected");
-        File tagsFile = new File(Config.PROFILES_DIR + "/tags." + profile);
+        File tagsFile = new File(Config.PROFILES_DIR + profile + "/tags");
         String tagsForProfile = "";
         if(tagsFile.exists() && tagsFile.length()>0){
             tagsForProfile = FileHelper.readContentFromFile(tagsFile).trim();
@@ -364,9 +364,14 @@ public class ResultAction {
                         if (replaceSet.contains(runId)) {
                             prepareUpload(request, model.results[i],
                                     uploadedRuns, uploadSet);
-                        } else { // Description got changed, replace anyway...
+                        } else { // Description or tags got changed, replace anyway...
                             if (!model.results[i].description.equals(request.
                                     getParameter(runId + "_description"))) {
+                                replaceSet.add(runId);
+                                prepareUpload(request, model.results[i],
+                                        uploadedRuns, uploadSet);
+                            }else if (!model.results[i].tags.toString().equals(request.
+                                    getParameter(runId + "_tags"))) {
                                 replaceSet.add(runId);
                                 prepareUpload(request, model.results[i],
                                         uploadedRuns, uploadSet);
@@ -393,6 +398,7 @@ public class ResultAction {
         return "/archive_results.jsp";
     }
 
+    @SuppressWarnings("empty-statement")
     private void prepareUpload(HttpServletRequest request, RunResult result,
                     HashSet<String> uploadedRuns, HashSet<File> uploadSet)
             throws IOException, ClassNotFoundException {
@@ -400,6 +406,7 @@ public class ResultAction {
         StringBuilder formattedTags = new StringBuilder();
         File runTagFile = new File(Config.OUT_DIR + runId + "/META-INF/tags");
         String tags = request.getParameter(runId + "_tags").trim();
+        TagEngine te = TagEngine.getInstance();
         if (tags != null && !"".equals(tags)) {
             StringTokenizer t = new StringTokenizer(tags," \n,");
             ArrayList<String> tagList = new ArrayList<String>(t.countTokens());
@@ -421,12 +428,15 @@ public class ResultAction {
             }
 
             if (tagsChanged) {
-                TagEngine te = TagEngine.getInstance();
                 te.add(runId, result.tags);
                 te.save();
             }
         } else {
             runTagFile.delete();
+            result.tags = new String[1];
+            result.tags[0] = "&nbsp;";
+            te.add(runId, new String[0]);
+            te.save();
         }
         result.description = request.getParameter(runId + "_description");
         editXML(result);
