@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultlist.jsp,v 1.17 2009/03/02 23:20:50 akara Exp $
+ * $Id: resultlist.jsp,v 1.18 2009/03/17 22:45:46 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -38,7 +38,7 @@
     TableModel resultTable = null;
     boolean tagSearch = false;
     String feedURL = "/controller/results/feed";
-    if (tag != null) {
+    if (tag != null && !"".equals(tag)) {
         tag = tag.trim();
         if (tag.length() > 0) {
             tagSearch = true;
