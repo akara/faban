@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: new-run.jsp,v 1.13 2009/03/17 00:36:46 sheetalpatil Exp $
+ * $Id: new-run.jsp,v 1.14 2009/03/19 18:19:23 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -53,7 +53,7 @@
             if(!profileDir.exists())
                 profileDir.mkdir();
             File tagsFile = new File(Config.PROFILES_DIR + profile + "/tags");
-            if ( (tags != null && !"".equals(tags)) || tagsFile.exists()) {
+            if ( (tags != null && !"".equals(tags))) {
                 StringBuilder formattedTags = new StringBuilder();
                 StringTokenizer t = new StringTokenizer(tags," \n,");
                 while (t.hasMoreTokens()) {
