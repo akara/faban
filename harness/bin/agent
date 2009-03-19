@@ -32,7 +32,7 @@ and set JAVA_HOME or PATH accordingly." >&2
     JAVA=$JAVA_BIN
 fi
 
-CLASSPATH=$FABAN_HOME/lib/fabancommon.jar:$FABAN_HOME/lib/fabanagents.jar:$FABAN_HOME/lib/commons-httpclient-2.0.1.jar:$FABAN_HOME/lib/commons-logging.jar
+CLASSPATH=$FABAN_HOME/lib/fabancommon.jar:$FABAN_HOME/lib/fabanagents.jar:$FABAN_HOME/lib/commons-httpclient-3.1.jar:$FABAN_HOME/lib/commons-logging.jar
 export CLASSPATH
 
 PATH=$JAVA_HOME/bin:/bin:/usr/bin:/usr/local/bin:/usr/ucb:/usr/sbin:$FABAN_HOME/bin

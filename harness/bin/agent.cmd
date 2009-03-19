@@ -26,7 +26,7 @@ if not exist %JAVA% (
 rem Check the PATHEXT and set it to the default if not exists
 if not defined PATHEXT set PATHEXT=.COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;
 
-set CLASSPATH=%FABAN_HOME%\lib\fabancommon.jar;%FABAN_HOME%\lib\fabanagents.jar
+set CLASSPATH=%FABAN_HOME%\lib\fabancommon.jar;%FABAN_HOME%\lib\fabanagents.jar;%FABAN_HOME%\lib\commons-httpclient-3.1.jar;%FABAN_HOME%\lib\commons-logging.jar
 set PATH=%PATH%;%BINDIR%
 echo Starting CmdAgent >>cmdagent.log
 
