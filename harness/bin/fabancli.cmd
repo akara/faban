@@ -21,6 +21,6 @@ if not exist %JAVA% (
        goto :EOF
 )
 
-set CLASSPATH=%FABAN_HOME%\lib\fabancommon.jar;%FABAN_HOME%\lib\fabanagents.jar
+set CLASSPATH=%FABAN_HOME%\lib\fabancommon.jar;%FABAN_HOME%\lib\fabanagents.jar;%FABAN_HOME%\lib\commons-httpclient-3.1.jar;%FABAN_HOME%\lib\commons-codec-1.2.jar;%FABAN_HOME%\lib\commons-logging.jar
 
 %JAVA% -client -Xmx4m -cp %CLASSPATH% -Dfaban.cli.command=%0 com.sun.faban.harness.util.CLI %*
