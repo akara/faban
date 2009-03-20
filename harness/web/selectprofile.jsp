@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: selectprofile.jsp,v 1.16 2009/03/17 00:36:35 sheetalpatil Exp $
+ * $Id: selectprofile.jsp,v 1.17 2009/03/20 16:49:27 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -182,7 +182,7 @@ function callback() {
       <tr>
          <td>Tags for this profile</td>
          <td>
-             <textarea id="tags" name="tags" title="Tags associated for profile"
+             <textarea id="tags" name="tags" title="Tags associated with profile"
                        rows="2" style="width: 98%;"><%= tagsForProfile%></textarea>
          </td>
        </tr>
