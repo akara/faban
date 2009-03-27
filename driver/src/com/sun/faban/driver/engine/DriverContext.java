@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DriverContext.java,v 1.2 2008/11/06 21:27:52 sheetalpatil Exp $
+ * $Id: DriverContext.java,v 1.3 2009/03/27 16:27:54 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -145,7 +145,7 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
     }
 
     /**
-     * Obtains the agentImplImpl id for this agentImplImpl.
+     * Obtains the agent id for this agentImpl.
      * @return the current agentImpl's id
      */
 	public int getAgentId() {

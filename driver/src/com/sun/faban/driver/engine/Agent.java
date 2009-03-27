@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Agent.java,v 1.1 2008/09/10 18:25:53 akara Exp $
+ * $Id: Agent.java,v 1.2 2009/03/27 16:27:53 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -50,6 +50,12 @@ public interface Agent extends Remote {
 	public void configure(Master master, RunInfo runInfo, int driverType,
                           Timer timer) throws RemoteException;
 
+    /**
+     * Obtains the id of this agent.
+     * @return The id of this agent.
+     */
+    public int getId() throws RemoteException;
+    
     /**
      * Wait until all threads are started.
      * @throws RemoteException 

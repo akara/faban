@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentImpl.java,v 1.3 2009/01/13 01:02:43 akara Exp $
+ * $Id: AgentImpl.java,v 1.4 2009/03/27 16:27:54 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -29,6 +29,7 @@ import com.sun.faban.driver.util.Timer;
 
 import java.io.File;
 import java.io.Serializable;
+import java.net.InetAddress;
 import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
@@ -62,6 +63,7 @@ public class AgentImpl extends UnicastRemoteObject
     Metrics results[] = null;
     int numThreads;
     String driverBase;
+    String host;
     private Logger logger;
     private String agentName;
     private String agentId;
@@ -85,6 +87,16 @@ public class AgentImpl extends UnicastRemoteObject
     AgentImpl(String driverName, String agentId, String master)
             throws Exception {
         this (driverName, agentId);
+
+        host = InetAddress.getLocalHost().getHostName();
+
+        // Sometimes we get the host name with the whole domain baggage.
+        // The host name is widely used in result files, tools, etc. We
+        // do not want that baggage. So we make sure to crop it off.
+        // i.e. brazilian.sfbay.Sun.COM should just show as brazilian.
+        int dotIdx = host.indexOf('.');
+        if (dotIdx > 0)
+            host = host.substring(0, dotIdx);
 
         RegistryLocator.getRegistry(master).
                 reregister(agentType, agentName, this);
@@ -295,6 +307,14 @@ public class AgentImpl extends UnicastRemoteObject
             	logger.log(Level.FINE, e1.getMessage(), e);
             }
         }
+    }
+
+    /**
+     * Obtains the id of this agent.
+     * @return The id of this agent.
+     */
+    public int getId() {
+        return Integer.parseInt(agentId);
     }
 
     /**

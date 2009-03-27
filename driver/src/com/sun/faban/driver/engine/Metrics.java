@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.3 2009/03/03 00:40:25 akara Exp $
+ * $Id: Metrics.java,v 1.4 2009/03/27 16:27:53 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -43,7 +43,7 @@ import java.util.logging.Level;
  */
 public class Metrics implements Serializable, Cloneable {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 32009l;
 
     /*
     Response Histogram
@@ -196,6 +196,7 @@ public class Metrics implements Serializable, Cloneable {
     protected double metric;
 
     /* Convenience variables */
+    protected String host;
     protected int driverType;
     protected String driverName;
     protected int txTypes;
@@ -210,6 +211,7 @@ public class Metrics implements Serializable, Cloneable {
         this.thread = agent;
         RunInfo runInfo = RunInfo.getInstance();
         driverType = agent.agent.driverType;
+        host = agent.agent.host;
         RunInfo.DriverConfig driverConfig = runInfo.driverConfig;
         driverName = driverConfig.name;
 
@@ -468,6 +470,13 @@ public class Metrics implements Serializable, Cloneable {
      * @param s stats of next thread to be aggregated
      */
 	public void add(Metrics s) {
+        // Check whether the host is the same. If not, set host to null
+        if (host != s.host) {
+            if (host != null && !host.equals(s.host))
+                host = null;
+            if (s.host != null && !s.host.equals(host))
+                host = null;
+        }
         // Add up the thread count
 		threadCnt += s.threadCnt;
 

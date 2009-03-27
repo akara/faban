@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MasterImpl.java,v 1.2 2009/02/25 19:41:29 akara Exp $
+ * $Id: MasterImpl.java,v 1.3 2009/03/27 16:27:54 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -37,9 +37,7 @@ import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.Date;
-import java.util.Formatter;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
@@ -145,7 +143,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 
     private boolean runAborted = false;
 
-    protected Object stateLock = new Object();
+    protected final Object stateLock = new Object();
     protected MasterState state = MasterState.CONFIGURING;
 
     protected java.util.Timer scheduler;
@@ -405,6 +403,27 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
                     continue;
                 }
 
+                // We have to ensure the agents are sorted by their id. Using
+                // an array sort will cause multiple duplicate calls into the
+                // agent.getId() so we're better off using a map here.
+                TreeMap<Integer, Agent> sortMap = new TreeMap<Integer, Agent>();
+                for (int j = 0; j < agentCnt; j++) {
+                    Agent agent = (Agent) refs[j];
+                    int agentId = agent.getId();
+                    if (sortMap.put(agentId, agent) != null) {
+                        logger.warning("Duplicate agent id " + agentId +
+                                        " for " + agentName +
+                                        ". Ignoring an agent.");
+                    }
+                }
+
+                // Re-adjust the agent count to eliminate duplicates.
+                agentCnt = sortMap.size();
+
+                // Now assign the agent refs to the global agent array.
+                agentRefs[i] = new Agent[agentCnt];
+                agentRefs[i] = sortMap.values().toArray(agentRefs[i]);
+
                 if (agentCnt != runInfo.driverConfigs[i].numAgents) {
                     if (runInfo.driverConfigs[i].numAgents > 0) {
                         logger.warning("Configured " + runInfo.driverConfigs[i].
@@ -422,12 +441,6 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
                     // Now we need to adjust the runInfo according to realty
                     runInfo.driverConfigs[i].numAgents = agentCnt;
                 }
-
-                // Now assign the agent refs to the global agent array.
-                agentRefs[i] = new Agent[agentCnt];
-                for (int j = 0; j < agentCnt; j++) {
-					agentRefs[i][j] = (Agent) refs[j];
-				}
 
                 // We need to calculate the thread counts
                 if (runInfo.driverConfigs[i].numThreads == -1) {
@@ -517,7 +530,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 
             agentInfo.threads = agentThreads[driverType];
             agentInfo.agentScale = (double) runInfo.scale/agentCnt;
-            Remote[] refs = agentRefs[driverType];
+            Agent[] refs = agentRefs[driverType];
             logger.info("Configuring " + refs.length + ' ' +
                         benchDef.drivers[driverType].name + "Agents...");
 
@@ -534,8 +547,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 
                 for (; agentId < remainderThreads[driverType]; agentId++) {
                     runInfo.agentInfo.agentNumber = agentId;
-                    ((Agent)refs[agentId]).configure(this, runInfo,
-                                                     driverType, timer);
+                    refs[agentId].configure(this, runInfo, driverType, timer);
                     runInfo.agentInfo.startThreadNumber += agentInfo.threads;
                 }
             }
@@ -548,7 +560,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 
             for (; agentId < refs.length && !runAborted; agentId++) {
                 runInfo.agentInfo.agentNumber = agentId;
-                ((Agent)refs[agentId]).configure(this, runInfo, driverType, timer);
+                refs[agentId].configure(this, runInfo, driverType, timer);
                 runInfo.agentInfo.startThreadNumber += agentInfo.threads;
             }
         }
@@ -671,11 +683,11 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         for (int driverType = 0; driverType < runInfo.driverConfigs.length;
              driverType++) {
             if (runInfo.driverConfigs[driverType].numAgents > 0) {
-                Remote refs[] = agentRefs[driverType];
+                Agent refs[] = agentRefs[driverType];
                 // Make sure we join the first agent last
                 for (int i = refs.length - 1; i >= 0; i--) {
 					try {
-                        ((Agent) refs[i]).join();
+                        refs[i].join();
                     } catch (RemoteException e) {
                         logger.warning("Master: RemoteException got " + e);
                         logger.throwing(className, "executeRun", e);
@@ -701,62 +713,136 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 
         /* Gather stats and print report */
         changeState(MasterState.RESULTS);
-        Metrics[] results = new Metrics[runInfo.driverConfigs.length];
-        for (int driverType = 0; driverType < results.length; driverType++) {
-			results[driverType] = getDriverMetrics(driverType);
+        int driverTypes = runInfo.driverConfigs.length;
+        ArrayList<Map<String, Metrics>> resultsList =
+                new ArrayList<Map<String, Metrics>>(driverTypes);
+
+        // Note: the index into the list is the actual driver type
+        for (int driverType = 0; driverType < driverTypes; driverType++) {
+			resultsList.add(getDriverMetrics(driverType));
 		}
 
-        generateReports(results);
+        generateReports(resultsList);
 
         // Tell StatsWriter to quit
         sw.quit();
     }
 
-    private Metrics getDriverMetrics(int driverType) {
-        Remote refs[];
-        Metrics result = null;
+    private Map<String, Metrics> getDriverMetrics(int driverType) {
+
+        LinkedHashMap<String, Metrics> hostMetrics =
+                                        new LinkedHashMap<String, Metrics>();
         try {
             if (runInfo.driverConfigs[driverType].numAgents > 0) {
                 Metrics[] results = new Metrics[
                         runInfo.driverConfigs[driverType].numAgents];
-                refs = agentRefs[driverType];
+                Agent[] refs = agentRefs[driverType];
                 logger.info("Gathering " +
                         benchDef.drivers[driverType].name + "Stats ...");
                 for (int i = 0; i < refs.length; i++) {
-					results[i] = (Metrics) (((Agent) refs[i]).getResults());
+					results[i] = (Metrics) refs[i].getResults();
 				}
 
-                for (int i = 0; i < results.length; i++) {
-					if (results[i] != null) {
-						if (result == null) {
-							result = results[i];
-						} else {
-							result.add(results[i]);
-						}
-					}
-				}
+                // Add the results on a per-host basis.
+                for (Metrics r : results) {
+                    if (r == null)
+                        continue;
+                    Metrics hostResult = hostMetrics.get(r.host);
+                    if (hostResult == null) {
+                        hostMetrics.put(r.host, r);
+                    } else {
+                        hostResult.add(r);
+                    }
+                }
 
-                // Once we have the metrics, we have to set it's start time
-                // Since this is set after all threads have started, it will
-                // be 0 in all the metrices we receive.
+                Metrics result = null;
+
+                // Add all host results together to get the final result.
+                for (Metrics r : hostMetrics.values()) {
+                    if (result == null) {
+                        // Clone, so we won't add on a summarized
+                        // host metric and make results wrong.
+                        result = (Metrics) r.clone();
+                    } else {
+                        result.add(r);
+                    }
+                    // Once we have the metrics, we have to set it's start time
+                    // Since this is set after all threads have started, it will
+                    // be 0 in all the metrices we receive.
+
+                    r.startTime = runInfo.start;
+                }
+
                 if (result != null) {
+                    // And finally set it for the final result, too.
 					result.startTime =  runInfo.start;
+                    // Set it in the map, under the name __MASTER__
+                    // This is an invalid host name so it will never conflict.
+                    hostMetrics.put("__MASTER__", result);
 				}
             }
         } catch (RemoteException re) {
             logger.log(Level.WARNING, "Master: RemoteException got " + re, re);
         }
-        return result;
+        return hostMetrics;
+    }
+
+    private Metrics[] getHostMetrics(List<Map<String, Metrics>> results,
+                                     String host) {
+        Metrics[] thResults = new Metrics[results.size()];
+        for (int i = 0; i < thResults.length; i++) {
+            Map<String, Metrics> typeResults = results.get(i);
+            thResults[i] = typeResults.get(host);
+        }
+        return thResults;
     }
 
     /**
      * Generates the summary and detail report.
-     * @param results Array of Metrics objects, one per driver type
+     * @param results List of Host-Metrics maps, one per driver type
      * @throws IOException 
      */
-    public void generateReports(Metrics[] results) throws IOException {
+    public void generateReports(List<Map<String, Metrics>> results)
+            throws IOException {
 
-        CharSequence summaryContent = createSummaryReport(results);
+        // Set of driver hosts.
+        LinkedHashSet<String> hostSet = new LinkedHashSet<String>();
+        for (Map<String, Metrics> hostResults : results) {
+            hostSet.addAll(hostResults.keySet());
+        }
+        hostSet.remove("__MASTER__");
+
+        // Only print the per-host results if there is more than one driver host
+        if (hostSet.size() > 1) {
+            for (String host : hostSet) {
+                CharSequence summaryContent = createSummaryReport(
+                                        getHostMetrics(results, host), host);
+                if (summaryContent != null) {
+                    String runOutputDir = runInfo.resultsDir + fs;
+                    FileWriter summary = new FileWriter(runOutputDir + 
+                            "summary.xml." + host);
+                    FileWriter detail = new FileWriter(runOutputDir + 
+                            "detail.xan." + host);
+
+                    // As all stats from each agentImpl are of the same type,
+                    // we can create a new instance from any instance.
+                    logger.info("Printing Summary report for " + host + " ...");
+                    summary.append(summaryContent);
+                    summary.close();
+
+                    logger.info("Summary finished. Now printing detail for " + 
+                            host + " ...");
+                    detail.append(createDetailReport(
+                                        getHostMetrics(results, host), host));
+                    detail.close();
+
+                    logger.info("Detail for " + host + " finished.");
+                }
+            }
+        }
+
+        CharSequence summaryContent = createSummaryReport(
+                                getHostMetrics(results, "__MASTER__"), null);
         if (summaryContent != null) {
             String runOutputDir = runInfo.resultsDir + fs;
             FileWriter summary = new FileWriter(runOutputDir + "summary.xml");
@@ -764,12 +850,13 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 
             // As all stats from each agentImpl are of the same type, we can
             // create a new instance from any instance.
-            logger.info("Printing Summary report...");
+            logger.info("Printing Summary report ...");
             summary.append(summaryContent);
             summary.close();
 
             logger.info("Summary finished. Now printing detail ...");
-            detail.append(createDetailReport(results));
+            detail.append(createDetailReport(
+                                getHostMetrics(results, "__MASTER__"), null));
             detail.close();
 
             logger.info("Detail finished. Results written to " +
@@ -784,7 +871,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
      * @return The report as a char sequence
      */
     @SuppressWarnings("boxing")
-	private CharSequence createSummaryReport(Metrics[] results) {
+	private CharSequence createSummaryReport(Metrics[] results, String host) {
         long startTime = Long.MAX_VALUE;
         long endTime = 0l;
         double metric = 0d;
@@ -829,8 +916,10 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
                     append(xslPath).append("summary_report.xsl\"?>\n");
             hdrBuffer.append("<benchResults>\n");
             hdrBuffer.append("    <benchSummary name=\"").append(benchDef.name).
-                    append("\" version=\"").append(benchDef.version).
-                    append("\">\n");
+                    append("\" version=\"").append(benchDef.version);
+            if (host != null)
+                hdrBuffer.append("\" host=\"").append(host);
+            hdrBuffer.append("\">\n");
             hdrBuffer.append("        <runId>").append(runInfo.runId).
                     append("</runId>\n");
             hdrBuffer.append("        <startTime>").append(new Date(startTime)).
@@ -855,14 +944,22 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
      * @param results The per-driver metrics
      * @return The report as a char sequence
      */
-    private CharSequence createDetailReport(Metrics[] results) {
+    private CharSequence createDetailReport(Metrics[] results, String host) {
         StringBuilder buffer = new StringBuilder(8192);
-        buffer.append("Title: ").append(benchDef.name).
-                append(" Detailed Results\n\n\n");
-        buffer.append("Section: Benchmark Information\n");
-        buffer.append("Name   Value\n");
-        buffer.append("-----  -------------\n");
-        buffer.append("RunId  ").append(runInfo.runId).append("\n\n\n");
+        buffer.append("Title: ").append(benchDef.name);
+        if (host == null)
+            buffer.append(" Detailed Results");
+        else
+            buffer.append(" Partial Detailed Results for Driver ").append(host);
+        buffer.append("\n\n\nSection: Benchmark Information\n");
+        buffer.append("Name     Value\n");
+        buffer.append("-----    -------------\n");
+        buffer.append("RunId    ").append(runInfo.runId);
+        if (host != null) {
+            buffer.append("\nPartial  true");
+            buffer.append("\nHost     ").append(host);
+        }
+        buffer.append("\n\n\n");
         for (Metrics result : results)
             if (result != null)
                 result.printDetail(buffer);
@@ -877,7 +974,6 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         PlotServer[] plotServers = new PlotServer[driverTypes];
         Metrics[][] currentResults = new Metrics[driverTypes][];
         
-        Remote[] refs;
         boolean started = false;
         boolean endFlag = false;
         long dumpInterval;
