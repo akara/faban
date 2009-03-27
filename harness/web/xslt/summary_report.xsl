@@ -6,15 +6,35 @@
                 <title><xsl:value-of select="benchSummary/@name"/>
                     <xsl:text> </xsl:text>
                     <xsl:value-of select="benchSummary/@version"/>
-                    Summary Report</title>
+                    <xsl:choose>
+                        <xsl:when test="benchSummary/@host">
+                            Partial Summary for Driver Host
+                            <xsl:text> </xsl:text>
+                            <xsl:value-of select="benchSummary/@host"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            Summary Report
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </title>
 		<meta http-equiv="content-type" content="text/html;charset=iso-8859-1"/>
             </head>
             <body>
                 <h2 style="text-align: center;"><xsl:value-of
-                    select="benchSummary/@name"/>
+                    select="benchSummary/@name"/><br></br>
                     <xsl:text> </xsl:text>
                     <xsl:value-of select="benchSummary/@version"/>
-                    <br></br>Summary Report</h2><br></br>
+                    <xsl:choose>
+                         <xsl:when test="benchSummary/@host">
+                            <br></br>Partial Summary for Driver Host
+                            <xsl:text> </xsl:text>
+                            <xsl:value-of select="benchSummary/@host"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <br></br>Summary Report
+                        </xsl:otherwise>
+                    </xsl:choose>
+                    </h2><br></br>
                 <table border="0" cellpadding="2" cellspacing="2">
                     <tbody>
                         <tr>

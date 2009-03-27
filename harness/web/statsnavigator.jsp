@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: statsnavigator.jsp,v 1.12 2009/03/03 21:39:35 akara Exp $
+ * $Id: statsnavigator.jsp,v 1.13 2009/03/27 16:30:33 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -53,13 +53,19 @@
 
     HashSet<String> toolFiles = new HashSet<String>();
 
+    // These are known files that have file names looking like tool output.
+    // They should be ignored.
+    HashSet<String> ignoreFiles = new HashSet<String>();
+    ignoreFiles.add("driver.log.lck");
+    ignoreFiles.add("log.xml.lck");
+
     fileSearchLoop:
     for (String fileName : outDir.list()) {
-        // Screen out all image files...
+        // Screen out all image files and files to be ignored...
         if (fileName.endsWith(".png") || fileName.endsWith(".jpg") ||
             fileName.endsWith(".jpeg") || fileName.endsWith(".gif") ||
-            "driver.log.lck".equals(fileName)) // Special case,
-            continue;                          // looks like a tool output.
+            ignoreFiles.contains(fileName))
+            continue;
 
         // Then proces the sysinfo files...
         if (fileName.startsWith("sysinfo.")) {
@@ -85,6 +91,8 @@
             int logIdx = fileName.indexOf(".log.");
             if (logIdx == -1) // New FenXi files need to be .xan.
                 logIdx = fileName.indexOf(".xan.");
+            if (logIdx == -1) // summary.xml.hostname case
+                logIdx = fileName.indexOf(".xml.");
             if (logIdx == -1)
                 continue;
             String toolName = fileName.substring(0, logIdx);
@@ -220,9 +228,10 @@
                                 String fullName = toolHostMap.get(host);
                                 if (fullName == null)
                                     fullName = host;
-                                String[] filePrefix = new String[2];
+                                String[] filePrefix = new String[3];
                                 filePrefix[0] = tool + ".log." + fullName;
                                 filePrefix[1] = tool + ".xan." + fullName;
+                                filePrefix[2] = tool + ".xml." + fullName;
                                 String path = "output/" + runId + '/';
                      %>
                                 <td style="text-align: center;">
@@ -255,7 +264,7 @@
                                     }
                                 }
                                 if (found) { %>
-                                    <font size="-1"><i><a href="<%= path + fileName %>">text</a></i></font>
+                                    <font size="-1"><i><a href="<%= path + fileName %>">raw</a></i></font>
                              <% }
 
                      %>
