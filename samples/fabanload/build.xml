@@ -113,7 +113,24 @@
               <arg value="${master.host}"/>
         </java>                        
     </target>
-    
+
+       <target name="genxform"
+        description="Generates config.xhtml form from run.xml">
+        <!-- To start the agent, properties driver.name, driver.id,
+             and master.host need to be declared -->
+        <java classname="com.sun.faban.harness.util.XformsGenerator"
+              classpathref="classpath"
+              fork="true"
+              failonerror="true">
+              <jvmarg value="-XX:+DisableExplicitGC"/>
+              <jvmarg value="-Djava.security.policy=security/driver.policy"/>
+              <jvmarg value="-Djava.util.logging.config.file=logging.properties"/>
+              <arg value="deploy/run.xml"/>
+              <arg value="deploy/config.xhtml"/>
+              <arg value="${faban.home}"/>
+        </java>
+    </target>
+
     <target name="multi"
         description="Start a distributed benchmark run">
         <parallel>
