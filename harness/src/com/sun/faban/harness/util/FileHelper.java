@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileHelper.java,v 1.19 2009/02/28 04:35:06 akara Exp $
+ * $Id: FileHelper.java,v 1.20 2009/03/31 00:24:56 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -145,7 +145,7 @@ public class FileHelper {
       */
     public static boolean tokenReplace(String fileName, String token, String replacement, String backupFileName) {
 
-        String tmpFile = Config.TMP_DIR + ".FileHelper";
+        String tmpFile = System.getProperty("java.io.tmpdir") + File.separator + ".FileHelper";
 
         //copy the file
         if(backupFileName == null)

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FabanNamespaceContext.java,v 1.1 2007/07/23 16:39:36 akara Exp $
+ * $Id: FabanNamespaceContext.java,v 1.2 2009/03/31 00:25:36 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -99,7 +99,7 @@ public class FabanNamespaceContext implements NamespaceContext {
         ArrayList<String> prefixList = prefixMap.get(namespaceURI);
         String prefix = null;
         if (prefixList != null)
-            prefix = prefixList.get(1);
+            prefix = prefixList.get(0);
         logger.finer("getPrefix(\"" + namespaceURI + "\") = " + prefix);
         return prefix;
     }

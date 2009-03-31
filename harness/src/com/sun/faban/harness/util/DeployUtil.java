@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DeployUtil.java,v 1.16 2008/08/12 17:17:18 akara Exp $
+ * $Id: DeployUtil.java,v 1.17 2009/03/31 00:23:25 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -28,6 +28,7 @@ import com.sun.faban.common.Utilities;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.engine.RunQ;
+import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Node;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -36,11 +37,13 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
 import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.Date;
 import java.util.ArrayList;
 import java.text.SimpleDateFormat;
+import org.w3c.dom.NodeList;
 
 /**
  * Benchmark deployment utility used to check/generate the deployment
@@ -146,6 +149,43 @@ public class DeployUtil {
                 logger.log(Level.WARNING, "Error generating FabanDriver " +
                         "descriptor for " + dir, e);
             }
+    }
+
+    public static void generateXform(String dir) throws Exception {
+        String benchDir = Config.BENCHMARK_DIR + File.separator + dir +
+                          File.separator;
+        XPath xPath = XPathFactory.newInstance().newXPath();
+        DocumentBuilder parser = DocumentBuilderFactory.
+                            newInstance().newDocumentBuilder();
+        String metaInf = benchDir + "META-INF" + File.separator;
+        String xmlPath = metaInf + "benchmark.xml";
+        File benchmarkXml = new File(xmlPath);
+        String configForm = null;
+        String configFile = null;
+        
+        if (benchmarkXml.exists()) {
+            Node root = parser.parse(benchmarkXml).getDocumentElement();
+            configForm = xPath.evaluate("config-form", root);
+            configFile = xPath.evaluate("config-file-name", root);
+        }
+
+        if (configForm == null || configForm.length() == 0) {
+            configForm = "config.xhtml";
+        }
+
+        if (configFile == null || configFile.length() == 0){
+            configFile = "run.xml";
+        }
+
+        File configFormFile = new File(metaInf + configForm);
+        if (!configFormFile.exists()) {
+            File runFile = new File(metaInf + configFile);
+            if (runFile.exists()) {
+                File templateFile = new File(Config.FABAN_HOME + "resources/config-template.xhtml");
+                XformsGenerator.generate(runFile, configFormFile, templateFile);
+            }
+        }
+
     }
 
     public static boolean canDeploy(String benchName) {

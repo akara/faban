@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Deployer.java,v 1.9 2007/02/23 06:50:47 akara Exp $
+ * $Id: Deployer.java,v 1.10 2009/03/31 00:23:56 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -218,6 +218,7 @@ public class Deployer extends HttpServlet {
                 try {
                     DeployUtil.unjar(benchName);
                     DeployUtil.generateDD(benchName);
+                    DeployUtil.generateXform(benchName);
                 } catch (Exception e) {
                     throw new ServletException(e);
                 }
