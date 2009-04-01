@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunInfo.java,v 1.2 2009/01/13 01:02:42 akara Exp $
+ * $Id: RunInfo.java,v 1.3 2009/04/01 22:03:29 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -1204,11 +1204,12 @@ public class RunInfo implements Serializable {
                 if (runInfo.runtimeStatsEnabled) {
                     driverConfig.runtimeStatsTarget = xp.evaluate(
                             "fd:runtimeStats/@target", driverConfigNode);
-                    if (driverConfig.runtimeStatsTarget == null ||
-                            driverConfig.runtimeStatsTarget.length() == 0) {
-						throw new ConfigurationException("Element " +
-                                "<runtimeStats target=[port]> not found.");
-					}
+                    if (driverConfig.runtimeStatsTarget != null) {
+                        driverConfig.runtimeStatsTarget =
+                                driverConfig.runtimeStatsTarget.trim();
+                        if (driverConfig.runtimeStatsTarget.length() == 0)
+                            driverConfig.runtimeStatsTarget = null;
+                    }
                 }
                 driverConfig.rootElement = rootElement;
                 driverConfig.properties = (Element) xp.evaluate("fd:properties",
