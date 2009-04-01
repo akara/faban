@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MasterImpl.java,v 1.4 2009/04/01 19:11:11 akara Exp $
+ * $Id: MasterImpl.java,v 1.5 2009/04/01 23:29:25 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -728,7 +728,8 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         generateReports(resultsList);
 
         // Tell StatsWriter to quit
-        statsWriter.quit();
+        if (statsWriter != null)
+            statsWriter.quit();
     }
 
     private Map<String, Metrics> getDriverMetrics(int driverType) {
