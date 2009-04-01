@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.4 2009/03/27 16:27:53 akara Exp $
+ * $Id: Metrics.java,v 1.5 2009/04/01 19:11:10 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -121,6 +121,7 @@ public class Metrics implements Serializable, Cloneable {
      * are transactions that fail before the critical section.
      */
     protected int[] delayCntStdy;
+
     /**
      * Sum of response times during steady state.
      * This is used for final reporting and in-flight reporting of averages.
@@ -128,7 +129,7 @@ public class Metrics implements Serializable, Cloneable {
     protected double[] respSumStdy;
 
     /**
-     * Sun of response times total.
+     * Sum of response times total.
      * This is used for in-flight reporting only.
      */
     protected double[] respSumTotal;

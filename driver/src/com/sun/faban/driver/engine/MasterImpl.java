@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MasterImpl.java,v 1.3 2009/03/27 16:27:54 akara Exp $
+ * $Id: MasterImpl.java,v 1.4 2009/04/01 19:11:11 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -28,7 +28,6 @@ import com.sun.faban.common.RegistryLocator;
 import com.sun.faban.driver.ConfigurationException;
 import com.sun.faban.driver.FatalException;
 import com.sun.faban.driver.RunControl;
-import com.sun.faban.driver.util.PlotServer;
 import com.sun.faban.driver.util.Timer;
 
 import java.io.*;
@@ -38,6 +37,8 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
@@ -147,6 +148,8 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
     protected MasterState state = MasterState.CONFIGURING;
 
     protected java.util.Timer scheduler;
+
+    StatsWriter statsWriter;
 
     /**
      * Creates and exports a new Master
@@ -576,12 +579,15 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
      * all the agents to start.
      */
     private void executeRun() throws Exception {
-        StatsWriter sw = null;
 
         // Now wait for all threads to start if it is parallel.
         if (runInfo.parallelAgentThreadStart) {
 			waitForThreadStart();
 		}
+        
+        // Start thread to dump stats for charting
+        if (runInfo.runtimeStatsEnabled)
+            statsWriter = new StatsWriter();
 
         // Leave plenty of time to notify all agents of the start time.
         setStartTime(estimateCommsTime() + timer.getTime());
@@ -611,9 +617,6 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         	logger.log(Level.FINE, ie.getMessage(), ie);
         }
         // At this time each agent will start the run automatically.
-
-        // Start thread to dump stats for charting
-        sw = new StatsWriter();
 
         TimerTask killAtEnd = null;
         final AtomicBoolean joining = new AtomicBoolean(false);
@@ -725,7 +728,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         generateReports(resultsList);
 
         // Tell StatsWriter to quit
-        sw.quit();
+        statsWriter.quit();
     }
 
     private Map<String, Metrics> getDriverMetrics(int driverType) {
@@ -740,7 +743,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
                 logger.info("Gathering " +
                         benchDef.drivers[driverType].name + "Stats ...");
                 for (int i = 0; i < refs.length; i++) {
-					results[i] = (Metrics) refs[i].getResults();
+					results[i] = refs[i].getResults();
 				}
 
                 // Add the results on a per-host basis.
@@ -939,6 +942,8 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         return buffer;
     }
 
+
+
     /**
      * Aggregates detail results into a single buffer.
      * @param results The per-driver metrics
@@ -967,170 +972,121 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         return buffer;
     }
 
+    public void updateMetrics(RuntimeMetrics m) {
+        if (statsWriter == null) {
+            logger.severe("Runtime stats disabled, yet agent is trying to " +
+                          "update runtime metrics. Please log this as a bug.");
+            return;
+        }
+        try {
+            statsWriter.queue.put(m);
+        } catch (InterruptedException e) {
+            logger.log(Level.WARNING,
+                    "Interrupted queueing runtime stats.", e);
+        }
+    }
+
     private class StatsWriter extends Thread {
 
-        private int driverTypes = benchDef.drivers.length;
+        boolean terminated = false;
+        LinkedBlockingQueue<RuntimeMetrics> queue =
+                new LinkedBlockingQueue<RuntimeMetrics>();
 
-        PlotServer[] plotServers = new PlotServer[driverTypes];
-        Metrics[][] currentResults = new Metrics[driverTypes][];
-        
-        boolean started = false;
-        boolean endFlag = false;
-        long dumpInterval;
-        int dumpSecs;
-
-
-        private int prevTxCnt[] = new int[driverTypes];
-        private double avgTps[] = new double[driverTypes];
-        private int elapsed = 0;
-
-
-
-        /**
-         * Construct a {@link StatsWriter}.
-         */
-        public StatsWriter() {
-            if (!runInfo.runtimeStatsEnabled) {
-				return;
-			}
-
-            for (int driverId = 0; driverId < driverTypes; driverId ++) {
-                if (runInfo.driverConfigs[driverId].numAgents <= 0) {
-					continue;
-				}
-                String dumpResource =
-                        runInfo.driverConfigs[driverId].runtimeStatsTarget;
-                if (dumpResource == null) {
-					continue;
-				}
-                if (!started) {
-                    logger.info("Starting StatsWriter ...");
-                    started = true;
-                }
-
-                try {
-                    plotServers[driverId] = new PlotServer(2, dumpResource);
-                } catch (IOException e) {
-                    logger.severe(e.getMessage());
-                    logger.throwing(className, "StatsWriter.<init>", e);
-                }
-            }
-
-            dumpInterval = runInfo.runtimeStatsInterval * 1000;
-            // Make millis so we do not
-            // have to re-calculate.
-
+        private StatsWriter() {
+            setName("StatsWriter");
+            setDaemon(true);
             start();
         }
 
-        /**
-         * @see java.lang.Thread#run()
-         */
         @Override
-		public void run() {
-
-            long baseTime = System.currentTimeMillis();
-
-            // Loop, sleeping for dumpInterval and then dump stats
-            while (! endFlag) {
-                baseTime += dumpInterval;
-                for (;;) {
-					try {
-                        // Adjust for time spent in other ops.
-                        long sleepTime = baseTime -
-                                System.currentTimeMillis();
-
-                        // Only sleep the remaining time.
-                        if (sleepTime > 0) {
-							Thread.sleep(sleepTime);
-						}
-
-                        // Break loop when sleep complete
-                        // or no time left to sleep.
-                        break;
-                    } catch (InterruptedException ie) {
-                        // If interrupted, just loop
-                        // back and sleep the remaining time.
-                    }
-				}
-
+        public void run() {
+            int[] metricsCount = new int[agentRefs.length];
+            RuntimeMetrics[] previous = new RuntimeMetrics[agentRefs.length];
+            RuntimeMetrics[] current = new RuntimeMetrics[agentRefs.length];
+            while (!terminated) {
                 try {
-                    // The time range for the next output is between
-                    // elapsed and newElapsed.
-                    int newElapsed = elapsed + dumpSecs;
-                    for (int driverId = 0; driverId < driverTypes; driverId++) {
-
-                        // runtimeStatsTarget for that driver will be null if
-                        // a. The numAgents for the driver is 0 or less
-                        // b. The runtimeStatsTarget property for the driver is null
-                        if (plotServers[driverId] == null) {
-							continue;
-						}
-                        currentResults[driverId] = new Metrics[
-                                runInfo.driverConfigs[driverId].numAgents];
-                        for (int i = 0; i < agentRefs[driverId].length; i++) {
-							currentResults[driverId][i] = (Metrics)
-                                    (agentRefs[driverId][i].
-                                    getResults());
-						}
-                        dumpStats(driverId, currentResults[driverId]);
+                    RuntimeMetrics m = queue.poll(
+                            runInfo.runtimeStatsInterval + 1, TimeUnit.SECONDS);
+                    if (m == null) {
+                        continue;
                     }
-                    elapsed = newElapsed;
-                } catch (RemoteException re) {
-                    logger.warning("Master: RemoteException got " + re);
-                    logger.throwing(className, "run", re);
+                    int type = m.driverType;
+                    if (current[type] == null) {
+                        current[type] = m;
+                        if (++metricsCount[type] >=
+                                runInfo.driverConfigs[type].numAgents) {
+                            dumpStats(type, previous, current);
+                            previous[type] = current[type];
+                            current[type] = null;
+                            metricsCount[type] = 0;
+                        }
+                    } else {
+                        if (current[type].sequence == m.sequence) {
+                            current[type].add(m);
+                            if (++metricsCount[type] >=
+                                    runInfo.driverConfigs[type].numAgents) {
+                                dumpStats(type, previous, current);
+                                previous[type] = current[type];
+                                current[type] = null;
+                                metricsCount[type] = 0;
+                            }
+                        } else if (current[type].sequence < m.sequence) {
+                            logger.warning("Missing " + (runInfo.driverConfigs[
+                                    type].numAgents - metricsCount[type]) +
+                                    " runtime stats from " + benchDef.drivers[
+                                    type].name + ". Ignoring the rest.");
+                            dumpStats(type, previous, current);
+                            previous[type] = current[type];
+                            current[type] = m;
+                            metricsCount[type] = 1;
+                        } else {
+                            logger.warning("Received out-of-sequence runtime " +
+                                    "stats. Current: " +
+                                    current[type].sequence + ", received: " +
+                                    m.sequence + ". Ignoring.");
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    logger.log(Level.FINER, "Interrupted waiting for runtime " +
+                            "metrics. Stats writer terminating!", e);
                 }
             }
         }
 
-        void quit() {
-            if (started) {
-                logger.info("Quitting StatsWriter...");
-                endFlag = true;
+        void dumpStats(int type, RuntimeMetrics[] previous,
+                                 RuntimeMetrics[] current) {
+            // Purchase\Manage\Browse (TxCnt=200\200\400) 90% Resp=0.5\0.6\0.6
+            // ^MMfg (TxCnt=200) 90% Resp=2.50
+            if (previous[type] == null)
+                return;
+
+            double[][] s = current[type].getResults(runInfo, previous[type]);
+            StringBuilder b = new StringBuilder();
+            Formatter formatter = new Formatter(b);
+
+            formatter.format("%.02f", current[type].timestamp / 1000d);
+            b.append("s - ").append(benchDef.drivers[type].name).append(": ");
+            b.append(benchDef.drivers[type].operations[0].name);
+            for (int j = 1; j < benchDef.drivers[type].operations.length; j++) {
+                b.append('/');
+                b.append(benchDef.drivers[type].operations[j].name);
             }
+
+            for (int i = 0; i < s.length; i++) {
+                b.append(' ').append(RuntimeMetrics.LABELS[i]).append('=');
+                formatter.format("%.03f", s[i][0]);
+                for (int j = 1; j < s[i].length; j++) {
+                    b.append('/');
+                    formatter.format("%.03f", s[i][j]);
+                }
+            }
+            
+            logger.info(b.toString());
         }
 
-        /**
-         * This method is called by the Master every time it wants to dump
-         * the thruput data out to files
-         * @param driverId The driver id to dump the stats
-         * @param agentStats The stats to dump
-         */
-        void dumpStats(int driverId, Metrics[] agentStats) {
-            double[] plotData = new double[2];
-            // plotData[0] is the ops/sec
-            // plotData[1] is the avg ops/sec
-
-            int txCnt = 0;
-            int rampUp = runInfo.rampUp; // The rampup in secs
-
-            // Get the aggregate tx
-            for (int i = 0; i < agentStats.length; i++) {
-				for (int j = 0; j < agentStats[i].txCntStdy.length; j++) {
-					txCnt += agentStats[i].txCntStdy[j];
-				}
-			}
-
-            // The immediate tps;
-            plotData[0] = (double) (txCnt - prevTxCnt[driverId]) / dumpSecs;
-
-            // Calculate the new average tps
-            if (elapsed > rampUp) {
-				plotData[1] = (double)txCnt / (elapsed - rampUp);
-			}
-
-            try {
-                plotServers[driverId].plot(plotData);
-            } catch (IOException e) {
-                logger.throwing(className, "dumpStats", e);
-                // The plot server implicitly manages connections and
-                // removes dropped connections. We don't have to worry here.
-                // Just log what happened is enough.
-            }
-
-            // Adjust the values to reflect new values.
-            prevTxCnt[driverId] = txCnt;
-            avgTps[driverId] = plotData[1];
+        void quit() {
+            terminated = true;
+            interrupt();
         }
     }
 
@@ -1197,8 +1153,8 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         int time = 100 * agentCount;
 
         // Minimum of 2 secs.
-        if (time < 2000) {
-			time = 2000;
+        if (time < 3000) {
+			time = 3000;
 		}
 
         return time;

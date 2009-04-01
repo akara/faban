@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Master.java,v 1.1 2008/09/10 18:25:54 akara Exp $
+ * $Id: Master.java,v 1.2 2009/04/01 19:11:11 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -46,6 +46,14 @@ public interface Master extends Remote {
      * @throws RemoteException A network error occurred.
      */
     void abortRun() throws RemoteException;
+
+    /**
+     * Updates the master with the latest runtime metrics so the
+     * master can dump out the stats accordingly.
+     * @param m The runtime metrics to update
+     * @throws java.rmi.RemoteException A network error occurred.
+     */
+    void updateMetrics(RuntimeMetrics m) throws RemoteException;
 
     /**
      * Obtains the current state of the master.

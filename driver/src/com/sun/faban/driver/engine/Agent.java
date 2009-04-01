@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Agent.java,v 1.2 2009/03/27 16:27:53 akara Exp $
+ * $Id: Agent.java,v 1.3 2009/04/01 19:11:10 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,7 +25,6 @@ package com.sun.faban.driver.engine;
 
 import com.sun.faban.driver.util.Timer;
 
-import java.io.Serializable;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
@@ -77,7 +76,7 @@ public interface Agent extends Remote {
 	 * @throws RemoteException 
 	 * @see com.sun.faban.driver.engine.Metrics
 	 */
-	public Serializable getResults() throws RemoteException;
+	public Metrics getResults() throws RemoteException;
 
     /**
      * Waits for all the agentImpl's threads to terminate.
@@ -99,6 +98,4 @@ public interface Agent extends Remote {
      * @throws RemoteException 
      */
     public void terminate() throws RemoteException;
-
-
 }

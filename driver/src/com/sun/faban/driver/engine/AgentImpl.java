@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentImpl.java,v 1.4 2009/03/27 16:27:54 akara Exp $
+ * $Id: AgentImpl.java,v 1.5 2009/04/01 19:11:11 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -28,7 +28,6 @@ import com.sun.faban.common.Utilities;
 import com.sun.faban.driver.util.Timer;
 
 import java.io.File;
-import java.io.Serializable;
 import java.net.InetAddress;
 import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
@@ -75,6 +74,7 @@ public class AgentImpl extends UnicastRemoteObject
     CountDownLatch preRunLatch;
     CountDownLatch postRunLatch;
     private boolean runAborted = false;
+    StatsCollector statsCollector;
 
     public int timeToRunFor = 1;
     public int runningThreads = 0;
@@ -356,12 +356,15 @@ public class AgentImpl extends UnicastRemoteObject
         startTime = timer.toAbsNanos(time);
         runInfo.start = timer.toAbsMillis(time);
         timeSetLatch.countDown();
+        if (runInfo.runtimeStatsEnabled) {
+            statsCollector = new StatsCollector();
+        }
 
         // After we know the start time, we calibrate
         // the timer during the rampup.
         timer.calibrate(displayName, time + runInfo.rampUp * 1000000000l);
     }
-
+    
     /**
      * This method kills off the current run.
      * It terminates all threads.
@@ -380,6 +383,8 @@ public class AgentImpl extends UnicastRemoteObject
 			}
 		}
         // cleanup
+        if (statsCollector != null)
+            statsCollector.cancel();
         results = null;
     }
 
@@ -466,6 +471,8 @@ public class AgentImpl extends UnicastRemoteObject
 			logger.log(Level.WARNING, displayName + ": " + terminationCount +
                            " threads forcefully terminated.", t);
 		}
+        if (statsCollector != null)
+            statsCollector.cancel();
     }
 
     /**
@@ -475,7 +482,7 @@ public class AgentImpl extends UnicastRemoteObject
      * thread's getAggregateResult method.
      * @return results
      */
-    public Serializable getResults() {
+    public Metrics getResults() {
         Metrics[] results = new Metrics[numThreads];
         for (int i = 0; i < numThreads; i++) {
             results[i] = agentThreads[i].getResult();
@@ -516,6 +523,8 @@ public class AgentImpl extends UnicastRemoteObject
             	logger.log(Level.FINE, e.getMessage(), e);
             }
         }
+        if (statsCollector != null)
+            statsCollector.cancel();
         master = null;
     }
 
@@ -524,6 +533,8 @@ public class AgentImpl extends UnicastRemoteObject
      */
     public void unreferenced() {
         logger.warning(displayName + ": unreferenced() called!");
+        if (statsCollector != null)
+            statsCollector.cancel();
         // Seems like there is a bug in JDK1.5 and unreferenced is called
         // sporadically. So it is better we do not really kill it.
         /*
@@ -560,11 +571,46 @@ public class AgentImpl extends UnicastRemoteObject
         }
     }
 
-    /*
-    static class ContextFactory implements TimeRecorderFactory {
-        public TimeRecorder getTimeRecorder() {
-            return DriverContext.getContext();
+    private class StatsCollector extends Thread {
+
+        long interval = runInfo.runtimeStatsInterval * 1000000000l;
+        RuntimeMetrics rtm = new RuntimeMetrics();
+        boolean terminated = false;
+
+        StatsCollector() {
+            setName("StatsCollector");
+            setDaemon(true);
+            start();
+        }
+
+        @Override
+        public void run() {
+            while (!terminated) {
+                try {
+                    timer.wakeupAt(startTime + rtm.sequence * interval);
+                    for (int i = 0; i < agentThreads.length; i++) {
+                        rtm.add(agentThreads[i].metrics);
+                    }
+                    try {
+                        rtm.timestamp = (int) ((System.nanoTime() - startTime) /
+                                1000000l);
+                        master.updateMetrics(rtm);
+                    } catch (RemoteException e) {
+                        logger.log(Level.SEVERE, "Communication error " +
+                                "sending runtime metrics to master", e);
+                    }
+                    rtm.reset();
+                    ++rtm.sequence;
+                } catch (RuntimeException e) {
+                    // When wakeupAt gets interrupted, just do nothing. Go back
+                    // and check whether the statscollector is terminated.
+                }
+            }
+        }
+
+        void cancel() {
+            terminated = true;
+            interrupt();
         }
     }
-    */
 }
