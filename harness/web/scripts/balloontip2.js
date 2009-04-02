@@ -1,5 +1,5 @@
 /***********************************************
-* Cool DHTML tooltip script II- © Dynamic Drive DHTML code library (www.dynamicdrive.com)
+* Cool DHTML tooltip script II- ?? Dynamic Drive DHTML code library (www.dynamicdrive.com)
 * This notice MUST stay intact for legal use
 * Visit Dynamic Drive at http://www.dynamicdrive.com/ for full source code
 ***********************************************/
@@ -11,7 +11,7 @@ var offsetdivfrompointerX=10 //Customize x offset of tooltip DIV relative to poi
 var offsetdivfrompointerY=14 //Customize y offset of tooltip DIV relative to pointer image. Tip: Set it to (height_of_pointer_image-1).
 
 document.write('<div id="dhtmltooltip"></div>') //write out tooltip DIV
-document.write('<img id="dhtmlpointer" src="img/arrow2.gif">') //write out pointer image
+document.write('<img id="dhtmlpointer" src="/img/arrow2.gif">') //write out pointer image
 
 var ie=document.all
 var ns6=document.getElementById && !document.all
@@ -30,6 +30,16 @@ if (ns6||ie){
 if (typeof thewidth!="undefined") tipobj.style.width=thewidth+"px"
 if (typeof thecolor!="undefined" && thecolor!="") tipobj.style.backgroundColor=thecolor
 tipobj.innerHTML=document.getElementById(theelementid).innerHTML
+enabletip=true
+return false
+}
+}
+
+function showtip(theelementcontent, thewidth, thecolor){
+if (ns6||ie){
+if (typeof thewidth!="undefined") tipobj.style.width=thewidth+"px"
+if (typeof thecolor!="undefined" && thecolor!="") tipobj.style.backgroundColor=thecolor
+tipobj.innerHTML=theelementcontent
 enabletip=true
 return false
 }

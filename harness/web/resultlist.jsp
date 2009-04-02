@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultlist.jsp,v 1.18 2009/03/17 22:45:46 sheetalpatil Exp $
+ * $Id: resultlist.jsp,v 1.19 2009/04/02 22:07:32 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -71,7 +71,9 @@
         <title>Benchmark Results [<%= Config.FABAN_HOST %>]</title>
         <link rel="icon" type="image/gif" href="/img/faban.gif"/>
         <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="<%= feedURL %>"/>
-
+        <link rel="stylesheet" type="text/css" href="/css/style.css" />
+        <link rel="stylesheet" type="text/css" href="/css/balloontip2.css" />
+        <script type="text/javascript" src="/scripts/balloontip2.js"></script>
     </head>
     <body>
         <div style="text-align: right;"><a
@@ -105,21 +107,30 @@
               <tr>
                   <th>&nbsp;</th>
     <%      for (int i = 0; i < resultTable.columns(); i++) { %>
-                  <th><%= resultTable.getHeader(i) %></th>
+                  <th style="font-size: 10px; font-family: 'Times New Roman',Times,serif;" class="header"><%= resultTable.getHeader(i) %></th>
     <%      } %>
               </tr>
     <%
             for(int i = 0; i < rows; i++) {
                 Comparable[] row = resultTable.getRow(i);
     %>
-            <tr>
+            <tr <%if(i % 2 == 0){%>class="even"<%}else{%>class="odd"<% } %>>
                 <td><input type="checkbox" name="select" value="<%= row[0] %>"></input></td>
     <%          for (int j = 0; j < row.length; j++) { 
                     if (row[j] == null)
-                        row[j] = "null";
+                        row[j] = " ";
+                    row[j] = row[j].toString().trim();
+                    String mouseover = "onmouseover=\"showtip('" + row[j] + "','"+row[j].toString().length()*8+"')\" onmouseout=\"hideddrivetip()\"";
+                    if(j==2 || j==5 || row[j].toString().equals("&nbsp;") || row[j].toString().equals("&nbsp")){
     %>
-                <td><%= row[j] %></td>
-    <%          } %>
+                        <td style="font-size: 10px; font-family: 'Times New Roman',Times,serif;"><%= row[j] %></td>
+                    <%}else{%>
+                         <% if(row[j].toString().length() > 15)
+                               row[j] = row[j].toString().substring(0, 14) + ".....";
+                         %>
+                         <td style="font-size: 10px; font-family: 'Times New Roman',Times,serif;" <%= mouseover%>><%= row[j] %></td>
+    <%                }
+                } %>
             </tr>
     <%      } %>
      </tbody>
