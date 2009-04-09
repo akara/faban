@@ -19,7 +19,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: build.xml,v 1.23 2009/03/20 18:34:12 akara Exp $
+* $Id: build.xml,v 1.24 2009/04/09 22:15:30 sheetalpatil Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 -->
@@ -81,6 +81,14 @@
             overwrite="true" preservelastmodified="true"
             includeEmptyDirs="true" verbose="true">
             <fileset dir="${workspace.dir}/harness/config"/>
+        </copy>
+
+        <mkdir dir="resources"/>
+        <copy todir="resources"
+            overwrite="true" preservelastmodified="true"
+            includeEmptyDirs="true" verbose="true">
+            <fileset dir="${workspace.dir}/harness/resources"
+                     includes="config-template.xhtml"/>
         </copy>
 
         <copy file="${workspace.dir}/common/${jar.output}/fabancommon.jar"
@@ -244,6 +252,7 @@
         <exclude name="benchmarks/**"/>
         <exclude name="master/**"/>
         <exclude name="samples/**"/>
+        <exclude name="resources/**"/>
         <exclude name="config/harness.xml"/>
         <exclude name="config/runq/**"/>
         <exclude name="config/profiles/**"/>
@@ -368,6 +377,7 @@
                 <include name="analysis/**"/>
                 <include name="logs/?*/**"/>
                 <include name="logs/?*"/>
+                <include name="resources/?*"/>
                 <include name="config/sequence"/>
                 <include name="config/runq/?*/**"/>
                 <include name="config/runq/?*"/>
@@ -392,6 +402,7 @@
                 <include name="ant/**"/>
                 <include name="bin/**"/>
                 <include name="config/**"/>
+                <include name="resources/**"/>
                 <include name="lib/**"/>
                 <exclude name="lib/**/pkglists/**"/>
                 <include name="samples/**"/>
