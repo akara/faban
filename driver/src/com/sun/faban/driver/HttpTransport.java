@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: HttpTransport.java,v 1.13 2008/10/03 16:12:51 akara Exp $
+ * $Id: HttpTransport.java,v 1.14 2009/04/21 15:38:10 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -70,12 +70,10 @@ public class HttpTransport {
         URL.setURLStreamHandlerFactory(new URLStreamHandlerFactory());
         java.net.CookieHandler.setDefault(new CookieHandler());
 	postHeadersForm = new HashMap<String, String>();
-	postHeadersForm.put("Content-type", "application/x-www-form-urlencoded");
+	postHeadersForm.put("Content-Type", "application/x-www-form-urlencoded");
 	postHeadersBinary = new HashMap<String, String>();
-	postHeadersBinary.put("Content-type", "application/octet-stream");
+	postHeadersBinary.put("Content-Type", "application/octet-stream");
     }
-
-    private static final Set<String> TEXT_MIMETYPES = getTextMimetypes();  
 
     /** The main appendable buffer for the total results. */
     private StringBuilder charBuffer;
@@ -106,17 +104,14 @@ public class HttpTransport {
 
     private boolean followRedirects = false;
 
-    private static Set<String> getTextMimetypes() {
-        HashSet<String> texttypes = new HashSet<String>();
-        texttypes.add("application/json");
-        // Add other text types as necessary
-        return Collections.unmodifiableSet(texttypes);
-    }
+    private HashSet<String> texttypes;
 
     /**
      * Constructs a new HttpTransport object.
      */
     public HttpTransport() {
+    	texttypes = new HashSet<String>();
+        texttypes.add("application/json");
         cookieHandler = ThreadCookieHandler.newInstance();
     }
 
@@ -128,6 +123,16 @@ public class HttpTransport {
      */
     public void setFollowRedirects(boolean follow) {
         followRedirects = follow;
+    }
+    
+    /**
+     * Add a MIME type to the list of text types. If the response is of this
+     * type the fetchULR() methods will return the response data.
+     * 
+     * @param texttype The content type of a HTTP response that contains text.
+     */
+    public void addTextType(String texttype) {
+    	texttypes.add(texttype);
     }
 
     /**
@@ -241,12 +246,7 @@ public class HttpTransport {
             throws IOException {
         HttpURLConnection c = getConnection(url);
         if (headers != null) {
-            String type = headers.get("Content-type");
-            if (type == null)
-                headers.put("Content-type", "application/x-www-form-urlencoded");
-            else if (!type.equals("application/x-www-form-urlencoded"))
-                throw new IOException("Unexepcted header type " + type +
-                        " for URL encoded POST request");
+            checkContentType(headers);
         } else headers = postHeadersForm;
         setHeaders(c, headers);
         postRequest(c, postRequest.getBytes("UTF-8"));
@@ -269,12 +269,7 @@ public class HttpTransport {
             throws IOException {
         HttpURLConnection c = getConnection(url);
         if (headers != null) {
-            String type = headers.get("Content-type");
-            if (type == null)
-                headers.put("Content-type", "application/octet-stream");
-            else if (!type.equals("application/octet-stream"))
-                throw new IOException("Unexepcted header type " + type +
-                        " for URL binary POST request");
+        	checkContentType(headers);
         } else headers = postHeadersBinary;
         setHeaders(c, headers);
         postRequest(c, postRequest);
@@ -370,13 +365,17 @@ public class HttpTransport {
 
     /**
      * Reads data from the URL and returns the data read. Note that this
-     * method only works correctly with text data as it does the byte-to-char
-     * conversion. This will provide incorrect binary data.
+     * method only works with text data as it does the byte-to-char
+     * conversion. This method will return null for responses with binary
+     * MIME types. The addTextType(String) method is used to register
+     * additional MIME types as text types.
      *
      * @param url The URL to read from
      * @param headers The request headers
      * @return The StringBuilder buffer containing the resulting document
      * @throws IOException
+     * @see #addTextType(String)
+     * @see #getContentSize()
      */
     public StringBuilder fetchURL(URL url, Map<String, String> headers)
             throws IOException {
@@ -387,12 +386,17 @@ public class HttpTransport {
 
     /**
      * Reads data from the URL and returns the data read. Note that this
-     * method only works correctly with text data as it does the byte-to-char
-     * conversion. This will provide incorrect binary data.
+     * method only works with text data as it does the byte-to-char
+     * conversion. This method will return null for responses with binary
+     * MIME types. The addTextType(String) method is used to register
+     * additional MIME types as text types. Use getContentSize()
+     * to obtain the bytes of binary data read.
      *
      * @param url The URL to read from
      * @return The StringBuilder buffer containing the resulting document
      * @throws IOException
+     * @see #addTextType(String)
+     * @see #getContentSize()
      */
     public StringBuilder fetchURL(URL url)
             throws IOException {
@@ -401,13 +405,18 @@ public class HttpTransport {
 
     /**
      * Reads data from the URL and returns the data read. Note that this
-     * method only works correctly with text data as it does the byte-to-char
-     * conversion. This will provide incorrect binary data.
+     * method only works with text data as it does the byte-to-char
+     * conversion. This method will return null for responses with binary
+     * MIME types. The addTextType(String) method is used to register
+     * additional MIME types as text types. Use getContentSize()
+     * to obtain the bytes of binary data read.
      *
      * @param url The URL to read from
      * @param headers The request headers
      * @return The StringBuilder buffer containing the resulting document
      * @throws IOException
+     * @see #addTextType(String)
+     * @see #getContentSize()
      */
     public StringBuilder fetchURL(String url, Map<String, String> headers)
             throws IOException {
@@ -416,12 +425,17 @@ public class HttpTransport {
 
     /**
      * Reads data from the URL and returns the data read. Note that this
-     * method only works correctly with text data as it does the byte-to-char
-     * conversion. This will provide incorrect binary data.
+     * method only works with text data as it does the byte-to-char
+     * conversion. This method will return null for responses with binary
+     * MIME types. The addTextType(String) method is used to register
+     * additional MIME types as text types. Use getContentSize()
+     * to obtain the bytes of binary data read.
      *
      * @param url The URL to read from
      * @return The StringBuilder buffer containing the resulting document
      * @throws IOException
+     * @see #addTextType(String)
+     * @see #getContentSize()
      */
     public StringBuilder fetchURL(String url) throws IOException {
         return fetchURL(new URL(url));
@@ -429,14 +443,18 @@ public class HttpTransport {
 
     /**
      * Makes a POST request to the URL. Reads data back and returns the data
-     * read. Note that this method only works correctly with text data as it
-     * does the byte-to-char conversion. This will provide incorrect
-     * binary data.
+     * read. Note that this method only works with text data as it does the
+     * byte-to-char conversion. This method will return null for responses
+     * with binary MIME types. The addTextType(String) method is used to
+     * register additional MIME types as text types. Use getContentSize()
+     * to obtain the bytes of binary data read.
      *
      * @param url The URL to read from
      * @param postRequest The post request string
      * @return The StringBuilder buffer containing the resulting document
      * @throws IOException
+     * @see #addTextType(String)
+     * @see #getContentSize()
      */
     public StringBuilder fetchURL(String url, String postRequest)
             throws IOException {
@@ -445,15 +463,19 @@ public class HttpTransport {
 
     /**
      * Makes a POST request to the URL. Reads data back and returns the data
-     * read. Note that this method only works correctly with text data as it
-     * does the byte-to-char conversion. This will provide incorrect
-     * binary data.
+     * read. Note that this method only works with text data as it does the
+     * byte-to-char conversion. This method will return null for responses
+     * with binary MIME types. The addTextType(String) method is used to
+     * register additional MIME types as text types. Use getContentSize()
+     * to obtain the bytes of binary data read.
      *
      * @param url The URL to read from
      * @param postRequest The post request string
      * @param headers The request headers
      * @return The StringBuilder buffer containing the resulting document
      * @throws IOException
+     * @see #addTextType(String)
+     * @see #getContentSize()
      */
     public StringBuilder fetchURL(String url, String postRequest,
                                   Map<String, String> headers)
@@ -463,15 +485,19 @@ public class HttpTransport {
 
     /**
      * Makes a POST request to the URL. Reads data back and returns the data
-     * read. Note that this method only works correctly with text data as it
-     * does the byte-to-char conversion. This will provide incorrect
-     * binary data.
+     * read. Note that this method only works with text data as it does the
+     * byte-to-char conversion. This method will return null for responses
+     * with binary MIME types. The addTextType(String) method is used to
+     * register additional MIME types as text types. Use getContentSize()
+     * to obtain the bytes of binary data read.
      *
      * @param url The URL to read from
      * @param postRequest The post request string
      * @param headers The request headers
      * @return The StringBuilder buffer containing the resulting document
      * @throws IOException
+     * @see #addTextType(String)
+     * @see #getContentSize()
      */
     public StringBuilder fetchURL(URL url, String postRequest,
                                   Map<String, String> headers)
@@ -488,9 +514,6 @@ public class HttpTransport {
             String type = headers.get(postHeader);
             if (type == null)
                 headers.put(postHeader, postHeaderValue);
-            else if (!postHeaderValue.equals(type))
-                throw new IOException("Unexepected header type " + type +
-                        " for URL encoded POST request");
         }
         HttpURLConnection c = getConnection(url);
         setHeaders(c, headers);
@@ -500,14 +523,18 @@ public class HttpTransport {
 
     /**
      * Makes a POST request to the URL. Reads data back and returns the data
-     * read. Note that this method only works correctly with text data as it
-     * does the byte-to-char conversion. This will provide incorrect
-     * binary data.
+     * read. Note that this method only works with text data as it does the
+     * byte-to-char conversion. This method will return null for responses
+     * with binary MIME types. The addTextType(String) method is used to
+     * register additional MIME types as text types. Use getContentSize()
+     * to obtain the bytes of binary data read.
      *
      * @param url The URL to read from
      * @param postRequest The post request string
      * @return The StringBuilder buffer containing the resulting document
      * @throws IOException
+     * @see #addTextType(String)
+     * @see #getContentSize()
      */
     public StringBuilder fetchURL(URL url, String postRequest)
             throws IOException {
@@ -578,10 +605,13 @@ public class HttpTransport {
     /**
      * Fetches http response data from an already established connection.
      * If the response data is binary, null is returned. Use getContentSize()
-     * for the bytes read in this case.
+     * for the bytes read in this case. The addTextType(String) method is
+     * used to register additional MIME types as text types.
      * @param connection The connection to fetch from
      * @return The StringBuilder buffer containing the resulting document
      * @throws IOException
+     * @see #addTextType(String)
+     * @see #getContentSize()
      */
     public StringBuilder fetchResponse(HttpURLConnection connection)
             throws IOException {
@@ -603,7 +633,7 @@ public class HttpTransport {
             }
         }
         if (contentType != null && (contentType.startsWith("text/") ||
-                                    TEXT_MIMETYPES.contains(contentType))) {
+                                    texttypes.contains(contentType))) {
             InputStream is = connection.getInputStream();
             Reader reader = new InputStreamReader(is, encoding);
 
@@ -921,4 +951,12 @@ public class HttpTransport {
     public int getResponseCode() {
         return responseCode;
     }
+    
+	private void checkContentType(Map<String, String> headers) throws IOException {
+		String type = headers.get("Content-type");
+		if (type == null)
+			type = headers.get("Content-Type");
+		if (type == null)
+		    headers.put("Content-Type", "application/x-www-form-urlencoded");
+	}
 }
