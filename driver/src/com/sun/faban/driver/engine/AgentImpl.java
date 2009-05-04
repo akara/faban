@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentImpl.java,v 1.5 2009/04/01 19:11:11 akara Exp $
+ * $Id: AgentImpl.java,v 1.6 2009/05/04 19:19:16 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,6 +25,8 @@ package com.sun.faban.driver.engine;
 
 import com.sun.faban.common.RegistryLocator;
 import com.sun.faban.common.Utilities;
+import com.sun.faban.driver.util.PairwiseAggregator;
+import com.sun.faban.driver.util.PairwiseAggregator.Provider;
 import com.sun.faban.driver.util.Timer;
 
 import java.io.File;
@@ -33,6 +35,7 @@ import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.rmi.server.Unreferenced;
+import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -475,6 +478,25 @@ public class AgentImpl extends UnicastRemoteObject
             statsCollector.cancel();
     }
 
+    private class MetricsProvider implements
+            PairwiseAggregator.Provider<Metrics> {
+
+        public Metrics getMutableMetrics(int idx) {
+            return (Metrics) agentThreads[idx].getResult().clone();
+        }
+
+        public void add(Metrics instance, int idx) {
+            instance.add(agentThreads[idx].getResult());
+        }
+
+        public Class<Metrics> getComponentClass() {
+            return Metrics.class;
+        }
+
+        public void recycle(Metrics metrics) {
+        }
+    }
+
     /**
      * Report stats from a run
      * Each thread's result is obtained by calling that thread's getResult()
@@ -483,15 +505,9 @@ public class AgentImpl extends UnicastRemoteObject
      * @return results
      */
     public Metrics getResults() {
-        Metrics[] results = new Metrics[numThreads];
-        for (int i = 0; i < numThreads; i++) {
-            results[i] = agentThreads[i].getResult();
-        }
-        Metrics agentStats = (Metrics) results[0].clone();
-        for (int index = 1; index < results.length; index++) {
-			agentStats.add(results[index]);
-		}
-        return agentStats;
+        PairwiseAggregator<Metrics> aggregator = new
+                PairwiseAggregator<Metrics>(numThreads, new MetricsProvider());
+        return aggregator.collectStats();
     }
 
     /**
@@ -571,10 +587,44 @@ public class AgentImpl extends UnicastRemoteObject
         }
     }
 
+    private class RuntimeMetricsProvider
+            implements PairwiseAggregator.Provider<RuntimeMetrics> {
+
+        public ArrayList<RuntimeMetrics> pool = new ArrayList<RuntimeMetrics>();
+
+        public RuntimeMetrics getMutableMetrics(int idx) {
+
+            RuntimeMetrics rtm;
+            int size = pool.size();
+            if (size > 0) {
+                rtm = pool.remove(size - 1);
+            } else {
+                rtm = new RuntimeMetrics();
+            }
+            rtm.copy(agentThreads[idx].metrics);
+            return rtm;
+        }
+
+        public void add(RuntimeMetrics instance, int idx) {
+            instance.add(agentThreads[idx].metrics);
+        }
+
+        public Class getComponentClass() {
+            return RuntimeMetrics.class;
+        }
+
+        public void recycle(RuntimeMetrics r) {
+            pool.add(r);
+        }
+    }
+
+
     private class StatsCollector extends Thread {
 
         long interval = runInfo.runtimeStatsInterval * 1000000000l;
-        RuntimeMetrics rtm = new RuntimeMetrics();
+        PairwiseAggregator<RuntimeMetrics> aggregator =
+                new PairwiseAggregator<RuntimeMetrics>(
+                agentThreads.length, new RuntimeMetricsProvider());
         boolean terminated = false;
 
         StatsCollector() {
@@ -585,25 +635,31 @@ public class AgentImpl extends UnicastRemoteObject
 
         @Override
         public void run() {
+            int sequence = 0;
+            long duration = (runInfo.rampUp + runInfo.stdyState +
+                                runInfo.rampDown) * 1000000000l;
+            RuntimeMetrics rtm = null;
             while (!terminated) {
+                long wakeupTime = startTime + sequence * interval;
+                if (wakeupTime > startTime + duration)
+                    break;
                 try {
-                    timer.wakeupAt(startTime + rtm.sequence * interval);
-                    for (int i = 0; i < agentThreads.length; i++) {
-                        rtm.add(agentThreads[i].metrics);
-                    }
+                    timer.wakeupAt(wakeupTime);
+                    rtm = aggregator.collectStats();
+                    if (rtm == null)
+                        logger.warning("Null RuntimeStats");
                     try {
                         rtm.timestamp = (int) ((System.nanoTime() - startTime) /
                                 1000000l);
+                        rtm.sequence = sequence;
                         master.updateMetrics(rtm);
                     } catch (RemoteException e) {
                         logger.log(Level.SEVERE, "Communication error " +
                                 "sending runtime metrics to master", e);
                     }
-                    rtm.reset();
-                    ++rtm.sequence;
-                } catch (RuntimeException e) {
-                    // When wakeupAt gets interrupted, just do nothing. Go back
-                    // and check whether the statscollector is terminated.
+                    ++sequence;
+                } catch (Exception e) {
+                    logger.log(Level.WARNING, e.getMessage(), e);
                 }
             }
         }

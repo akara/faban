@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.5 2009/04/01 19:11:10 akara Exp $
+ * $Id: Metrics.java,v 1.6 2009/05/04 19:19:16 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -28,6 +28,7 @@ import com.sun.faban.driver.CustomMetrics;
 import com.sun.faban.driver.CycleType;
 import com.sun.faban.driver.RunControl;
 
+import com.sun.faban.driver.util.PairwiseAggregator;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Formatter;
@@ -41,7 +42,8 @@ import java.util.logging.Level;
  *
  * @author Akara Sucharitakul
  */
-public class Metrics implements Serializable, Cloneable {
+public class Metrics implements Serializable, Cloneable,
+        PairwiseAggregator.Aggregable<Metrics> {
 
 	private static final long serialVersionUID = 32009l;
 
@@ -124,15 +126,26 @@ public class Metrics implements Serializable, Cloneable {
 
     /**
      * Sum of response times during steady state.
-     * This is used for final reporting and in-flight reporting of averages.
+     * This is used for final reporting and runtime reporting of averages.
      */
     protected double[] respSumStdy;
 
     /**
      * Sum of response times total.
-     * This is used for in-flight reporting only.
+     * This is used for runtime reporting only.
      */
     protected double[] respSumTotal;
+
+    /**
+     * Sum of high response times that fall into the overflow
+     * bucket. This is used for calculating the representative value
+     * for the overflow bucket to establish a reasonable standard deviation.
+     */
+    protected double[] hiRespSumStdy;
+
+    protected double[] sumSquaresStdy;
+
+    protected double[] sumSquaresTotal;
 
     /** Max. response time. */
     protected long[] respMax;
@@ -234,6 +247,9 @@ public class Metrics implements Serializable, Cloneable {
         delayCntStdy = new int[txTypes];
         respSumStdy = new double[txTypes];
         respSumTotal = new double[txTypes];
+        hiRespSumStdy = new double[txTypes];
+        sumSquaresStdy = new double[txTypes];
+        sumSquaresTotal = new double[txTypes];
         respMax = new long[txTypes];
         delaySum = new long[txTypes];
         delayMax = new long[txTypes];
@@ -276,7 +292,9 @@ public class Metrics implements Serializable, Cloneable {
         fineRespBucketSize = max90nanos / 200l;  // 20% of scale of 1000
         fineRespHistMax = fineRespBucketSize * FINE_RESPBUCKETS;
         coarseRespBucketSize = fineRespBucketSize * RESPBUCKET_SIZE_RATIO;
-        coarseRespHistMax = coarseRespBucketSize * COARSE_RESPBUCKETS +
+
+        // The last coarse response bucket is used for overflow.
+        coarseRespHistMax = coarseRespBucketSize * (COARSE_RESPBUCKETS - 1) +
                                                     fineRespHistMax;
 
         double delayHistMax = driverConfig.operations[0].
@@ -334,10 +352,14 @@ public class Metrics implements Serializable, Cloneable {
 
         txCntTotal[txType]++;
         respSumTotal[txType] += responseTime;
+        sumSquaresTotal[txType] = addSumSquare(sumSquaresTotal[txType], 
+                txCntTotal[txType], respSumTotal[txType], responseTime);
 
         if (!thread.inRamp) {
             txCntStdy[txType]++;
             respSumStdy[txType] += responseTime;
+            sumSquaresStdy[txType] = addSumSquare(sumSquaresStdy[txType],
+                txCntStdy[txType], respSumStdy[txType], responseTime);
 
             // post in histogram of response times
             int bucket;
@@ -348,6 +370,7 @@ public class Metrics implements Serializable, Cloneable {
                         coarseRespBucketSize) + FINE_RESPBUCKETS);
             } else {
                 bucket = RESPBUCKETS - 1;
+                hiRespSumStdy[txType] += responseTime;
             }
             respHist[txType][bucket]++;
 
@@ -487,6 +510,14 @@ public class Metrics implements Serializable, Cloneable {
         cycleSum += s.cycleSum;
         // Standard statistics
 		for (int i = 0; i < txTypes; i++) {
+            // Add the sum squares before adding the count and response sum.
+            // The values of count and sum have to be unchanged at this point.
+            sumSquaresStdy[i] = addSumSquare(
+                    sumSquaresStdy[i], txCntStdy[i], respSumStdy[i],
+                    s.sumSquaresStdy[i], s.txCntStdy[i], s.respSumStdy[i]);
+            sumSquaresTotal[i] = addSumSquare(
+                    sumSquaresTotal[i], txCntTotal[i], respSumTotal[i],
+                    s.sumSquaresTotal[i], s.txCntTotal[i], s.respSumTotal[i]);
 			txCntStdy[i] += s.txCntStdy[i];
             txCntTotal[i] += s.txCntTotal[i];
             errCntStdy[i] += s.errCntStdy[i];
@@ -494,6 +525,7 @@ public class Metrics implements Serializable, Cloneable {
             delayCntStdy[i] += s.delayCntStdy[i];
 			respSumStdy[i] += s.respSumStdy[i];
             respSumTotal[i] += s.respSumTotal[i];
+            hiRespSumStdy[i] += s.hiRespSumStdy[i];
 			delaySum[i] += s.delaySum[i];
 			targetedDelaySum[i] += s.targetedDelaySum[i];
 			if (s.respMax[i] > respMax[i]) {
@@ -537,6 +569,123 @@ public class Metrics implements Serializable, Cloneable {
 	}
 
     /**
+     * Calculate the sum of squares based on <b><i>Youngs, E.A., and Cramer,
+     * E.M. Some results relevant to choice of sum and sum-of-product
+     * algorithms. Technometrics 13(Aug. 1975), 458.</i></b>
+     * @param s The previous sum of squares
+     * @param n The current transaction count
+     * @param t The current total response time
+     * @param x The current response time
+     * @return The new sum of squares
+     */
+    static double addSumSquare(double s, int n, double t, double x) {
+        if (n > 1) {
+            double y = n * x - t;
+            s = s + y * y / (n * (n - 1));
+        }
+        return s;
+    }
+
+    /**
+     * Aggregates 2 sum of squares S1 and S2, each of these
+     * variances come from a sample set with N1 and N2 samples and sum
+     * of T1 and T2 respectively. This aggregation uses Chan's algorithm
+     * published in <a href=
+     * "ftp://reports.stanford.edu/pub/cstr/reports/cs/tr/79/773/CS-TR-79-773.pdf"
+     * >Updating Formulae and a Pairwise Algorithm for Computing Sample
+     * Variances</a> referenced by the Wikipedia article <a href=
+     * "http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance"
+     * >Algorithms for calculating variance</a>.
+     * @param s1 The sum of squares of the first sample set
+     * @param n1 The sample set size of the first sample set
+     * @param t1 The sum (total) of the first sample set
+     * @param s2 The sum of squares of the second sample set
+     * @param n2 The sample set size of the second sample set
+     * @param t2 The sum (total) of the second sample set
+     * @return The aggregated sum square of the sample sets
+     */
+    static double addSumSquare(double s1, int n1, double t1,
+                               double s2, int n2, double t2) {
+        
+        // We have to account for adding zero and one occurence, too.
+        double s;
+        if (n2 == 0) {
+            s = s1;
+        } else if (n1 == 0) {
+            s = s2;
+        } else if (n2 == 1) {
+            s = addSumSquare(s1, n1, t1, t2);
+        } else if (n1 == 1) {
+            s = addSumSquare(s2, n2, t2, t1);
+        } else {
+            s = (n2 / (double) n1) * t1 - t2;
+            s = s1 + s2 + (n1 / (double) (n2 * (n1 + n2))) * s * s;
+        }
+        if (Double.isNaN(s)) {
+            Logger.getLogger(Metrics.class.getName()).
+                    warning("addSumSquare(" + s1 + ", " + n1 + ", " + t1 +
+                    ", " + s2 + ", " + n2 + ", " + t2 + ") returns NaN");
+        }
+        return s;
+    }
+
+    /**
+     * Subtracts 2 sum of squares S and S1 to obtain S2. This will allow
+     * us to find the variance or standard deviation for response times
+     * for a time slot. This method is used for calculating the current
+     * standard deviation in the runtime stats. The results are estimates and
+     * may not be totally accurate. In most cases it is pretty accurate, though.
+     * We do our best to make it as good as it gets.
+     *
+     * @param s The sum square of the full sample
+     * @param n The sample set size of the full sample
+     * @param t The sum (total) of the full sample
+     * @param s1 The sum square of the subtractor
+     * @param n1 The set size of the subtractor
+     * @param t1 The sum (total) of the full sample
+     * @return The difference of the sum sum square
+     */
+    static double subtractSumSquare(double s, int n, double t,
+            double s1, int n1, double t1) {
+        Logger logger = Logger.getLogger(Metrics.class.getName());
+        double s2;
+        int n2 = n - n1;
+        if (n1 == 0) { // Base n was 0, s does not change.
+            s2 = s;
+        } else if (n2 == 0) { // No samples (ops), so no s
+            s2 = Double.NaN;
+        } else if (n2 == 1) { // 1 sample, s is 0
+            s2 = 0d;
+        } else if (s < s1) { // Shrinking s, unusual but can happen.
+            // Remember, we steal the data without syncing from the owning
+            // thread. So it is not always accurate. In this case we assume
+            // very little or no addition to s and therefore s2 can safely be 0.
+            // Remember this data is only an approximation anyway.
+            logger.finer("subtractSumSquare(" + s + ", " + n + ", " + t +
+                    ", " + s1 + ", " + n1 + ", " + t1 + ") s < s1");
+            s2 = 0d;
+        } else {
+            double t2 = t - t1;
+            s2 = (n2 / (double) n1) * t1 - t2;
+            s2 = s - s1 - (n1 / (double) (n2 * (n1 + n2))) * s2 * s2;
+            if (Double.isNaN(s2)) {  // This case should not happen.
+                logger.warning("subtractSumSquare(" + s + ", " + n + ", " + t +
+                        ", " + s1 + ", " + n1 + ", " + t1 + ") returns NaN");
+            } else if (s2 < 0d) { // This does happen. Again, the data we have
+                // may not be accurate. The diff between s and s1 are too small.
+                // When applying the adjustment factor the result turns out
+                // negative. In this case we can savely assume s2 is very small
+                // and set it to 0.
+                logger.finer("subtractSumSquare(" + s + ", " + n + ", " + t +
+                        ", " + s1 + ", " + n1 + ", " + t1 +
+                        ") returns negative");
+                s2 = 0d;
+            }
+        }
+        return s2;
+    }
+
+    /**
      * @see java.lang.Object#clone()
      */
     @Override
@@ -544,6 +693,8 @@ public class Metrics implements Serializable, Cloneable {
         Metrics clone = null;
         try {
             clone = (Metrics) super.clone();
+            clone.sumSquaresStdy = sumSquaresStdy.clone();
+            clone.sumSquaresTotal = sumSquaresTotal.clone();
             clone.txCntStdy = txCntStdy.clone();
             clone.txCntTotal = txCntTotal.clone();
             clone.errCntStdy = errCntStdy.clone();
@@ -551,6 +702,7 @@ public class Metrics implements Serializable, Cloneable {
             clone.delayCntStdy = delayCntStdy.clone();
             clone.respSumStdy = respSumStdy.clone();
             clone.respSumTotal = respSumTotal.clone();
+            clone.hiRespSumStdy = hiRespSumStdy.clone();
             clone.respMax = respMax.clone();
             clone.delaySum = delaySum.clone();
             clone.targetedDelaySum = targetedDelaySum.clone();
@@ -666,6 +818,13 @@ public class Metrics implements Serializable, Cloneable {
         int sumtx, cnt90, cnt99;
         RunInfo runInfo = RunInfo.getInstance();
         Formatter formatter = new Formatter(buffer);
+        double[] ckSD = null;
+
+        Logger logger = Logger.getLogger(Metrics.class.getName());
+        Level crosscheck = Level.FINE;
+        if (logger.isLoggable(crosscheck)) {
+            ckSD = new double[txTypes];
+        }
 
         BenchmarkDefinition.Driver driver;
         if (benchDef.configPrecedence) {
@@ -796,10 +955,18 @@ public class Metrics implements Serializable, Cloneable {
             if (txCntStdy[i] > 0) {
                 boolean pass90 = true;
                 space(16, buffer);
-                formatter.format("<avg>%5.3f</avg>\n",
-                        (respSumStdy[i]/txCntStdy[i]) / precision);
+                avg = (respSumStdy[i]/txCntStdy[i]) / precision;
+                formatter.format("<avg>%5.3f</avg>\n", avg);
                 space(16, buffer);
                 formatter.format("<max>%5.3f</max>\n", respMax[i] / precision);
+                space(16, buffer);
+                formatter.format("<sd>%5.3f</sd>\n",
+                        Math.sqrt(sumSquaresStdy[i]/txCntStdy[i]) / precision);
+
+                if (logger.isLoggable(crosscheck)) {
+                    ckSD[i] = estimateStdev(i, avg, precision);
+                }
+
                 sumtx = 0;
                 cnt90 = (int)(txCntStdy[i] * .90d);
                 int j = 0;
@@ -816,11 +983,17 @@ public class Metrics implements Serializable, Cloneable {
                 else if (j < RESPBUCKETS)
                     resp90 = (j - FINE_RESPBUCKETS) * coarseRespBucketSize +
                             fineRespHistMax;
-                else
-                    resp90 = coarseRespHistMax;
+                else // Report the overflow bucket.
+                     // Ensure no mistakes due to floating point errors.
+                    resp90 = 2 * coarseRespBucketSize + coarseRespHistMax;
 
                 space(16, buffer);
-                formatter.format("<p90th>%5.3f</p90th>\n", resp90 / precision);
+                if (resp90 > coarseRespHistMax + coarseRespBucketSize)
+                    formatter.format("<p90th>&gt; %5.3f</p90th>\n",
+                                     coarseRespHistMax / precision);
+                else
+                    formatter.format("<p90th>%5.3f</p90th>\n",
+                                     resp90 / precision);
                 if (resp90 > max90nanos) {
                     pass90 = false;
                     success = false;
@@ -845,15 +1018,22 @@ public class Metrics implements Serializable, Cloneable {
                 else if (j < RESPBUCKETS)
                     resp99 = (j - FINE_RESPBUCKETS) * coarseRespBucketSize +
                             fineRespHistMax;
-                else
-                    resp99 = coarseRespHistMax;
+                else // Report the overflow bucket
+                     // Ensure no mistakes due to floating point errors.
+                    resp99 = 2 * coarseRespBucketSize + coarseRespHistMax;
 
                 space(16, buffer);
-                formatter.format("<p99th>%5.3f</p99th>\n", resp99 / precision);
+                if (resp99 > coarseRespHistMax + coarseRespBucketSize)
+                    formatter.format("<p99th>&gt; %5.3f</p99th>\n",
+                                     coarseRespHistMax / precision);
+                else
+                    formatter.format("<p99th>%5.3f</p99th>\n",
+                                     resp99 / precision);
                 // end hack.
             } else {
                 space(16, buffer).append("<avg/>\n");
                 space(16, buffer).append("<max/>\n");
+                space(16, buffer).append("<sd/>\n");
                 space(16, buffer).append("<p90th/>\n");
                 space(16, buffer).append("<passed/>\n");
                 // 99th% hack for Berkeley.
@@ -863,6 +1043,17 @@ public class Metrics implements Serializable, Cloneable {
             space(12, buffer).append("</operation>\n");
         }
         space(8, buffer).append("</responseTimes>\n");
+
+        if (logger.isLoggable(crosscheck) && !Double.isNaN(ckSD[0])) {
+            StringBuilder b = new StringBuilder();
+            Formatter f = new Formatter(b);
+            b.append("Crosscheck estimated SD from histogram: ");
+            f.format("%.03f", ckSD[0]);
+            for (int j = 1; j < ckSD.length; j++) {
+                f.format("/%.03f", ckSD[j]);
+            }
+            logger.log(crosscheck, b.toString());
+        }
 
         space(8, buffer).append("<delayTimes>\n");
         for (int i = 0; i < txNames.length; i++) {
@@ -922,8 +1113,6 @@ public class Metrics implements Serializable, Cloneable {
         space(8, buffer).append("</delayTimes>\n");
 
         if (attachment != null) {
-            Logger logger = Logger.getLogger(
-                                        this.getClass().getName());
             Result.init(this); // Creates the result for the attachment to use.
             CustomMetrics.Element[] elements = null;
             try {
@@ -987,6 +1176,41 @@ public class Metrics implements Serializable, Cloneable {
 
         return success;
     }
+    
+    private double estimateStdev(int type, double avg, double precision) {
+                        // Overall standard deviation, for checking only.
+        double sumDev2 = 0d;
+        for (int j = 0; j < respHist[type].length; j++) {
+            if (respHist[type][j] == 0) {
+                continue;
+            }
+            long bucketRep = getBucketRepValue(j);
+            double dev;
+            if (bucketRep == Long.MIN_VALUE) {
+                dev = hiRespSumStdy[type] / respHist[type][j];
+            } else {
+                dev = bucketRep;
+            }
+            dev = dev / precision - avg;
+            sumDev2 += dev * dev * respHist[type][j];
+        }
+        return Math.sqrt(sumDev2 / txCntStdy[type]);
+    }
+
+    private long getBucketRepValue(int bucketId) {
+        long resp;
+        if (bucketId < Metrics.FINE_RESPBUCKETS) {
+            resp = bucketId * fineRespBucketSize + (fineRespBucketSize/2);
+        } else if (bucketId < Metrics.RESPBUCKETS) {
+            resp = (bucketId - Metrics.FINE_RESPBUCKETS) *
+                    coarseRespBucketSize + fineRespHistMax +
+                    (coarseRespBucketSize/2);
+        } else {
+            resp = Long.MIN_VALUE;
+        }
+        return resp;
+    }
+
 
     /**
      * Scans the data for the upper limit of used buckets.

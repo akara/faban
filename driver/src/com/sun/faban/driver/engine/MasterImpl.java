@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MasterImpl.java,v 1.5 2009/04/01 23:29:25 akara Exp $
+ * $Id: MasterImpl.java,v 1.6 2009/05/04 19:19:16 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -28,6 +28,7 @@ import com.sun.faban.common.RegistryLocator;
 import com.sun.faban.driver.ConfigurationException;
 import com.sun.faban.driver.FatalException;
 import com.sun.faban.driver.RunControl;
+import com.sun.faban.driver.util.PairwiseAggregator;
 import com.sun.faban.driver.util.Timer;
 
 import java.io.*;
@@ -732,49 +733,83 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
             statsWriter.quit();
     }
 
+    private class MetricsProvider
+            implements PairwiseAggregator.Provider<Metrics> {
+
+        ArrayList<Metrics> metrices;
+
+        private MetricsProvider() {
+            metrices = new ArrayList<Metrics>();
+        }
+
+        private MetricsProvider(int count) {
+            metrices = new ArrayList<Metrics>(count);
+        }
+
+        public void add(Metrics m) {
+            metrices.add(m);
+        }
+
+        public Metrics getMutableMetrics(int idx) {
+            return metrices.get(idx);
+        }
+
+        public void add(Metrics instance, int idx) {
+            instance.add(metrices.get(idx));
+        }
+
+        public Class getComponentClass() {
+            return Metrics.class;
+        }
+
+        public void recycle(Metrics r) {
+        }
+    }
+
+
     private Map<String, Metrics> getDriverMetrics(int driverType) {
 
+        LinkedHashMap<String, MetricsProvider> hostProviders =
+                                   new LinkedHashMap<String, MetricsProvider>();
         LinkedHashMap<String, Metrics> hostMetrics =
-                                        new LinkedHashMap<String, Metrics>();
+                                   new LinkedHashMap<String, Metrics>();
         try {
             if (runInfo.driverConfigs[driverType].numAgents > 0) {
-                Metrics[] results = new Metrics[
-                        runInfo.driverConfigs[driverType].numAgents];
-                Agent[] refs = agentRefs[driverType];
+                Agent[] agents = agentRefs[driverType];
                 logger.info("Gathering " +
                         benchDef.drivers[driverType].name + "Stats ...");
-                for (int i = 0; i < refs.length; i++) {
-					results[i] = refs[i].getResults();
-				}
 
-                // Add the results on a per-host basis.
-                for (Metrics r : results) {
+                // Add the results on a per-host basis and grand summary
+                MetricsProvider grandSumProvider = new MetricsProvider(
+                        runInfo.driverConfigs[driverType].numAgents);
+
+                for (Agent agent : agents) {
+                    Metrics r = agent.getResults();
                     if (r == null)
                         continue;
-                    Metrics hostResult = hostMetrics.get(r.host);
+                    MetricsProvider hostResult = hostProviders.get(r.host);
                     if (hostResult == null) {
-                        hostMetrics.put(r.host, r);
-                    } else {
-                        hostResult.add(r);
-                    }
+                        hostResult = new MetricsProvider();
+                        hostProviders.put(r.host, hostResult);
+                    } 
+                    hostResult.add(r);
+                    grandSumProvider.add(r);
+
+                    // Once we have the metrics, we have to set it's start time
+                    // Since this is set after all threads have started, it will
+                    // be 0 in all the metrices we receive.
+                    r.startTime = runInfo.start;
+
                 }
 
                 Metrics result = null;
 
                 // Add all host results together to get the final result.
-                for (Metrics r : hostMetrics.values()) {
-                    if (result == null) {
-                        // Clone, so we won't add on a summarized
-                        // host metric and make results wrong.
-                        result = (Metrics) r.clone();
-                    } else {
-                        result.add(r);
-                    }
-                    // Once we have the metrics, we have to set it's start time
-                    // Since this is set after all threads have started, it will
-                    // be 0 in all the metrices we receive.
-
-                    r.startTime = runInfo.start;
+                for (MetricsProvider r : hostProviders.values()) {
+                    PairwiseAggregator<Metrics> aggregator = new
+                            PairwiseAggregator<Metrics>(r.metrices.size(), r);
+                    result = aggregator.collectStats();
+                    hostMetrics.put(result.host, result);
                 }
 
                 if (result != null) {
@@ -987,6 +1022,45 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         }
     }
 
+    private class RuntimeMetricsProvider
+            implements PairwiseAggregator.Provider<RuntimeMetrics> {
+
+        public ArrayList<RuntimeMetrics> metrices =
+                new ArrayList<RuntimeMetrics>();
+
+        public void add(RuntimeMetrics m) {
+            metrices.add(m);
+        }
+
+        public RuntimeMetrics getMutableMetrics(int idx) {
+            return metrices.get(idx);
+        }
+
+        public void add(RuntimeMetrics instance, int idx) {
+            instance.add(metrices.get(idx));
+        }
+
+
+        public Class getComponentClass() {
+            return RuntimeMetrics.class;
+        }
+
+        public void recycle(RuntimeMetrics r) {
+        }
+
+        public int getSequence() {
+            if (metrices.size() == 0)
+                return -1;
+            else
+                return metrices.get(0).sequence;
+        }
+
+        public void reset() {
+            metrices.clear();
+        }
+    }
+
+
     private class StatsWriter extends Thread {
 
         boolean terminated = false;
@@ -1004,6 +1078,16 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
             int[] metricsCount = new int[agentRefs.length];
             RuntimeMetrics[] previous = new RuntimeMetrics[agentRefs.length];
             RuntimeMetrics[] current = new RuntimeMetrics[agentRefs.length];
+            RuntimeMetricsProvider[] providers =
+                    new RuntimeMetricsProvider[agentRefs.length];
+            ArrayList<PairwiseAggregator<RuntimeMetrics>> aggregators =
+                    new ArrayList<PairwiseAggregator<RuntimeMetrics>>(
+                    agentRefs.length);
+            for (int i = 0; i < agentRefs.length; i++) {
+                providers[i] = new RuntimeMetricsProvider();
+                aggregators.add(new PairwiseAggregator<RuntimeMetrics>(
+                        runInfo.driverConfigs[i].numAgents, providers[i]));
+            }
             while (!terminated) {
                 try {
                     RuntimeMetrics m = queue.poll(
@@ -1012,33 +1096,38 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
                         continue;
                     }
                     int type = m.driverType;
-                    if (current[type] == null) {
-                        current[type] = m;
+                    int sequence = providers[type].getSequence();
+                    if (sequence < 0) { // Empty.
+                        providers[type].add(m);
                         if (++metricsCount[type] >=
                                 runInfo.driverConfigs[type].numAgents) {
+                            current[type] = 
+                                    aggregators.get(type).collectStats();
                             dumpStats(type, previous, current);
+                            providers[type].reset();
                             previous[type] = current[type];
                             current[type] = null;
                             metricsCount[type] = 0;
                         }
                     } else {
-                        if (current[type].sequence == m.sequence) {
-                            current[type].add(m);
+                        if (sequence == m.sequence) {
+                            providers[type].add(m);
                             if (++metricsCount[type] >=
                                     runInfo.driverConfigs[type].numAgents) {
+                                current[type] =
+                                        aggregators.get(type).collectStats();
                                 dumpStats(type, previous, current);
+                                providers[type].reset();
                                 previous[type] = current[type];
                                 current[type] = null;
                                 metricsCount[type] = 0;
                             }
-                        } else if (current[type].sequence < m.sequence) {
+                        } else if (sequence < m.sequence) {
                             logger.warning("Missing " + (runInfo.driverConfigs[
                                     type].numAgents - metricsCount[type]) +
                                     " runtime stats from " + benchDef.drivers[
-                                    type].name + ". Ignoring the rest.");
-                            dumpStats(type, previous, current);
-                            previous[type] = current[type];
-                            current[type] = m;
+                                    type].name + ". Ignoring.");
+                            providers[type].add(m);
                             metricsCount[type] = 1;
                         } else {
                             logger.warning("Received out-of-sequence runtime " +
@@ -1075,10 +1164,16 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 
             for (int i = 0; i < s.length; i++) {
                 b.append(' ').append(RuntimeMetrics.LABELS[i]).append('=');
-                formatter.format("%.03f", s[i][0]);
+                if (Double.isNaN(s[i][0]))
+                    b.append('-');
+                else
+                    formatter.format("%.03f", s[i][0]);
                 for (int j = 1; j < s[i].length; j++) {
                     b.append('/');
-                    formatter.format("%.03f", s[i][j]);
+                    if (Double.isNaN(s[i][j]))
+                        b.append('-');
+                    else
+                        formatter.format("%.03f", s[i][j]);
                 }
             }
             
