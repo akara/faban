@@ -181,6 +181,7 @@
                                 <th style="text-align: left;">Type</th>
                                 <th>Avg</th>
                                 <th>Max</th>
+                                <th>SD</th>
                                 <th>90th%</th>
                                 <th>Reqd. 90th%</th>
                                 <th>Pass/Fail</th>
@@ -190,6 +191,7 @@
                                     <td style="text-align: left;"><xsl:value-of select="@name"/></td>
                                     <td><xsl:value-of select="avg"/></td>
                                     <td><xsl:value-of select="max"/></td>
+                                    <td><xsl:value-of select="sd"/></td>
                                     <td><xsl:value-of select="p90th"/></td>
                                     <td><xsl:value-of select="@r90th"/></td>
                                     <xsl:choose>
