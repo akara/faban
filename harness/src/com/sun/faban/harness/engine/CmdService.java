@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.47 2009/02/13 20:40:09 akara Exp $
+ * $Id: CmdService.java,v 1.48 2009/05/10 03:13:13 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -1379,11 +1379,17 @@ final public class CmdService { 	// The final keyword prevents clones
             throw new FabanHostUnknownException(
                     "Host " + destmachine + " not found!");
         }
+        
+        // Ensure the file is accessed from the right place.
+        File src = new File(srcfile);
+        if (!src.isAbsolute())
+            src = new File(Config.OUT_DIR, srcfile);
+        srcfile = src.getAbsolutePath();
+
         try {
-            String src = InetAddress.getLocalHost().getHostName();
-            String dest = hostTypes.getHostByAlias(destmachine);
-            if (dest.equals(src)) {
-                srcfile = Config.OUT_DIR + srcfile;
+            String srcHost = InetAddress.getLocalHost().getHostName();
+            String destHost = hostTypes.getHostByAlias(destmachine);
+            if (destHost.equals(srcHost)) {
                 if (srcfile.equals(destfile)) {
                     return true;
                 } else {
