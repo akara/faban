@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentThread.java,v 1.1 2008/09/10 18:25:53 akara Exp $
+ * $Id: AgentThread.java,v 1.2 2009/05/11 17:14:39 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -237,14 +237,23 @@ public abstract class AgentThread extends Thread {
      * @param op The operation
      */
     void checkFatal(Throwable e, BenchmarkDefinition.Operation op) {
+        checkFatal(e, op.m);
+    }
+
+    /**
+     * Checks for a fatal exception. This is called from the pre/post.
+     * @param e The throwable
+     * @param m The method
+     */
+    void checkFatal(Throwable e, Method m) {
         if (e instanceof FatalException) {
             FatalException fatal = (FatalException) e;
             e = fatal.getCause();
             if (e != null) {
-				logger.log(Level.SEVERE, name + '.' + op.m.getName() +
+				logger.log(Level.SEVERE, name + '.' + m.getName() +
                         ": " + e.getMessage(), e);
 			} else {
-				logger.log(Level.SEVERE, name + '.' + op.m.getName() +
+				logger.log(Level.SEVERE, name + '.' + m.getName() +
                         ": " + fatal.getMessage(), fatal);
 			}
             fatal.setLogged();
@@ -379,8 +388,9 @@ public abstract class AgentThread extends Thread {
             if (cause == null) {
 				cause = e;
 			}
+            checkFatal(cause, m);
             logger.log(Level.WARNING, name + "." + m.getName() + ": " +
-                    e.getMessage(), e);
+                    cause.getMessage(), cause);
             if (cause instanceof InterruptedIOException) {
 				throw (InterruptedIOException) cause;
 			}
