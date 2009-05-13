@@ -17,13 +17,14 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.6 2009/05/04 19:19:16 akara Exp $
+ * $Id: Metrics.java,v 1.7 2009/05/13 22:15:50 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver.engine;
 
 import com.sun.faban.common.TextTable;
+import com.sun.faban.common.Utilities;
 import com.sun.faban.driver.CustomMetrics;
 import com.sun.faban.driver.CycleType;
 import com.sun.faban.driver.RunControl;
@@ -1134,25 +1135,28 @@ public class Metrics implements Serializable, Cloneable,
                     }
                     space(12, buffer).append("<stat>\n");
                     if (element.description != null) {
-                        space(16, buffer).append("<description>").append(
-                                element.description).append("</description>\n");
+                        space(16, buffer).append("<description>");
+                        Utilities.escapeXML(element.description, buffer);
+                        buffer.append("</description>\n");
                     } else {
                         space(16, buffer).append("<description/>\n");
                     }
                     if (element.result != null) {
-                        space(16, buffer).append("<result>").
-                                append(element.result).append("</result>\n");
+                        space(16, buffer).append("<result>");
+                        Utilities.escapeXML(element.result, buffer);
+                        buffer.append("</result>\n");
                     } else {
                         space(16, buffer).append("<result/>\n");
                     }
                     if (element.target != null) {
-                        space(16, buffer).append("<target>").append(
-                                element.target).append("</target>\n");
+                        space(16, buffer).append("<target>");
+                        Utilities.escapeXML(element.target, buffer);
+                        buffer.append("</target>\n");
                     }
                     if (element.allowedDeviation != null) {
-                        space(16, buffer).append("<allowedDeviation>").
-                                append(element.allowedDeviation).
-                                append("</allowedDeviation>\n");
+                        space(16, buffer).append("<allowedDeviation>");
+                        Utilities.escapeXML(element.allowedDeviation, buffer);
+                        buffer.append("</allowedDeviation>\n");
                     }
                     if (element.passed != null) {
                         space(16, buffer).append("<passed>").append(element.
