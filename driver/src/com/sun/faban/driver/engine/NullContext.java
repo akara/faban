@@ -17,13 +17,14 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: NullContext.java,v 1.1 2008/09/10 18:25:54 akara Exp $
+ * $Id: NullContext.java,v 1.2 2009/05/17 20:02:02 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver.engine;
 
 import com.sun.faban.driver.CustomMetrics;
+import com.sun.faban.driver.CustomTableMetrics;
 import com.sun.faban.driver.DriverContext;
 import com.sun.faban.driver.util.Random;
 import org.w3c.dom.Element;
@@ -107,6 +108,35 @@ public class NullContext extends DriverContext {
      * @see com.sun.faban.driver.DriverContext#attachMetrics(com.sun.faban.driver.CustomMetrics)
      */
 	public void attachMetrics(CustomMetrics metrics) {
+        // Noop.
+    }
+
+    /**
+     * Attaches a custom metrics object to the primary metrics,
+     * given a name or description. The name/description must be unique.
+     * This should be done by the driver at initialization time.
+     * Only one custom metrics can be attached. Subsequent calls
+     * to this method replaces the previously attached metrics.
+     * @param name    The name or description of this metrics
+     * @param metrics The custom metrics to be replaced
+     */
+    @Override
+    public void attachMetrics(String name, CustomMetrics metrics) {
+        // Noop.
+    }
+
+    /**
+     * Attaches a custom table metrics object to the primary metrics,
+     * given a name or description. The name/description must be unique.
+     * This should be done by the driver at initialization time.
+     * Only one custom metrics can be attached. Subsequent calls
+     * to this method replaces the previously attached metrics.
+     * @param name    The name or description of this metrics
+     * @param metrics The custom table metrics to be replaced
+     */
+
+    @Override
+    public void attachMetrics(String name, CustomTableMetrics metrics) {
         // Noop.
     }
 

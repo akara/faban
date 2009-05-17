@@ -17,15 +17,17 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.7 2009/05/13 22:15:50 akara Exp $
+ * $Id: Metrics.java,v 1.8 2009/05/17 20:02:02 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver.engine;
 
+import com.sun.faban.common.TableModel;
 import com.sun.faban.common.TextTable;
 import com.sun.faban.common.Utilities;
 import com.sun.faban.driver.CustomMetrics;
+import com.sun.faban.driver.CustomTableMetrics;
 import com.sun.faban.driver.CycleType;
 import com.sun.faban.driver.RunControl;
 
@@ -33,6 +35,9 @@ import com.sun.faban.driver.util.PairwiseAggregator;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Formatter;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
@@ -202,7 +207,10 @@ public class Metrics implements Serializable, Cloneable,
     protected long[][] respGraph;
 
     /** The attached custom metrics */
-    protected CustomMetrics attachment = null;
+    protected LinkedHashMap<String, CustomMetrics> metricAttachments = null;
+
+    /** The attached custom table metrics */
+    protected LinkedHashMap<String, CustomTableMetrics> tableAttachments = null;
 
     /**
      * The final resulting metric. This field is only populated after
@@ -564,10 +572,40 @@ public class Metrics implements Serializable, Cloneable,
             endTime = s.endTime;
 		}
 
-        if (attachment != null && s.attachment != null) {
-			attachment.add(s.attachment);
-		}
-	}
+        // Aggregate the attached CustomMetrics.
+        if (metricAttachments == null) {
+            metricAttachments = s.metricAttachments;
+        } else if (s.metricAttachments != null) {
+            Set<Map.Entry<String, CustomMetrics>> entries =
+                    s.metricAttachments.entrySet();
+            for (Map.Entry<String, CustomMetrics> entry : entries) {
+                String key = entry.getKey();
+                if (metricAttachments.containsKey(key)) {
+                    CustomMetrics m = metricAttachments.get(key);
+                    m.add(entry.getValue());
+                } else {
+                    metricAttachments.put(key, entry.getValue());
+                }
+            }
+        }
+
+        // Aggregate the attached CustomTableMetrics.
+        if (tableAttachments == null) {
+            tableAttachments = s.tableAttachments;
+        } else if (s.tableAttachments != null) {
+            Set<Map.Entry<String, CustomTableMetrics>> entries =
+                    s.tableAttachments.entrySet();
+            for (Map.Entry<String, CustomTableMetrics> entry : entries) {
+                String key = entry.getKey();
+                if (tableAttachments.containsKey(key)) {
+                    CustomTableMetrics m = tableAttachments.get(key);
+                    m.add(entry.getValue());
+                } else {
+                    tableAttachments.put(key, entry.getValue());
+                }
+            }
+        }
+    }
 
     /**
      * Calculate the sum of squares based on <b><i>Youngs, E.A., and Cramer,
@@ -727,10 +765,26 @@ public class Metrics implements Serializable, Cloneable,
                 clone.thruputGraph[i] = thruputGraph[i].clone();
                 clone.respGraph[i] = respGraph[i].clone();
             }
-            if (attachment != null) {
-                clone.attachment = (CustomMetrics) attachment.clone();
+            if (metricAttachments != null) {
+                clone.metricAttachments =
+                        new LinkedHashMap<String, CustomMetrics>();
+                Set<Map.Entry<String, CustomMetrics>> entries =
+                        metricAttachments.entrySet();
+                for (Map.Entry<String, CustomMetrics> entry : entries) {
+                    clone.metricAttachments.put(entry.getKey(),
+                            (CustomMetrics) entry.getValue().clone());
+                }
 			}
-
+            if (tableAttachments != null) {
+                clone.tableAttachments =
+                        new LinkedHashMap<String, CustomTableMetrics>();
+                Set<Map.Entry<String, CustomTableMetrics>> entries =
+                        tableAttachments.entrySet();
+                for (Map.Entry<String, CustomTableMetrics> entry : entries) {
+                    clone.tableAttachments.put(entry.getKey(),
+                            (CustomTableMetrics) entry.getValue().clone());
+                }
+			}
         } catch (CloneNotSupportedException e) {
             // This should not happen as we already implement cloneable.
         }
@@ -1113,60 +1167,113 @@ public class Metrics implements Serializable, Cloneable,
         }
         space(8, buffer).append("</delayTimes>\n");
 
-        if (attachment != null) {
-            Result.init(this); // Creates the result for the attachment to use.
-            CustomMetrics.Element[] elements = null;
-            try {
-                elements = attachment.getResults();
-            } catch (Exception e) { // Ensure the getResults
-                                    // doesn't break report generation.
-                logger.log(Level.WARNING, "Exceptione reporting CustomMetrics",
-                                                                            e);
-                elements = null;
-            }
-            if (elements != null && elements.length > 0) {
-                space(8, buffer).append("<miscStats>\n");
-                for (CustomMetrics.Element element: elements) {
-                    if (element == null) {
-                        logger.warning("Null element returned from " +
-                                attachment.getClass().getName() +
-                                ".getResults, ignored!");
-                        continue;
-                    }
-                    space(12, buffer).append("<stat>\n");
-                    if (element.description != null) {
-                        space(16, buffer).append("<description>");
-                        Utilities.escapeXML(element.description, buffer);
-                        buffer.append("</description>\n");
-                    } else {
-                        space(16, buffer).append("<description/>\n");
-                    }
-                    if (element.result != null) {
-                        space(16, buffer).append("<result>");
-                        Utilities.escapeXML(element.result, buffer);
-                        buffer.append("</result>\n");
-                    } else {
-                        space(16, buffer).append("<result/>\n");
-                    }
-                    if (element.target != null) {
-                        space(16, buffer).append("<target>");
-                        Utilities.escapeXML(element.target, buffer);
-                        buffer.append("</target>\n");
-                    }
-                    if (element.allowedDeviation != null) {
-                        space(16, buffer).append("<allowedDeviation>");
-                        Utilities.escapeXML(element.allowedDeviation, buffer);
-                        buffer.append("</allowedDeviation>\n");
-                    }
-                    if (element.passed != null) {
-                        space(16, buffer).append("<passed>").append(element.
-                                passed.booleanValue()).append("</passed>\n");
-                        if (!element.passed.booleanValue())
-                            success = false;
-                    }
-                    space(12, buffer).append("</stat>\n");
+        boolean resultInited = false;
+        if (metricAttachments != null) {
+            Result.init(this); // Creates the result for the attachments to use.
+            resultInited = true;
+            Set<Map.Entry<String, CustomMetrics>> entries =
+                    metricAttachments.entrySet();
+            for (Map.Entry<String, CustomMetrics> entry : entries) {
+                CustomMetrics attachment = entry.getValue();
+                CustomMetrics.Element[] elements = null;
+                try {
+                    elements = attachment.getResults();
+                } catch (Exception e) { // Ensure the getResults
+                    // doesn't break report generation.
+                    logger.log(Level.WARNING,
+                            "Exceptions reporting CustomMetrics", e);
+                    elements = null;
                 }
-                space(8, buffer).append("</miscStats>\n");
+                if (elements != null && elements.length > 0) {
+                    space(8, buffer).append("<customStats name=\"").
+                            append(entry.getKey()).append("\">\n");
+                    for (CustomMetrics.Element element : elements) {
+                        if (element == null) {
+                            logger.warning("Null element returned from " +
+                                    attachment.getClass().getName() +
+                                    ".getResults, ignored!");
+                            continue;
+                        }
+                        space(12, buffer).append("<stat>\n");
+                        if (element.description != null) {
+                            space(16, buffer).append("<description>");
+                            Utilities.escapeXML(element.description, buffer);
+                            buffer.append("</description>\n");
+                        } else {
+                            space(16, buffer).append("<description/>\n");
+                        }
+                        if (element.result != null) {
+                            space(16, buffer).append("<result>");
+                            Utilities.escapeXML(element.result, buffer);
+                            buffer.append("</result>\n");
+                        } else {
+                            space(16, buffer).append("<result/>\n");
+                        }
+                        if (element.target != null) {
+                            space(16, buffer).append("<target>");
+                            Utilities.escapeXML(element.target, buffer);
+                            buffer.append("</target>\n");
+                        }
+                        if (element.allowedDeviation != null) {
+                            space(16, buffer).append("<allowedDeviation>");
+                            Utilities.escapeXML(element.allowedDeviation,
+                                                buffer);
+                            buffer.append("</allowedDeviation>\n");
+                        }
+                        if (element.passed != null) {
+                            space(16, buffer).append("<passed>").append(
+                                    element.passed.booleanValue()).
+                                    append("</passed>\n");
+                            if (!element.passed.booleanValue()) {
+                                success = false;
+                            }
+                        }
+                        space(12, buffer).append("</stat>\n");
+                    }
+                    space(8, buffer).append("</customStats>\n");
+                }
+            }
+        }
+
+        if (tableAttachments != null) {
+            if (!resultInited) {
+                Result.init(this); // Creates the result for the attachments.
+                resultInited = true;
+            }
+            Set<Map.Entry<String, CustomTableMetrics>> entries =
+                    tableAttachments.entrySet();
+            for (Map.Entry<String, CustomTableMetrics> entry : entries) {
+                CustomTableMetrics attachment = entry.getValue();
+                TableModel table = null;
+                try {
+                    table = attachment.getResults();
+                } catch (Exception e) { // Ensure the getResults
+                    // doesn't break report generation.
+                    logger.log(Level.WARNING,
+                            "Exceptions reporting CustomTableMetrics", e);
+                }
+                int rows = table.rows();
+                if (table != null && rows > 0) {
+                    space(8, buffer).append("<customTable name=\"").
+                            append(entry.getKey()).append("\">\n");
+                    space(12, buffer).append("<head>\n");
+                    for (int i = 0; i < table.columns(); i++) {
+                    space(16, buffer).append("<th>").append(table.getHeader(i)).
+                            append("</th>\n");
+                    }
+                    space(12, buffer).append("</head>\n");
+
+                    for(int i = 0; i < rows; i++) {
+                        Comparable[] row = table.getRow(i);
+                        space(12, buffer).append("<tr>\n");
+                        for (int j = 0; j < row.length; j++) {
+                            space(16, buffer).append("<td>").append(row[j]).
+                                    append("</td>\n");
+                        }
+                        space(12, buffer).append("</tr>\n");
+                    }
+                    space(8, buffer).append("</customTable>\n");
+                }
             }
         }
 
@@ -1181,6 +1288,15 @@ public class Metrics implements Serializable, Cloneable,
         return success;
     }
     
+    /**
+     * Estimates the standard deviation of response time based on the histogram.
+     * This is primarily used for cross-checking the more accurate algorithms
+     * from Chan's paper.
+     * @param type The operation type.
+     * @param avg The average response time.
+     * @param precision The time unit precision being used.
+     * @return The estimated standard deviation.
+     */
     private double estimateStdev(int type, double avg, double precision) {
                         // Overall standard deviation, for checking only.
         double sumDev2 = 0d;

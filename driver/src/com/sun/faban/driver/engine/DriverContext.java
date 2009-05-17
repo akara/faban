@@ -17,12 +17,13 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DriverContext.java,v 1.3 2009/03/27 16:27:54 akara Exp $
+ * $Id: DriverContext.java,v 1.4 2009/05/17 20:02:02 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver.engine;
 
+import com.sun.faban.driver.CustomTableMetrics;
 import static com.sun.faban.driver.engine.AgentThread.TIME_NOT_SET;
 
 import com.sun.faban.driver.CustomMetrics;
@@ -41,6 +42,7 @@ import javax.xml.xpath.XPathFactory;
 import java.util.HashMap;
 import java.util.logging.Logger;
 import java.io.File;
+import java.util.LinkedHashMap;
 
 /**
  * DriverContext is the point of communication between the
@@ -236,7 +238,32 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      * @param metrics The custom metrics to be replaced
      */
 	public void attachMetrics(CustomMetrics metrics) {
-        agentThread.metrics.attachment = metrics;
+        attachMetrics("Miscellaneous Statistics", metrics);
+    }
+
+    /**
+     * Attaches a custom metrics object to the primary metrics,
+     * given a name or description. The name/description must be unique.
+     * This should be done by the driver at initialization time.
+     * Only one custom metrics can be attached. Subsequent calls
+     * to this method replaces the previously attached metrics.
+     * @param name    The name or description of this metrics
+     * @param metrics The custom metrics to be replaced
+     */
+    @Override
+    public void attachMetrics(String name, CustomMetrics metrics) {
+        if (agentThread.metrics.metricAttachments == null)
+            agentThread.metrics.metricAttachments =
+                    new LinkedHashMap<String, CustomMetrics>();
+        agentThread.metrics.metricAttachments.put(name, metrics);
+    }
+
+    @Override
+    public void attachMetrics(String name, CustomTableMetrics metrics) {
+        if (agentThread.metrics.tableAttachments == null)
+            agentThread.metrics.tableAttachments =
+                    new LinkedHashMap<String, CustomTableMetrics>();
+        agentThread.metrics.tableAttachments.put(name, metrics);
     }
 
     /**
