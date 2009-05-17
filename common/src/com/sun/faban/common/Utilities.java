@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Utilities.java,v 1.6 2008/10/09 09:58:32 akara Exp $
+ * $Id: Utilities.java,v 1.7 2009/05/17 19:56:21 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -230,5 +230,37 @@ public class Utilities {
             if (current < selector[bucket])
                 break;
         return bucket;
+    }
+
+    /*
+     * Formats the message to be XML compatible, with the XML escaping.
+     *
+     * @param message The raw message
+     * @return a localized and formatted message
+     */
+    public static String escapeXML(String message) {
+        StringBuilder msgBuffer = new StringBuilder(message.length() * 2);
+        escapeXML(message, msgBuffer);
+        return msgBuffer.toString();
+    }
+
+    /*
+     * Formats the message to be XML compatible, with the XML escaping.
+     *
+     * @param message The raw message
+     * @param msgBuffer The buffer to write the escaped string
+     */
+    public static void escapeXML(String message, StringBuilder msgBuffer) {
+        char[] msgChars = message.toCharArray();
+        for (int i = 0; i < msgChars.length; i++) {
+            switch(msgChars[i]) {
+                case '<' : msgBuffer.append("&lt;");      break;
+                case '>' : msgBuffer.append("&gt;");      break;
+                case '&' : msgBuffer.append("&amp;");     break;
+                case '"' : msgBuffer.append("&quot;");    break;
+                case '\'': msgBuffer.append("&apos;");    break;
+                default  : msgBuffer.append(msgChars[i]);
+            }
+        }
     }
 }
