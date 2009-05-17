@@ -3,7 +3,6 @@
     <xsl:template match="/benchResults">
         <html>
             <head>
-		<meta http-equiv="content-type" content="text/html;charset=iso-8859-1"/>
                 <title><xsl:value-of select="benchSummary/@name"/>
                     <xsl:text> </xsl:text>
                     <xsl:value-of select="benchSummary/@version"/>
