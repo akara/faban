@@ -18,6 +18,8 @@ import java.io.IOException;
  */
 abstract class LogParseHandler extends DefaultHandler {
 
+    public static final String[] ROWCLASS = { "even", "odd" };
+
     long recordCount = 0;
     long begin = 0;
     long end = Long.MAX_VALUE;

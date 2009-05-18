@@ -17,17 +17,16 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TableHandler.java,v 1.8 2009/01/23 23:42:33 akara Exp $
+ * $Id: TableHandler.java,v 1.9 2009/05/18 19:37:30 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.webclient;
 
 import com.sun.faban.harness.common.Config;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.servlet.http.HttpServletRequest;
+
 import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
 /**
@@ -41,9 +40,8 @@ class TableHandler extends LogParseHandler {
     boolean headerWritten = false;
     String requestBase;
     LogBuffer logBuffer;
-    
 
-    public TableHandler(long start, HttpServletRequest request, 
+    public TableHandler(long start, HttpServletRequest request,
                                 ServletOutputStream out, String runId) {        
         super(request, out, runId);
         requestBase = request.getRequestURI() + "?runId=" + runId;
@@ -78,7 +76,7 @@ class TableHandler extends LogParseHandler {
                 printHeader(null);
                 headerWritten = true;
             }
-            printRow(logRecord, requestBase);
+            printRow(begin + recordCount++, logRecord, requestBase);
             logRecord.clear();
         }
     }
@@ -128,7 +126,7 @@ class TableHandler extends LogParseHandler {
             // Write the records.
             int size = logBuffer.size();
             for (int i = 0; i < size; i++) {
-                printRow(logBuffer.get(i), requestBase);
+                printRow(begin + i, logBuffer.get(i), requestBase);
             }
         }
         printTrailer(naviBar);
@@ -139,6 +137,8 @@ class TableHandler extends LogParseHandler {
         out.println("<html>");
         out.print("<head><title>Logs: RunID " + runId);
         out.println("</title>");
+        out.println("<link rel=\"stylesheet\" type=\"text/css\" " +
+                    "href=\"/css/style.css\" />");
         out.println("<link rel=\"icon\" type=\"image/gif\" href=\"" +
                     request.getContextPath() + "/img/faban.gif\">");        
         if (displayEnd && !xmlComplete)
@@ -146,30 +146,33 @@ class TableHandler extends LogParseHandler {
         out.println("</head><body>");
         if (naviBar != null)
             out.println(naviBar);
-        out.println("<hr><table border=\"1\" cellpadding=\"2\" " +
-                "cellspacing=\"0\">");
+        out.println("<hr style=\"border: 1px solid #cccccc;\">" +
+                    "<table border=\"0\" cellpadding=\"4\" " +
+                    "cellspacing=\"3\" style=\"padding: 2px; border: " +
+                    "2px solid #cccccc;\">");
         out.println("<tbody>");
         out.println("<tr>");
-        out.println("<th>Time</th>");
-        out.println("<th>Host</th>");
-        out.println("<th>Level</th>");
-        out.println("<th>Message</th>");
-        out.println("<th>Thread</th>");
-        out.println("<th>Source</th>");
+        out.println("<th class=\"header\">Time</th>");
+        out.println("<th class=\"header\">Host</th>");
+        out.println("<th class=\"header\">Level</th>");
+        out.println("<th class=\"header\">Message</th>");
+        out.println("<th class=\"header\">Thread</th>");
+        out.println("<th class=\"header\">Source</th>");
         out.println("</tr>");        
     }
     
     private void printTrailer(String naviBar) throws IOException {
         // Write the trailer.
-        out.println("</tbody></table><a name=\"end\"><hr></a>");
+        out.println("</tbody></table><a name=\"end\">" +
+                "<hr style=\"border: 1px solid #cccccc;\"></a>");
         if (naviBar != null)
             out.println(naviBar);
         out.println("</body></html>");        
     }
 
-    private void printRow(LogRecord record, String requestBase)
+    private void printRow(long sequence, LogRecord record, String requestBase)
             throws IOException {
-        out.println("<tr>");
+        out.print("<tr class=\"" + ROWCLASS[(int) (sequence % 2l)] + "\">");
         out.println("<td>" + record.date + "</td>");
         if (record.host == null) {
             out.println("<td>&nbsp;</td>");
