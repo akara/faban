@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: statsnavigator.jsp,v 1.13 2009/03/27 16:30:33 akara Exp $
+ * $Id: statsnavigator.jsp,v 1.14 2009/05/18 19:38:52 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -150,6 +150,7 @@
             if (hostTypes != null) { // If we know the types, order by relevance in that type.
                 hosts = hostTypes.getHostsInOrder();
         %>
+        <link rel="stylesheet" type="text/css" href="/css/style.css" />        
         <link rel="stylesheet" type="text/css" href="css/balloontip2.css" />
         <script type="text/javascript" src="scripts/balloontip2.js"></script>
          <%
@@ -187,7 +188,9 @@
         %>
         </div>
         <%      } %>
-        <table cellpadding="2" cellspacing="0" border="1" width="80%" align="center">
+        <table border="0" cellpadding="4" cellspacing="3"
+            style="padding: 2px; border: 2px solid #cccccc; text-align: center; width: 80%;">
+
             <% if (allHosts.size() == 0) {
                     if (!finished) {
             %>
@@ -198,36 +201,37 @@
                } else { %>
                  <tbody>
                  <tr>
-                     <th>System</th>
+                     <th class="header">System</th>
                      <% for (String tool : allTools) { %>
-                        <th><%= tool %></th>
+                        <th class="header"><%= tool %></th>
                      <% } %>
                  </tr>
-                 <% for (String host : hosts) {
-                        HashSet<String> toolSet = allHosts.get(host);
+                 <% String[] rowclass = { "even", "odd" };
+                    for (int i = 0; i < hosts.length; i++) {
+                        HashSet<String> toolSet = allHosts.get(hosts[i]);
                         if (toolSet == null)
                             continue;
                         String mouseover = "";
                         if (hostTypes != null) {
-                            mouseover = "onmouseover=\"ddrivetip('" + host +
+                            mouseover = "onmouseover=\"ddrivetip('" + hosts[i] +
                                     "_balloon')\" onmouseout=\"hideddrivetip()\"";
                         }
                  %>
-                 <tr <%= mouseover%>>
+                 <tr class="<%= rowclass[i % 2] %>" <%= mouseover%>>
                      <% if (toolSet.contains("SystemInfo")) {
-                             String fullName = infoHostMap.get(host);
+                             String fullName = infoHostMap.get(hosts[i]);
                              if (fullName == null)
-                                 fullName = host;
+                                 fullName = hosts[i];
                      %>
-                        <td style="text-align: left;"><a href="output/<%= runId %>/sysinfo.<%= fullName %>.html"><%= host %></a></td>
+                        <td style="text-align: left;"><a href="output/<%= runId %>/sysinfo.<%= fullName %>.html"><%= hosts[i] %></a></td>
                      <% } else { %>
-                        <td style="text-align: left;"><%= host %></td>
+                        <td style="text-align: left;"><%= hosts[i] %></td>
                      <% }
                         for (String tool : allTools) {
                             if (toolSet.contains(tool)) {
-                                String fullName = toolHostMap.get(host);
+                                String fullName = toolHostMap.get(hosts[i]);
                                 if (fullName == null)
-                                    fullName = host;
+                                    fullName = hosts[i];
                                 String[] filePrefix = new String[3];
                                 filePrefix[0] = tool + ".log." + fullName;
                                 filePrefix[1] = tool + ".xan." + fullName;
@@ -239,13 +243,13 @@
                                 // Do the html link
                                 boolean found = false;
                                 String fileName = null;
-                                for (int i = 0; i < filePrefix.length; i++) {
-                                    fileName = filePrefix[i] + ".html";
+                                for (int j = 0; j < filePrefix.length; j++) {
+                                    fileName = filePrefix[j] + ".html";
                                     if (toolFiles.contains(fileName)) {
                                         found = true;
                                         break;
                                     }
-                                    fileName = filePrefix[i] + ".htm";
+                                    fileName = filePrefix[j] + ".htm";
                                     if (toolFiles.contains(fileName)) {
                                         found = true;
                                         break;
@@ -256,8 +260,8 @@
                              <% }
                                 // Do the text link
                                 found = false;
-                                for (int i = 0; i < filePrefix.length; i++) {
-                                    fileName = filePrefix[i];
+                                for (int j = 0; j < filePrefix.length; j++) {
+                                    fileName = filePrefix[j];
                                     if (toolFiles.contains(fileName)) {
                                         found = true;
                                         break;
