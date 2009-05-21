@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DefaultFabanBenchmark.java,v 1.15 2009/03/15 07:22:19 akara Exp $
+ * $Id: DefaultFabanBenchmark.java,v 1.16 2009/05/21 20:54:04 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -293,9 +293,15 @@ public class DefaultFabanBenchmark implements Benchmark {
                 }
                 logger.info("Starting " + agentType + "Agent[" + agentId +
                         "] on host " + hostName + '.');
+                
+                String masterIP = getMasterIP(hostName);
+                if (masterIP == null) {
+                    masterIP = getMasterIP();
+                }
+
                 Command agent = new Command("com.sun.faban.driver.engine." +
                         "AgentImpl", agentType, String.valueOf(agentId),
-                        getMasterIP());
+                        masterIP);
 
                 List<String> env = agentEnv.get(agentType);
                 if (env != null) {
