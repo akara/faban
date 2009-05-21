@@ -19,14 +19,15 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultlist.jsp,v 1.19 2009/04/02 22:07:32 sheetalpatil Exp $
+ * $Id: resultlist.jsp,v 1.20 2009/05/21 10:07:32 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 -->
     <%@ page language="java" import="com.sun.faban.harness.webclient.RunResult,
                                      com.sun.faban.harness.webclient.TableModel,
-                                     com.sun.faban.harness.webclient.TagEngine,                                 
+                                     com.sun.faban.harness.webclient.TagEngine,
+                                     java.util.StringTokenizer,
                                      java.io.File,java.io.*,
                                      java.util.Set,java.util.*,
                                      java.net.URLEncoder,
@@ -34,32 +35,9 @@
     <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
     <%
     response.setHeader("Cache-Control", "no-cache");
-    String tag = request.getParameter("inputtag");
-    TableModel resultTable = null;
-    boolean tagSearch = false;
-    String feedURL = "/controller/results/feed";
-    if (tag != null && !"".equals(tag)) {
-        tag = tag.trim();
-        if (tag.length() > 0) {
-            tagSearch = true;
-        } 
-    }
-    if (tagSearch) {
-        resultTable = RunResult.getResultTable(usrEnv.getSubject(), tag);
-        StringTokenizer t = new StringTokenizer(tag, " ,;:");
-        StringBuilder b = new StringBuilder(tag.length());
-        b.append(feedURL);
-        while (t.hasMoreTokens()) {
-            b.append('/');
-            String tagName = t.nextToken();
-            tagName = tagName.replace("/", "+");
-            b.append(tagName);
-        }
-        feedURL = b.toString();
-    } else {
-        resultTable = RunResult.getResultTable(usrEnv.getSubject());
-    }
-
+    TableModel resultTable = (TableModel)request.getAttribute("table.model");
+    String feedURL = (String)request.getAttribute("feedURL");
+    
     int rows;
     if (resultTable != null && (rows = resultTable.rows()) > 0) {
     %>
@@ -102,12 +80,12 @@
                 <input type="reset">
               </center>
               <br>
-              <table cellpadding="2" cellspacing="0" border="1" width="90%" align="center">
+              <table BORDER=0 CELLPADDING=4 CELLSPACING=3 width="90%" align="center" style="padding:2px; border: 2px solid #cccccc;">
               <tbody>
               <tr>
-                  <th>&nbsp;</th>
+                  <th style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="header">&nbsp;</th>
     <%      for (int i = 0; i < resultTable.columns(); i++) { %>
-                  <th style="font-size: 10px; font-family: 'Times New Roman',Times,serif;" class="header"><%= resultTable.getHeader(i) %></th>
+                  <th style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="header"><%= resultTable.getHeader(i) %></th>
     <%      } %>
               </tr>
     <%
@@ -115,20 +93,25 @@
                 Comparable[] row = resultTable.getRow(i);
     %>
             <tr <%if(i % 2 == 0){%>class="even"<%}else{%>class="odd"<% } %>>
-                <td><input type="checkbox" name="select" value="<%= row[0] %>"></input></td>
+                <td style="border-bottom: 1px solid #C1DAD7; border-left: 1px solid #C1DAD7; font-size: 12px; font-family: 'Times New Roman',Times,serif;"><input type="checkbox" name="select" value="<%= row[0] %>"></input></td>
     <%          for (int j = 0; j < row.length; j++) { 
                     if (row[j] == null)
                         row[j] = " ";
-                    row[j] = row[j].toString().trim();
-                    String mouseover = "onmouseover=\"showtip('" + row[j] + "','"+row[j].toString().length()*8+"')\" onmouseout=\"hideddrivetip()\"";
-                    if(j==2 || j==5 || row[j].toString().equals("&nbsp;") || row[j].toString().equals("&nbsp")){
-    %>
-                        <td style="font-size: 10px; font-family: 'Times New Roman',Times,serif;"><%= row[j] %></td>
+                    StringBuilder formattedStr = new StringBuilder();
+                    StringTokenizer t = new StringTokenizer(row[j].toString(),"\n ,:;");
+                    String val = t.nextToken().trim();
+                    while (t.hasMoreTokens()) {
+                            formattedStr.append(t.nextToken().trim() + " ");
+                    }
+                    String mouseover = "onmouseover=\"showtip('" + val + " " + formattedStr.toString()+ "')\" onmouseout=\"hideddrivetip()\"";
+                    if(j==0 || j==1 || j==2 || j==5 || row[j].toString().equals("&nbsp;") || row[j].toString().equals("&nbsp")){%>
+                       <td style="border-bottom: 1px solid #C1DAD7; border-left: 1px solid #C1DAD7; font-size: 12px;
+                        font-family: 'Times New Roman',Times,serif;"><%=row[j]%></td>
                     <%}else{%>
-                         <% if(row[j].toString().length() > 15)
-                               row[j] = row[j].toString().substring(0, 14) + ".....";
+                         <% //if(row[j].toString().length() > 15)
+                               //row[j] = row[j].toString().substring(0, 14) + ".....";
                          %>
-                         <td style="font-size: 10px; font-family: 'Times New Roman',Times,serif;" <%= mouseover%>><%= row[j] %></td>
+                         <td style="border-bottom: 1px solid #C1DAD7; border-left: 1px solid #C1DAD7; font-size: 12px; font-family: 'Times New Roman',Times,serif;" <%= mouseover%>><%=val%></td>
     <%                }
                 } %>
             </tr>
