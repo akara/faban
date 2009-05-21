@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ParamRepository.java,v 1.12 2009/01/12 23:07:24 akara Exp $
+ * $Id: ParamRepository.java,v 1.13 2009/05/21 10:13:28 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -64,6 +64,34 @@ public class ParamRepository {
         return reader.getValue(xpath);
     }
 
+    public String getParameter(String xpath, Element top) {
+        return reader.getValue(xpath, top);
+    }
+
+    public NodeList getNodeListForTagName(String tagName){
+        return reader.getNodeListForTagName(tagName);
+    }
+
+     public NodeList getTopLevelElements() {
+        NodeList topLevelElements = reader.getTopLevelElements();
+        return topLevelElements;
+    }
+
+    public NodeList getNodes(String xPath) {
+        return reader.getNodes(xPath);
+    }
+
+    public NodeList getNodes(String xPath, Element top) {
+        return reader.getNodes(xPath, top);
+    }
+
+    public Node getNode(String xPath) {
+        return reader.getNode(xPath);
+    }
+
+    public Node getNode(String xPath, Element top) {
+        return reader.getNode(xPath, top);
+    }
 
     /**
      * Adds a new XPath to the param repository.

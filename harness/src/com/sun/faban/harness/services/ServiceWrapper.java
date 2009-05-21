@@ -19,47 +19,45 @@
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
-package com.sun.faban.harness.engine;
 
-import com.sun.faban.harness.Benchmark;
-import com.sun.faban.harness.Configure;
-import com.sun.faban.harness.EndRun;
-import com.sun.faban.harness.KillRun;
-import com.sun.faban.harness.PostRun;
-import com.sun.faban.harness.StartRun;
-import com.sun.faban.harness.Validate;
+package com.sun.faban.harness.services;
+
+import com.sun.faban.harness.Context;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  *
- * @author Sheetal Patil, Sun Microsystems.
+ * @author Sheetal Patil
  */
-public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
+public class ServiceWrapper {
 
     private static Logger logger =
-            Logger.getLogger(AnnotationBenchmarkWrapper.class.getName());
+            Logger.getLogger(ServiceWrapper.class.getName());
 
-    Object benchmark;
-    Method validateMethod;
+    Object service;
+    Method clearLogsMethod;
     Method configureMethod;
-    Method startMethod;
-    Method endMethod;
-    Method postRunMethod;
-    Method killMethod;
+    Method getConfigMethod;
+    Method getLogsMethod;
+    Method startupMethod;
+    Method shutdownMethod;
 
-    AnnotationBenchmarkWrapper(Class benchmarkClass) throws Exception {
-        benchmark = benchmarkClass.newInstance();
-        Method[] methods = benchmarkClass.getMethods();
+
+    ServiceWrapper(Class serviceClass, ServiceContext ctx) throws Exception {
+        service = serviceClass.newInstance();
+        Method[] methods = serviceClass.getMethods();
         for (Method method : methods) {
             // Check annotation.
-            if (method.getAnnotation(Validate.class) != null) {
+            if (method.getAnnotation(ClearLogs.class) != null) {
                 if (!conformsToSpec(method))
                     continue;
-                if (validateMethod == null) {
-                    validateMethod = method;
+                if (clearLogsMethod == null) {
+                    clearLogsMethod = method;
                 } else {
                     logger.severe("Error: Multiple @Validate methods.");
                     //throw new Error ("Multiple @Validate methods.");
@@ -75,47 +73,60 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
                     //throw new Error ("Multiple @Configure methods.");
                 }
             }
-            if (method.getAnnotation(StartRun.class) != null) {
+            if (method.getAnnotation(GetConfig.class) != null) {
                 if (!conformsToSpec(method))
                     continue;
-                if (startMethod == null) {
-                    startMethod = method;
+                if (getConfigMethod == null) {
+                    getConfigMethod = method;
                 } else {
                     logger.severe("Error: Multiple @Start methods.");
                     //throw new Error ("Multiple @Start methods.");
                 }
             }
-            if (method.getAnnotation(EndRun.class) != null) {
+            if (method.getAnnotation(GetLogs.class) != null) {
                 if (!conformsToSpec(method))
                     continue;
-                if (endMethod == null) {
-                    endMethod = method;
+                if (getLogsMethod == null) {
+                    getLogsMethod = method;
                 } else {
                     logger.severe("Error: Multiple @End methods.");
                     //throw new Error ("Multiple @End methods.");
                 }
             }
-            if (method.getAnnotation(PostRun.class) != null) {
+            if (method.getAnnotation(Startup.class) != null) {
                 if (!conformsToSpec(method))
                     continue;
-                if (postRunMethod == null) {
-                    postRunMethod = method;
+                if (startupMethod == null) {
+                    startupMethod = method;
                 } else {
                     logger.severe("Error: Multiple @PostRun methods.");
                     //throw new Error ("Multiple @PostRun methods.");
                 }
             }
-            if (method.getAnnotation(KillRun.class) != null) {
+            if (method.getAnnotation(Shutdown.class) != null) {
                 if (!conformsToSpec(method))
                     continue;
-                if (killMethod == null) {
-                    killMethod = method;
+                if (shutdownMethod == null) {
+                    shutdownMethod = method;
                 } else {
                     logger.severe("Error: Multiple @Kill methods.");
                     //throw new Error ("Multiple @Kill methods.");
                 }
             }
         }
+        Field ctxField = null;
+        Field[] fields = serviceClass.getFields();
+        for (Field field : fields) {
+            if (field.getType().equals(ServiceContext.class) &&
+                                (field.getAnnotation(Context.class) != null)) {
+                    if (ctxField == null)
+                        ctxField = field;
+                    else
+                        logger.warning("More than one valid @Context annotation.");
+            }
+        }
+        if (ctxField != null)
+            ctxField.set(service, ctx);
     }
 
     private boolean conformsToSpec(Method method) {
@@ -143,10 +154,10 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
             }
     }
 
-    void validate() throws Exception {
-        if (validateMethod != null){
+    void clearLogs() throws Exception {
+        if (clearLogsMethod != null){
             try {
-                validateMethod.invoke(benchmark,new Object[] {});
+                clearLogsMethod.invoke(service,new Object[] {});
             } catch (InvocationTargetException e) {
                 throwSourceException(e);
             }
@@ -156,47 +167,47 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
     void configure() throws Exception {
         if (configureMethod != null){
             try {
-                configureMethod.invoke(benchmark,new Object[] {});
+                configureMethod.invoke(service,new Object[] {});
             } catch (InvocationTargetException e) {
                 throwSourceException(e);
             }
         }
     }
 
-    void start() throws Exception {
-        if (startMethod != null){
+    void getConfig() throws Exception {
+        if (getConfigMethod != null){
             try {
-                startMethod.invoke(benchmark,new Object[] {});
+                getConfigMethod.invoke(service,new Object[] {});
             } catch (InvocationTargetException e) {
                 throwSourceException(e);
             }
         }
     }
 
-    void end() throws Exception {
-        if (endMethod != null){
+    void getLogs() throws Exception {
+        if (getLogsMethod != null){
             try {
-                endMethod.invoke(benchmark,new Object[] {});
+                getLogsMethod.invoke(service,new Object[] {});
             } catch (InvocationTargetException e) {
                 throwSourceException(e);
             }
         }
     }
 
-    void postRun() throws Exception {
-        if (postRunMethod != null){
+    void startup() throws Exception {
+        if (startupMethod != null){
             try {
-                postRunMethod.invoke(benchmark,new Object[] {});
+                startupMethod.invoke(service,new Object[] {});
             } catch (InvocationTargetException e) {
                 throwSourceException(e);
             }
         }
     }
 
-    void kill() throws Exception {
-        if (killMethod != null){
+    void shutdown() throws Exception {
+        if (shutdownMethod != null){
             try {
-                killMethod.invoke(benchmark,new Object[] {});
+                shutdownMethod.invoke(service,new Object[] {});
             } catch (InvocationTargetException e) {
                 throwSourceException(e);
             }

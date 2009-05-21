@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.31 2008/12/05 22:02:14 sheetalpatil Exp $
+ * $Id: Config.java,v 1.32 2009/05/21 10:13:29 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -135,7 +135,8 @@ public class Config {
     public static final String TOOL_AGENT = "ToolAgent";
 
     // Resource downloads
-    public static final String DOWNLOAD_PATH = "bench_downloads/";
+    public static final String BENCHMARK_DOWNLOAD_PATH = "bench_downloads/";
+    public static final String SERVICE_DOWNLOAD_PATH = "service_downloads/";
 
 	// Universal Faban constants
     public static final int DEFAULT_PRIORITY = 1;
@@ -161,6 +162,7 @@ public class Config {
 
     // Constants used by UserEnv
     public static String BENCHMARK_DIR;
+    public static String SERVICE_DIR;
     public static String BENCH_FILE;
     public static String PROFILES_DIR;
 
@@ -285,10 +287,11 @@ public class Config {
 
         // Constants used UserEnv
         BENCHMARK_DIR = FABAN_HOME + "benchmarks" + File.separator;
+        SERVICE_DIR = FABAN_HOME + "services" + File.separator;
         BENCH_FILE = CONFIG_DIR + "benchmarks.list";
         PROFILES_DIR = CONFIG_DIR + "profiles" + File.separator;
 
-        String[] emptyDirs = { BENCHMARK_DIR, OUT_DIR, RUNQ_DIR, PROFILES_DIR,
+        String[] emptyDirs = { BENCHMARK_DIR, SERVICE_DIR, OUT_DIR, RUNQ_DIR, PROFILES_DIR,
                               FABAN_HOME + "logs",
                               FABAN_HOME + "master" + File.separator + "logs" };
         ensureDirs(emptyDirs);

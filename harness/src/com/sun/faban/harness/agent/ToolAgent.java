@@ -17,13 +17,16 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ToolAgent.java,v 1.3 2008/05/23 05:57:41 akara Exp $
+ * $Id: ToolAgent.java,v 1.4 2009/05/21 10:13:28 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.agent;
+import com.sun.faban.harness.tools.MasterToolContext;
+import java.io.IOException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.List;
 
 /**
  * The methods in this interface are the public face of 
@@ -40,11 +43,12 @@ public interface ToolAgent extends Remote {
     /**
      * This method configures the tools that must be run on
      * this machine
-     * @param toolslist - each element in the array is the
+     * @param toollist - each element in the array is the
      * name of a tool and optional arguments, e.g "sar -u -c"
      * @param outDir output directory of the run
      */
-    void configure(String toolslist[], String outDir) throws RemoteException;
+    void configure(List<MasterToolContext> toollist, String outDir) 
+            throws RemoteException, IOException;
 
     void kill() throws RemoteException;
 

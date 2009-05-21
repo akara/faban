@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.48 2009/05/10 03:13:13 akara Exp $
+ * $Id: CmdService.java,v 1.49 2009/05/21 10:13:24 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -1759,7 +1759,7 @@ final public class CmdService { 	// The final keyword prevents clones
         }
     }
 
-    Registry getRegistry() {
+    public Registry getRegistry() {
         return registry;
     }
 

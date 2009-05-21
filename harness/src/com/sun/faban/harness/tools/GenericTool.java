@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericTool.java,v 1.11 2008/05/23 23:24:46 akara Exp $
+ * $Id: GenericTool.java,v 1.12 2009/05/21 10:13:26 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -105,6 +105,8 @@ public class GenericTool implements Tool {
         buildCmd(argList);
 
         logger.fine(toolName + " Configured with toolCmd " + this.toolCmd);
+
+        // configureMethod.invoke();
     }
 
     /**
@@ -163,7 +165,7 @@ public class GenericTool implements Tool {
     public boolean start(int delay) {
         TimerTask startTask = new TimerTask() {
             public void run() {
-                start();
+                start(); // startMethod.invoke();
             }
         };
         timer.schedule(startTask, delay * 1000);

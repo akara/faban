@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ToolService.java,v 1.7 2008/05/23 05:57:41 akara Exp $
+ * $Id: ToolService.java,v 1.8 2009/05/21 10:13:24 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -28,10 +28,15 @@ import com.sun.faban.harness.agent.ToolAgentImpl;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.ParamRepository;
 
+import com.sun.faban.harness.services.ServiceManager;
+import com.sun.faban.harness.tools.MasterToolContext;
+import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.parsers.ParserConfigurationException;
+import org.xml.sax.SAXException;
 
 /**
  * This file contains the class that implements the Tool service API.
@@ -84,7 +89,8 @@ final public class ToolService {
      * @return true if setup successful, else false
      *
      */
-    public boolean setup(ParamRepository par, String outDir) {
+    public boolean setup(ParamRepository par, String outDir, ServiceManager serviceMgr) 
+            throws ParserConfigurationException, SAXException, IOException, Exception {
 
         cmds = CmdService.getHandle();
 
@@ -101,11 +107,25 @@ final public class ToolService {
         }
 
         // HashMap containing exclusive list of tools to start on each machine.
-        HashMap<String, HashSet<String>> hostMap =
-                new HashMap<String, HashSet<String>>();
+        HashMap<String, List<MasterToolContext>> hostMap =
+                new HashMap<String, List<MasterToolContext>>();
+
+        List<MasterToolContext> tools = serviceMgr.getTools();
+        List<MasterToolContext> hostToolList = null;
+        for (MasterToolContext tool : tools) {
+            String[] hosts = tool.getToolServiceContext().getHosts();
+            for (String host : hosts) {
+                hostToolList = hostMap.get(host);
+                if (hostToolList == null) {
+                    hostToolList = new ArrayList<MasterToolContext>();
+                    hostMap.put(host, hostToolList);
+                }
+                hostToolList.add(tool);
+            }
+        }
 
         // Temporary tool list for host class being processed.
-        ArrayList<String> newTools = new ArrayList<String>();
+        ArrayList<MasterToolContext> newTools = new ArrayList<MasterToolContext>();
 
         // First we flatten out the classes into host names and tools sets
         for (int i = 0; i < hostClasses.size(); i++) {
@@ -127,21 +147,23 @@ final public class ToolService {
             StringTokenizer st = new StringTokenizer(toolCmds, ";");
             while(st.hasMoreTokens()) {
                 String tool = st.nextToken().trim();
-                if (tool.length() > 0)
-                    newTools.add(tool);
+                if (tool.length() > 0){
+                    MasterToolContext tCtx = new MasterToolContext(tool, null, null);
+                    newTools.add(tCtx);
+                }
             }
 
             for (int j = 0; j < hosts.length; j++) {
                 String host = hosts[j];
                 // Now get the tools list for this host,
                 // or allocate if non-existent
-                HashSet<String> toolsSet = hostMap.get(host);
-                if (toolsSet == null) {
-                    toolsSet = new HashSet<String>(newTools);
-                    hostMap.put(host, toolsSet);
-                } else {
-                    toolsSet.addAll(newTools);
+                hostToolList = hostMap.get(host);
+                if (hostToolList == null) {
+                    hostToolList = new ArrayList<MasterToolContext>();
+                    hostMap.put(host, hostToolList);
                 }
+                hostToolList.addAll(newTools);
+                
             }
             // Clear the set for the next host class.
             newTools.clear();
@@ -191,10 +213,9 @@ final public class ToolService {
                 // Send toolslist
                 logger.fine("Configuring ToolAgent at " + serviceName);
 
-                HashSet<String> toolsSet = hostMap.get(hostNames[i]);
-                String[] toolsArray = new String[toolsSet.size()];
-                toolsArray = toolsSet.toArray(toolsArray);
-                toolAgents[i].configure(toolsArray, outDir);
+                List<MasterToolContext> toolList = hostMap.get(hostNames[i]);
+                if(toolList != null)
+                    toolAgents[i].configure(toolList, outDir);
             }
 
         } catch (RemoteException re) {

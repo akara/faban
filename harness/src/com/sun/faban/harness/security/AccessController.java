@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AccessController.java,v 1.7 2008/01/15 08:02:52 akara Exp $
+ * $Id: AccessController.java,v 1.8 2009/05/21 10:13:27 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -225,8 +225,14 @@ public class AccessController {
         if (user == null)
             return false;
         Acl acl = Acl.getInstance(Permission.WRITE, resource);
-        if (acl.isEmpty() && isViewAllowed(user, resource))
-            return true;
+        if (acl.isEmpty()) {
+            if (Submitter.isSubmitter(user, resource))
+                return true;
+            else if (isRigManageAllowed(user))
+                return true;
+            else
+                return false;
+        }
         return acl.contains(user);
     }
 

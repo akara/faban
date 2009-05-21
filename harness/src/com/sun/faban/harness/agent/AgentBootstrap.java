@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentBootstrap.java,v 1.17 2009/01/23 03:32:05 akara Exp $
+ * $Id: AgentBootstrap.java,v 1.18 2009/05/21 10:13:28 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -61,6 +61,7 @@ public class AgentBootstrap {
     static String master;
     static Registry registry;
     static String javaHome;
+    static String downloadURL;
     // Initialize it to make sure it doesn't end up a 'null'
     static ArrayList<String> jvmOptions = new ArrayList<String>();
     static ArrayList<String> extClassPath = new ArrayList<String>();
@@ -161,7 +162,6 @@ public class AgentBootstrap {
         String masterLocal = args[2];
         javaHome = args[3];
 
-        String downloadURL = null;
         String benchName = null;
 
         // Setup the basic jvmOptions for this environment which may not
@@ -301,7 +301,7 @@ public class AgentBootstrap {
 
                 // setBenchName scans all resources.
                 // Benchmark needs to be loaded first.
-                new BenchmarkLoader().loadBenchmark(benchName, downloadURL);
+                new Download().loadBenchmark(benchName, downloadURL);
                 cmd.setBenchName(benchName);
 
                 if(host.equals(master)) {

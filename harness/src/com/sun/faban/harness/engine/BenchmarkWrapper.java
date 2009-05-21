@@ -37,8 +37,9 @@ public abstract class BenchmarkWrapper {
 
     static BenchmarkWrapper getInstance(BenchmarkDescription desc) {
         Class benchmarkClass = null;
-        BenchmarkClassLoader loader = BenchmarkClassLoader.getInstance(
-                desc.shortName, BenchmarkWrapper.class.getClassLoader());
+        DeployImageClassLoader loader = DeployImageClassLoader.getInstance(
+                "benchmarks", desc.shortName,
+                BenchmarkWrapper.class.getClassLoader());
         if (loader != null)
             try {
                 benchmarkClass = Class.forName(desc.benchmarkClass,

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Results.java,v 1.3 2009/03/03 21:44:47 akara Exp $
+ * $Id: Results.java,v 1.4 2009/05/21 10:13:27 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,11 +25,13 @@ package com.sun.faban.harness.webclient;
 
 import com.sun.faban.harness.common.RunId;
 import com.sun.faban.harness.engine.RunQ;
+import com.sun.faban.harness.security.AccessController;
 import com.sun.faban.harness.webclient.RunResult.FeedRecord;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.StringTokenizer;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -48,13 +50,33 @@ public class Results {
     public String list(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
         UserEnv usrEnv = getUserEnv(req);
-        String tags = req.getParameter("inputtag");
+        String tag = req.getParameter("inputtag");
         TableModel resultTable = null;
-        if (tags != null) {
-            resultTable = RunResult.getResultTable(usrEnv.getSubject(), tags);
+        boolean tagSearch = false;
+        String feedURL = "/controller/results/feed";
+        if (tag != null && !"".equals(tag)) {
+            tag = tag.trim();
+            if (tag.length() > 0) {
+                tagSearch = true;
+            }
+        }
+        if (tagSearch) {
+            resultTable = RunResult.getResultTable(usrEnv.getSubject(), tag);
+            StringTokenizer t = new StringTokenizer(tag, " ,;:");
+            StringBuilder b = new StringBuilder(tag.length());
+            b.append(feedURL);
+            while (t.hasMoreTokens()) {
+                b.append('/');
+                String tagName = t.nextToken();
+                tagName = tagName.replace("/", "+");
+                b.append(tagName);
+            }
+            feedURL = b.toString();
         } else {
             resultTable = RunResult.getResultTable(usrEnv.getSubject());
-    }
+        }
+
+        req.setAttribute("feedURL", feedURL );
         req.setAttribute("table.model", resultTable);
         return "/resultlist.jsp";
     }
@@ -88,26 +110,97 @@ public class Results {
         req.setAttribute("feed.updated", updated);
     }
 
+    public String getRunInfo(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+        UserEnv usrEnv = getUserEnv(req);
+        String runId = req.getParameter("runId");
+        RunResult result = RunResult.getInstance(new RunId(runId));
+        String[] header = {"RunId","Description","Result","Scale","Metric","Status","Date/Time","Submitter","Tags"};
+        String[] runInfo = new String[9];
+        runInfo[0] = result.runId.toString();
+        if (result.description == null || result.description.length() == 0)
+                runInfo[1] = "UNAVAILABLE";
+        else
+                runInfo[1] = result.description;
+        if (result.result != null) {              
+                runInfo[2] = result.result;
+        } else {                
+                runInfo[2] = "N/A";
+        }
+
+            if (result.scale == null || result.scale.length() < 1) {
+                runInfo[3] = "N/A";
+            } else {
+                runInfo[3] = result.scale;
+            } 
+
+            if (result.metric.text == null) {
+                runInfo[4] = "N/A";
+            } else {
+                runInfo[4] = result.metric.text;
+            } 
+            if (result.status != null) {
+                runInfo[5] = result.status;
+            } else {               
+                runInfo[5] = "UNKNOWN";
+            }
+
+            if (result.dateTime != null) {
+                runInfo[6] = formatOrig.format(result.dateTime);
+            } else {
+                runInfo[6] = "N/A";
+            }
+            
+            if (result.submitter != null)
+                runInfo[7] = result.submitter;
+            else
+                runInfo[7] = "&nbsp;";
+
+
+            if (result.tags != null && result.tags.length > 0) {
+                StringBuilder b = new StringBuilder();
+                for (String tag : result.tags) {
+                    b.append(tag).append(' ');
+                }
+                b.setLength(b.length() - 1);
+                runInfo[8] = b.toString();
+                b.setLength(0);
+            } else {
+                runInfo[8] = "&nbsp;";
+            }
+        req.setAttribute("header", header);
+        req.setAttribute("runinfo", runInfo);
+        if (!AccessController.isWriteAllowed(usrEnv.getSubject(), runId))
+            return "/runinfo_readonly.jsp";
+        else
+            return "/runinfo.jsp";
+    }
+
     public void location(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
         String[] restRequest = (String[]) req.getAttribute("rest.request");
         String runId = restRequest[0];
+        UserEnv usrEnv = getUserEnv(req);
 
         RunResult result = RunResult.getInstance(new RunId(runId));
         if (result == null) {
             // Perhaps the runId is still in the pending queue.
             boolean found = false;
             String[] pending = RunQ.listPending();
-            for (String run : pending)
+            for (String run : pending) {
                 if (run.equals(runId)) {
                     resp.sendRedirect("/pending-runs.jsp");
                     found = true;
                     break;
                 }
+            }
             if (!found) {
                 resp.sendError(HttpServletResponse.SC_NOT_FOUND,
                                 "Run " + runId + " not found");
             }
+        } else if (!AccessController.isViewAllowed(usrEnv.getSubject(), runId)) {
+            resp.sendError(HttpServletResponse.SC_NOT_FOUND,
+                           "Run " + runId + " not found");
         } else if ("COMPLETED".equals(result.status)){
             resp.sendRedirect(result.resultLink);
         } else {

@@ -17,7 +17,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: ResultAction.java,v 1.13 2009/03/17 22:49:03 sheetalpatil Exp $
+* $Id: ResultAction.java,v 1.14 2009/05/21 10:13:27 sheetalpatil Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 */
@@ -447,7 +447,7 @@ public class ResultAction {
      * Edit run.xml file
      * @param result
      */
-    private void editXML(RunResult result){
+    public static void editXML(RunResult result){
         try {
             File resultDir = result.runId.getResultDir();
             String shortName = result.runId.getBenchName();

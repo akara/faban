@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DeployUtil.java,v 1.17 2009/03/31 00:23:25 sheetalpatil Exp $
+ * $Id: DeployUtil.java,v 1.18 2009/05/21 10:13:24 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -55,6 +55,7 @@ import org.w3c.dom.NodeList;
 public class DeployUtil {
 
     public static final File BENCHMARKDIR;
+    public static final File SERVICEDIR;
 
     private static Logger logger;
     static {
@@ -65,6 +66,12 @@ public class DeployUtil {
             throw new RuntimeException(Config.BENCHMARK_DIR +
                     " is not a directory");
         }
+        SERVICEDIR = new File(Config.SERVICE_DIR);
+        if (!SERVICEDIR.isDirectory()) {
+            logger.severe(Config.SERVICE_DIR + " is not a directory");
+            throw new RuntimeException(Config.SERVICE_DIR +
+                    " is not a directory");
+        }
     }
 
 
@@ -73,7 +80,7 @@ public class DeployUtil {
      * @param benchName The name of the benchmark
      */
     public static void unjar(String benchName) throws IOException {
-
+                
         logger.info("Redeploying " + benchName);
 
         String jarName = benchName + ".jar";
@@ -81,14 +88,30 @@ public class DeployUtil {
 
         if (dir.exists())
             FileHelper.recursiveDelete(dir);
+
         dir.mkdir();
 
         FileHelper.unjar(Config.BENCHMARK_DIR + jarName, dir.getAbsolutePath());
+        File benchmarkXml = new File(Config.BENCHMARK_DIR + benchName + File.separator + "META-INF" + File.separator + "benchmark.xml");
+        File servicesToolsXml = new File(Config.BENCHMARK_DIR + benchName + File.separator + "META-INF" + File.separator + "services-tools.xml");
+        if (servicesToolsXml.exists() && !benchmarkXml.exists()) {
+            logger.info("Redeploying Service " + benchName);
+
+            File dir1 = new File(Config.SERVICE_DIR, benchName);
+            if (dir1.exists()) {
+                FileHelper.recursiveDelete(dir1);
+            }
+            dir1.mkdir();
+            FileHelper.copyFile(Config.BENCHMARK_DIR + jarName, Config.SERVICE_DIR + jarName, false);
+            FileHelper.recursiveCopy(dir, dir1);
+            FileHelper.recursiveDelete(dir);
+            FileHelper.recursiveDelete(new File(Config.BENCHMARK_DIR + jarName));
+        }
+   
     }
 
     public static void generateDD(String dir) {
-        String benchDir = Config.BENCHMARK_DIR + File.separator + dir +
-                          File.separator;
+        String benchDir = Config.BENCHMARK_DIR + dir + File.separator;
         String metaInf = benchDir + "META-INF" + File.separator;
         String xmlPath = metaInf + "benchmark.xml";
         File benchmarkXml = new File(xmlPath);
@@ -216,6 +239,21 @@ public class DeployUtil {
                              jarName.length() - suffix.length());
             checkDeploy(jarFiles[i], benchName);
         }
+
+        // TODO: Check for any jar files dropped in Service dir, deploy if needed.
+        File[] jarFiles1 = SERVICEDIR.listFiles();
+        for (int i = 0; i < jarFiles1.length; i++) {
+            if (jarFiles1[i].isDirectory())
+                continue;
+            String suffix = ".jar";
+            String jarName = jarFiles1[i].getName();
+            if (!jarName.endsWith(suffix))
+                continue;
+            String benchName = jarName.substring(0,
+                             jarName.length() - suffix.length());
+            checkDeploy(jarFiles1[i], benchName);
+        }
+
     }
 
     public static void checkDeploy(File jarFile, String benchName) {
@@ -233,6 +271,7 @@ public class DeployUtil {
             try {
                 unjar(benchName);
                 generateDD(benchName);
+                generateXform(benchName);
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Error deploying benchmark \"" +
                         benchName + "\"", e);

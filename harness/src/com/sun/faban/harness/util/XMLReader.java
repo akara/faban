@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: XMLReader.java,v 1.14 2008/09/04 03:26:12 akara Exp $
+ * $Id: XMLReader.java,v 1.15 2009/05/21 10:13:24 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -77,6 +77,17 @@ public class XMLReader {
             initLocal(file);
     }
 
+    private String completeXPath(String xpath) {
+        // If no absolute xpath is not given use //xpath to find the parameter
+        if (xpath.charAt(0) != '/') {
+            xpath = "//" + xpath;
+        } else {
+            //the JXPathContext expects 'params' (which is the variable name returned by XMLFile
+            xpath = "params" + xpath;
+        }
+        return xpath;
+    }
+
     private void initLocal(String file) {
         this.file = file;
         try {
@@ -89,14 +100,63 @@ public class XMLReader {
         }
     }
 
-    public String getValue(String xpath) {
-        // If no absolute xpath is not given use //xpath to find the parameter
-        if(xpath.charAt(0) != '/')
-            xpath = "//" + xpath;
-        else    //the JXPathContext expects 'params' which is the variable name returned by XMLFile
-            xpath = "params" + xpath;
+    public NodeList getNodeListForTagName(String tagName){
+        return doc.getElementsByTagName(tagName);
+    }
+
+    public NodeList getTopLevelElements() {
+        NodeList topLevelElements = doc.getDocumentElement().getChildNodes();
+        return topLevelElements;
+    }
+
+    public Element getRootNode() {
+        return doc.getDocumentElement();
+    }
+
+
+    public Node getNode(String xpath) {
+        xpath = completeXPath(xpath);
+        return getNode(xpath, doc);
+    }
+
+    public Node getNode(String xpath, Node base) {
+        Node node = null;
         try {
-            return xPath.evaluate(xpath, doc);
+            node = (Node) xPath.evaluate(xpath,
+                                                base, XPathConstants.NODE);
+        } catch (XPathExpressionException e) {
+            logger.log(Level.WARNING, "Error processing XPath expression: " +
+                                                                xpath, e);
+        }
+        return node;
+    }
+
+    public NodeList getNodes(String xpath) {
+        xpath = completeXPath(xpath);
+        return getNodes(xpath, doc);
+    }
+
+    public NodeList getNodes(String xpath, Node base) {
+        NodeList nodes = null;
+        try {
+            nodes = (NodeList) xPath.evaluate(xpath,
+                                                base, XPathConstants.NODESET);
+        } catch (XPathExpressionException e) {
+            logger.log(Level.WARNING, "Error processing XPath expression: " +
+                                                                xpath, e);
+        }
+        return nodes;
+    }
+
+
+    public String getValue(String xpath) {
+        xpath = completeXPath(xpath);
+        return getValue(xpath, doc);
+    }
+
+    public String getValue(String xpath, Node base) {
+        try {
+            return xPath.evaluate(xpath, base);
         } catch (XPathExpressionException e) {
             throw new XMLException("Error evaluating " + xpath + ", " +
                                    e.getMessage(), e);
@@ -104,15 +164,14 @@ public class XMLReader {
     }
 
     public List<String> getValues(String xpath) {
-        // If no absolute xpath is not given use //xpath to find the parameter
-        if(xpath.charAt(0) != '/')
-            xpath = "//" + xpath;
-        else    //the JXPathContext expects 'params' (which is the variable name returned by XMLFile
-            xpath = "params" + xpath;
+        xpath = completeXPath(xpath);
+        return getValues(xpath, doc);
+    }
 
+    public List<String> getValues(String xpath, Node base) {
         try {
             NodeList nodeList = (NodeList) xPath.evaluate(
-                                xpath, doc, XPathConstants.NODESET);
+                                xpath, base, XPathConstants.NODESET);
             int length = nodeList.getLength();
             ArrayList<String> vList = new ArrayList<String>();
             for (int i = 0; i < length; i++) {
@@ -142,14 +201,14 @@ public class XMLReader {
     }
 
     public List<String> getAttributeValues(String xpath, String attribute) {
-        if(xpath.charAt(0) != '/')
-            xpath = "//" + xpath;
-        else    //the JXPathContext expects 'params' (which is the variable name returned by XMLFile
-            xpath = "params" + xpath;
+        xpath = completeXPath(xpath);
+        return getAttributeValues(xpath, attribute, doc);
+    }
 
+    public List<String> getAttributeValues(String xpath, String attribute, Node base) {
         try {
             NodeList nodeList = (NodeList) xPath.evaluate(xpath + "[@" + attribute + "]",
-                                doc, XPathConstants.NODESET);
+                                base, XPathConstants.NODESET);
             int length = nodeList.getLength();
             ArrayList<String> vList = new ArrayList<String>();
             for (int i = 0; i < length; i++) {
@@ -181,11 +240,8 @@ public class XMLReader {
 
     public void setValue(String xpath, String newValue) {
         // If no absolute xpath is not given use //xpath to find the parameter
-        if(xpath.charAt(0) != '/')
-            xpath = "//" + xpath;
-        else    //the JXPathContext expects 'params' (which is the variable name returned by XMLFile
-            xpath = "params" + xpath;
-
+        xpath = completeXPath(xpath);
+        
         try {
             NodeList nodeList = (NodeList) xPath.evaluate(
                                 xpath, doc, XPathConstants.NODESET);

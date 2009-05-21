@@ -17,20 +17,29 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ToolAgentImpl.java,v 1.4 2008/05/23 23:24:45 akara Exp $
+ * $Id: ToolAgentImpl.java,v 1.5 2009/05/21 10:13:28 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.agent;
 import com.sun.faban.common.Command;
 import com.sun.faban.harness.common.Config;
-import com.sun.faban.harness.tools.GenericTool;
+import com.sun.faban.harness.engine.DeployImageClassLoader;
+import com.sun.faban.harness.services.ServiceContext;
+import com.sun.faban.harness.services.ServiceDescription;
+import com.sun.faban.harness.tools.CommandLineTool;
 import com.sun.faban.harness.tools.Tool;
 
+import com.sun.faban.harness.tools.MasterToolContext;
+import com.sun.faban.harness.tools.ToolDescription;
+import com.sun.faban.harness.tools.ToolWrapper;
 import java.io.File;
+import java.io.IOException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.rmi.server.Unreferenced;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
@@ -49,7 +58,7 @@ import java.util.logging.Logger;
  */
 public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unreferenced {
     String toolNames[];
-    Tool tools [];	// handles to the Tool objects
+    ToolWrapper tools [];	// handles to the Tool objects
     int numTools;
     static String masterMachine = null;	// name of master machine
     static String host;	// our current hostname
@@ -68,61 +77,70 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
      * This method configures the tools that must be run on
      * this machine by calling the configure method on each of
      * the specified tools.
-     * @param toolslist - each element in the array is the
+     * @param toollist - each element in the array is the
      * name of a tool and optional arguments, e.g "sar -u -c"
      */
-    public void configure(String toolslist[], String outDir) throws RemoteException {
-        String tool;
-        int i;
-
-        numTools = toolslist.length;
+    public void configure(List<MasterToolContext> toollist, String outDir) 
+            throws RemoteException, IOException {
+        
+        numTools = toollist.size();
         toolNames = new String[numTools];
-        tools = new Tool[numTools];
+        tools = new ToolWrapper[numTools];
 
         logger.info("Processing tools");
-        latch = new CountDownLatch(toolslist.length);
-        for (i = 0; i < toolslist.length; i++) {
-            if (toolslist[i].length() == 0)
-                continue;
-
-            List<String> args = Command.parseArgs(toolslist[i]);
-            tool= args.remove(0);
-            toolNames[i] = tool;
+        latch = new CountDownLatch(toollist.size());
+        
+        downloadTools(toollist);
+        
+        for (int i=0; i<toollist.size(); i++) {
+            MasterToolContext ctx = toollist.get(i);
+            String toolId = ctx.getToolId();
+            toolNames[i] = toolId;
+            //List<String> args = Command.parseArgs(ctx.getToolParams());
+           
 
             String path = null;
-            int nameIdx = tool.lastIndexOf(File.separator) + 1;
+            int nameIdx = toolId.lastIndexOf(File.separator) + 1;
             if (nameIdx > 0) {
-                path = tool.substring(0, nameIdx - 1);
-                tool = tool.substring(nameIdx);
+                path = toolId.substring(0, nameIdx - 1);
+                toolId = toolId.substring(nameIdx);
             }
 
             if (path != null && path.length() == 0)
                 path = null;
 
-            // Now, create the tool object and call its configure method
             String toolClass = null;
-            try {
-                // convert first char of name to uppercase
-                toolClass = Config.TOOLS_PKG
-                        + Character.toUpperCase(tool.charAt(0))
-                        + tool.substring(1);
-                Class c = Class.forName(toolClass);
+            ToolDescription toolDesc = ctx.getToolDescription();
+            if (toolDesc != null)
+                toolClass = toolDesc.toolClass;
 
-                Tool l = (Tool) c.newInstance();
-                logger.info("Trying to run tool " + l.getClass());
-                tools[i] = l;
-                l.configure(tool, args, path, outDir, host, masterMachine,
-                            CmdAgentImpl.getHandle(), latch);
-            } catch (ClassNotFoundException ce) {
-                tools[i] = new GenericTool();
-                tools[i].configure(tool, args, path, outDir, host,
-                            masterMachine, CmdAgentImpl.getHandle(), latch);
-                logger.info("Trying to run tool " + tool +
-                            " using GenericTool.");
-            } catch (Exception ie) {
-                logger.log(Level.WARNING, "Error in creating tool object " +
-                           tool, ie);
-                latch.countDown(); // Tool did not get started.
+            // Now, create the tool object and call its configure method            
+            if(toolClass != null){                
+                try {
+                    ServiceDescription serviceDesc = ctx.getToolDescription().service;
+                    DeployImageClassLoader loader = DeployImageClassLoader.
+                            getInstance(serviceDesc.locationType,
+                            serviceDesc.location, getClass().getClassLoader());
+                    Class c = loader.loadClass(toolClass);
+                    tools[i] = new ToolWrapper(c, ctx);
+
+                    logger.fine("Trying to run tool " + c.getName());
+                    tools[i].configure(toolNames[i], path, outDir, host, CmdAgentImpl.getHandle(), latch);
+                } catch (ClassNotFoundException ce) {
+                    logger.log(Level.WARNING, "Class " + toolClass + " not found");
+                } catch (Exception ie) {
+                    logger.log(Level.WARNING, "Error in creating tool object " +
+                               tools[i], ie);
+                    latch.countDown(); // Tool did not get started.
+                }
+            }else{
+                try {
+                    tools[i] = new ToolWrapper(CommandLineTool.class, ctx);
+                    tools[i].configure(toolNames[i], path, outDir, host, CmdAgentImpl.getHandle(), latch);
+                    logger.fine("Trying to run tool " + tools[i] + " using CommandLineTool.");
+                } catch (Exception ex) {
+                    logger.log(Level.WARNING, "Cannot start CommandLineTool!", ex);
+                }
             }
         }
     }
@@ -231,7 +249,11 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
         for (j = 0; j < t.length; j++) {
             for (i = 0; i < tools.length; i++) {
                 if (toolNames[i].equals(t[j])) {
-                    tools[i].stop();
+                    try {
+                        tools[i].stop();
+                    } catch (Exception ex) {
+                        logger.log(Level.SEVERE, null, ex);
+                    }
                     break;
                 }
             }
@@ -266,5 +288,22 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
      */
     public void unreferenced() {
         kill();
+    }
+
+    private void downloadTools(List<MasterToolContext> toollist) throws IOException {
+        LinkedHashSet<ServiceContext> downloads = new LinkedHashSet<ServiceContext>();
+        for (int i=0; i < toollist.size(); i++) {
+            MasterToolContext ctx = toollist.get(i);
+            ServiceContext sc = ctx.getToolServiceContext();
+            if(sc != null){
+               downloads.add(sc);
+            }
+        }
+
+        for(ServiceContext ctx : downloads){
+            if ("services".equals(ctx.desc.locationType))
+                new Download().loadService(ctx.desc.location,
+                                            AgentBootstrap.downloadURL);
+        }
     }
 }

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.36 2009/02/13 20:34:59 akara Exp $
+ * $Id: GenericBenchmark.java,v 1.37 2009/05/21 10:13:24 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -33,6 +33,9 @@ import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.HostTypes;
 import com.sun.faban.harness.common.Run;
 
+import com.sun.faban.harness.services.ServiceDescription;
+import com.sun.faban.harness.services.ServiceManager;
+import com.sun.faban.harness.services.ServiceWrapper;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -40,7 +43,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.text.StyledEditorKit.ItalicAction;
 
 /**
  * GenericBenchmark.java
@@ -60,6 +62,7 @@ public class GenericBenchmark {
     private Run run;
     private CmdService cmds = null;
     private ToolService tools = null;
+    private ServiceManager serviceMgr = null;
     //private Benchmark bm = null;
     private static BenchmarkWrapper bmw = null;
 
@@ -218,7 +221,17 @@ public class GenericBenchmark {
             } catch (IOException e) {
                 logger.log(Level.WARNING, "Error writing hosttypes file!", e);
             }
-
+            // TODO: Start service manager here.
+            // construct service manager.
+            serviceMgr = new ServiceManager(par, run);
+            logger.info("Got Service Manager Instance");
+            // transfer service configuration.
+            serviceMgr.configure();
+            logger.info("Executed services configure method");
+            // start services
+            serviceMgr.startup();
+            logger.info("Executed services Startup method");
+           
             // Reading parameters used by ToolService
             String s = par.getParameter("fa:runControl/fa:rampUp");
             if (s != null)
@@ -271,7 +284,7 @@ public class GenericBenchmark {
             logger.finer("Got Tool Service Handle");
             tools.init();
             logger.finer("Tool Service Inited");
-            tools.setup(par, run.getOutDir());	// If Tools setup fails,
+            tools.setup(par, run.getOutDir(), serviceMgr);	// If Tools setup fails,
                                                 // we ignore it
             logger.finer("Tool Service Set Up");
             // Now, process generic server parameters
@@ -312,11 +325,11 @@ public class GenericBenchmark {
             // Start the tools
             try {
                 if (stdyState > 0) {
-                    ToolService.getHandle().start(delay, stdyState);
-                    logger.info("Started tools with ToolService.getHandle()." +
+                    tools.start(delay, stdyState);
+                    logger.info("Started tools with tools." +
                             "start(delay, stdyState)");
                 }else{
-                    ToolService.getHandle().start(delay);
+                    tools.start(delay);
                     logger.info("Started tools with tools.start(delay)");
                 }
             } catch (Exception e) {
@@ -338,6 +351,7 @@ public class GenericBenchmark {
                 tools.stop();
                 logger.info("Stopped tools");
             }
+            serviceMgr.shutdown();
             try {
                 bmw.postRun();
             } catch (Throwable t) {
@@ -380,8 +394,8 @@ public class GenericBenchmark {
 
     private Benchmark newInstance(BenchmarkDescription desc) {
         Benchmark benchmark = null;
-        BenchmarkClassLoader loader = BenchmarkClassLoader.getInstance(
-                desc.shortName, this.getClass().getClassLoader());
+        DeployImageClassLoader loader = DeployImageClassLoader.getInstance(
+                "benchmarks" ,desc.shortName, this.getClass().getClassLoader());
         if (loader != null)
             try {
                 benchmark = (Benchmark) Class.forName(desc.benchmarkClass,

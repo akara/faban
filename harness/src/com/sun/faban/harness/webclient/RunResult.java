@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunResult.java,v 1.3 2009/03/17 22:49:03 sheetalpatil Exp $
+ * $Id: RunResult.java,v 1.4 2009/05/21 10:13:27 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -67,8 +67,7 @@ public class RunResult {
                               "EEE MMM dd HH:mm:ss z yyyy");
 
     private static SimpleDateFormat dateFormatOrig = new SimpleDateFormat(
-                                    "EEE'&#160;'MM/dd/yy HH:mm:ss'&#160;'z");
-
+                                    "MM/dd/yy EEE'&#160;'HH:mm:ss'&#160;'z");
 
     private long modTime = 0;
     public RunId runId;
@@ -473,11 +472,16 @@ public class RunResult {
             if (result.result != null) {
                 ResultField<String> r = new ResultField<String>();
                 r.value = result.result;
-                if (result.resultLink != null)
-                    r.text = "<a href=\""+ result.resultLink + "\">" +
-                            result.result + "</a>";
-                else
+                if (result.resultLink != null){
+                    if(result.result.equals("PASSED"))
+                        r.text = "<a href=\""+ result.resultLink + "\"><img style='border:0px solid'; src='/img/passed.gif'></img></a>";
+                    else if(result.result.equals("FAILED"))
+                        r.text = "<a href=\""+ result.resultLink + "\"><img style='border:0px solid'; src='/img/failed.gif'></img></a>";
+                    else
+                        r.text = "<a href=\""+ result.resultLink + "\">"+ result.result +"</a>";
+                }else{
                     r.text = result.result;
+                }
                 row[2] = r;
             } else {
                 ResultField<String> r = new ResultField<String>();
@@ -494,9 +498,9 @@ public class RunResult {
                 scale.text = result.scale;
                 scale.value = new Integer(result.scale);
             } else {
-                if (result.scaleName.length() > 0)
-                    b.append(result.scaleName).append(' ');
                 b.append(result.scale);
+                if (result.scaleName.length() > 0)
+                    b.append(' ').append(result.scaleName).append(' ');
                 if (result.scaleUnit.length() > 0)
                     b.append(' ').append(result.scaleUnit);
                 scale.text = b.toString();
