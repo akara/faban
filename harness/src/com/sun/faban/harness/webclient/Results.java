@@ -17,12 +17,13 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Results.java,v 1.4 2009/05/21 10:13:27 sheetalpatil Exp $
+ * $Id: Results.java,v 1.5 2009/05/21 21:03:02 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.webclient;
 
+import com.sun.faban.common.SortableTableModel;
 import com.sun.faban.harness.common.RunId;
 import com.sun.faban.harness.engine.RunQ;
 import com.sun.faban.harness.security.AccessController;
@@ -51,7 +52,7 @@ public class Results {
             throws IOException {
         UserEnv usrEnv = getUserEnv(req);
         String tag = req.getParameter("inputtag");
-        TableModel resultTable = null;
+        SortableTableModel resultTable = null;
         boolean tagSearch = false;
         String feedURL = "/controller/results/feed";
         if (tag != null && !"".equals(tag)) {

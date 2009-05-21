@@ -19,13 +19,13 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultlist.jsp,v 1.20 2009/05/21 10:07:32 sheetalpatil Exp $
+ * $Id: resultlist.jsp,v 1.21 2009/05/21 21:03:03 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 -->
     <%@ page language="java" import="com.sun.faban.harness.webclient.RunResult,
-                                     com.sun.faban.harness.webclient.TableModel,
+                                     com.sun.faban.common.SortableTableModel,
                                      com.sun.faban.harness.webclient.TagEngine,
                                      java.util.StringTokenizer,
                                      java.io.File,java.io.*,
@@ -35,7 +35,7 @@
     <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
     <%
     response.setHeader("Cache-Control", "no-cache");
-    TableModel resultTable = (TableModel)request.getAttribute("table.model");
+    SortableTableModel resultTable = (SortableTableModel)request.getAttribute("table.model");
     String feedURL = (String)request.getAttribute("feedURL");
     
     int rows;

@@ -17,12 +17,14 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunResult.java,v 1.4 2009/05/21 10:13:27 sheetalpatil Exp $
+ * $Id: RunResult.java,v 1.5 2009/05/21 21:03:02 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.webclient;
 
+import com.sun.faban.common.SortDirection;
+import com.sun.faban.common.SortableTableModel;
 import com.sun.faban.harness.ParamRepository;
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
@@ -327,7 +329,7 @@ public class RunResult {
     }
 
 
-    public static TableModel getResultTable(Subject user, String tags)
+    public static SortableTableModel getResultTable(Subject user, String tags)
             throws IOException {
         TagEngine tagEngine;
         try {
@@ -361,7 +363,7 @@ public class RunResult {
         return generateTable(resultList);
     }
     
-    public static TableModel getResultTable(Subject user) {
+    public static SortableTableModel getResultTable(Subject user) {
 
         File[] dirs = new File(Config.OUT_DIR).listFiles();
         ArrayList<RunResult> runs = new ArrayList<RunResult>(dirs.length);
@@ -388,7 +390,7 @@ public class RunResult {
         return generateTable(runs);
     }
 
-    static TableModel generateTable(List<RunResult> runs) {
+    static SortableTableModel generateTable(List<RunResult> runs) {
 
         HashSet<String> scaleNames = new HashSet<String>();
         HashSet<String> scaleUnits = new HashSet<String>();
@@ -417,7 +419,7 @@ public class RunResult {
             return null;
 
         // 2. Generate table header
-        TableModel table = new TableModel(9);
+        SortableTableModel table = new SortableTableModel(9);
         table.setHeader(0, "RunID");
         table.setHeader(1, "Description");
         table.setHeader(2, "Result");
@@ -461,8 +463,8 @@ public class RunResult {
         // The output format.
         SimpleDateFormat dateFormat = (SimpleDateFormat) dateFormatOrig.clone();
         for (RunResult result : runs) {
-            int idx = table.addRow();
-            Comparable[] row = table.getRow(idx);
+            //int idx = table.newRow();
+            Comparable[] row = table.newRow();
             row[0] = result.runId;
             if (result.description == null || result.description.length() == 0)
                 row[1] = "UNAVAILABLE";

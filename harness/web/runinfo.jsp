@@ -23,7 +23,7 @@
  */
 -->
     <%@ page language="java" import="com.sun.faban.harness.webclient.RunResult,
-                                     com.sun.faban.harness.webclient.TableModel,
+                                     com.sun.faban.common.SortableTableModel,
                                      java.io.File,java.io.*,
                                      java.util.Set,java.util.*,
                                      java.net.URLEncoder,
