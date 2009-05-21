@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ToolService.java,v 1.8 2009/05/21 10:13:24 sheetalpatil Exp $
+ * $Id: ToolService.java,v 1.9 2009/05/21 22:43:12 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -30,12 +30,17 @@ import com.sun.faban.harness.ParamRepository;
 
 import com.sun.faban.harness.services.ServiceManager;
 import com.sun.faban.harness.tools.MasterToolContext;
+import com.sun.faban.harness.util.XMLReader;
+import java.io.File;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 /**
@@ -61,6 +66,8 @@ final public class ToolService {
     private boolean runTools;
 
     private static ToolService toolService;
+    private LinkedHashMap<String, List<String>> toolSetsMap =
+            new LinkedHashMap<String, List<String>>();
 
     private ToolService() {
         runTools = false;
@@ -91,7 +98,7 @@ final public class ToolService {
      */
     public boolean setup(ParamRepository par, String outDir, ServiceManager serviceMgr) 
             throws ParserConfigurationException, SAXException, IOException, Exception {
-
+        parseOSToolSets();
         cmds = CmdService.getHandle();
 
         /* Get tool related parameters */
@@ -126,7 +133,7 @@ final public class ToolService {
 
         // Temporary tool list for host class being processed.
         ArrayList<MasterToolContext> newTools = new ArrayList<MasterToolContext>();
-
+        ArrayList<String> toolset = new ArrayList<String>();
         // First we flatten out the classes into host names and tools sets
         for (int i = 0; i < hostClasses.size(); i++) {
             // Ignore if the host class is not enabled.
@@ -136,23 +143,59 @@ final public class ToolService {
             String toolCmds = ((String) allTools.get(i)).trim();
 
             // Ignore class if no tools to start.
-            if (toolCmds.length() == 0 || toolCmds.toUpperCase().equals("NONE"))
+            if (toolCmds.toUpperCase().equals("NONE")){
                 continue;
+            }
+
 
             // Get the hosts list in the class.
             String[] hosts = (String[]) hostClasses.get(i);
 
             // Get the tools list for this host list.
+            if(toolCmds.length() != 0){
+                StringTokenizer st = new StringTokenizer(toolCmds, ";");
+                while (st.hasMoreTokens()) {
+                    toolset.add(st.nextToken().trim());
+                }
+            }else if ("".equals(toolCmds) && toolCmds.length() == 0){
+                String key = "default";
+                ArrayList<String> toolset_tools = new ArrayList<String>();
+                if(toolSetsMap.containsKey(key)){
+                    toolset_tools.addAll(toolSetsMap.get(key));
+                    for (String tool : toolset_tools) {
+                        MasterToolContext tCtx =  new MasterToolContext(
+                                        tool, null, null);
 
-            StringTokenizer st = new StringTokenizer(toolCmds, ";");
-            while(st.hasMoreTokens()) {
-                String tool = st.nextToken().trim();
-                if (tool.length() > 0){
-                    MasterToolContext tCtx = new MasterToolContext(tool, null, null);
-                    newTools.add(tCtx);
+                        if (tCtx != null) {
+                            newTools.add(tCtx);
+                        }
+                    }
                 }
             }
-
+            if (toolset != null) {
+                for (String tool : toolset) {
+                    StringTokenizer tt = new StringTokenizer(tool);
+                    String toolId = tt.nextToken();
+                    String toolKey = toolId;
+                    ArrayList<String> toolset_tools = new ArrayList<String>();
+                    if (toolSetsMap.containsKey(toolKey)) {
+                        toolset_tools.addAll(toolSetsMap.get(toolKey));
+                        for (String t1 : toolset_tools) {
+                            MasterToolContext tCtx = new MasterToolContext(
+                                    t1, null, null);
+                            if (tCtx != null) {
+                                newTools.add(tCtx);
+                            }
+                        }
+                    } else {
+                        MasterToolContext tCtx = new MasterToolContext(
+                                tool, null, null);
+                        if (tCtx != null) {
+                            newTools.add(tCtx);
+                        }
+                    }
+                }
+            }
             for (int j = 0; j < hosts.length; j++) {
                 String host = hosts[j];
                 // Now get the tools list for this host,
@@ -229,6 +272,64 @@ final public class ToolService {
         return(true);
     }
 
+    private void parseOSToolSets(){
+        File toolsetsXml = new File(
+                            Config.CONFIG_DIR + Config.OS_DIR + "toolsets.xml");
+        try {
+            if(toolsetsXml.exists()){
+                XMLReader reader = new XMLReader(Config.CONFIG_DIR + Config.OS_DIR + "toolsets.xml");
+                Element root = null;
+                if (reader != null) {
+                    root = reader.getRootNode();
+                    // First, parse the services.
+                    NodeList toolsetsNodes = reader.getNodes("toolset", root);
+                    for (int i = 0; i < toolsetsNodes.getLength(); i++) {
+                        Node toolsetsNode = toolsetsNodes.item(i);
+                        if (toolsetsNode.getNodeType() != Node.ELEMENT_NODE) {
+                            continue;
+                        }
+                        Element tse = (Element) toolsetsNode;
+                        ArrayList<String> toolsCmds = new ArrayList<String>();
+                        String name = reader.getValue("name", tse);
+                        String base = reader.getValue("base", tse);
+                        List<String> toolIncludes = reader.getValues("includes", tse);
+                        List<String> toolExcludes = reader.getValues("excludes", tse);
+                        if(!"".equals(base)){
+                            toolsCmds.addAll(toolSetsMap.get(base));
+                        }
+                        if(toolIncludes != null){
+                            for (String tool : toolIncludes){
+                                StringTokenizer st = new StringTokenizer(tool, ";");
+                                while(st.hasMoreTokens())
+                                    toolsCmds.add(st.nextToken().trim());
+                            }
+                        }
+                        if(toolExcludes != null){
+                            ArrayList<String> td = new ArrayList<String>();
+                            for (String tool : toolExcludes){
+                                StringTokenizer st = new StringTokenizer(tool, ";");
+                                while(st.hasMoreTokens())
+                                    td.add(st.nextToken().trim());
+                            }
+                            toolsCmds.removeAll(td);
+                        }
+                        if (!"".equals(name) &&
+                                (toolIncludes != null || base != null)) {
+                            String key = name;
+                            if (toolSetsMap.containsKey(key)) {
+                                logger.log(Level.WARNING,
+                                        "Ignoring duplicate toolset");
+                            } else {
+                                toolSetsMap.put(key, toolsCmds);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch  (Exception e) {
+            logger.log(Level.WARNING, "Error reading toolsets.xml ", e);
+        }
+    }
 
     /**
      * Start all tools on all machines
