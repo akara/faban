@@ -158,20 +158,20 @@
                                             <xsl:attribute name="class">odd</xsl:attribute>
                                         </xsl:otherwise>
                                     </xsl:choose>
-                                    <td style="text-align: left;"><xsl:value-of select="@name"/></td>
-                                    <td><xsl:value-of select="successes"/></td>
-                                    <td><xsl:value-of select="failures"/></td>
-                                    <td><xsl:value-of select='format-number(mix, "##.##%")'/></td>
-                                    <td><xsl:value-of select='format-number(requiredMix, "##.##%")'/></td>
+                                    <td class="tablecell" style="text-align: left;"><xsl:value-of select="@name"/></td>
+                                    <td class="tablecell"><xsl:value-of select="successes"/></td>
+                                    <td class="tablecell"><xsl:value-of select="failures"/></td>
+                                    <td class="tablecell"><xsl:value-of select='format-number(mix, "##.##%")'/></td>
+                                    <td class="tablecell"><xsl:value-of select='format-number(requiredMix, "##.##%")'/></td>
                                     <xsl:choose>
                                         <xsl:when test="passed='true'">
-                                            <td style="color: rgb(0, 192, 0);">PASSED</td>
+                                            <td class="tablecell" style="color: rgb(0, 192, 0);">PASSED</td>
                                         </xsl:when>
                                         <xsl:when test="passed='false'">
-                                            <td style="color: rgb(255, 0, 0);">FAILED</td>
+                                            <td class="tablecell" style="color: rgb(255, 0, 0);">FAILED</td>
                                         </xsl:when>
                                         <xsl:otherwise>
-                                            <td></td>
+                                            <td class="tablecell"></td>
                                         </xsl:otherwise>
                                     </xsl:choose>
                                 </tr>
@@ -205,21 +205,21 @@
                                             <xsl:attribute name="class">odd</xsl:attribute>
                                         </xsl:otherwise>
                                     </xsl:choose>
-                                    <td style="text-align: left;"><xsl:value-of select="@name"/></td>
-                                    <td><xsl:value-of select="avg"/></td>
-                                    <td><xsl:value-of select="max"/></td>
-                                    <td><xsl:value-of select="sd"/></td>
-                                    <td><xsl:value-of select="p90th"/></td>
-                                    <td><xsl:value-of select="@r90th"/></td>
+                                    <td class="tablecell" style="text-align: left;"><xsl:value-of select="@name"/></td>
+                                    <td class="tablecell"><xsl:value-of select="avg"/></td>
+                                    <td class="tablecell"><xsl:value-of select="max"/></td>
+                                    <td class="tablecell"><xsl:value-of select="sd"/></td>
+                                    <td class="tablecell"><xsl:value-of select="p90th"/></td>
+                                    <td class="tablecell"><xsl:value-of select="@r90th"/></td>
                                     <xsl:choose>
                                         <xsl:when test="passed='true'">
-                                            <td style="color: rgb(0, 192, 0);">PASSED</td>
+                                            <td class="tablecell" style="color: rgb(0, 192, 0);">PASSED</td>
                                         </xsl:when>
                                         <xsl:when test="passed='false'">
-                                            <td style="color: rgb(255, 0, 0);">FAILED</td>
+                                            <td class="tablecell" style="color: rgb(255, 0, 0);">FAILED</td>
                                         </xsl:when>
                                         <xsl:otherwise>
-                                            <td></td>
+                                            <td class="tablecell"></td>
                                         </xsl:otherwise>
                                     </xsl:choose>
                                 </tr>
@@ -249,17 +249,17 @@
                                             <xsl:attribute name="class">odd</xsl:attribute>
                                         </xsl:otherwise>
                                     </xsl:choose>
-                                    <td style="text-align: left;"><xsl:value-of select="@name"/></td>
-                                    <td><xsl:value-of select="targetedAvg"/></td>
-                                    <td><xsl:value-of select="actualAvg"/></td>
-                                    <td><xsl:value-of select="min"/></td>
-                                    <td><xsl:value-of select="max"/></td>
+                                    <td class="tablecell" style="text-align: left;"><xsl:value-of select="@name"/></td>
+                                    <td class="tablecell"><xsl:value-of select="targetedAvg"/></td>
+                                    <td class="tablecell"><xsl:value-of select="actualAvg"/></td>
+                                    <td class="tablecell"><xsl:value-of select="min"/></td>
+                                    <td class="tablecell"><xsl:value-of select="max"/></td>
                                     <xsl:choose>
                                         <xsl:when test="passed='true'">
-                                            <td style="color: rgb(0, 192, 0);">PASSED</td>
+                                            <td class="tablecell" style="color: rgb(0, 192, 0);">PASSED</td>
                                         </xsl:when>
                                         <xsl:when test="passed='false'">
-                                            <td style="color: rgb(255, 0, 0);">FAILED</td>
+                                            <td class="tablecell" style="color: rgb(255, 0, 0);">FAILED</td>
                                         </xsl:when>
                                         <xsl:otherwise>
                                             <td></td>
@@ -292,19 +292,19 @@
                                             <xsl:attribute name="class">odd</xsl:attribute>
                                         </xsl:otherwise>
                                     </xsl:choose>
-                                    <td style="text-align: left;"><xsl:value-of select="description"/></td>
-                                    <td><xsl:value-of select="result"/></td>
-                                    <td><xsl:value-of select="target"/></td>
+                                    <td class="tablecell" style="text-align: left;"><xsl:value-of select="description"/></td>
+                                    <td class="tablecell"><xsl:value-of select="result"/></td>
+                                    <td class="tablecell"><xsl:value-of select="target"/></td>
                                     <td><xsl:value-of select="allowedDeviation"/></td>
                                     <xsl:choose>
                                         <xsl:when test="passed='true'">
-                                            <td style="color: rgb(0, 192, 0);">PASSED</td>
+                                            <td class="tablecell" style="color: rgb(0, 192, 0);">PASSED</td>
                                         </xsl:when>
                                         <xsl:when test="passed='false'">
-                                            <td style="color: rgb(255, 0, 0);">FAILED</td>
+                                            <td class="tablecell" style="color: rgb(255, 0, 0);">FAILED</td>
                                         </xsl:when>
                                         <xsl:otherwise>
-                                            <td></td>
+                                            <td class="tablecell"></td>
                                         </xsl:otherwise>
                                     </xsl:choose>
                                 </tr>
@@ -334,19 +334,19 @@
                                             <xsl:attribute name="class">odd</xsl:attribute>
                                         </xsl:otherwise>
                                     </xsl:choose>
-                                    <td style="text-align: left;"><xsl:value-of select="description"/></td>
-                                    <td><xsl:value-of select="result"/></td>
-                                    <td><xsl:value-of select="target"/></td>
-                                    <td><xsl:value-of select="allowedDeviation"/></td>
+                                    <td class="tablecell" style="text-align: left;"><xsl:value-of select="description"/></td>
+                                    <td class="tablecell"><xsl:value-of select="result"/></td>
+                                    <td class="tablecell"><xsl:value-of select="target"/></td>
+                                    <td class="tablecell"><xsl:value-of select="allowedDeviation"/></td>
                                     <xsl:choose>
                                         <xsl:when test="passed='true'">
-                                            <td style="color: rgb(0, 192, 0);">PASSED</td>
+                                            <td class="tablecell" style="color: rgb(0, 192, 0);">PASSED</td>
                                         </xsl:when>
                                         <xsl:when test="passed='false'">
-                                            <td style="color: rgb(255, 0, 0);">FAILED</td>
+                                            <td class="tablecell" style="color: rgb(255, 0, 0);">FAILED</td>
                                         </xsl:when>
                                         <xsl:otherwise>
-                                            <td></td>
+                                            <td class="tablecell"></td>
                                         </xsl:otherwise>
                                     </xsl:choose>
                                 </tr>
@@ -374,7 +374,7 @@
                                             <xsl:attribute name="class">odd</xsl:attribute>
                                         </xsl:otherwise>
                                     </xsl:choose>
-                                    <xsl:copy-of select="*"/>
+                                    <xsl:apply-templates select="node()"/>
                                 </tr>
                             </xsl:for-each>
                         </tbody>
@@ -404,5 +404,11 @@
                 <hr style="border: 1px solid #cccccc;"></hr>
             </body>
         </html>
+    </xsl:template>
+    <xsl:template match="td|th">
+        <xsl:copy>
+          <xsl:attribute name="class">tablecell</xsl:attribute>
+          <xsl:copy-of select="node()"/>
+        </xsl:copy>
     </xsl:template>
 </xsl:stylesheet>

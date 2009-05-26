@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: statsnavigator.jsp,v 1.14 2009/05/18 19:38:52 akara Exp $
+ * $Id: statsnavigator.jsp,v 1.15 2009/05/26 21:06:55 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -223,9 +223,9 @@
                              if (fullName == null)
                                  fullName = hosts[i];
                      %>
-                        <td style="text-align: left;"><a href="output/<%= runId %>/sysinfo.<%= fullName %>.html"><%= hosts[i] %></a></td>
+                        <td class="tablecell" style="text-align: left;"><a href="output/<%= runId %>/sysinfo.<%= fullName %>.html"><%= hosts[i] %></a></td>
                      <% } else { %>
-                        <td style="text-align: left;"><%= hosts[i] %></td>
+                        <td class="tablecell" style="text-align: left;"><%= hosts[i] %></td>
                      <% }
                         for (String tool : allTools) {
                             if (toolSet.contains(tool)) {
@@ -238,7 +238,7 @@
                                 filePrefix[2] = tool + ".xml." + fullName;
                                 String path = "output/" + runId + '/';
                      %>
-                                <td style="text-align: center;">
+                                <td class="tablecell" style="text-align: center;">
                      <%
                                 // Do the html link
                                 boolean found = false;
@@ -274,7 +274,7 @@
                      %>
                                 </td>
                      <%     } else {    %>
-                                <td>&nbsp;</td>
+                                <td class="tablecell">&nbsp;</td>
                      <%
                             }
                         }

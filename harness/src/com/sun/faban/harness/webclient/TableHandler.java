@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TableHandler.java,v 1.9 2009/05/18 19:37:30 akara Exp $
+ * $Id: TableHandler.java,v 1.10 2009/05/26 21:06:54 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -173,30 +173,30 @@ class TableHandler extends LogParseHandler {
     private void printRow(long sequence, LogRecord record, String requestBase)
             throws IOException {
         out.print("<tr class=\"" + ROWCLASS[(int) (sequence % 2l)] + "\">");
-        out.println("<td>" + record.date + "</td>");
+        out.println("<td class=\"tablecell\">" + record.date + "</td>");
         if (record.host == null) {
-            out.println("<td>&nbsp;</td>");
+            out.println("<td class=\"tablecell\">&nbsp;</td>");
         } else {
             int endHostName = record.host.indexOf('.');
             if (endHostName > 0)
                 record.host = record.host.substring(0, endHostName);
-            out.println("<td style=\"text-align: center;\">" + record.host +
+            out.println("<td class=\"tablecell\" style=\"text-align: center;\">" + record.host +
                     "</td>");
         }
         if ("SEVERE".equals(record.level)) {
-            out.print("<td style=\"text-align: center; font-weight: " +
+            out.print("<td class=\"tablecell\" style=\"text-align: center; font-weight: " +
                     "bold; color: rgb(255, 0, 0);\">");
         } else if ("WARNING".equals(record.level)) {
-            out.print("<td style=\"text-align: center; font-weight: " +
+            out.print("<td class=\"tablecell\" style=\"text-align: center; font-weight: " +
                     "bold; color: rgb(255, 102, 51);\">");
         } else if ("INFO".equals(record.level)) {
-            out.print("<td style=\"text-align: center; font-weight: " +
+            out.print("<td class=\"tablecell\" style=\"text-align: center; font-weight: " +
                     "bold; color: rgb(0, 192, 0);\">");
         } else if ("CONFIG".equals(record.level)) {
-            out.print("<td style=\"text-align: center; font-weight: " +
+            out.print("<td class=\"tablecell\" style=\"text-align: center; font-weight: " +
                     "bold;\">");
         } else {
-            out.print("<td style=\"text-align: center;\">");
+            out.print("<td class=\"tablecell\" style=\"text-align: center;\">");
         }
         out.print(record.level);
         if (record.exceptionFlag)
@@ -205,10 +205,10 @@ class TableHandler extends LogParseHandler {
                     "\">exception</a></i></font></td>");
         else
             out.println("</td>");
-        out.println("<td>" + record.message + "</td>");
-        out.println("<td style=\"text-align: center;\">" + record.thread +
+        out.println("<td class=\"tablecell\">" + record.message + "</td>");
+        out.println("<td class=\"tablecell\" style=\"text-align: center;\">" + record.thread +
                 "</td>");
-        out.println("<td>" + record.clazz + '.' + record.method + "</td>");
+        out.println("<td class=\"tablecell\">" + record.clazz + '.' + record.method + "</td>");
         out.println("</tr>");
     }
 

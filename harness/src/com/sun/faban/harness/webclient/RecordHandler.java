@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RecordHandler.java,v 1.6 2009/05/18 19:37:30 akara Exp $
+ * $Id: RecordHandler.java,v 1.7 2009/05/26 21:06:54 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -128,17 +128,17 @@ class RecordHandler extends LogParseHandler {
         out.println("<th class=\"header\">Date</th>");
         out.println("<th class=\"header\">Millis</th></tr><tr class=\"even\">");
         if (logRecord.host == null) {
-            out.println("<td>&nbsp;</td>");
+            out.println("<td class=\"tablecell\">&nbsp;</td>");
         } else {
             int endHostName = logRecord.host.indexOf('.');
             if (endHostName > 0)
                 logRecord.host = logRecord.host.substring(0, endHostName);
-            out.println("<td style=\"text-align: center;\">" +
+            out.println("<td  class=\"tablecell\" style=\"text-align: center;\">" +
                     logRecord.host + "</td>");
         }
-        out.println("<td>" + detail.sequence + "</td>");
-        out.println("<td>" + logRecord.date + "</td>");
-        out.println("<td>" + detail.millis + "</td></tr></tbody></table>");
+        out.println("<td class=\"tablecell\">" + detail.sequence + "</td>");
+        out.println("<td class=\"tablecell\">" + logRecord.date + "</td>");
+        out.println("<td class=\"tablecell\">" + detail.millis + "</td></tr></tbody></table>");
 
         out.print("<br><span style=\"font-weight: bold;\">Logger:" +
                 "</span>&nbsp;");
@@ -150,9 +150,9 @@ class RecordHandler extends LogParseHandler {
         out.println("<th class=\"header\">Thread</th>");
         out.println("<th class=\"header\">Class</th>");
         out.println("<th class=\"header\">Method</th></tr><tr class=\"even\">");
-        out.println("<td>" + logRecord.thread + "</td>");
-        out.println("<td>" + logRecord.clazz + "</td>");
-        out.println("<td>" + logRecord.method + "</td></tr></tbody>" +
+        out.println("<td class=\"tablecell\">" + logRecord.thread + "</td>");
+        out.println("<td class=\"tablecell\">" + logRecord.clazz + "</td>");
+        out.println("<td class=\"tablecell\">" + logRecord.method + "</td></tr></tbody>" +
                 "</table>");
 
         if (logRecord.exceptionFlag) {
@@ -179,7 +179,7 @@ class RecordHandler extends LogParseHandler {
             for (int i = 0; i < exception.stackFrames.length; i++) {
                 StackFrame frame = exception.stackFrames[i];
                 out.println("<tr class=\"" + ROWCLASS[i % 2] +
-                            "\"><td style=\"text-align: left;\">" +
+                            "\"><td class=\"tablecell\" style=\"text-align: left;\">" +
                             frame.clazz + "</td>");
                 if (frame.method == null || frame.method.length() == 0)
                     frame.method="&nbsp;";
@@ -204,10 +204,10 @@ class RecordHandler extends LogParseHandler {
                     frame.method = mBuffer.toString();
                 }
 
-                out.println("<td>" + frame.method + "</td>");
+                out.println("<td class=\"tablecell\">" + frame.method + "</td>");
                 if (frame.line == null || frame.line.length() == 0)
                     frame.line="&nbsp;";
-                out.println("<td>" + frame.line + "</td></tr>");
+                out.println("<td class=\"tablecell\">" + frame.line + "</td></tr>");
             }
             out.println("</tbody></table>");
         }
