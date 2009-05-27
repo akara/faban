@@ -50,8 +50,8 @@
             <tbody>
                 <% for (int j = 0; j < row.length; j++) {%>
                 <tr <%if (j % 2 == 0) {%>class="even"<%} else {%>class="odd"<% }%>>
-                    <td style="border-bottom: 1px solid #C1DAD7; border-left: 1px solid #C1DAD7; font-size: 12px; font-family: 'Times New Roman',Times,serif;"><%= header[j]%></td>
-                    <td id="the_td<%= j %>" style="border-bottom: 1px solid #C1DAD7; border-left: 1px solid #C1DAD7; font-size: 12px; font-family: 'Times New Roman',Times,serif;"><%=row[j]%></td>
+                    <td class="tablecell"><%= header[j]%></td>
+                    <td class="tablecell" id="the_td<%= j %>"><%=row[j]%></td>
                 </tr>
                 <% }%>
             </tbody>

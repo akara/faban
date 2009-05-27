@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultlist.jsp,v 1.21 2009/05/21 21:03:03 sheetalpatil Exp $
+ * $Id: resultlist.jsp,v 1.22 2009/05/27 21:34:00 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -93,7 +93,7 @@
                 Comparable[] row = resultTable.getRow(i);
     %>
             <tr <%if(i % 2 == 0){%>class="even"<%}else{%>class="odd"<% } %>>
-                <td style="border-bottom: 1px solid #C1DAD7; border-left: 1px solid #C1DAD7; font-size: 12px; font-family: 'Times New Roman',Times,serif;"><input type="checkbox" name="select" value="<%= row[0] %>"></input></td>
+                <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell" ><input type="checkbox" name="select" value="<%= row[0] %>"></input></td>
     <%          for (int j = 0; j < row.length; j++) { 
                     if (row[j] == null)
                         row[j] = " ";
@@ -105,13 +105,12 @@
                     }
                     String mouseover = "onmouseover=\"showtip('" + val + " " + formattedStr.toString()+ "')\" onmouseout=\"hideddrivetip()\"";
                     if(j==0 || j==1 || j==2 || j==5 || row[j].toString().equals("&nbsp;") || row[j].toString().equals("&nbsp")){%>
-                       <td style="border-bottom: 1px solid #C1DAD7; border-left: 1px solid #C1DAD7; font-size: 12px;
-                        font-family: 'Times New Roman',Times,serif;"><%=row[j]%></td>
+                       <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell" ><%=row[j]%></td>
                     <%}else{%>
                          <% //if(row[j].toString().length() > 15)
                                //row[j] = row[j].toString().substring(0, 14) + ".....";
                          %>
-                         <td style="border-bottom: 1px solid #C1DAD7; border-left: 1px solid #C1DAD7; font-size: 12px; font-family: 'Times New Roman',Times,serif;" <%= mouseover%>><%=val%></td>
+                         <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell" <%= mouseover%>><%=val%></td>
     <%                }
                 } %>
             </tr>

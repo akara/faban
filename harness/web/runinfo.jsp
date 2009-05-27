@@ -45,10 +45,16 @@
         <link rel="icon" type="image/gif" href="/img/faban.gif"/>
         <link rel="stylesheet" type="text/css" href="/css/style.css" />
         <script type="text/javascript">
+             var editing = false;
             function editText(id) {
+                editing = true;
                 var td = document.getElementById(id);
                 var content = td.innerHTML;
                 td.innerHTML = '<div id="divid"><textarea id="txtarea" class="editing" >'+ content +'</textarea><br><input type="button" id="save" onclick="saveEdit(\'' + id + '\', \'txtarea\')" value="Save" /> <input type="button" id="cancel" onclick="cancelEdit(\'' + id + '\', \'' + content + '\')" value="Cancel" /></div>';
+            }
+
+            function checkIfEditing() {
+                return editing;
             }
 
             function saveEdit(td_id, textarea) {
@@ -60,12 +66,14 @@
                 if(td_id == "Description"){
                     updateDescription(td.innerHTML);
                 }
+                editing = false;
 
             }
 
             function cancelEdit(td_id, content) {
                 var td = document.getElementById(td_id);
                 td.innerHTML = content;
+                editing = false;
             }
 
             var updateTagsURL = "/controller/uploader/update_tags_file?tags=";
@@ -100,11 +108,11 @@
             <tbody>
                 <% for (int j = 0; j < row.length; j++) {%>
                 <tr <%if (j % 2 == 0) {%>class="even"<%} else {%>class="odd"<% }%>>
-                    <td style="border-bottom: 1px solid #C1DAD7; border-left: 1px solid #C1DAD7; font-size: 12px; font-family: 'Times New Roman',Times,serif;"><%= header[j]%></td>
-                    <%if( header[j].equals("Description") || header[j].equals("Tags")){%>
-                        <td id="<%= header[j] %>" ondblclick="editText('<%= header[j] %>');" style="border-bottom: 1px solid #C1DAD7; border-left: 1px solid #C1DAD7; font-size: 12px; font-family: 'Times New Roman',Times,serif;"><%=row[j]%></td>
+                    <td class="tablecell"><%= header[j]%></td>
+                    <%if(header[j].equals("Description") || header[j].equals("Tags")){%>
+                        <td id="<%= header[j] %>" onclick="if (checkIfEditing() == false) editText('<%= header[j] %>');" class="tablecell" ><%=row[j]%></td>
                     <%}else{%>
-                        <td id="<%= header[j] %>" style="border-bottom: 1px solid #C1DAD7; border-left: 1px solid #C1DAD7; font-size: 12px; font-family: 'Times New Roman',Times,serif;"><%=row[j]%></td>
+                        <td id="<%= header[j] %>" class="tablecell" ><%=row[j]%></td>
                     <%}%>
                 </tr>
                 <%      }%>
