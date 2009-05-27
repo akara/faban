@@ -62,7 +62,7 @@ public class CommandLineTool {
     }
 
     @Start public void start() throws IOException, InterruptedException {
-        processRef = cmd.execute();
+        processRef = ctx.exec(cmd);
         logger.fine(toolName + " Started with Cmd = " + toolCmd);
     }
 

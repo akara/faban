@@ -22,12 +22,12 @@
 package com.sun.faban.harness.tools;
 
 import com.sun.faban.common.Command;
+import com.sun.faban.common.CommandHandle;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.services.ServiceContext;
-import java.io.IOException;
+
 import java.util.List;
-import javax.xml.parsers.ParserConfigurationException;
-import org.xml.sax.SAXException;
+import java.io.IOException;
 
 /**
  *
@@ -37,9 +37,12 @@ public class ToolContext extends MasterToolContext {
 
     String localOutputFile =
             Config.TMP_DIR + getToolName() + ".out." + this.hashCode();
-    public ToolContext(String tool, ServiceContext ctx, ToolDescription desc)
-            throws ParserConfigurationException, SAXException, IOException {
+    ToolWrapper wrapper;
+
+    public ToolContext(String tool, ServiceContext ctx, ToolDescription desc,
+                       ToolWrapper wrapper) {
         super(tool, ctx, desc);
+        this.wrapper = wrapper;
     }
 
     public String getToolName(){
@@ -64,6 +67,11 @@ public class ToolContext extends MasterToolContext {
 
     public String getServiceProperty(String key) {
         return serviceCtx.getProperty(key);
+    }
+
+    public CommandHandle exec(Command cmd)
+            throws IOException, InterruptedException {
+        return wrapper.cmdAgent.execute(cmd);
     }
 
 }

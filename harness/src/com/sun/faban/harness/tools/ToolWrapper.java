@@ -22,25 +22,22 @@
 
 package com.sun.faban.harness.tools;
 
-import com.sun.faban.common.Command;
-import com.sun.faban.common.CommandHandle;
 import com.sun.faban.common.FileTransfer;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import com.sun.faban.harness.Context;
 import com.sun.faban.harness.agent.CmdAgentImpl;
 import com.sun.faban.harness.agent.FileAgent;
 import com.sun.faban.harness.common.Config;
+
 import java.io.File;
-import java.rmi.RemoteException;
-import java.util.List;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CountDownLatch;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -127,7 +124,7 @@ public class ToolWrapper {
         }
 
         Field ctxField = null;
-        tc = new ToolContext(ctx.getTool(), ctx.getToolServiceContext(), ctx.getToolDescription());
+        tc = new ToolContext(ctx.getTool(), ctx.getToolServiceContext(), ctx.getToolDescription(), this);
         Field[] fields = toolClass.getFields();
         for (Field field : fields) {
             if (field.getType().equals(ToolContext.class) &&
