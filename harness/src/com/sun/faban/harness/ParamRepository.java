@@ -17,22 +17,21 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ParamRepository.java,v 1.13 2009/05/21 10:13:28 sheetalpatil Exp $
+ * $Id: ParamRepository.java,v 1.14 2009/05/28 21:03:24 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness;
 
-import com.sun.faban.harness.util.XMLReader;
 import com.sun.faban.common.NameValuePair;
+import com.sun.faban.harness.util.XMLReader;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
-import java.util.ArrayList;
-
-import org.w3c.dom.NodeList;
-import org.w3c.dom.Node;
-import org.w3c.dom.Element;
 
 /**
  * The ParamRepository is the programmatic representation of the
@@ -189,6 +188,42 @@ public class ParamRepository {
     }
 
     /**
+     * Obtains the list of enabled hosts.
+     * @return A list of enabled hosts, grouped by host type.
+     * @throws ConfigurationException
+     */
+    public List<String[]> getEnabledHosts() throws ConfigurationException {
+        ArrayList<String[]> enabledHosts = new ArrayList<String[]>();
+        List<String[]> hosts = getTokenizedParameters(
+                                            "fa:hostConfig/fa:host");
+        List<String> enabled = getParameters("fa:hostConfig/fh:enabled");
+        if(hosts.size() != enabled.size()) {
+            throw new ConfigurationException("Number of hosts, " +
+                    hosts.size() + ", does not match enabled, " +
+                    enabled.size() + ".");
+        } else {
+            for(int i = 0; i < hosts.size(); i++) {
+                if(Boolean.valueOf((String) enabled.get(i)).booleanValue()) {
+                    enabledHosts.add(hosts.get(i));
+                } else {
+                    enabledHosts.add(new String[0]);
+                }
+            }
+        }
+        return enabledHosts;
+    }
+
+    public String[] getEnabledHosts(Element base) throws ConfigurationException {
+        String[] enabledHosts;
+        if (getBooleanValue("fa:hostConfig/fh:enabled", base))
+            enabledHosts = getTokenizedValue("fa:hostConfig/fa:host", base);
+        else
+            enabledHosts = new String[0];
+       return enabledHosts;
+    }
+
+
+    /**
      * This returns tokenized values of parameters in a list.
      * Mainly used to get host(s)
      * @param xpath The xpath to the parameters
@@ -208,14 +243,29 @@ public class ParamRepository {
     }
 
     /**
-     *
+     * Obtains the value at an XPath, tokenized into an array.
      * @param xpath XPath expression to get SPACE seperated values from a single
      * parameter. For Example sutConfig/host The values are seperated by SPACE
      * @return An array of hostnames.
      */
     public String[] getTokenizedValue(String xpath) {
-
         StringTokenizer st = new StringTokenizer(reader.getValue(xpath));
+        String[] hosts = new String[st.countTokens()];
+        for (int i = 0; st.hasMoreTokens(); i++)
+            hosts[i] = st.nextToken();
+        return hosts;
+    }
+
+    /**
+     * Obtains the value at an XPath, tokenized into an array, from a specific
+     * base node in the document.
+     * @param xpath XPath expression to get SPACE seperated values from a single
+     * parameter. For Example sutConfig/host The values are seperated by SPACE
+     * @param base The base element.
+     * @return An array of hostnames.
+     */
+    public String[] getTokenizedValue(String xpath, Element base) {
+        StringTokenizer st = new StringTokenizer(reader.getValue(xpath, base));
         String[] hosts = new String[st.countTokens()];
         for (int i = 0; st.hasMoreTokens(); i++)
             hosts[i] = st.nextToken();
@@ -255,26 +305,37 @@ public class ParamRepository {
         return reader.getHostPorts(xPathExpr);
     }
 
-    public List<NameValuePair<String>> getHostTypes() {
-        String hostsXPath = "fa:hostConfig/fa:host";
+    public List<NameValuePair<String>> getHostRoles()
+            throws ConfigurationException {
+
         ArrayList<NameValuePair<String>> hostTypeList =
                 new ArrayList<NameValuePair<String>>();
-        NodeList nodes = reader.getNodeList(hostsXPath);
-        int length = nodes.getLength();
-        for (int i = 0; i < length; i++) {
-            Node node = nodes.item(i);
-            Node typeNode = node.getParentNode().getParentNode();
-            String type = typeNode.getNodeName();
-            Node hostTextNode = node.getFirstChild();
-            if (hostTextNode == null)
+        NodeList topLevelElements = getTopLevelElements();
+        int topLevelSize = topLevelElements.getLength();
+        for (int i = 0; i < topLevelSize; i++) {
+            Node node = topLevelElements.item(i);
+            if (node.getNodeType() != Node.ELEMENT_NODE) {
                 continue;
-            String hosts = hostTextNode.getNodeValue().trim();
-            if (hosts == null || hosts.length() == 0)
+            }
+            Element ti = (Element) node;
+            String ns = ti.getNamespaceURI();
+            String topElement = ti.getNodeName();
+            if ("http://faban.sunsource.net/ns/fabanharness".equals(ns) &&
+                    "jvmConfig".equals(topElement))
                 continue;
-            StringTokenizer st = new StringTokenizer(hosts, " ,");
-            while (st.hasMoreTokens()) {
+
+            // Get the hosts
+            String[] hosts = getEnabledHosts(ti);
+            if (hosts == null || hosts.length == 0)
+                continue;
+
+            // Get the type of that host. This is the top level element name.
+            String type = ti.getNodeName();
+
+            // Then add the host and type pair to the list.
+            for (String host : hosts) {
                 NameValuePair<String> hostType = new NameValuePair<String>();
-                hostType.name = st.nextToken();
+                hostType.name = host;
                 hostType.value = type;
                 hostTypeList.add(hostType);
             }
@@ -293,6 +354,25 @@ public class ParamRepository {
 
     public boolean getBooleanValue(String xpath, boolean defaultValue) {
         String s = reader.getValue(xpath);
+        if (s == null || s.length() == 0)
+            return defaultValue;
+        else
+            return Boolean.parseBoolean(s);
+
+    }
+
+    /**
+     * This method reads a value using the XPath and converts it to a boolean
+     * @param xpath XPath expression to the value which is true or false
+     * @return true or false
+     */
+    public boolean getBooleanValue(String xpath, Element base) {
+        return  Boolean.valueOf(reader.getValue(xpath, base)).booleanValue();
+    }
+
+    public boolean getBooleanValue(String xpath, Element base,
+                                   boolean defaultValue) {
+        String s = reader.getValue(xpath, base);
         if (s == null || s.length() == 0)
             return defaultValue;
         else

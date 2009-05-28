@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.38 2009/05/28 00:55:26 akara Exp $
+ * $Id: GenericBenchmark.java,v 1.39 2009/05/28 21:03:24 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -30,7 +30,7 @@ import com.sun.faban.harness.Benchmark;
 import com.sun.faban.harness.ParamRepository;
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
-import com.sun.faban.harness.common.HostTypes;
+import com.sun.faban.harness.common.HostRoles;
 import com.sun.faban.harness.common.Run;
 import com.sun.faban.harness.services.ServiceManager;
 
@@ -186,10 +186,10 @@ public class GenericBenchmark {
             }
 
             // Extract host metadata and save it.
-            HostTypes ht = new HostTypes(par);
-            cmds.setHostTypes(ht);
+            HostRoles hr = new HostRoles(par);
+            cmds.setHostRoles(hr);
             try {
-                ht.write(run.getOutDir() + File.separator + "META-INF" +
+                hr.write(run.getOutDir() + File.separator + "META-INF" +
                                         File.separator + "hosttypes");
             } catch (IOException e) {
                 logger.log(Level.WARNING, "Error writing hosttypes file!", e);

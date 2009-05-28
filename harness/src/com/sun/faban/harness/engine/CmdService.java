@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.49 2009/05/21 10:13:24 sheetalpatil Exp $
+ * $Id: CmdService.java,v 1.50 2009/05/28 21:03:23 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -30,7 +30,7 @@ import com.sun.faban.harness.agent.CmdAgent;
 import com.sun.faban.harness.agent.FileAgent;
 import com.sun.faban.harness.agent.FileService;
 import com.sun.faban.harness.common.Config;
-import com.sun.faban.harness.common.HostTypes;
+import com.sun.faban.harness.common.HostRoles;
 import com.sun.faban.harness.util.CmdMap;
 import com.sun.faban.harness.util.FileHelper;
 import com.sun.faban.harness.util.InterfaceProbe;
@@ -101,7 +101,7 @@ final public class CmdService { 	// The final keyword prevents clones
             new HashMap<String, List<String>>();
     private Map<String, String> ifMap;
     private List<String> rsh,  agent;
-    private HostTypes hostTypes;
+    private HostRoles hostRoles;
 
     private CmdService() {
 
@@ -456,21 +456,21 @@ final public class CmdService { 	// The final keyword prevents clones
         return true;
     }
 
-    void setHostTypes(HostTypes ht) {
-        hostTypes = ht;
+    void setHostRoles(HostRoles hr) {
+        hostRoles = hr;
 
         // We need to populate the machinesList and cmdp with
         // the real host names.
 
         // First get the real names.
-        String[] realHosts = hostTypes.getHostsInOrder();
+        String[] realHosts = hostRoles.getHostsInOrder();
         
         // For each real host name not in machinesList, we take the first alias
         // and look it up in the machinesList. Fetch the command agent and add
         // the real name to the machinesList -> cmdp mapping.
         for (String hostName : realHosts) {
             if (!machinesList.contains(hostName)) {
-                String[] aliases = hostTypes.getAliasesByHost(hostName);
+                String[] aliases = hostRoles.getAliasesByHost(hostName);
                 CmdAgent a = findCmdAgent(aliases[0]); // Just one is enough
                 machinesList.add(hostName);
                 cmdp.add(a);
@@ -896,8 +896,8 @@ final public class CmdService { 	// The final keyword prevents clones
      * Obtains the cached HostType object. Note that this is not a public API.
      * @return The cached HostType object;
      */
-    public HostTypes getHostTypes() {
-        return hostTypes;
+    public HostRoles getHostRoles() {
+        return hostRoles;
     }
 
     /**
@@ -1388,7 +1388,7 @@ final public class CmdService { 	// The final keyword prevents clones
 
         try {
             String srcHost = InetAddress.getLocalHost().getHostName();
-            String destHost = hostTypes.getHostByAlias(destmachine);
+            String destHost = hostRoles.getHostByAlias(destmachine);
             if (destHost.equals(srcHost)) {
                 if (srcfile.equals(destfile)) {
                     return true;
@@ -1445,7 +1445,7 @@ final public class CmdService { 	// The final keyword prevents clones
         }
         try {
             String src = InetAddress.getLocalHost().getHostName();
-            String dest = hostTypes.getHostByAlias(srcmachine);
+            String dest = hostRoles.getHostByAlias(srcmachine);
             if (dest.equals(src)) {
                 if (srcfile.equals(destfile)) {
                     return true;

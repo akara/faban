@@ -22,8 +22,6 @@
 package com.sun.faban.harness.services;
 
 import java.io.Serializable;
-
-import java.util.List;
 import java.util.Properties;
 
 /**
@@ -35,20 +33,19 @@ public class ServiceContext implements Serializable {
     private static final long serialVersionUID = 20090504L;
     private String role;
     public ServiceDescription desc;
-    private List<String> hosts;
+    private String[] hosts;
     private Properties properties = new Properties();
 
-    ServiceContext(ServiceDescription desc, List<String> hosts, Properties properties) {
+    ServiceContext(ServiceDescription desc, String[] hosts, String role,
+                   Properties properties) {
         this.desc = desc;
         this.hosts = hosts;
+        this.role = role;
         this.properties = properties;
     }    
 
     public String[] getHosts() {
-        String[] hostNames = new String[hosts.size()];
-        for(int i=0; i<hosts.size(); i++)
-            hostNames[i] = hosts.get(i);
-        return hostNames;
+        return hosts.clone();
     }
 
     public String getHostRole() {

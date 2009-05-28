@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ServerConfig.java,v 1.12 2008/08/12 17:17:18 akara Exp $
+ * $Id: ServerConfig.java,v 1.13 2009/05/28 21:03:24 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -26,6 +26,7 @@ package com.sun.faban.harness.engine;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.Run;
 import com.sun.faban.harness.ParamRepository;
+import com.sun.faban.harness.ConfigurationException;
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
 
@@ -77,35 +78,34 @@ class ServerConfig {
         String[][] serverMachines;
         boolean success = true;
 
-        ArrayList<String[]> enabledHosts = new ArrayList<String[]>();
-        List<String[]> hosts =
-                        par.getTokenizedParameters("fa:hostConfig/fa:host");
-        List<String> enabled =
-                        par.getParameters("fa:hostConfig/fh:enabled");
+        List<String[]> enabledHosts;
+        try {
+            enabledHosts = par.getEnabledHosts();
+        } catch (ConfigurationException e) {
+            logger.log(Level.SEVERE, e.getMessage(), e);
+            return false;
+        }
         List<String> cmdList =
                         par.getParameters("fa:hostConfig/fh:userCommands");
         ArrayList<String> commands = new ArrayList<String>();
-        if(hosts.size() != enabled.size()) {
+
+        if(enabledHosts.size() != cmdList.size()) {
             logger.severe("Number of hosts does not match Number of " +
-                    "enabled node");
+                    "userCommands");
             return false;
         }
-        else {
-            if(hosts.size() != cmdList.size()) {
-                logger.severe("Number of hosts does not match Number of " +
-                        "userCommands");
-                return false;
-            }
-            for(int i = 0; i < hosts.size(); i++) {
-                if(Boolean.valueOf(enabled.get(i)).booleanValue()) {
-                    enabledHosts.add(hosts.get(i));
-                    commands.add(cmdList.get(i));
-                }
-            }
-            serverMachines = enabledHosts.toArray(new String[1][1]);
-            // Each category of hosts may have a user command to be executed.
-            userCmds = commands.toArray((new String[1]));
+        int idx = 0;
+        for (Iterator<String[]> iter = enabledHosts.iterator(); iter.hasNext();) {
+            String[] hosts = iter.next();
+            if (hosts.length > 0)
+                commands.add(cmdList.get(idx++));
+            else
+                iter.remove();
         }
+
+        serverMachines = enabledHosts.toArray(new String[1][1]);
+        // Each category of hosts may have a user command to be executed.
+        userCmds = commands.toArray((new String[1]));
 
 
         for(int j = 0; j < serverMachines.length; j++) {
@@ -172,37 +172,36 @@ class ServerConfig {
      * @return true/false depending on whether we were successful or not
      */
     public boolean set(CmdService cmds) {
+
+        List<String[]> enabledHosts;
+        try {
+            enabledHosts = par.getEnabledHosts();
+        } catch (ConfigurationException e) {
+            logger.log(Level.SEVERE, e.getMessage(), e);
+            return false;
+        }
+
         List<String[]> CPUs  =
                             par.getTokenizedParameters("fa:hostConfig/fh:cpus");
-        ArrayList<String[]> enabledHosts = new ArrayList<String[]>();
-        List<String[]> hosts =
-                            par.getTokenizedParameters("fa:hostConfig/fa:host");
-        List<String> enabled =
-                            par.getParameters("fa:hostConfig/fh:enabled");
         ArrayList<String[]> cpuVector = new ArrayList<String[]>();
         String[][] serverMachines = null;
         String[][] numCpus = null;
 
-        if(hosts.size() != enabled.size()) {
-            logger.severe(
-                    "Number of hosts does not match Number of enabled node");
+        if(enabledHosts.size() != CPUs.size()) {
+            logger.severe("Number of hosts does not match Number of cpus");
             return false;
         }
-        else {
-            if(hosts.size() != CPUs.size()) {
-                logger.severe("Number of hosts does not match Number of cpus");
-                return false;
-            }
-            for(int i = 0; i < hosts.size(); i++) {
-                if(Boolean.valueOf(enabled.get(i)).booleanValue()) {
-                    enabledHosts.add(hosts.get(i));
-                    cpuVector.add(CPUs.get(i));
-                }
-                serverMachines = enabledHosts.toArray(new String[1][1]);
-                numCpus = cpuVector.toArray(new String[1][1]);
-
-            }
+        int idx = 0;
+        for (Iterator<String[]> iter = enabledHosts.iterator(); iter.hasNext();) {
+            String[] hosts = iter.next();
+            if (hosts.length > 0)
+                cpuVector.add(CPUs.get(idx++));
+            else
+                iter.remove();
         }
+
+        serverMachines = enabledHosts.toArray(new String[1][1]);
+        numCpus = cpuVector.toArray(new String[1][1]);
 
         if(serverMachines.length != numCpus.length) {
             logger.severe("serverMachines.length != numCPUs.length");
@@ -316,25 +315,22 @@ class ServerConfig {
      * @param endTime of benchmark run
      */
     public void report(long startTime, long endTime) {
-        String[][] serverMachines = null;
-        ArrayList<String[]> enabledHosts = new ArrayList<String[]>();
-        List<String[]> hosts =
-                par.getTokenizedParameters("fa:hostConfig/fa:host");
-        List<String> enabled = par.getParameters("fa:hostConfig/fh:enabled");
-        if(hosts.size() != enabled.size()) {
-            logger.severe(
-                    "Number of hosts does not match Number of enabled node");
+
+        List<String[]> enabledHosts;
+        try {
+            enabledHosts = par.getEnabledHosts();
+        } catch (ConfigurationException e) {
+            logger.log(Level.SEVERE, e.getMessage(), e);
             return;
         }
-        else {
-            for(int i = 0; i < hosts.size(); i++) {
-                if(Boolean.valueOf(enabled.get(i)).booleanValue()) {
-                    enabledHosts.add(hosts.get(i));
-                }
-            }
-            serverMachines = enabledHosts.toArray(new String[1][1]);
-        }
 
+        // Remove empty entries identifying disabled host roles.
+        for (Iterator<String[]> iter = enabledHosts.iterator(); iter.hasNext();) {
+            String[] hosts = iter.next();
+            if (hosts.length == 0)
+                iter.remove();
+        }
+        
         String sysfile = run.getOutDir() + "system.report";
         PrintStream syslog = null;
         DateFormat df = DateFormat.getDateTimeInstance(
@@ -367,9 +363,8 @@ class ServerConfig {
         c.setStreamHandling(Command.STDOUT, Command.CAPTURE);
         logger.fine("Getting system messages");
 
-        for (int i = 0; i < serverMachines.length; i++)
-            for(int j = 0; j < serverMachines[i].length; j++) {
-                String machine = serverMachines[i][j];
+        for (String[] machines : enabledHosts)
+            for(String machine : machines) {
                 File f = new File(sysfile + "." + machine);
                 f.delete();
                 try {

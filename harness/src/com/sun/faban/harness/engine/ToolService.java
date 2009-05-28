@@ -17,31 +17,29 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ToolService.java,v 1.9 2009/05/21 22:43:12 sheetalpatil Exp $
+ * $Id: ToolService.java,v 1.10 2009/05/28 21:03:24 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.engine;
 
+import com.sun.faban.harness.ConfigurationException;
+import com.sun.faban.harness.ParamRepository;
 import com.sun.faban.harness.agent.ToolAgent;
 import com.sun.faban.harness.agent.ToolAgentImpl;
 import com.sun.faban.harness.common.Config;
-import com.sun.faban.harness.ParamRepository;
-
 import com.sun.faban.harness.services.ServiceManager;
 import com.sun.faban.harness.tools.MasterToolContext;
 import com.sun.faban.harness.util.XMLReader;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import java.io.File;
-import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.parsers.ParserConfigurationException;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 /**
  * This file contains the class that implements the Tool service API.
@@ -96,20 +94,20 @@ final public class ToolService {
      * @return true if setup successful, else false
      *
      */
-    public boolean setup(ParamRepository par, String outDir, ServiceManager serviceMgr) 
-            throws ParserConfigurationException, SAXException, IOException, Exception {
-        parseOSToolSets();
+    public boolean setup(ParamRepository par, String outDir,
+                         ServiceManager serviceMgr) {
+
         cmds = CmdService.getHandle();
 
         /* Get tool related parameters */
 
-        List hostClasses = par.getTokenizedParameters("fa:hostConfig/fa:host");
-        List allTools =  par.getParameters("fa:hostConfig/fh:tools");
-        List enabled = par.getParameters("fa:hostConfig/fh:enabled");
-
-        if(hostClasses.size() != enabled.size()) {
-            logger.warning("Number of hosts does not match " +
-                    "Number of enabled node");
+        List<String[]> hostClasses = null;
+        List<String> allTools =  null;
+        try {
+            hostClasses = par.getEnabledHosts();
+            allTools = par.getParameters("fa:hostConfig/fh:tools");
+        } catch (ConfigurationException e) {
+            logger.log(Level.WARNING, e.getMessage(), e);
             return false;
         }
 
@@ -136,20 +134,18 @@ final public class ToolService {
         ArrayList<String> toolset = new ArrayList<String>();
         // First we flatten out the classes into host names and tools sets
         for (int i = 0; i < hostClasses.size(); i++) {
-            // Ignore if the host class is not enabled.
-            if (!Boolean.parseBoolean((String)enabled.get(i)))
-                continue;
 
-            String toolCmds = ((String) allTools.get(i)).trim();
+            // Get the hosts list in the class.
+            String[] hosts = hostClasses.get(i);
+            if (hosts.length == 0)
+                continue; // This class is disabled.
+
+            String toolCmds = allTools.get(i).trim();
 
             // Ignore class if no tools to start.
             if (toolCmds.toUpperCase().equals("NONE")){
                 continue;
             }
-
-
-            // Get the hosts list in the class.
-            String[] hosts = (String[]) hostClasses.get(i);
 
             // Get the tools list for this host list.
             if(toolCmds.length() != 0){
@@ -272,7 +268,7 @@ final public class ToolService {
         return(true);
     }
 
-    private void parseOSToolSets(){
+    private void parseOSToolSets() {
         File toolsetsXml = new File(
                             Config.CONFIG_DIR + Config.OS_DIR + "toolsets.xml");
         try {

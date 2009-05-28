@@ -23,6 +23,7 @@ package com.sun.faban.harness.services;
 
 import com.sun.faban.common.ParamReader;
 import com.sun.faban.harness.ParamRepository;
+import com.sun.faban.harness.ConfigurationException;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.Run;
 import com.sun.faban.harness.engine.DeployImageClassLoader;
@@ -239,7 +240,7 @@ public class ServiceManager {
 
 
     private void parseRequestedServices(ParamRepository par)
-            throws XPathExpressionException, IOException {
+            throws XPathExpressionException, IOException, ConfigurationException {
         NodeList topLevelElements = par.getTopLevelElements();
         int topLevelSize = topLevelElements.getLength();
         for (int i = 0; i < topLevelSize; i++) {
@@ -258,11 +259,11 @@ public class ServiceManager {
                 continue;
 
             // Get the hosts
-            String hosts = par.getParameter("fa:hostConfig/fa:host", ti);
-            ArrayList<String> hostList = new ArrayList<String>();
-            StringTokenizer t = new StringTokenizer(hosts);
-            while (t.hasMoreTokens())
-                hostList.add(t.nextToken());
+            String[] hosts = par.getEnabledHosts(ti);
+            if (hosts == null || hosts.length == 0)
+                continue;
+
+            String role = ti.getLocalName();
 
             // Get the services
             NodeList serviceNodes = par.getNodes("fh:service", ti);
@@ -293,7 +294,7 @@ public class ServiceManager {
                 }
                 ServiceDescription sd = serviceMap.get(serviceName);
                 ServiceContext ctx =
-                        new ServiceContext(sd, hostList, properties);
+                        new ServiceContext(sd, hosts, role, properties);
                 ctxList.add(ctx);
 
 
