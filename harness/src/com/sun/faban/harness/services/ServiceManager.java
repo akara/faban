@@ -35,7 +35,6 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import javax.xml.xpath.XPathExpressionException;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -236,7 +235,7 @@ public class ServiceManager {
 
 
     private void parseRequestedServices(ParamRepository par)
-            throws XPathExpressionException, IOException, ConfigurationException {
+            throws IOException, ConfigurationException {
         NodeList topLevelElements = par.getTopLevelElements();
         int topLevelSize = topLevelElements.getLength();
         for (int i = 0; i < topLevelSize; i++) {
