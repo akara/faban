@@ -22,30 +22,26 @@
 package com.sun.faban.harness.services;
 
 import com.sun.faban.common.ParamReader;
-import com.sun.faban.harness.ParamRepository;
 import com.sun.faban.harness.ConfigurationException;
+import com.sun.faban.harness.ParamRepository;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.Run;
 import com.sun.faban.harness.engine.DeployImageClassLoader;
 import com.sun.faban.harness.tools.MasterToolContext;
 import com.sun.faban.harness.tools.ToolDescription;
 import com.sun.faban.harness.util.XMLReader;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import javax.xml.xpath.XPathExpressionException;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
  *
