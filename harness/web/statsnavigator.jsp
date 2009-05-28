@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: statsnavigator.jsp,v 1.15 2009/05/26 21:06:55 akara Exp $
+ * $Id: statsnavigator.jsp,v 1.16 2009/05/28 21:04:58 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -31,7 +31,7 @@
                                  com.sun.faban.harness.common.BenchmarkDescription,
                                  java.util.*,
                                  com.sun.faban.harness.webclient.RunResult,
-                                 com.sun.faban.harness.common.HostTypes"%>
+                                 com.sun.faban.harness.common.HostRoles"%>
 <%
     String runId = request.getParameter("runId");
     String[] statusFileContent = RunResult.readStatus(runId);
@@ -133,9 +133,9 @@
 
     File hosttypes = new File(outDir, "META-INF");
     hosttypes = new File(hosttypes, "hosttypes");
-    HostTypes hostTypes = null;
+    HostRoles hostRoles = null;
     if (hosttypes.isFile()) {
-        hostTypes = new HostTypes(hosttypes.getAbsolutePath());
+        hostRoles = new HostRoles(hosttypes.getAbsolutePath());
     }
 %>
 <html>
@@ -147,14 +147,14 @@
         <% } %>
         <%
             String[] hosts;
-            if (hostTypes != null) { // If we know the types, order by relevance in that type.
-                hosts = hostTypes.getHostsInOrder();
+            if (hostRoles != null) { // If we know the roles, order by relevance in that role.
+                hosts = hostRoles.getHostsInOrder();
         %>
         <link rel="stylesheet" type="text/css" href="/css/style.css" />        
         <link rel="stylesheet" type="text/css" href="css/balloontip2.css" />
         <script type="text/javascript" src="scripts/balloontip2.js"></script>
          <%
-            } else { // If we don't know the types, order by name
+            } else { // If we don't know the roles, order by name
                 Set<String> hostSet = allHosts.keySet();
                 hosts = new String[hostSet.size()];
                 hosts = hostSet.toArray(hosts);
@@ -163,20 +163,20 @@
     </head>
     <body>
         <%
-            if (hostTypes != null)
+            if (hostRoles != null)
                 for (String hostName : hosts) {
-                    String[] types = hostTypes.getTypesByHost(hostName);
+                    String[] roles = hostRoles.getRolesByHost(hostName);
         %>
         <div id="<%= hostName %>_balloon" class="ballooncontent">
         <%
                     StringBuilder b = new StringBuilder();
-                    for (String type : types) {
-                        String[] aliases = hostTypes.getAliasesByHostAndType(hostName, type);
+                    for (String role : roles) {
+                        String[] aliases = hostRoles.getAliasesByHostAndRole(hostName, role);
                         if (aliases.length == 0)
                             aliases = null;
                         if (aliases.length == 1 && hostName.equals(aliases[0]))
                             aliases = null;
-                        b.append("<b>").append(type).append("</b>");
+                        b.append("<b>").append(role).append("</b>");
                         if (aliases != null) {
                             b.append(": ").append(aliases[0]);
                             for (int i = 1; i < aliases.length; i++)
@@ -212,7 +212,7 @@
                         if (toolSet == null)
                             continue;
                         String mouseover = "";
-                        if (hostTypes != null) {
+                        if (hostRoles != null) {
                             mouseover = "onmouseover=\"ddrivetip('" + hosts[i] +
                                     "_balloon')\" onmouseout=\"hideddrivetip()\"";
                         }
