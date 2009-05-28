@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunRetriever.java,v 1.13 2009/02/14 05:34:17 sheetalpatil Exp $
+ * $Id: RunRetriever.java,v 1.14 2009/05/28 00:55:26 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -190,7 +190,7 @@ public class RunRetriever extends HttpServlet {
         out.close();
 
         // Update status locally
-        nextRun.updateStatus("RECEIVED");
+        nextRun.updateStatus(Run.RECEIVED);
 
         // Clear tmp file
         jarFile.delete();

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.37 2009/05/21 10:13:24 sheetalpatil Exp $
+ * $Id: GenericBenchmark.java,v 1.38 2009/05/28 00:55:26 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -32,14 +32,11 @@ import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.HostTypes;
 import com.sun.faban.harness.common.Run;
-
-import com.sun.faban.harness.services.ServiceDescription;
 import com.sun.faban.harness.services.ServiceManager;
-import com.sun.faban.harness.services.ServiceWrapper;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -69,15 +66,8 @@ public class GenericBenchmark {
     private static Logger logger =
             Logger.getLogger(GenericBenchmark.class.getName());
 
-    public static final int COMPLETED = 0;
-    public static final int FAILED = 1;
-    public static final int KILLED = 2;
-    
-    public static final String[] COMPLETIONMESSAGE =
-            { "COMPLETED", "FAILED", "KILLED" };
-
     // Flag to detect failed run
-    private int runStatus = FAILED;
+    private int runStatus = Run.FAILED;
     private int stdyState = 0;
 
     public GenericBenchmark(Run r) {
@@ -108,7 +98,7 @@ public class GenericBenchmark {
 
         // Update the status of the run
         try {
-            run.updateStatus("STARTED");
+            run.updateStatus(Run.STARTED);
         } catch (IOException e) {
             logger.log(Level.SEVERE,  "Failed to update run status.", e);
             return;
@@ -181,31 +171,14 @@ public class GenericBenchmark {
                 // Start CmdAgent on all ENABLED hosts using the JAVA HOME
                 // Specified JVM options will be used by the Agent when it
                 // starts java processes
-                ArrayList enabledHosts = new ArrayList();
-                List hosts = par.getTokenizedParameters(
-                                                    "fa:hostConfig/fa:host");
-                List enabled = par.getParameters("fa:hostConfig/fh:enabled");
-                if(hosts.size() != enabled.size()) {
-                    logger.severe("Number of hosts, " + hosts.size() +
-                            ", does not match enabled, " +
-                            enabled.size() + ".");
-                    return;
-                } else {
-                    for(int i = 0; i < hosts.size(); i++) {
-                        if(Boolean.valueOf((String) enabled.get(i)).
-                                booleanValue()) {
-                            enabledHosts.add(hosts.get(i));
-                        }
-                    }
-                    String[][] hostArray = (String[][])
-                            enabledHosts.toArray(new String[1][1]);
-                    boolean clockSync = par.getBooleanValue(
+                List<String[]> enabledHosts = par.getEnabledHosts();
+                String[][] hostArray = enabledHosts.toArray(new String[1][1]);
+                boolean clockSync = par.getBooleanValue(
                                             "fa:runConfig/fh:timeSync", true);
-                    if (!cmds.setup(benchDesc.shortName,
-                            hostArray, javaHome, jvmOpts, clockSync)) {
-                        logger.severe("CmdService setup failed. Exiting");
-                        return;
-                    }
+                if (!cmds.setup(benchDesc.shortName,
+                        hostArray, javaHome, jvmOpts, clockSync)) {
+                logger.severe("CmdService setup failed. Exiting");
+                    return;
                 }
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Start failed.", e);
@@ -221,8 +194,8 @@ public class GenericBenchmark {
             } catch (IOException e) {
                 logger.log(Level.WARNING, "Error writing hosttypes file!", e);
             }
-            // TODO: Start service manager here.
-            // construct service manager.
+
+            // Deal with the services.
             serviceMgr = new ServiceManager(par, run);
             logger.info("Got Service Manager Instance");
             // transfer service configuration.
@@ -369,9 +342,9 @@ public class GenericBenchmark {
 
             // Even if the run got killed, we can arrive here.
             // So we need to check the killed flag first.
-            if (runStatus != KILLED) {
+            if (runStatus != Run.KILLED) {
                 tools.waitFor();
-                runStatus = COMPLETED;
+                runStatus = Run.COMPLETED;
             }
             return;
         } catch (Throwable t) {
@@ -432,7 +405,7 @@ public class GenericBenchmark {
      * the current run.
      */
     public void kill() {
-        runStatus = KILLED;
+        runStatus = Run.KILLED;
         _kill();
     }
 
@@ -442,7 +415,7 @@ public class GenericBenchmark {
     private void _kill() {
 
         try {
-            run.updateStatus(COMPLETIONMESSAGE[runStatus]);
+            run.updateStatus(runStatus);
         } catch (IOException e) {
             logger.log(Level.SEVERE,  "Failed to update run status.", e);
         }

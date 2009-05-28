@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Run.java,v 1.6 2008/12/05 22:02:14 sheetalpatil Exp $
+ * $Id: Run.java,v 1.7 2009/05/28 00:55:25 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -37,6 +37,16 @@ import java.util.Date;
  * @author Ramesh Ramachandran
  */
 public class Run implements Serializable {
+
+    public static final int STARTED = 0;
+    public static final int RECEIVED = 1;
+    public static final int COMPLETED = 2;
+    public static final int FAILED = 3;
+    public static final int KILLED = 4;
+
+    public static final String[] STATUS_MESSAGE =
+            { "STARTED", "RECEIVED", "COMPLETED", "FAILED", "KILLED" };
+
     private BenchmarkDescription benchDesc;
     private String outdir;		// output directory name for this run
     private String runqdir;		// Runq directory name for this run
@@ -126,13 +136,14 @@ public class Run implements Serializable {
      * @param status The new run status
      * @throws IOException If the update fails
      */
-    public void updateStatus(String status) throws IOException {
+    public void updateStatus(int status) throws IOException {
         // Update the resultinfo file with Status
         File resultInfo = new File(outdir, Config.RESULT_INFO);
         resultInfo.delete();
         resultInfo.createNewFile();
         FileWriter writer = new FileWriter(resultInfo);
-        String content = status + '\t' + formatter.format(new Date());
+        String content = STATUS_MESSAGE[status] + '\t' +
+                                formatter.format(new Date());
         writer.write(content);
         writer.flush();
         writer.close();
