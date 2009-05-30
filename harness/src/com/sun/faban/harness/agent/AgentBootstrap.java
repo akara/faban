@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentBootstrap.java,v 1.19 2009/05/30 04:43:47 akara Exp $
+ * $Id: AgentBootstrap.java,v 1.20 2009/05/30 23:46:59 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -40,6 +40,8 @@ import java.rmi.RemoteException;
 import java.rmi.server.RMISocketFactory;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
@@ -415,14 +417,32 @@ public class AgentBootstrap {
      * @return The splitted path
      */
     private static String[] pathSplit(String path) {
-        String pathSeparator = ":";  // Unix style by default.
+        char pathSeparator = ':';  // Unix style by default.
 
         // Check for '\' used in Windows paths.
         if (path.indexOf('\\') >= 0) {
-            pathSeparator=";";
+            pathSeparator=';';
         }
 
-        return path.split(pathSeparator);
+        // Check for "c:/foo/bar" sometimes used in Windows paths
+        if (pathSeparator == ':' ) {
+            Pattern p = Pattern.compile("\\A[a-zA-Z]:/");
+            Matcher m = p.matcher(path);
+            if (m.find())
+                pathSeparator = ';';
+        }
+
+        // Check for ...;c:/foo/bar at any place in the path
+        if (pathSeparator == ':' ) {
+            Pattern p = Pattern.compile(";[a-zA-Z]:/");
+            Matcher m = p.matcher(path);
+            if (m.find())
+                pathSeparator = ';';
+        }
+
+        String delimiter = "" + pathSeparator;
+
+        return path.split(delimiter);
     }
 
     private static boolean sameHost(String host1, String host2) {
