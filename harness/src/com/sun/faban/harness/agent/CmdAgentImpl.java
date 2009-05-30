@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgentImpl.java,v 1.25 2009/05/30 04:43:47 akara Exp $
+ * $Id: CmdAgentImpl.java,v 1.26 2009/05/30 17:54:13 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -986,13 +986,13 @@ public class CmdAgentImpl extends UnicastRemoteObject
         File libDir = new File(Config.BENCHMARK_DIR + benchName + "/lib");
         File osLibDir = new File(libDir, Config.OS_DIR);
         File archLibDir = new File(osLibDir, Config.ARCH_DIR);
-        if (containsFiles(archLibDir)) {
+        if (containsNonJarFiles(archLibDir)) {
             libPath.add(archLibDir.getAbsolutePath());
         }
-        if (containsFiles(osLibDir)) {
+        if (containsNonJarFiles(osLibDir)) {
             libPath.add(osLibDir.getAbsolutePath());
         }
-        if (containsFiles(libDir)) {
+        if (containsNonJarFiles(libDir)) {
             libPath.add(libDir.getAbsolutePath());
         }
 
@@ -1009,12 +1009,12 @@ public class CmdAgentImpl extends UnicastRemoteObject
         return libPathString;
     }
 
-    private static boolean containsFiles(File dir) {
+    private static boolean containsNonJarFiles(File dir) {
         if (!dir.isDirectory())
             return false;
         File[] files = dir.listFiles();
         for (File file : files) {
-            if (file.isFile())
+            if (file.isFile() && !file.getName().toLowerCase().endsWith(".jar"))
                 return true;
         }
         return false;
