@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Lockstat.java,v 1.3 2008/05/23 05:57:42 akara Exp $
+ * $Id: Lockstat.java,v 1.4 2009/05/30 04:48:50 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -39,8 +39,9 @@ import java.util.concurrent.CountDownLatch;
  * @author Ramesh Ramachandran
  * @see com.sun.faban.harness.tools.GenericTool
  * @see Tool
+ * @deprecated
  */
-public class Lockstat extends GenericTool {
+@Deprecated public class Lockstat extends GenericTool {
 
     /**
      * Config method appends the toolName with 'sleep 30' 

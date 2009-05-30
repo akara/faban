@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: LighttpdService.java,v 1.6 2009/01/12 23:23:07 akara Exp $
+ * $Id: LighttpdService.java,v 1.7 2009/05/30 04:48:49 akara Exp $
  *
  * Copyright 2008 Sun Microsystems Inc. All Rights Reserved
  */
@@ -48,8 +48,9 @@ import java.util.logging.Logger;
  * perform these operations remotely using this Service.
  *
  * @author Shanti Subramanyam
+ * @deprecated
  */
-final public class LighttpdService implements WebServerService {
+@Deprecated final public class LighttpdService implements WebServerService {
 
     private static LighttpdService service = null;
     private String[] myServers = new String[1];

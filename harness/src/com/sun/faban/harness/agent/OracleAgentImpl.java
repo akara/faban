@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: OracleAgentImpl.java,v 1.2 2006/06/29 19:38:40 akara Exp $
+ * $Id: OracleAgentImpl.java,v 1.3 2009/05/30 04:48:49 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */package com.sun.faban.harness.agent;
@@ -42,8 +42,9 @@ import java.util.logging.Logger;
  * the server machine(s)
  *
  * @author Ramesh Ramachandran
+ * @deprecated
  */
-public class OracleAgentImpl extends UnicastRemoteObject
+@Deprecated public class OracleAgentImpl extends UnicastRemoteObject
         implements OracleAgent, Unreferenced {
 
 

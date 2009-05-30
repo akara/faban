@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MysqlService.java,v 1.1 2008/02/06 00:36:07 shanti_s Exp $
+ * $Id: MysqlService.java,v 1.2 2009/05/30 04:48:49 akara Exp $
  *
  * Copyright 2008 Sun Microsystems Inc. All Rights Reserved
  */
@@ -46,8 +46,9 @@ import java.util.logging.Logger;
  * NOTE: It is assumed that the pid and err file are in $DBHOME/data.
  * 
  * @author Shanti Subramanyam
+ * @deprecated
  */
-final public class MysqlService {
+@Deprecated final public class MysqlService {
 
     private static MysqlService service;
     private String dbHome,  myServer;

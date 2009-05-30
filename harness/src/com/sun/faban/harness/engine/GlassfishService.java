@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GlassfishService.java,v 1.1 2008/06/21 09:24:37 akara Exp $
+ * $Id: GlassfishService.java,v 1.2 2009/05/30 04:48:49 akara Exp $
  *
  * Copyright 2007 Sun Microsystems Inc. All Rights Reserved
  */
@@ -45,8 +45,9 @@ import java.text.SimpleDateFormat;
  * perform these operations remotely using this Service.
  *
  * @author Akara Sucharitakul
+ * @deprecated
  */
-final public class GlassfishService implements WebServerService {
+@Deprecated final public class GlassfishService implements WebServerService {
 
     private static GlassfishService service = null;
     private String[] myServers = new String[1];

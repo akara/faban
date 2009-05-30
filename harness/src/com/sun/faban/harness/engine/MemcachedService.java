@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MemcachedService.java,v 1.3 2008/02/26 18:22:28 akara Exp $
+ * $Id: MemcachedService.java,v 1.4 2009/05/30 04:48:49 akara Exp $
  *
  * Copyright 2007 Sun Microsystems Inc. All Rights Reserved
  */
@@ -39,8 +39,9 @@ import java.util.logging.Logger;
  * perform these operations remotely using this Service.
  *
  * @author Shanti Subramanyam
+ * @deprecated
  */
-final public class MemcachedService {
+@Deprecated final public class MemcachedService {
 
     private static final int DEFAULT_PORT = 11211;  // default port
     private static MemcachedService service;

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Mysqlstats.java,v 1.3 2009/01/12 23:15:51 akara Exp $
+ * $Id: Mysqlstats.java,v 1.4 2009/05/30 04:48:50 akara Exp $
  *
  * Copyright 2008 Sun Microsystems Inc. All Rights Reserved
  */
@@ -51,8 +51,9 @@ import java.util.logging.Logger;
  * E.g: mysqlstats /opt/coolstack/mysql_32bit web20 web20
  * @author Shanti Subramanyam
  * @see GenericTool
+ * @deprecated
  */
-public class Mysqlstats implements Tool {
+@Deprecated public class Mysqlstats implements Tool {
 
     static final int NOT_STARTED = 0;
     static final int STARTED = 1;

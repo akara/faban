@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: OracleTool.java,v 1.7 2008/05/23 23:24:46 akara Exp $
+ * $Id: OracleTool.java,v 1.8 2009/05/30 04:48:50 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -47,8 +47,9 @@ import java.util.logging.Logger;
  *
  * @author Akara Sucharitakul
  * @see Tool
+ * @deprecated
  */
-public abstract class OracleTool implements Tool {
+@Deprecated public abstract class OracleTool implements Tool {
 
     static final int NOT_STARTED = 0;
     static final int STARTED = 1;

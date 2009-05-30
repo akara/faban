@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Wlp2.java,v 1.5 2008/05/23 05:57:42 akara Exp $
+ * $Id: Wlp2.java,v 1.6 2009/05/30 04:48:50 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -36,8 +36,9 @@ import java.util.concurrent.CountDownLatch;
  * the appropriate place.
  *
  * @author Akara Sucharitakul
+ * @deprecated
  */
-public class Wlp2 extends Statspack {
+@Deprecated public class Wlp2 extends Statspack {
 
     private String outDir;
     private String host;

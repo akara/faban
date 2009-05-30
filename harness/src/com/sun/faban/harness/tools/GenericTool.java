@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericTool.java,v 1.12 2009/05/21 10:13:26 sheetalpatil Exp $
+ * $Id: GenericTool.java,v 1.13 2009/05/30 04:48:50 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -55,8 +55,9 @@ import java.util.logging.Logger;
  *
  * @author Ramesh Ramachandran
  * @see com.sun.faban.harness.tools.Tool
+ * @deprecated The GenericTool has been replaced by the CommandLineTool.
  */
-public class GenericTool implements Tool {
+@Deprecated public class GenericTool implements Tool {
 
     static final int NOT_STARTED = 0;
     static final int STARTED = 1;

@@ -36,7 +36,6 @@ import org.xml.sax.SAXException;
  */
 public class MasterToolContext implements Serializable {
 
-    // TODO: Add SerialVersionUID
     private static final long serialVersionUID = 20090504L;
     private String toolId;
     private String tool;

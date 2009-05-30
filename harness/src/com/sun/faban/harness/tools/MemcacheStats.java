@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MemcacheStats.java,v 1.7 2008/04/17 22:08:52 akara Exp $
+ * $Id: MemcacheStats.java,v 1.8 2009/05/30 04:48:50 akara Exp $
  */
 package com.sun.faban.harness.tools;
 
@@ -43,9 +43,9 @@ import java.util.logging.Logger;
  * allowing easy tabulation and comparison with other tools.
  *
  * @author Shanti Subramanyam based on work by Kim LiChong
- * 
+ * @deprecated
  */
-public class MemcacheStats {
+@Deprecated public class MemcacheStats {
 
     private static StatsClient cache = null;
     static Logger logger = Logger.getLogger(MemcacheStats.class.getName());

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Statspack.java,v 1.3 2007/01/24 02:35:03 akara Exp $
+ * $Id: Statspack.java,v 1.4 2009/05/30 04:48:50 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,8 +25,9 @@ package com.sun.faban.harness.tools;
 
 /**
  * Runs Oracle's statspack tool.
+ * @deprecated
  */
-public class Statspack extends OracleTool {
+@Deprecated public class Statspack extends OracleTool {
 
     /**
      * Creates a sqlplus command to create an awr snapshot.

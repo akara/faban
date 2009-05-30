@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Statit.java,v 1.5 2008/05/23 05:57:42 akara Exp $
+ * $Id: Statit.java,v 1.6 2009/05/30 04:48:50 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -41,8 +41,9 @@ import java.util.logging.Level;
  * @author Ramesh Ramachandran
  * @see GenericTool
  * @see Tool
+ * @deprecated
  */
-public class Statit extends GenericTool {
+@Deprecated public class Statit extends GenericTool {
 
     public void configure(String toolName, List<String> argList, String path,
                           String outDir, String host, String masterhost,

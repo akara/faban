@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Cpustat.java,v 1.8 2008/05/23 23:24:46 akara Exp $
+ * $Id: Cpustat.java,v 1.9 2009/05/30 04:48:50 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -43,8 +43,9 @@ import java.util.logging.Level;
  *
  * @author Akara Sucharitakul
  * @see com.sun.faban.harness.tools.Tool
+ * @deprecated
  */
-public class Cpustat extends GenericTool {
+@Deprecated public class Cpustat extends GenericTool {
 
     String postFile;
 

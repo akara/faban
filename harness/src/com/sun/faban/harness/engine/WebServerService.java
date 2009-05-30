@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: WebServerService.java,v 1.2 2008/02/25 20:41:22 shanti_s Exp $
+ * $Id: WebServerService.java,v 1.3 2009/05/30 04:48:50 akara Exp $
  *
  * Copyright 2008 Sun Microsystems Inc. All Rights Reserved
  */
@@ -30,8 +30,9 @@ import java.util.*;
  * This is the interface implemented by all webserver services.
  *
  * @author Shanti Subramanyam
+ * @deprecated
  */
-public interface WebServerService {
+@Deprecated public interface WebServerService {
 
     /**
      * The setup method is called to set up a benchmark run. 

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: OracleService.java,v 1.3 2006/07/27 22:34:35 akara Exp $
+ * $Id: OracleService.java,v 1.4 2009/05/30 04:48:49 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -40,9 +40,10 @@ import java.util.logging.Logger;
  * and perform these operations throught OracleAgent.
  *
  * @author Ramesh Ramachandran
+ * @deprecated
  */
 
-final public class OracleService {
+@Deprecated final public class OracleService {
 
     private static OracleService oracle;
 

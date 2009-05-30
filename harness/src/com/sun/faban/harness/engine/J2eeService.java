@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: J2eeService.java,v 1.2 2006/06/29 19:38:41 akara Exp $
+ * $Id: J2eeService.java,v 1.3 2009/05/30 04:48:49 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -33,8 +33,9 @@ import java.util.Properties;
  * This abstract class is extended by Application Server Services
  *
  * @author Ramesh Ramachandran
+ * @deprecated
  */
-public interface J2eeService {
+@Deprecated public interface J2eeService {
     
     /**
      * setup Service and agents
