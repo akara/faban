@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FabanShell.java,v 1.1 2007/08/31 22:18:59 akara Exp $
+ * $Id: FabanShell.java,v 1.2 2009/05/30 04:46:42 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -88,14 +88,24 @@ public class FabanShell extends Thread {
         String javaLibs = JAVA_HOME + File.separator + "lib";
         String needJDK = System.getProperty("fabanshell.needJDK");
         if ("true".equalsIgnoreCase(needJDK)) {
+            boolean isJDK = false;
             File toolsJar = new File(javaLibs, "tools.jar");
-            if (!toolsJar.isFile()) {
+            if (!toolsJar.isFile()) { // Normally tools.jar has the compiler.
+                isJDK = true;
+                classPath.append(toolsJar.getAbsolutePath());
+            } else {  // On some platforms like the mac, there is no tools.jar
+                try { // We expect the compiler class to be available.
+                    Class.forName("com.sun.tools.javac.Main");
+                    isJDK = true;
+                } catch (ClassNotFoundException e) {
+                }
+            }
+            if (!isJDK) {
                 System.err.println("Could not find a JDK at " + JAVA_HOME +
                         ". Please make sure the JDK is installed and set " +
                         "JAVA_HOME or PATH accordingly.");
                 System.exit(1);
             }
-            classPath.append(toolsJar.getAbsolutePath());
         }
 
         if (!javaHomeEnv)
