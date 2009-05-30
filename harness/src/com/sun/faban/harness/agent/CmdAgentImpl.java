@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgentImpl.java,v 1.24 2009/02/13 20:29:24 akara Exp $
+ * $Id: CmdAgentImpl.java,v 1.25 2009/05/30 04:43:47 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -78,6 +78,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
     private Timer timer;
 
     String[] baseClassPath;
+    String libPath;
     Map<String, List<String>> binMap;
     private ArrayList<String> javaCmd;
 
@@ -102,8 +103,9 @@ public class CmdAgentImpl extends UnicastRemoteObject
         super();
     }
 
-    void setBenchName(String benchName) throws Exception {
+    void setBenchName(String benchName, List<String> libPath) throws Exception {
         baseClassPath = getBaseClassPath(benchName);
+        this.libPath = getLibPath(benchName, libPath);
         binMap = CmdMap.getCmdMap(benchName);
     }
 
@@ -259,6 +261,9 @@ public class CmdAgentImpl extends UnicastRemoteObject
             buf.setLength(buf.length() - File.pathSeparator.length());
 
         cmds.add(buf.toString());
+
+        if (libPath != null)
+            cmds.add(libPath);
 
         cmds.addAll(Command.parseArgs(cmd));
 
@@ -943,6 +948,9 @@ public class CmdAgentImpl extends UnicastRemoteObject
             if (falseEnding)
                 buf.setLength(buf.length() - File.pathSeparator.length());
             javaCmd.add(buf.toString());
+
+            if (libPath != null)
+                javaCmd.add(libPath);
         }
 
         ArrayList<String> tmp = new ArrayList<String>(cmd);
@@ -954,7 +962,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
 
     private static String[] getBaseClassPath(String benchName) {
         // The benchmark-specific libs take precedence, add first to list
-        ArrayList libList = new ArrayList();
+        ArrayList<String> libList = new ArrayList<String>();
         File libDir = new File(Config.BENCHMARK_DIR + benchName + "/lib/");
         if (libDir.exists() && libDir.isDirectory()) {
             File[] libFiles = libDir.listFiles();
@@ -970,8 +978,46 @@ public class CmdAgentImpl extends UnicastRemoteObject
                     libList.add(libFiles[i].getAbsolutePath());
         }
         String[] baseClassPath = new String[libList.size()];
-        baseClassPath = (String[]) libList.toArray(baseClassPath);
+        baseClassPath = libList.toArray(baseClassPath);
         return baseClassPath;
+    }
+
+    private static String getLibPath(String benchName, List<String> libPath) {
+        File libDir = new File(Config.BENCHMARK_DIR + benchName + "/lib");
+        File osLibDir = new File(libDir, Config.OS_DIR);
+        File archLibDir = new File(osLibDir, Config.ARCH_DIR);
+        if (containsFiles(archLibDir)) {
+            libPath.add(archLibDir.getAbsolutePath());
+        }
+        if (containsFiles(osLibDir)) {
+            libPath.add(osLibDir.getAbsolutePath());
+        }
+        if (containsFiles(libDir)) {
+            libPath.add(libDir.getAbsolutePath());
+        }
+
+        String libPathString = null;
+        if (libPath.size() > 0) {
+            StringBuilder b = new StringBuilder();
+            b.append("-Djava.library.path=");
+            Iterator<String> iter = libPath.iterator();
+            b.append(iter.next());
+            while (iter.hasNext())
+                b.append(File.pathSeparator).append(iter.next());
+            libPathString = b.toString();
+        }
+        return libPathString;
+    }
+
+    private static boolean containsFiles(File dir) {
+        if (!dir.isDirectory())
+            return false;
+        File[] files = dir.listFiles();
+        for (File file : files) {
+            if (file.isFile())
+                return true;
+        }
+        return false;
     }
 
     /**

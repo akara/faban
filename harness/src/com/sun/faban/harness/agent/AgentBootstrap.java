@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentBootstrap.java,v 1.18 2009/05/21 10:13:28 sheetalpatil Exp $
+ * $Id: AgentBootstrap.java,v 1.19 2009/05/30 04:43:47 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -40,8 +40,8 @@ import java.rmi.RemoteException;
 import java.rmi.server.RMISocketFactory;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
-import java.util.logging.Logger;
 import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 /**
  * Bootstrap class for the CmdAgent and FileAgent
@@ -177,6 +177,9 @@ public class AgentBootstrap {
                                         "config" + fs + "logging." + host +
                                         ".properties");
 
+        ArrayList<String> libPath = new ArrayList<String>();
+        String libPrefix = "-Djava.library.path=";
+
         // There may be optional JVM args
         boolean isClassPath = false;
         if(args.length > 4) {
@@ -213,10 +216,15 @@ public class AgentBootstrap {
                 } else if ("-classpath".equals(args[i])) {
                     isClassPath = true;
                 } else if (isClassPath) {
-                    String[] cp = args[i].split("[;:]");
+                    String[] cp = pathSplit(args[i]);
                     for (String cpElement : cp)
                         extClassPath.add(cpElement);
                     isClassPath = false;
+                } else if (args[i].startsWith(libPrefix)) {
+                    String[] lp = pathSplit(
+                            args[i].substring(libPrefix.length()));
+                    for (String lpElement : lp)
+                        libPath.add(lpElement);
                 } else {
                     jvmOptions.add(args[i]);
                 }
@@ -302,7 +310,7 @@ public class AgentBootstrap {
                 // setBenchName scans all resources.
                 // Benchmark needs to be loaded first.
                 new Download().loadBenchmark(benchName, downloadURL);
-                cmd.setBenchName(benchName);
+                cmd.setBenchName(benchName, libPath);
 
                 if(host.equals(master)) {
                     ident = Config.CMD_AGENT;
@@ -397,6 +405,24 @@ public class AgentBootstrap {
         if (!daemon) {
             System.exit(0);
         }
+    }
+
+    /**
+     * This method is for splitting both Unix and Windows paths into their
+     * pathElements. It detects the path separator whether it is Unix or
+     * Windows style and takes care of the separators accordingly.
+     * @param path The path to split
+     * @return The splitted path
+     */
+    private static String[] pathSplit(String path) {
+        String pathSeparator = ":";  // Unix style by default.
+
+        // Check for '\' used in Windows paths.
+        if (path.indexOf('\\') >= 0) {
+            pathSeparator=";";
+        }
+
+        return path.split(pathSeparator);
     }
 
     private static boolean sameHost(String host1, String host2) {
