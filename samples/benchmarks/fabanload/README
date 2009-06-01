@@ -1,0 +1,6 @@
+                    Faban Harness Workload README
+
+This is a more complete benchmark than Web101. It is used to test the Faban
+harness. It re-uses the generic components from Web101. The driver drives
+real operations to Faban and analyzes the response for subsequent
+operations. It is a good starting point for an elaborate web benchmark.

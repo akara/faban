@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<benchmark>
+    <name>SPECweb2005</name>
+    <version>0.1</version>
+    <config-form>config.xhtml</config-form>
+    <config-file-name>run.xml</config-file-name>
+    <result-file-path>SPECWeb-result.html</result-file-path>
+    <benchmark-class>com.sun.specweb2005.SpecWeb2005Benchmark</benchmark-class>
+    <metric>Avg Resp Time</metric>
+    <scaleName>Sessions</scaleName>
+    <scaleUnit></scaleUnit>
+</benchmark>

@@ -1,0 +1,165 @@
+/* The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.sun.com/cddl/cddl.html or
+ * install_dir/legal/LICENSE
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL
+ * Header Notice in each file and include the License file
+ * at install_dir/legal/LICENSE.
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ * "Portions Copyrighted [year] [name of copyright owner]"
+ *
+ * $Id: MySQL.java,v 1.1 2009/06/01 17:02:43 sheetalpatil Exp $
+ *
+ * Copyright 2008 Sun Microsystems Inc. All Rights Reserved
+ */
+package com.sun.services;
+
+import com.sun.faban.common.Command;
+import com.sun.faban.common.CommandHandle;
+import com.sun.faban.harness.RunContext;
+import com.sun.faban.harness.services.ServiceContext;
+import com.sun.faban.harness.Context;
+
+import com.sun.faban.harness.services.Configure;
+import com.sun.faban.harness.services.GetLogs;
+import com.sun.faban.harness.services.Startup;
+import com.sun.faban.harness.services.Shutdown;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+/**
+ *
+ * This class implements the service to start/stop the MySQL server.
+ * It also provides functionality to transfer the portion of the mysql
+ * errlog (host.err) for a run to the run output directory.
+ * It can be used by any MySQL benchmark to manage a mysql server and
+ * perform these operations remotely using this Service.
+ * NOTE: It is assumed that the pid and err file are in $DBHOME/data.
+ * 
+ * @author Shanti Subramanyam
+ */
+public class MySQL {
+
+    @Context public ServiceContext ctx;    
+    Logger logger = Logger.getLogger(MySQL.class.getName());
+    String dbHome,  myServers[];
+    String mysqlCmd,  dataDir;
+    
+    @Configure public void configure() {
+        myServers = new String[ctx.getHosts().length];
+        logger.info("Configuring mysql ");
+        myServers = ctx.getHosts();
+        dbHome = ctx.getProperty("serverHome");
+        dataDir = dbHome + File.separator + "data" + File.separator;
+        mysqlCmd = dbHome + File.separator + "bin" +
+                File.separator + "mysqld_safe";
+        logger.info("MysqlService Configure complete.");
+    }
+
+    
+    @Startup public void startup() {
+        for (int i = 0; i < myServers.length; i++) {
+            String pidFile = dataDir + myServers[i] + ".pid";
+            logger.info("Starting mysql on " + myServers[i]);
+            Command startCmd = new Command(mysqlCmd);
+            logger.fine("Starting mysql with: " + mysqlCmd);
+            startCmd.setSynchronous(false); // to run in bg
+            try {
+                // Run the command in the background
+                CommandHandle ch = RunContext.exec(myServers[i], startCmd);
+                /*
+                 * Make sure the server has started.
+                 */
+                if ( !checkServerStarted(myServers[i])) {
+                    logger.severe("Failed to find MySQL pidfile " + pidFile +
+                            " on " + myServers[i]);
+                }
+                logger.info("Completed MySQL server startup successfully on" + myServers[i]);
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Failed to start MySQL server.", e);
+            }
+
+        }
+    }
+
+    private boolean checkServerStarted(String hostName) throws Exception {
+        boolean val = false;
+        String pidFile = dataDir + hostName + ".pid";
+        /*
+         * Just to make sure we don't wait for ever.
+         * We try to check 60 times for the existence of the
+         * before we give up
+         * Sleep 1 sec between each try. So wait for 1 min
+         */
+        int attempts = 60;
+        while (attempts > 0) {
+
+            val = RunContext.isFile(hostName, pidFile);
+            if (val) {
+                return val;
+
+            } else {
+                // Sleep for some time
+                try {
+                    Thread.sleep(1000);
+                    attempts--;
+                } catch (Exception e) {
+                    break;
+                }
+            }
+        }
+        return (val);
+    }
+
+   
+    @Shutdown public void shutdown() throws IOException, InterruptedException {
+        for (int i = 0; i < myServers.length; i++) {
+            String pidFile = dataDir + myServers[i] + ".pid";
+            String myServer = myServers[i];
+            logger.info("Stopping MySQL server on" + myServer);
+            boolean success;
+            String pidString;
+            // First check if server is up
+            success = RunContext.isFile(myServer, pidFile);
+            if (success) {
+                try {
+                    // First kill mysqld_safe
+                    Command stopCmd = new Command("pkill mysqld_safe");
+                    CommandHandle ch = RunContext.exec(myServer, stopCmd);
+
+                    // Get the pid from the pidFile
+                    ByteArrayOutputStream bs = new ByteArrayOutputStream(10);
+                    RunContext.writeFileToStream(myServer, pidFile, bs);
+                    pidString = bs.toString();
+
+                    stopCmd = new Command("kill " + pidString);
+                    logger.fine("Attempting to kill mysqld pid " + pidString);
+                    ch = RunContext.exec(myServer, stopCmd);
+                    logger.info("MySQL server stopped successfully on" + myServer);
+                } catch (Exception ie) {
+                    logger.warning("Kill mysqld failed with " + ie.toString());
+                    logger.log(Level.FINE, "kill mysqld Exception", ie);
+                    success = false;
+                }
+            }
+        }
+    }
+
+    
+    @GetLogs public void getLogs() {
+        logger.info("GetLogs Completed");
+    }
+   
+}
