@@ -17,28 +17,22 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ToolAgentImpl.java,v 1.5 2009/05/21 10:13:28 sheetalpatil Exp $
+ * $Id: ToolAgentImpl.java,v 1.6 2009/06/04 22:45:53 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.agent;
-import com.sun.faban.common.Command;
-import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.engine.DeployImageClassLoader;
-import com.sun.faban.harness.services.ServiceContext;
-import com.sun.faban.harness.services.ServiceDescription;
 import com.sun.faban.harness.tools.CommandLineTool;
-import com.sun.faban.harness.tools.Tool;
-
 import com.sun.faban.harness.tools.MasterToolContext;
 import com.sun.faban.harness.tools.ToolDescription;
 import com.sun.faban.harness.tools.ToolWrapper;
+
 import java.io.File;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.rmi.server.Unreferenced;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -112,15 +106,14 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
             String toolClass = null;
             ToolDescription toolDesc = ctx.getToolDescription();
             if (toolDesc != null)
-                toolClass = toolDesc.toolClass;
+                toolClass = toolDesc.getToolClass();
 
             // Now, create the tool object and call its configure method            
             if(toolClass != null){                
                 try {
-                    ServiceDescription serviceDesc = ctx.getToolDescription().service;
                     DeployImageClassLoader loader = DeployImageClassLoader.
-                            getInstance(serviceDesc.locationType,
-                            serviceDesc.location, getClass().getClassLoader());
+                            getInstance(toolDesc.getLocationType(),
+                            toolDesc.getLocation(), getClass().getClassLoader());
                     Class c = loader.loadClass(toolClass);
                     tools[i] = new ToolWrapper(c, ctx);
 
@@ -291,18 +284,16 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
     }
 
     private void downloadTools(List<MasterToolContext> toollist) throws IOException {
-        LinkedHashSet<ServiceContext> downloads = new LinkedHashSet<ServiceContext>();
+        LinkedHashSet<ToolDescription> downloads = new LinkedHashSet<ToolDescription>();
         for (int i=0; i < toollist.size(); i++) {
             MasterToolContext ctx = toollist.get(i);
-            ServiceContext sc = ctx.getToolServiceContext();
-            if(sc != null){
-               downloads.add(sc);
-            }
+            ToolDescription toolDesc = ctx.getToolDescription();
+            downloads.add(toolDesc);
         }
 
-        for(ServiceContext ctx : downloads){
-            if ("services".equals(ctx.desc.locationType))
-                new Download().loadService(ctx.desc.location,
+        for(ToolDescription desc : downloads){
+            if ("services".equals(desc.getLocationType()))
+                new Download().loadService(desc.getLocation(),
                                             AgentBootstrap.downloadURL);
         }
     }

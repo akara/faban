@@ -22,7 +22,9 @@
 package com.sun.faban.harness.tools;
 
 import com.sun.faban.harness.services.ServiceDescription;
+
 import java.io.Serializable;
+import java.util.Map;
 import java.util.logging.Logger;
 /**
  *
@@ -34,15 +36,30 @@ public class ToolDescription implements Serializable {
     static final Logger logger =
             Logger.getLogger(ToolDescription.class.getName());
 
-    public String id;
-    public String toolClass;
-    public ServiceDescription service;
+    String id;
+    String toolClass;
+    String serviceName;
+    String locationType;
+    String location;
+    ServiceDescription service;
 
-    public ToolDescription(String id, ServiceDescription service,
-                            String toolClass) {
+    public ToolDescription(String id, String serviceName,
+                            String toolClass, String type, String location) {
         this.id = id;
-        this.service = service;
+        this.serviceName = serviceName;
         this.toolClass = toolClass;
+        this.locationType = type;
+        this.location = location;
+    }
+
+    public boolean bind(Map<String, ServiceDescription> serviceMap) {
+        boolean bound = true;
+        if (serviceName != null) {
+            service = serviceMap.get(serviceName);
+            if (service == null)
+                bound = false;
+        }
+        return bound;
     }
 
     @Override
@@ -70,5 +87,25 @@ public class ToolDescription implements Serializable {
         hash = 37 * hash + (this.id != null ? this.id.hashCode() : 0);
         hash = 37 * hash + (this.service != null ? this.service.hashCode() : 0);
         return hash;
+    }
+
+    public String getLocationType() {
+        return locationType;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public String getToolClass() {
+        return toolClass;
     }
 }

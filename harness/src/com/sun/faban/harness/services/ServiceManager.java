@@ -103,12 +103,11 @@ public class ServiceManager {
                 parseServicesAndTools("services", serviceBundle.getName());
                 parseToolSets("services", serviceBundle.getName());
             }
-        }      
+            bindServices();
+        }
     }
 
     public void parseServicesAndTools(String type, String dir) {
-        HashMap<String, ServiceDescription> localServices =
-                new HashMap<String, ServiceDescription>();
 
         String metaInf = Config.FABAN_HOME + File.separator + type +
                 File.separator + dir + File.separator + "META-INF";
@@ -160,9 +159,9 @@ public class ServiceManager {
                                         "Ignoring duplicate service " + id +
                                         " in " + type + File.separator + dir);
                             } else {
-                                ServiceDescription desc = new ServiceDescription(id,
-                                                                loadableClass, type, dir);
-                                localServices.put(id, desc);
+                                ServiceDescription desc =
+                                        new ServiceDescription(id,
+                                                loadableClass, type, dir);
                                 serviceMap.put(id, desc);
                             }
                         }
@@ -200,27 +199,16 @@ public class ServiceManager {
                             }
                         }
 
-                        ServiceDescription service = null;
-                        if (serviceName != null) {
-                            service = localServices.get(serviceName);
-                            if (service == null) {
-                                logger.warning("Tool " + id + " at " + dir +
-                                        " references non-existent service " +
-                                        serviceName);
-                                continue;
-                            }
-                        }
-
                         if (id != null) {
                             String key = id;
-                            if (service != null) {
-                                key += '/' + service.id;
+                            if (serviceName != null) {
+                                key += '/' + serviceName;
                                 if (toolMap.containsKey(key)) {
                                     logger.log(Level.WARNING,
                                             "Ignoring duplicate tool" + id);
                                 } else {
-                                    toolMap.put(key, new ToolDescription(
-                                            id, service, toolClass));
+                                    toolMap.put(key, new ToolDescription(id,
+                                            serviceName, toolClass, type, dir));
                                 }
                             }
                         }
@@ -230,6 +218,21 @@ public class ServiceManager {
         } catch  (Exception e) {
             logger.log(Level.WARNING, "Error reading benchmark " +
                     "descriptor for " + dir, e);
+        }
+    }
+
+    private void bindServices() {
+        Iterator<Map.Entry<String, ToolDescription>> iter =
+                toolMap.entrySet().iterator();
+        while (iter.hasNext()) {
+            Map.Entry<String, ToolDescription> entry = iter.next();
+            ToolDescription toolDesc = entry.getValue();
+            if (!toolDesc.bind(serviceMap))
+                logger.warning("Tool " + toolDesc.getId() + " at " +
+                        toolDesc.getLocationType() + File.separator +
+                        toolDesc.getLocation() +
+                        " references non-existent service " +
+                        toolDesc.getServiceName());
         }
     }
 
