@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: XMLReader.java,v 1.15 2009/05/21 10:13:24 sheetalpatil Exp $
+ * $Id: XMLReader.java,v 1.16 2009/06/10 22:50:54 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -510,6 +510,25 @@ public class XMLReader {
         } catch (XPathExpressionException e) {
             logger.log(Level.WARNING, "Error processing XPath expression: " +
                                                                 xPathExpr, e);
+        }
+        return hostsPorts;
+    }
+
+    /**
+     * Obtains the host:port pairs based on a role.
+     * @param roleNode The node representing the role
+     * @return The host:port pairs
+     */
+    public List<NameValuePair<Integer>> getHostPorts(Element roleNode) {
+        ArrayList<NameValuePair<Integer>> hostsPorts = null;
+        try {
+            Node hostPortNode = (Node) xPath.evaluate(
+                    "fa:hostConfig/fa:hostPorts", roleNode, XPathConstants.NODE);
+            if (hostPortNode != null)
+                hostsPorts = hostPortsTable.get(hostPortNode);
+        } catch (XPathExpressionException e) {
+            logger.log(Level.WARNING, "Error processing XPath expression: " +
+                    "fa:hostConfig/fa:hostPorts", e);
         }
         return hostsPorts;
     }
