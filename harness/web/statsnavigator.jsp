@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: statsnavigator.jsp,v 1.16 2009/05/28 21:04:58 akara Exp $
+ * $Id: statsnavigator.jsp,v 1.17 2009/06/10 23:48:56 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -47,11 +47,20 @@
             new TreeMap<String, HashSet<String>>();
     TreeSet<String> allTools = new TreeSet<String>();
     
-    // These maps map the short host name to the one used in the file name.
+    // This map maps the short host name to the one used in the file name.
     HashMap<String, String> infoHostMap = new HashMap<String, String>();
+
+    // The toolHostMap maps host:tool to the actual stats file name.
     HashMap<String, String> toolHostMap = new HashMap<String, String>();
 
     HashSet<String> toolFiles = new HashSet<String>();
+
+    File hosttypes = new File(outDir, "META-INF");
+    hosttypes = new File(hosttypes, "hosttypes");
+    HostRoles hostRoles = null;
+    if (hosttypes.isFile()) {
+        hostRoles = new HostRoles(hosttypes.getAbsolutePath());
+    }
 
     // These are known files that have file names looking like tool output.
     // They should be ignored.
@@ -97,6 +106,7 @@
                 continue;
             String toolName = fileName.substring(0, logIdx);
             String hostName = null;
+            String fileBase = null;
 
             // Grab the host name from file name, based on suffix
             for (String suffix : suffixes) {
@@ -107,19 +117,27 @@
                     // if the host name part is missing, it is not a stat file.
                     if (hostBegin >= hostEnd)
                         continue fileSearchLoop;
+                    fileBase = fileName.substring(0, hostEnd);
                     hostName = fileName.substring(hostBegin, hostEnd);
+                    int idx = hostName.indexOf('.');
+                    if (idx > 0)
+                        hostName = hostName.substring(0, idx);
+
                     break;
                 }
             }
 
-            // drop the domain part of the host.
-            int domainIdx = hostName.indexOf('.');
-            if (domainIdx != -1) {
-                String fullName = hostName;
-                hostName = fullName.substring(0, domainIdx);
-                toolHostMap.put(hostName, fullName);
+            if (hostRoles != null) { // Map the alias to the actual host name
+                hostName = hostRoles.getHostByAlias(hostName);
+            } else { // No roles? Drop the domain part of the host.
+                int domainIdx = hostName.indexOf('.');
+                if (domainIdx != -1) {
+                    String fullName = hostName;
+                    hostName = fullName.substring(0, domainIdx);
+                }
             }
 
+            toolHostMap.put(hostName + ':' + toolName, fileBase);
             allTools.add(toolName);
             HashSet<String> toolSet = allHosts.get(hostName);
             if (toolSet == null) {
@@ -129,13 +147,6 @@
             toolSet.add(toolName);
             toolFiles.add(fileName);
         }
-    }
-
-    File hosttypes = new File(outDir, "META-INF");
-    hosttypes = new File(hosttypes, "hosttypes");
-    HostRoles hostRoles = null;
-    if (hosttypes.isFile()) {
-        hostRoles = new HostRoles(hosttypes.getAbsolutePath());
     }
 %>
 <html>
@@ -229,13 +240,8 @@
                      <% }
                         for (String tool : allTools) {
                             if (toolSet.contains(tool)) {
-                                String fullName = toolHostMap.get(hosts[i]);
-                                if (fullName == null)
-                                    fullName = hosts[i];
-                                String[] filePrefix = new String[3];
-                                filePrefix[0] = tool + ".log." + fullName;
-                                filePrefix[1] = tool + ".xan." + fullName;
-                                filePrefix[2] = tool + ".xml." + fullName;
+                                String fileBase = toolHostMap.get(
+                                                        hosts[i] + ':' + tool);
                                 String path = "output/" + runId + '/';
                      %>
                                 <td class="tablecell" style="text-align: center;">
@@ -243,16 +249,13 @@
                                 // Do the html link
                                 boolean found = false;
                                 String fileName = null;
-                                for (int j = 0; j < filePrefix.length; j++) {
-                                    fileName = filePrefix[j] + ".html";
+                                fileName = fileBase + ".html";
+                                if (toolFiles.contains(fileName)) {
+                                    found = true;
+                                } else {
+                                    fileName = fileBase + ".htm";
                                     if (toolFiles.contains(fileName)) {
                                         found = true;
-                                        break;
-                                    }
-                                    fileName = filePrefix[j] + ".htm";
-                                    if (toolFiles.contains(fileName)) {
-                                        found = true;
-                                        break;
                                     }
                                 }
                                 if (found) { %>
@@ -260,15 +263,11 @@
                              <% }
                                 // Do the text link
                                 found = false;
-                                for (int j = 0; j < filePrefix.length; j++) {
-                                    fileName = filePrefix[j];
-                                    if (toolFiles.contains(fileName)) {
-                                        found = true;
-                                        break;
-                                    }
+                                if (toolFiles.contains(fileBase)) {
+                                    found = true;
                                 }
                                 if (found) { %>
-                                    <font size="-1"><i><a href="<%= path + fileName %>">raw</a></i></font>
+                                    <font size="-1"><i><a href="<%= path + fileBase %>">raw</a></i></font>
                              <% }
 
                      %>

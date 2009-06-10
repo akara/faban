@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: HostRoles.java,v 1.1 2009/05/28 21:03:23 akara Exp $
+ * $Id: HostRoles.java,v 1.2 2009/06/10 23:48:56 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -54,6 +54,12 @@ public class HostRoles {
         ArrayList<String> drivers = new ArrayList<String>();
 
         for (NameValuePair<String> hostRole : hostRoles) {
+            // Assumption: host names do not duplicate in any part of the rig
+            // no matter what domain. So we'll cut out any domain part of the
+            // host name.
+            int idx = hostRole.name.indexOf('.');
+            if (idx > 0)
+                hostRole.name = hostRole.name.substring(0, idx);
 
             // We need to map certain role names to be more understandable.
             String roleName = hostRole.value;
@@ -135,6 +141,12 @@ public class HostRoles {
                 String alias = tk.nextToken();
                 String role = tk.nextToken();
 
+                // Use only the host part of a host.domain name
+                int idx = alias.indexOf('.');
+                if (idx > 0)
+                    alias = alias.substring(0, idx);
+
+
                 Host h = hostMap.get(host);
                 if (h == null) {
                     h = new Host();
@@ -144,7 +156,7 @@ public class HostRoles {
 
                 Alias a = aliasMap.get(alias);
                 if (a == null) {
-                    a  = new Alias();
+                    a = new Alias();
                     a.name = alias;
                     aliasMap.put(alias, a);
                 }
@@ -158,7 +170,7 @@ public class HostRoles {
 
                 h.aliases.add(a);
                 h.roles.add(r);
-                if (a.host != null)
+                if (a.host == null)
                     a.host = h;
                 a.roles.add(r);
                 r.hosts.add(h);
@@ -312,9 +324,16 @@ public class HostRoles {
      * @return The real host name
      */
     public String getHostByAlias(String alias) {
+        // Use only the host part of a host.domain name
+        int idx = alias.indexOf('.');
+        if (idx > 0)
+            alias = alias.substring(0, idx);        
         Alias a = aliasMap.get(alias);
-        if (a == null)
+        if (a == null) { // Sometimes this is the host name itself, not an alias
+            if (hostMap.containsKey(alias))
+                return alias;
             return null;
+        }
         return a.host.name;
     }
 
