@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: NegativeExponential.java,v 1.2 2009/06/10 23:40:10 akara Exp $
+ * $Id: NegativeExponential.java,v 1.3 2009/06/11 07:09:26 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -106,7 +106,7 @@ public class NegativeExponential extends Cycle {
         
         if (!truncate) {
             shift = cycleMin;
-            mean = cycleMean - shift;
+            mean -= shift;
         }
 
         if (cycleMean > 0) {
