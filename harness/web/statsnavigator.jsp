@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: statsnavigator.jsp,v 1.17 2009/06/10 23:48:56 akara Exp $
+ * $Id: statsnavigator.jsp,v 1.18 2009/06/12 02:20:29 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -43,17 +43,15 @@
     File outDir = new File(Config.OUT_DIR + runId);
     // Tool output file pattern is <tool>.log.<host>[suffix]
     String[] suffixes = { ".html", ".htm", "" }; // The empty string always last
-    TreeMap<String, HashSet<String>> allHosts =
-            new TreeMap<String, HashSet<String>>();
+    TreeSet<String> allHosts = new TreeSet<String>();
     TreeSet<String> allTools = new TreeSet<String>();
     
     // This map maps the short host name to the one used in the file name.
     HashMap<String, String> infoHostMap = new HashMap<String, String>();
 
     // The toolHostMap maps host:tool to the actual stats file name.
-    HashMap<String, String> toolHostMap = new HashMap<String, String>();
-
-    HashSet<String> toolFiles = new HashSet<String>();
+    HashMap<String, ArrayList<String>> toolHostMap =
+            new HashMap<String, ArrayList<String>>();
 
     File hosttypes = new File(outDir, "META-INF");
     hosttypes = new File(hosttypes, "hosttypes");
@@ -78,7 +76,6 @@
 
         // Then proces the sysinfo files...
         if (fileName.startsWith("sysinfo.")) {
-            String toolName = "SystemInfo";
             String hostName = fileName.substring(8, fileName.length() - 5);
 
             // drop the domain part of the host.
@@ -87,14 +84,11 @@
                 String fullName = hostName;
                 hostName = fullName.substring(0, domainIdx);
                 infoHostMap.put(hostName, fullName);
+            } else {
+                infoHostMap.put(hostName, hostName); // Points to it's own name
             }
+            allHosts.add(hostName);
 
-            HashSet<String> toolSet = allHosts.get(hostName);
-            if (toolSet == null) {
-                toolSet = new HashSet<String>();
-                allHosts.put(hostName, toolSet);
-            }
-            toolSet.add(toolName);
         // Process the real stats files.
         } else {
             int logIdx = fileName.indexOf(".log.");
@@ -106,7 +100,6 @@
                 continue;
             String toolName = fileName.substring(0, logIdx);
             String hostName = null;
-            String fileBase = null;
 
             // Grab the host name from file name, based on suffix
             for (String suffix : suffixes) {
@@ -117,7 +110,6 @@
                     // if the host name part is missing, it is not a stat file.
                     if (hostBegin >= hostEnd)
                         continue fileSearchLoop;
-                    fileBase = fileName.substring(0, hostEnd);
                     hostName = fileName.substring(hostBegin, hostEnd);
                     int idx = hostName.indexOf('.');
                     if (idx > 0)
@@ -137,15 +129,15 @@
                 }
             }
 
-            toolHostMap.put(hostName + ':' + toolName, fileBase);
-            allTools.add(toolName);
-            HashSet<String> toolSet = allHosts.get(hostName);
-            if (toolSet == null) {
-                toolSet = new HashSet<String>();
-                allHosts.put(hostName, toolSet);
+            String toolHostKey = hostName + ':' + toolName;
+            ArrayList<String> toolHostFiles = toolHostMap.get(toolHostKey);
+            if (toolHostFiles == null) {
+                toolHostFiles = new ArrayList<String>(2);
+                toolHostMap.put(toolHostKey, toolHostFiles);
             }
-            toolSet.add(toolName);
-            toolFiles.add(fileName);
+            toolHostFiles.add(fileName);
+            allHosts.add(hostName);
+            allTools.add(toolName);
         }
     }
 %>
@@ -166,9 +158,8 @@
         <script type="text/javascript" src="scripts/balloontip2.js"></script>
          <%
             } else { // If we don't know the roles, order by name
-                Set<String> hostSet = allHosts.keySet();
-                hosts = new String[hostSet.size()];
-                hosts = hostSet.toArray(hosts);
+                hosts = new String[allHosts.size()];
+                hosts = allHosts.toArray(hosts);
             }
          %>
     </head>
@@ -218,10 +209,10 @@
                      <% } %>
                  </tr>
                  <% String[] rowclass = { "even", "odd" };
+                    String path = "output/" + runId + '/';
+                    ArrayList<String> htmlFiles = new ArrayList<String>(1);
+
                     for (int i = 0; i < hosts.length; i++) {
-                        HashSet<String> toolSet = allHosts.get(hosts[i]);
-                        if (toolSet == null)
-                            continue;
                         String mouseover = "";
                         if (hostRoles != null) {
                             mouseover = "onmouseover=\"ddrivetip('" + hosts[i] +
@@ -229,47 +220,39 @@
                         }
                  %>
                  <tr class="<%= rowclass[i % 2] %>" <%= mouseover%>>
-                     <% if (toolSet.contains("SystemInfo")) {
-                             String fullName = infoHostMap.get(hosts[i]);
-                             if (fullName == null)
-                                 fullName = hosts[i];
+                     <% String fullName = infoHostMap.get(hosts[i]);
+                        if (fullName != null) {
                      %>
                         <td class="tablecell" style="text-align: left;"><a href="output/<%= runId %>/sysinfo.<%= fullName %>.html"><%= hosts[i] %></a></td>
                      <% } else { %>
                         <td class="tablecell" style="text-align: left;"><%= hosts[i] %></td>
                      <% }
                         for (String tool : allTools) {
-                            if (toolSet.contains(tool)) {
-                                String fileBase = toolHostMap.get(
-                                                        hosts[i] + ':' + tool);
-                                String path = "output/" + runId + '/';
+                            ArrayList<String> toolHostFiles = toolHostMap.get(
+                                                    hosts[i] + ':' + tool);
+                            if (toolHostFiles != null && toolHostFiles.size() > 0) {
                      %>
                                 <td class="tablecell" style="text-align: center;">
                      <%
-                                // Do the html link
-                                boolean found = false;
-                                String fileName = null;
-                                fileName = fileBase + ".html";
-                                if (toolFiles.contains(fileName)) {
-                                    found = true;
-                                } else {
-                                    fileName = fileBase + ".htm";
-                                    if (toolFiles.contains(fileName)) {
-                                        found = true;
+                                // Separate html files out from the raw files in toolHostFiles.
+                                for (Iterator<String> iter = toolHostFiles.iterator(); iter.hasNext();) {
+                                    String fileName = iter.next();
+                                    if (fileName.endsWith(".html") || fileName.endsWith(".htm")) {
+                                        iter.remove();
+                                        htmlFiles.add(fileName);
                                     }
                                 }
-                                if (found) { %>
+
+                                // Do the html link
+                                for (String fileName : htmlFiles) { %>
                                     <font size="-1"><i><a href="<%= path + fileName %>">html</a></i></font>
                              <% }
-                                // Do the text link
-                                found = false;
-                                if (toolFiles.contains(fileBase)) {
-                                    found = true;
-                                }
-                                if (found) { %>
-                                    <font size="-1"><i><a href="<%= path + fileBase %>">raw</a></i></font>
-                             <% }
+                                htmlFiles.clear();
 
+                                // Do the raw link
+                                for (String fileName : toolHostFiles) { %>
+                                    <font size="-1"><i><a href="<%= path + fileName %>">raw</a></i></font>
+                             <% }
                      %>
                                 </td>
                      <%     } else {    %>
