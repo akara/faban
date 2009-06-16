@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: HostRoles.java,v 1.2 2009/06/10 23:48:56 akara Exp $
+ * $Id: HostRoles.java,v 1.3 2009/06/16 00:57:02 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -43,6 +43,9 @@ public class HostRoles {
     LinkedHashMap<String, Host> hostMap = new LinkedHashMap<String, Host>();
     LinkedHashMap<String, Alias> aliasMap = new LinkedHashMap<String, Alias>();
 
+    // Maps the short alias to the full domain name being used in config file.
+    HashMap<String, String> domainMap = new HashMap<String, String>();
+
     /**
      * Constructs the HostRoles at benchmark run time from the benchmark
      * parameter file and run information.
@@ -54,12 +57,6 @@ public class HostRoles {
         ArrayList<String> drivers = new ArrayList<String>();
 
         for (NameValuePair<String> hostRole : hostRoles) {
-            // Assumption: host names do not duplicate in any part of the rig
-            // no matter what domain. So we'll cut out any domain part of the
-            // host name.
-            int idx = hostRole.name.indexOf('.');
-            if (idx > 0)
-                hostRole.name = hostRole.name.substring(0, idx);
 
             // We need to map certain role names to be more understandable.
             String roleName = hostRole.value;
@@ -89,9 +86,27 @@ public class HostRoles {
     }
 
     private void constructHostRole(String aliasName, String roleName,
-                                   CmdService cmds) {
+                                   CmdService cmds)
+            throws ConfigurationException {
+
         Alias a = aliasMap.get(aliasName);
         if (a == null) {
+
+            // Map short name and domain names.
+            int idx = aliasName.indexOf('.');
+            if (idx > 0) {
+                String shortName = aliasName.substring(0, idx);
+                String fullName = domainMap.get(shortName);
+                if (fullName == null) {
+                    domainMap.put(shortName, aliasName);
+                } else if (!fullName.equals(aliasName)) {
+                    throw new ConfigurationException(
+                            "Duplicate host names with different domains: " +
+                            fullName + " and " + aliasName);
+                }
+            }
+
+            // Then use the name referred in the config file for the alias.
             a = new Alias();
             a.name = aliasName;
             aliasMap.put(aliasName, a);
@@ -141,12 +156,6 @@ public class HostRoles {
                 String alias = tk.nextToken();
                 String role = tk.nextToken();
 
-                // Use only the host part of a host.domain name
-                int idx = alias.indexOf('.');
-                if (idx > 0)
-                    alias = alias.substring(0, idx);
-
-
                 Host h = hostMap.get(host);
                 if (h == null) {
                     h = new Host();
@@ -156,6 +165,17 @@ public class HostRoles {
 
                 Alias a = aliasMap.get(alias);
                 if (a == null) {
+
+                    // Map short name and domain names.
+                    int idx = alias.indexOf('.');
+                    if (idx > 0) {
+                        String shortName = alias.substring(0, idx);
+                        String fullName = domainMap.get(shortName);
+                        if (fullName == null) {
+                            domainMap.put(shortName, alias);
+                        }
+                    }
+
                     a = new Alias();
                     a.name = alias;
                     aliasMap.put(alias, a);
@@ -324,12 +344,15 @@ public class HostRoles {
      * @return The real host name
      */
     public String getHostByAlias(String alias) {
-        // Use only the host part of a host.domain name
-        int idx = alias.indexOf('.');
-        if (idx > 0)
-            alias = alias.substring(0, idx);        
         Alias a = aliasMap.get(alias);
-        if (a == null) { // Sometimes this is the host name itself, not an alias
+        // Sometimes the short name without the domain is used.
+        if (a == null && alias.indexOf('.') < 0) {
+            String fullName = domainMap.get(alias);
+            if (fullName != null)
+                a = aliasMap.get(fullName);
+        }
+        // Sometimes this is the host name itself, not an alias
+        if (a == null) {
             if (hostMap.containsKey(alias))
                 return alias;
             return null;
@@ -343,13 +366,30 @@ public class HostRoles {
      * @return An array of function roles the alias is used for.
      */
     public String[] getRolesByAlias(String alias) {
+        String[] roles = null;
         Alias a = aliasMap.get(alias);
-        if (a == null)
-            return null;
-        String[] roles = new String[a.roles.size()];
-        int i = 0;
-        for (Role r : a.roles) {
-            roles[i++] = r.name;
+        // Sometimes the short name without the domain is used.
+        if (a == null && alias.indexOf('.') < 0) {
+            String fullName = domainMap.get(alias);
+            if (fullName != null)
+                a = aliasMap.get(fullName);
+        }
+        // Sometimes this is the host name itself, not an alias
+        if (a == null) {
+            Host h = hostMap.get(alias);
+            if (h != null) {
+                roles = new String[h.roles.size()];
+                int i = 0;
+                for (Role r : h.roles) {
+                    roles[i++] = r.name;
+                }
+            }
+        } else { // In the case of really an alias...
+            roles = new String[a.roles.size()];
+            int i = 0;
+            for (Role r : a.roles) {
+                roles[i++] = r.name;
+            }            
         }
         return roles;
     }
