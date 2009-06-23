@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MasterImpl.java,v 1.6 2009/05/04 19:19:16 akara Exp $
+ * $Id: MasterImpl.java,v 1.7 2009/06/23 06:58:30 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -804,7 +804,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 
                 Metrics result = null;
 
-                // Add all host results together to get the final result.
+                // Aggregate the per driver host metrics, calculate results.
                 for (MetricsProvider r : hostProviders.values()) {
                     PairwiseAggregator<Metrics> aggregator = new
                             PairwiseAggregator<Metrics>(r.metrices.size(), r);
@@ -812,7 +812,15 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
                     hostMetrics.put(result.host, result);
                 }
 
-                if (result != null) {
+                // Aggregate the final metrics, calculate results.
+                if (grandSumProvider.metrices.size() > 0) {
+                    PairwiseAggregator<Metrics> aggregator =
+                            new PairwiseAggregator<Metrics>(
+                                    grandSumProvider.metrices.size(),
+                                    grandSumProvider);
+
+                    result = aggregator.collectStats();
+
                     // And finally set it for the final result, too.
 					result.startTime =  runInfo.start;
                     // Set it in the map, under the name __MASTER__
