@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.39 2009/05/28 21:03:24 akara Exp $
+ * $Id: GenericBenchmark.java,v 1.40 2009/06/23 18:34:08 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -204,7 +204,7 @@ public class GenericBenchmark {
             // start services
             serviceMgr.startup();
             logger.info("Executed services Startup method");
-           
+
             // Reading parameters used by ToolService
             String s = par.getParameter("fa:runControl/fa:rampUp");
             if (s != null)
@@ -401,7 +401,7 @@ public class GenericBenchmark {
 
     /**
      * Method : kill
-     * This method is called externally to abort or terminate 
+     * This method is called externally to abort or terminate
      * the current run.
      */
     public void kill() {
@@ -411,7 +411,7 @@ public class GenericBenchmark {
 
     /**
      * This method is called internally to terminate the current run.
-     */ 
+     */
     private void _kill() {
 
         try {

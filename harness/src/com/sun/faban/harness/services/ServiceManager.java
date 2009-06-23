@@ -27,6 +27,7 @@ import com.sun.faban.harness.ParamRepository;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.Run;
 import com.sun.faban.harness.engine.DeployImageClassLoader;
+import com.sun.faban.harness.engine.RunQ;
 import com.sun.faban.harness.tools.MasterToolContext;
 import com.sun.faban.harness.tools.ToolDescription;
 import com.sun.faban.harness.util.XMLReader;
@@ -47,8 +48,12 @@ import java.util.logging.Logger;
  * @author Sheetal Patil
  */
 public class ServiceManager {
+
     private static Logger logger =
             Logger.getLogger(ServiceContext.class.getName());
+
+    private static ServiceManager instance = null;
+
     private List<ServiceWrapper> loadedServicesList = 
             new ArrayList<ServiceWrapper>();
     private List<ServiceContext> ctxList = new ArrayList<ServiceContext>();
@@ -64,7 +69,22 @@ public class ServiceManager {
 
     ArrayList<MasterToolContext> toolList = new ArrayList<MasterToolContext>();
 
+    HashSet<String> activeDeployments = new HashSet<String>();
+
     private Run run;
+
+    /**
+     * Obtains the set of active services and tools deployments used in the
+     * current run.
+     * @return The set of active deployements or null if there is no current run
+     */
+    public static Set<String> getActiveDeployments() {
+        Set<String> deployments = null;
+        if (instance != null) {
+            deployments = instance.activeDeployments;
+        }
+        return deployments;
+    }
 
     public ServiceManager(ParamRepository par, Run run)
             throws Exception{
@@ -88,6 +108,8 @@ public class ServiceManager {
         this.loadedServicesList = Collections.unmodifiableList(
                                                             loadedServicesList);
         this.ctxList = Collections.unmodifiableList(ctxList);
+
+        instance = this;
     }
   
     private void parseAvailableServices(String benchmark) {
@@ -261,8 +283,6 @@ public class ServiceManager {
             if (hosts == null || hosts.length == 0)
                 continue;
 
-            String role = ti.getLocalName();
-
             // Get the services
             NodeList serviceNodes = par.getNodes("fh:service", ti);
             int serviceCount = serviceNodes.getLength();
@@ -292,9 +312,10 @@ public class ServiceManager {
                 }
                 ServiceDescription sd = serviceMap.get(serviceName);
                 ServiceContext ctx =
-                        new ServiceContext(sd, hosts, role, properties);
+                        new ServiceContext(sd, par, ti, properties);
                 ctxList.add(ctx);
-
+                activeDeployments.add(
+                        sd.locationType + File.separator + sd.location);
 
                 String toolCmds = par.getParameter("fh:tools", serviceElement);
                 ArrayList<String> tools = new ArrayList<String>();
@@ -316,12 +337,17 @@ public class ServiceManager {
                                 ToolDescription toolDesc = toolMap.get(toolKey1);
                                 MasterToolContext toolCtx = null;
                                 if (toolDesc != null) {
-                                    toolCtx = new MasterToolContext(t1, ctx, toolDesc);
+                                    toolCtx = new MasterToolContext(t1, ctx,
+                                            toolDesc);
                                 } else {
                                     toolDesc = toolMap.get(toolId1);
                                     if (toolDesc != null) {
                                         toolCtx = new MasterToolContext(
                                                 t1, ctx, toolDesc);
+                                        activeDeployments.add(
+                                                toolDesc.getLocationType() +
+                                                File.separator +
+                                                toolDesc.getLocation());
                                     } else {
                                         //logger.info("No Tool Description for tool: " + t1);
                                         logger.fine("No Tool Description for tool: "
@@ -455,7 +481,7 @@ public class ServiceManager {
                             String key = name+"/"+service;
                             if (toolSetsMap.containsKey(key)) {
                                 logger.log(Level.WARNING,
-                                        "Ignoring duplicate toolset");
+                                        "Ignoring duplicate toolset = " + key);
                             } else {
                                 toolSetsMap.put(key, toolsCmds);
                             }
@@ -517,5 +543,6 @@ public class ServiceManager {
         for(ServiceWrapper sw : loadedServicesList){
             sw.shutdown();
         }
+        instance = null;
     }
 }

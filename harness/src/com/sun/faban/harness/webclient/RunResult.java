@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunResult.java,v 1.5 2009/05/21 21:03:02 sheetalpatil Exp $
+ * $Id: RunResult.java,v 1.6 2009/06/23 18:34:08 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -329,7 +329,7 @@ public class RunResult {
     }
 
 
-    public static SortableTableModel getResultTable(Subject user, String tags)
+    public static SortableTableModel getResultTable(Subject user, String tags, int column, String sortDirection)
             throws IOException {
         TagEngine tagEngine;
         try {
@@ -360,10 +360,10 @@ public class RunResult {
                 logger.log(Level.WARNING, "Cannot read result dir " + runid, e);
             }
         }
-        return generateTable(resultList);
+        return generateTable(resultList, column, sortDirection);
     }
     
-    public static SortableTableModel getResultTable(Subject user) {
+    public static SortableTableModel getResultTable(Subject user, int column, String sortDirection) {
 
         File[] dirs = new File(Config.OUT_DIR).listFiles();
         ArrayList<RunResult> runs = new ArrayList<RunResult>(dirs.length);
@@ -387,10 +387,10 @@ public class RunResult {
                                                                             e);
             }
         }
-        return generateTable(runs);
+        return generateTable(runs, column, sortDirection);
     }
 
-    static SortableTableModel generateTable(List<RunResult> runs) {
+    static SortableTableModel generateTable(List<RunResult> runs, int column, String sortDirection) {
 
         HashSet<String> scaleNames = new HashSet<String>();
         HashSet<String> scaleUnits = new HashSet<String>();
@@ -419,44 +419,86 @@ public class RunResult {
             return null;
 
         // 2. Generate table header
-        SortableTableModel table = new SortableTableModel(9);
-        table.setHeader(0, "RunID");
-        table.setHeader(1, "Description");
-        table.setHeader(2, "Result");
+        SortableTableModel table = new SortableTableModel(8);
+        String sort = "<img src=/img/sort_asc.gif></img>";
+        if(sortDirection.equals("DESCENDING")){
+             sort = "<img src=\"/img/sort_asc.gif\" border=\"0\"></img>";
+        }else if(sortDirection.equals("ASCENDING")){
+             sort = "<img src=\"/img/sort_desc.gif\" border=\"0\"></img>";
+        }
+        if(column == 0)
+            table.setHeader(0, "RunID " + sort);
+        else
+            table.setHeader(0, "RunID");
+
+        if(column == 1)
+            table.setHeader(1, "Description " + sort);
+        else
+            table.setHeader(1, "Description");
+
+        if(column == 2)
+            table.setHeader(2, "Result " + sort);
+        else
+            table.setHeader(2, "Result");
 
         boolean singleScale = false;
         if (scaleNames.size() == 1 && scaleUnits.size() == 1) {
             singleScale = true;
             if (result0.scaleName.length() > 0 &&
-                    result0.scaleUnit.length() > 0)
+                    result0.scaleUnit.length() > 0){
                 table.setHeader(3, result0.scaleName + " (" +
                         result0.scaleUnit + ')');
-            else if (result0.scaleName.length() > 0)
+            }else if (result0.scaleName.length() > 0){
                 table.setHeader(3, result0.scaleName);
-            else if (result0.scaleUnit.length() > 0)
+            }else if (result0.scaleUnit.length() > 0){
                 table.setHeader(3, result0.scaleUnit);
-            else
-                table.setHeader(3, "Scale");
+            }else{
+                if(column == 3)
+                    table.setHeader(3, "Scale " + sort);
+                else
+                    table.setHeader(3, "Scale");
+            }
 
         } else {
-            table.setHeader(3, "Scale");
+            if(column == 3)
+                table.setHeader(3, "Scale " + sort);
+            else
+                table.setHeader(3, "Scale");
         }
 
         boolean singleMetric = false;
         if (metricUnits.size() == 1) {
             singleMetric = true;
-            if (result0.metricUnit.length() > 0)
+            if (result0.metricUnit.length() > 0){
                 table.setHeader(4, result0.metricUnit);
+            }else{
+                if(column == 4)
+                    table.setHeader(4, "Metric " + sort);
+                else
+                    table.setHeader(4, "Metric");
+            }
+        } else {
+            if(column == 4)
+                table.setHeader(4, "Metric " + sort);
             else
                 table.setHeader(4, "Metric");
-        } else {
-            table.setHeader(4, "Metric");
         }
 
-        table.setHeader(5, "Status");
-        table.setHeader(6, "Date/Time");
-        table.setHeader(7, "Submitter");
-        table.setHeader(8, "Tags");
+        //table.setHeader(5, "Status");
+        if(column == 5)
+            table.setHeader(5, "Date/Time " + sort);
+        else
+            table.setHeader(5, "Date/Time");
+
+        if(column == 6)
+            table.setHeader(6, "Submitter " + sort);
+        else
+            table.setHeader(6, "Submitter");
+
+        if(column == 7)
+            table.setHeader(7, "Tags " + sort);
+        else
+            table.setHeader(7, "Tags");
 
         // 3. Generate table rows.
         StringBuilder b = new StringBuilder();
@@ -471,26 +513,36 @@ public class RunResult {
             else
                 row[1] = result.description;
 
+            ResultField<String> r = new ResultField<String>();
             if (result.result != null) {
-                ResultField<String> r = new ResultField<String>();
                 r.value = result.result;
                 if (result.resultLink != null){
                     if(result.result.equals("PASSED"))
-                        r.text = "<a href=\""+ result.resultLink + "\"><img style='border:0px solid'; src='/img/passed.gif'></img></a>";
+                        r.text = "<a href=\""+ result.resultLink + "\"><img onmouseover=\"showtip('" + result.result.toString() + "')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/passed.png'></img></a>";
                     else if(result.result.equals("FAILED"))
-                        r.text = "<a href=\""+ result.resultLink + "\"><img style='border:0px solid'; src='/img/failed.gif'></img></a>";
-                    else
-                        r.text = "<a href=\""+ result.resultLink + "\">"+ result.result +"</a>";
-                }else{
-                    r.text = result.result;
+                        r.text = "<a href=\""+ result.resultLink + "\"><img onmouseover=\"showtip('" + result.result.toString() + "')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/failed.png'></img></a>";
+                    
                 }
-                row[2] = r;
+            }else if(result.status != null){
+                r.value = result.status;
+                if (result.logLink != null){
+                    if(result.status.equals("FAILED"))
+                        r.text = "<a href=\""+ result.logLink + "\"><img onmouseover=\"showtip('" + result.status.toString() + "')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/incomplete.png'></img></a>";
+                    else if(result.status.equals("KILLED"))
+                        r.text = "<a href=\""+ result.logLink + "\"><img onmouseover=\"showtip('" + result.status.toString() + "')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/killed.png'></img></a>";
+                    else if(result.status.equals("RECEIVED"))
+                        r.text = "<a href=\""+ result.logLink + "\"><img onmouseover=\"showtip('" + result.status.toString() + "')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/received.png'></img></a>";
+                    else if(result.status.equals("STARTED"))
+                        r.text = "<a href=\""+ result.logLink + "\"><img onmouseover=\"showtip('" + result.status.toString() + "')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/running.png'></img></a>";
+                    else if(result.status.equals("COMPLETED")){
+                        r.text = "<a href=\""+ result.logLink + "\"><img onmouseover=\"showtip('" + result.status.toString() + "')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/failed.png'></img></a>";
+                    }
+                }
             } else {
-                ResultField<String> r = new ResultField<String>();
                 r.value = NOT_AVAILABLE;
-                r.text = "N/A";
-                row[2] = r;
+                r.text = "<a href=\"/controller/results/list\"><img onmouseover=\"showtip('unknown')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/unknown.png'></img></a>";
             }
+            row[2] = r;
 
             ResultField<Integer> scale = new ResultField<Integer>();
             if (result.scale == null || result.scale.length() < 1) {
@@ -529,7 +581,7 @@ public class RunResult {
             }
             row[4] = metric;
 
-            ResultField<String> status = new ResultField<String>();
+            /*ResultField<String> status = new ResultField<String>();
             if (result.status != null) {
                 status.value = result.status;
                 if (result.logLink != null)
@@ -541,7 +593,7 @@ public class RunResult {
                 status.value = NOT_AVAILABLE;
                 status.text = "UNKNOWN";
             }
-            row[5] = status;
+            row[5] = status;*/
 
             ResultField<Long> dateTime = new ResultField<Long>();
             if (result.dateTime != null) {
@@ -551,12 +603,12 @@ public class RunResult {
                 dateTime.text = "N/A";
                 dateTime.value = 0l;
             }
-            row[6] = dateTime;
+            row[5] = dateTime;
 
             if (result.submitter != null)
-                row[7] = result.submitter;
+                row[6] = result.submitter;
             else
-                row[7] = "&nbsp;";
+                row[6] = "&nbsp;";
 
 
             if (result.tags != null && result.tags.length > 0) {
@@ -564,14 +616,15 @@ public class RunResult {
                     b.append(tag).append(' ');
                 }
                 b.setLength(b.length() - 1);
-                row[8] = b.toString();
+                row[7] = b.toString();
                 b.setLength(0);
             } else {
-                row[8] = "&nbsp;";
+                row[7] = "&nbsp;";
             }
         }
 
-        table.sort(6, SortDirection.DESCENDING);
+        SortDirection enumValForDirection = table.getSortDirection().valueOf(sortDirection);
+        table.sort(column, enumValForDirection);
         return table;
     }
 

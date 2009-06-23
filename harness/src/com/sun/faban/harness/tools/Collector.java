@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Collector.java,v 1.4 2009/05/30 04:48:50 akara Exp $
+ * $Id: Collector.java,v 1.5 2009/06/23 18:34:08 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,13 +25,16 @@ package com.sun.faban.harness.tools;
 
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
+import com.sun.faban.harness.Context;
 import com.sun.faban.harness.agent.CmdAgentImpl;
 
 import java.io.IOException;
+import java.rmi.RemoteException;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Collector is a wrapper for the Collector. This will send the
@@ -47,28 +50,27 @@ import java.util.logging.Level;
  * @author Ramesh Ramachandran
  * @see GenericTool
  * @see Tool
- * @deprecated
  */
-@Deprecated public class Collector extends GenericTool {
+public class Collector extends CommandLineTool{
+
+    private static Logger logger =
+            Logger.getLogger(Collector.class.getName());
 
     private ArrayList<String> pids = new ArrayList<String>();
+    
 
-    public void configure(String tool, List<String> argList, String path,
-                          String outDir, String host, String masterhost,
-                          CmdAgentImpl cmdAgent, CountDownLatch latch) {
-        super.configure(tool, argList, path, outDir, host, masterhost,
-                cmdAgent, latch);
+    public void configure() {
+        super.config();
     }
 
-    protected void start() {
-
+    public void start() throws IOException, InterruptedException {
         // Locate the process with collector, starting with user processes.
-        Command c = new Command("/usr/bin/ps", "-u", System.getProperty("user.name"));
-        c.setStreamHandling(Command.STDOUT, Command.CAPTURE);
+        cmd = new Command("/usr/bin/ps", "-u", System.getProperty("user.name"));
+        cmd.setStreamHandling(Command.STDOUT, Command.CAPTURE);
         String result = null;
         try {
-            CommandHandle handle = cmdAgent.execute(c);
-            result = new String(handle.fetchOutput(Command.STDOUT));
+            processRef = cmd.execute();
+            result = new String(processRef.fetchOutput(Command.STDOUT));
         } catch (IOException e) {
             logger.log(Level.WARNING, "Error executing ps", e);
             return;
@@ -88,13 +90,13 @@ import java.util.logging.Level;
             if (line.startsWith("PID ")) // skip header
                 continue;
             String pid = line.substring(0, line.indexOf(' '));
-            c = new Command("/usr/bin/pldd", pid);
-            c.setStreamHandling(Command.STDOUT, Command.CAPTURE);
+            cmd = new Command("/usr/bin/pldd", pid);
+            cmd.setStreamHandling(Command.STDOUT, Command.CAPTURE);
 
             // Check for process that started with collector.
             try {
-                CommandHandle handle = cmdAgent.execute(c);
-                result = new String(handle.fetchOutput(Command.STDOUT));
+                processRef = cmd.execute();
+                result = new String(processRef.fetchOutput(Command.STDOUT));
             } catch (IOException e) {
                 logger.log(Level.WARNING, "Error executing pldd", e);
             } catch (InterruptedException e) {
@@ -113,12 +115,12 @@ import java.util.logging.Level;
         super.start();
     }
 
-    public void stop() {
+    public void stop() throws InterruptedException, IOException {
         // We use the same command to start and stop the collection
         // So there is no need to reconstruct the command strings.
-        Command c = new Command(toolCmd);
+        cmd = new Command(toolCmd);
         try {
-            cmdAgent.execute(c);
+            processRef = cmd.execute();
         } catch (IOException e) {
             logger.log(Level.WARNING, "Error stopping collector", e);
 

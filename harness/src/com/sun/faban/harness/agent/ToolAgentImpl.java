@@ -17,24 +17,32 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ToolAgentImpl.java,v 1.6 2009/06/04 22:45:53 akara Exp $
+ * $Id: ToolAgentImpl.java,v 1.7 2009/06/23 18:34:07 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.agent;
+import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.engine.DeployImageClassLoader;
 import com.sun.faban.harness.tools.CommandLineTool;
 import com.sun.faban.harness.tools.MasterToolContext;
 import com.sun.faban.harness.tools.ToolDescription;
 import com.sun.faban.harness.tools.ToolWrapper;
 
+import com.sun.faban.harness.util.XMLReader;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import java.io.File;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.rmi.server.Unreferenced;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.StringTokenizer;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -74,9 +82,37 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
      * @param toollist - each element in the array is the
      * name of a tool and optional arguments, e.g "sar -u -c"
      */
-    public void configure(List<MasterToolContext> toollist, String outDir) 
+    public void configure(List<MasterToolContext> toolList, List<String> osToolSet, String outDir)
             throws RemoteException, IOException {
-        
+        List<MasterToolContext> toollist = new ArrayList<MasterToolContext>();
+        if(toolList != null){
+            toollist.addAll(toolList);
+        }
+        LinkedHashMap<String, List<String>> toolSetsMap = parseOSToolSets();
+        if (osToolSet != null) {
+                for (String tool : osToolSet) {
+                    StringTokenizer tt = new StringTokenizer(tool);
+                    String toolId = tt.nextToken();
+                    String toolKey = toolId;
+                    ArrayList<String> toolset_tools = new ArrayList<String>();
+                    if (toolSetsMap.containsKey(toolKey)) {
+                        toolset_tools.addAll(toolSetsMap.get(toolKey));
+                        for (String t1 : toolset_tools) {
+                            MasterToolContext tCtx = new MasterToolContext(
+                                    t1, null, null);
+                            if (tCtx != null) {
+                                toollist.add(tCtx);
+                            }
+                        }
+                    } else {
+                        MasterToolContext tCtx = new MasterToolContext(
+                                tool, null, null);
+                        if (tCtx != null) {
+                            toollist.add(tCtx);
+                        }
+                    }
+                }
+        }
         numTools = toollist.size();
         toolNames = new String[numTools];
         tools = new ToolWrapper[numTools];
@@ -123,7 +159,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
                     logger.log(Level.WARNING, "Class " + toolClass + " not found");
                 } catch (Exception ie) {
                     logger.log(Level.WARNING, "Error in creating tool object " +
-                               tools[i], ie);
+                               toolClass, ie);
                     latch.countDown(); // Tool did not get started.
                 }
             }else{
@@ -147,12 +183,9 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
         int i;
         boolean ret = true;
         for (i = 0; i < tools.length; i++) {
-            if ( ! tools[i].start(delay)) {
+            if (tools[i] == null || ! tools[i].start(delay)) {
                 ret = false;
-                try {
-                    logger.severe("Could not start tool " +
-                            toolNames[i]);
-                } catch (Exception e) { }
+                logger.severe("Could not start tool " + toolNames[i]);
             }
         }
         return(ret);
@@ -169,7 +202,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
         int i;
         boolean ret = true;
         for (i = 0; i < tools.length; i++) {
-            if ( ! tools[i].start(delay, duration)) {
+            if (tools[i] == null || ! tools[i].start(delay, duration)) {
                 ret = false;
                 logger.severe("Could not start tool " + toolNames[i]);
             }
@@ -241,7 +274,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
         int i, j;
         for (j = 0; j < t.length; j++) {
             for (i = 0; i < tools.length; i++) {
-                if (toolNames[i].equals(t[j])) {
+                if (tools[i] != null && toolNames[i].equals(t[j])) {
                     try {
                         tools[i].stop();
                     } catch (Exception ex) {
@@ -288,13 +321,76 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
         for (int i=0; i < toollist.size(); i++) {
             MasterToolContext ctx = toollist.get(i);
             ToolDescription toolDesc = ctx.getToolDescription();
-            downloads.add(toolDesc);
+            if (toolDesc != null)
+                downloads.add(toolDesc);
         }
 
         for(ToolDescription desc : downloads){
-            if ("services".equals(desc.getLocationType()))
+            if (desc.getLocationType() != null && "services".equals(desc.getLocationType()))
                 new Download().loadService(desc.getLocation(),
                                             AgentBootstrap.downloadURL);
         }
+    }
+
+    protected LinkedHashMap<String, List<String>> parseOSToolSets() {
+        LinkedHashMap<String, List<String>> toolSetsMap =
+            new LinkedHashMap<String, List<String>>();
+        File toolsetsXml = new File(Config.CONFIG_DIR + Config.OS_DIR + "toolsets.xml");
+        try {
+            if(toolsetsXml.exists()){
+                XMLReader reader = new XMLReader(Config.CONFIG_DIR + Config.OS_DIR + "toolsets.xml");
+                Element root = null;
+                if (reader != null) {
+                    root = reader.getRootNode();
+                    // First, parse the services.
+                    NodeList toolsetsNodes = reader.getNodes("toolset", root);
+                    for (int i = 0; i < toolsetsNodes.getLength(); i++) {
+                        Node toolsetsNode = toolsetsNodes.item(i);
+                        if (toolsetsNode.getNodeType() != Node.ELEMENT_NODE) {
+                            continue;
+                        }
+                        Element tse = (Element) toolsetsNode;
+                        ArrayList<String> toolsCmds = new ArrayList<String>();
+                        String name = reader.getValue("name", tse);
+                        String base = reader.getValue("base", tse);
+                        List<String> toolIncludes = reader.getValues("includes", tse);
+                        List<String> toolExcludes = reader.getValues("excludes", tse);
+                        if(!"".equals(base)){
+                            toolsCmds.addAll(toolSetsMap.get(base));
+                        }
+                        if(toolIncludes != null){
+                            for (String tool : toolIncludes){
+                                StringTokenizer st = new StringTokenizer(tool, ";");
+                                while(st.hasMoreTokens())
+                                    toolsCmds.add(st.nextToken().trim());
+                            }
+                        }
+                        if(toolExcludes != null){
+                            ArrayList<String> td = new ArrayList<String>();
+                            for (String tool : toolExcludes){
+                                StringTokenizer st = new StringTokenizer(tool, ";");
+                                while(st.hasMoreTokens())
+                                    td.add(st.nextToken().trim());
+                            }
+                            toolsCmds.removeAll(td);
+                        }
+                        if (!"".equals(name) &&
+                                (toolIncludes != null || base != null)) {
+                            String key = name;
+                            if (toolSetsMap.containsKey(key)) {
+                                logger.log(Level.WARNING,
+                                        "Ignoring duplicate toolset = " + key);
+                            } else {
+                                toolSetsMap.put(key, toolsCmds);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch  (Exception e) {
+            logger.log(Level.WARNING, "Error reading toolsets.xml ", e);
+        }
+
+        return toolSetsMap;
     }
 }

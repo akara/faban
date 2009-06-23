@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TableHandler.java,v 1.10 2009/05/26 21:06:54 akara Exp $
+ * $Id: TableHandler.java,v 1.11 2009/06/23 18:34:08 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -139,6 +139,10 @@ class TableHandler extends LogParseHandler {
         out.println("</title>");
         out.println("<link rel=\"stylesheet\" type=\"text/css\" " +
                     "href=\"/css/style.css\" />");
+        out.println("<link rel=\"stylesheet\" type=\"text/css\" " +
+                    "href=\"/css/balloontip2.css\" />");
+        out.println("<script type=\"text/javascript\" " +
+                    "src=\"/scripts/balloontip2.js\"></script>");
         out.println("<link rel=\"icon\" type=\"image/gif\" href=\"" +
                     request.getContextPath() + "/img/faban.gif\">");        
         if (displayEnd && !xmlComplete)
@@ -156,8 +160,8 @@ class TableHandler extends LogParseHandler {
         out.println("<th class=\"header\">Host</th>");
         out.println("<th class=\"header\">Level</th>");
         out.println("<th class=\"header\">Message</th>");
-        out.println("<th class=\"header\">Thread</th>");
-        out.println("<th class=\"header\">Source</th>");
+        //out.println("<th class=\"header\">Thread</th>");
+        //out.println("<th class=\"header\">Source</th>");
         out.println("</tr>");        
     }
     
@@ -172,8 +176,15 @@ class TableHandler extends LogParseHandler {
 
     private void printRow(long sequence, LogRecord record, String requestBase)
             throws IOException {
+        String dt = record.date.toString();
+        dt = dt.substring(dt.lastIndexOf("T")+1, dt.length());
+        String thread = "Thread: " + record.thread;
+        String source = "Source: " + record.clazz + '.' + record.method;       
+        String content = thread + "<br/>" + source;
+        String msgmouseover = "onmouseover=\"showtip('"+ content +"', '"+ content.length() * 6 +"')\" onmouseout=\"hideddrivetip()\"";
+        String datemouseover = "onmouseover=\"showtip('"+ record.date +"')\" onmouseout=\"hideddrivetip()\"";
         out.print("<tr class=\"" + ROWCLASS[(int) (sequence % 2l)] + "\">");
-        out.println("<td class=\"tablecell\">" + record.date + "</td>");
+        out.println("<td " + datemouseover + "  class=\"tablecell\">" + dt + "</td>");
         if (record.host == null) {
             out.println("<td class=\"tablecell\">&nbsp;</td>");
         } else {
@@ -205,10 +216,10 @@ class TableHandler extends LogParseHandler {
                     "\">exception</a></i></font></td>");
         else
             out.println("</td>");
-        out.println("<td class=\"tablecell\">" + record.message + "</td>");
-        out.println("<td class=\"tablecell\" style=\"text-align: center;\">" + record.thread +
-                "</td>");
-        out.println("<td class=\"tablecell\">" + record.clazz + '.' + record.method + "</td>");
+        out.println("<td " + msgmouseover + " class=\"tablecell\">" + record.message + "</td>");
+        //out.println("<td class=\"tablecell\" style=\"text-align: center;\">" + record.thread +
+        //        "</td>");
+        //out.println("<td class=\"tablecell\">" + record.clazz + '.' + record.method + "</td>");
         out.println("</tr>");
     }
 

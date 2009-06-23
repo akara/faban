@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ToolAgent.java,v 1.4 2009/05/21 10:13:28 sheetalpatil Exp $
+ * $Id: ToolAgent.java,v 1.5 2009/06/23 18:34:07 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -47,7 +47,8 @@ public interface ToolAgent extends Remote {
      * name of a tool and optional arguments, e.g "sar -u -c"
      * @param outDir output directory of the run
      */
-    void configure(List<MasterToolContext> toollist, String outDir) 
+    void configure(List<MasterToolContext> toollist, List<String> osToolSet,
+            String outDir)
             throws RemoteException, IOException;
 
     void kill() throws RemoteException;

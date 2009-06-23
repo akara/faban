@@ -17,12 +17,13 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Results.java,v 1.5 2009/05/21 21:03:02 sheetalpatil Exp $
+ * $Id: Results.java,v 1.6 2009/06/23 18:34:08 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.webclient;
 
+import com.sun.faban.common.SortDirection;
 import com.sun.faban.common.SortableTableModel;
 import com.sun.faban.harness.common.RunId;
 import com.sun.faban.harness.engine.RunQ;
@@ -50,8 +51,14 @@ public class Results {
 
     public String list(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
+        int col = -1;
         UserEnv usrEnv = getUserEnv(req);
         String tag = req.getParameter("inputtag");
+        String sortColumn = req.getParameter("sortColumn");
+        String sortDirection = req.getParameter("sortDirection");
+        if (sortColumn != null && !"".equals(sortColumn)) {
+            col = Integer.parseInt(sortColumn);
+        }
         SortableTableModel resultTable = null;
         boolean tagSearch = false;
         String feedURL = "/controller/results/feed";
@@ -62,7 +69,10 @@ public class Results {
             }
         }
         if (tagSearch) {
-            resultTable = RunResult.getResultTable(usrEnv.getSubject(), tag);
+            if (col >= 0 && col < 8)
+                resultTable = RunResult.getResultTable(usrEnv.getSubject(), tag, col, sortDirection.trim());
+            else     
+                resultTable = RunResult.getResultTable(usrEnv.getSubject(), tag, 5, "DESCENDING");
             StringTokenizer t = new StringTokenizer(tag, " ,;:");
             StringBuilder b = new StringBuilder(tag.length());
             b.append(feedURL);
@@ -73,8 +83,10 @@ public class Results {
                 b.append(tagName);
             }
             feedURL = b.toString();
+        } else if (col >= 0 && col < 8) {
+            resultTable = RunResult.getResultTable(usrEnv.getSubject(), col, sortDirection.trim());
         } else {
-            resultTable = RunResult.getResultTable(usrEnv.getSubject());
+            resultTable = RunResult.getResultTable(usrEnv.getSubject(), 5, "DESCENDING");
         }
 
         req.setAttribute("feedURL", feedURL );

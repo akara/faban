@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Download.java,v 1.1 2009/05/21 10:13:28 sheetalpatil Exp $
+ * $Id: Download.java,v 1.2 2009/06/23 18:34:07 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -63,7 +63,7 @@ public class Download {
 
     public void download(String src, String name, String dest, String context)
             throws IOException {
-        logger.info("faban.download = " + context);
+        logger.fine("faban.download = " + context);
         if (context == null)
             return; // We are on the master. Just don't download
         if (!context.endsWith("/")) {

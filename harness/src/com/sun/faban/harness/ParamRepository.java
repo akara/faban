@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ParamRepository.java,v 1.14 2009/05/28 21:03:24 akara Exp $
+ * $Id: ParamRepository.java,v 1.15 2009/06/23 18:34:09 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -223,6 +223,13 @@ public class ParamRepository {
     }
 
 
+    public List<NameValuePair<Integer>> getEnabledHostPorts(Element base) throws ConfigurationException {
+        if (getBooleanValue("fa:hostConfig/fh:enabled", base))
+            return getHostPorts(base);
+        else
+            return null;
+    }
+
     /**
      * This returns tokenized values of parameters in a list.
      * Mainly used to get host(s)
@@ -303,6 +310,10 @@ public class ParamRepository {
      */
     public List<NameValuePair<Integer>> getHostPorts(String xPathExpr) {
         return reader.getHostPorts(xPathExpr);
+    }
+
+    public List<NameValuePair<Integer>> getHostPorts(Element base) {
+        return reader.getHostPorts(base);
     }
 
     public List<NameValuePair<String>> getHostRoles()

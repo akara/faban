@@ -23,14 +23,9 @@
 package com.sun.faban.harness.util;
 
 import com.sun.faban.common.FabanNamespaceContext;
-import com.sun.faban.harness.common.Config;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
@@ -50,10 +45,10 @@ public class XformsGenerator {
     static boolean hasMoreElements = false;
     static ArrayList idStack = new ArrayList();
     static ArrayList labelsStack = new ArrayList();
-    static StringBuffer xformsBindBuffer;
-    static StringBuffer xformsLabelsBuffer;
-    static StringBuffer xformsTriggersBuffer;
-    static StringBuffer xformsCasesBuffer;
+    static StringBuilder xformsBindBuffer;
+    static StringBuilder xformsLabelsBuffer;
+    static StringBuilder xformsTriggersBuffer;
+    static StringBuilder xformsCasesBuffer;
     static FabanNamespaceContext ns = new FabanNamespaceContext();
     static HashMap<String, String> map = new HashMap<String, String>();
 
@@ -142,7 +137,7 @@ public class XformsGenerator {
 
         }
         if (xformsBindBuffer == null) {
-            xformsBindBuffer = new StringBuffer(binds);
+            xformsBindBuffer = new StringBuilder(binds);
         } else {
             xformsBindBuffer.append(binds);
         }
@@ -168,7 +163,7 @@ public class XformsGenerator {
             }
         }
         if (xformsCasesBuffer == null) {
-            xformsCasesBuffer = new StringBuffer(inputs);
+            xformsCasesBuffer = new StringBuilder(inputs);
         } else {
             xformsCasesBuffer.append(inputs);
         }
@@ -228,7 +223,7 @@ public class XformsGenerator {
             labelsStack.add(s);
             s = "<"+s+">"+ makeLabel(s) +"</"+s+">" + "\n";
             if (xformsLabelsBuffer == null) {
-                xformsLabelsBuffer = new StringBuffer(s);
+                xformsLabelsBuffer = new StringBuilder(s);
             } else {
                 xformsLabelsBuffer.append(s);
             }
@@ -252,7 +247,7 @@ public class XformsGenerator {
                 "\t</xforms:action>" + "\n" +
             "</xforms:trigger>" + "\n";
         if (xformsTriggersBuffer == null) {
-            xformsTriggersBuffer = new StringBuffer(trigger);
+            xformsTriggersBuffer = new StringBuilder(trigger);
         } else {
             xformsTriggersBuffer.append(trigger);
         }
@@ -297,6 +292,10 @@ public class XformsGenerator {
         FileHelper.tokenReplace(outfile.getAbsolutePath(), "@labels@", xformsLabelsBuffer.toString(), null);
         FileHelper.tokenReplace(outfile.getAbsolutePath(), "@triggers@", xformsTriggersBuffer.toString(), null);
         FileHelper.tokenReplace(outfile.getAbsolutePath(), "@cases@", xformsCasesBuffer.toString(), null);
+        xformsBindBuffer = null;
+        xformsLabelsBuffer = null;
+        xformsTriggersBuffer = null;
+        xformsCasesBuffer = null;
     }
 
     public static void main(String[] args){

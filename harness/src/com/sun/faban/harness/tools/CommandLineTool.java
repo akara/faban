@@ -66,7 +66,7 @@ public class CommandLineTool {
         logger.fine(toolName + " Started with Cmd = " + toolCmd);
     }
 
-    @Stop public void stop() throws RemoteException, InterruptedException {
+    @Stop public void stop() throws IOException, InterruptedException {
         logger.fine("Stopping tool " + this.toolCmd);
         processRef.destroy();
         processRef.waitFor(10000);

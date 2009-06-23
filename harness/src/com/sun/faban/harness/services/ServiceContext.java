@@ -21,8 +21,14 @@
  */
 package com.sun.faban.harness.services;
 
+import com.sun.faban.common.NameValuePair;
+import com.sun.faban.harness.ConfigurationException;
+import com.sun.faban.harness.ParamRepository;
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
+import org.w3c.dom.Element;
 
 /**
  *
@@ -31,21 +37,33 @@ import java.util.Properties;
 public class ServiceContext implements Serializable {
 
     private static final long serialVersionUID = 20090504L;
-    private String role;
     public ServiceDescription desc;
-    private String[] hosts;
+    String role;
+    String[] hosts;
+    List<NameValuePair<Integer>> hostPorts;
+    String steadyState;
+
     private Properties properties = new Properties();
 
-    ServiceContext(ServiceDescription desc, String[] hosts, String role,
-                   Properties properties) {
+    ServiceContext(ServiceDescription desc, ParamRepository par, 
+                    Element roleElement, Properties properties)
+            throws ConfigurationException {
         this.desc = desc;
-        this.hosts = hosts;
-        this.role = role;
+        role = roleElement.getLocalName();
         this.properties = properties;
+        steadyState = par.getParameter("fa:runConfig/fa:runControl/fa:steadyState");
+        hosts = par.getEnabledHosts(roleElement);
+        hostPorts = par.getEnabledHostPorts(roleElement);
+        if (hostPorts != null && hostPorts.size() > 0)
+            hostPorts = Collections.unmodifiableList(par.getEnabledHostPorts(roleElement));
     }    
 
     public String[] getHosts() {
         return hosts.clone();
+    }
+
+    public List<NameValuePair<Integer>> getHostPorts() {
+        return hostPorts;
     }
 
     public String getHostRole() {
@@ -56,5 +74,8 @@ public class ServiceContext implements Serializable {
         return properties.getProperty(key);
     }
 
+    public String getRunDuration() {
+        return steadyState;
+    }
 
 }

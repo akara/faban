@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Deployer.java,v 1.10 2009/03/31 00:23:56 sheetalpatil Exp $
+ * $Id: Deployer.java,v 1.11 2009/06/23 18:34:07 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -197,9 +197,11 @@ public class Deployer extends HttpServlet {
                     continue;
                 }
 
-                // Check whether we can deploy or not. If running or queued,
-                // we won't deploy.
-                if (!DeployUtil.canDeploy(benchName)) {
+                // Check if we can deploy benchmark or service.
+                // If running or queued, we won't deploy benchmark.
+                // If service being used by current run,we won't deploy service.
+                if (!DeployUtil.canDeployBenchmark(benchName) ||
+                        !DeployUtil.canDeployService(benchName)) {
                     cantDeployNames.add(benchName);
                     continue;
                 }
@@ -217,8 +219,8 @@ public class Deployer extends HttpServlet {
 
                 try {
                     DeployUtil.unjar(benchName);
-                    DeployUtil.generateDD(benchName);
-                    DeployUtil.generateXform(benchName);
+                    //DeployUtil.generateDD(benchName);
+                    //DeployUtil.generateXform(benchName);
                 } catch (Exception e) {
                     throw new ServletException(e);
                 }

@@ -69,6 +69,10 @@ public class ToolContext extends MasterToolContext {
         return serviceCtx.getProperty(key);
     }
 
+    public ServiceContext getServiceContext() {
+        return serviceCtx;
+    }
+
     public CommandHandle exec(Command cmd)
             throws IOException, InterruptedException {
         return wrapper.cmdAgent.execute(cmd);
