@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Utilities.java,v 1.10 2009/06/23 07:16:46 akara Exp $
+ * $Id: Utilities.java,v 1.11 2009/06/23 14:42:34 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -301,7 +301,8 @@ public class Utilities {
         } else { // expecting a valid sequence.
             if (xmlEscapes == null)
                 initXMLEscapes();
-            String sequence = message.substring(seqStart, semiIdx);
+            String sequence =
+                    new String(msgChars, seqStart, semiIdx - seqStart);
             if (xmlEscapes.contains(sequence)) {
                 msgBuffer.append(msgChars, ampIdx, semiIdx - ampIdx + 1);
                 return semiIdx;
