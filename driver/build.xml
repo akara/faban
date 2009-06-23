@@ -19,7 +19,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: build.xml,v 1.6 2009/05/04 19:22:57 akara Exp $
+* $Id: build.xml,v 1.7 2009/06/23 17:14:15 akara Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 -->
@@ -160,7 +160,7 @@
         description="Create rmi stubs and skeletons">
         <rmic base="${compile.output}"
               stubversion="${compiler.target.version}"
-              includes="**/core/*Impl.class"/>
+              includes="**/engine/*Impl.class"/>
     </target>
 
     <target name="fabandriver.jar" depends="rmic"
