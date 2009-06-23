@@ -19,13 +19,14 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultlist.jsp,v 1.22 2009/05/27 21:34:00 sheetalpatil Exp $
+ * $Id: resultlist.jsp,v 1.23 2009/06/23 18:21:19 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 -->
     <%@ page language="java" import="com.sun.faban.harness.webclient.RunResult,
                                      com.sun.faban.common.SortableTableModel,
+                                     com.sun.faban.common.SortDirection,
                                      com.sun.faban.harness.webclient.TagEngine,
                                      java.util.StringTokenizer,
                                      java.io.File,java.io.*,
@@ -37,7 +38,8 @@
     response.setHeader("Cache-Control", "no-cache");
     SortableTableModel resultTable = (SortableTableModel)request.getAttribute("table.model");
     String feedURL = (String)request.getAttribute("feedURL");
-    
+    String sortDirection = "DESCENDING";
+    //String sort = "<img src=/img/sort_desc.gif></img>";
     int rows;
     if (resultTable != null && (rows = resultTable.rows()) > 0) {
     %>
@@ -84,8 +86,14 @@
               <tbody>
               <tr>
                   <th style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="header">&nbsp;</th>
-    <%      for (int i = 0; i < resultTable.columns(); i++) { %>
-                  <th style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="header"><%= resultTable.getHeader(i) %></th>
+    <%      for (int i = 0; i < resultTable.columns(); i++) {  
+                  if(resultTable.getSortDirection() == SortDirection.DESCENDING){
+                      sortDirection = "ASCENDING";
+                  }else if(resultTable.getSortDirection() == SortDirection.ASCENDING){
+                      sortDirection = "DESCENDING";
+                  }
+    %>
+                  <th style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="header"><a href="/controller/results/list?sortColumn=<%= i %>&sortDirection=<%= sortDirection.trim() %>" target="main"><%= resultTable.getHeader(i)%></a></th>
     <%      } %>
               </tr>
     <%
@@ -94,24 +102,36 @@
     %>
             <tr <%if(i % 2 == 0){%>class="even"<%}else{%>class="odd"<% } %>>
                 <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell" ><input type="checkbox" name="select" value="<%= row[0] %>"></input></td>
-    <%          for (int j = 0; j < row.length; j++) { 
-                    if (row[j] == null)
-                        row[j] = " ";
-                    StringBuilder formattedStr = new StringBuilder();
-                    StringTokenizer t = new StringTokenizer(row[j].toString(),"\n ,:;");
-                    String val = t.nextToken().trim();
-                    while (t.hasMoreTokens()) {
-                            formattedStr.append(t.nextToken().trim() + " ");
-                    }
-                    String mouseover = "onmouseover=\"showtip('" + val + " " + formattedStr.toString()+ "')\" onmouseout=\"hideddrivetip()\"";
-                    if(j==0 || j==1 || j==2 || j==5 || row[j].toString().equals("&nbsp;") || row[j].toString().equals("&nbsp")){%>
-                       <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell" ><%=row[j]%></td>
-                    <%}else{%>
-                         <% //if(row[j].toString().length() > 15)
-                               //row[j] = row[j].toString().substring(0, 14) + ".....";
-                         %>
-                         <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell" <%= mouseover%>><%=val%></td>
-    <%                }
+    <%          for (int j = 0; j < row.length; j++) {
+                    String mouseover = " ";
+                    String val = row[j].toString();
+                    if(row[j] == null)
+                       row[j] = " ";
+                    if(j==0 || j==1 || row[j].toString().equals("&nbsp;") || row[j].toString().equals("&nbsp")){%>
+                       <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell" ><%=val%></td>
+                    <%} else if (j == 2) { %>                             
+                             <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell" <%= mouseover%>><%=val%></td>
+                    <%}else{                      
+                         if(row[j] != null) {
+                             StringBuilder formattedStr = new StringBuilder();
+                             StringTokenizer t = new StringTokenizer(row[j].toString());
+                             val = t.nextToken().trim();
+                             while (t.hasMoreTokens()) {
+                                formattedStr.append(t.nextToken().trim() + " ");
+                             }
+                             mouseover = "onmouseover=\"showtip('" + val + " " + formattedStr.toString()+ "')\" onmouseout=\"hideddrivetip()\"";
+                             %>
+                             <%if (j == (row.length-1)) { %>
+                                 <% if (row[j].toString().length() > val.length()){ %>
+                                    <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell" <%= mouseover%>><%=val%>.....</td>
+                                 <% }else {%>
+                                    <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell" ><%=val%></td>
+                             <%  }
+                             } else {%>
+                                <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell" <%= mouseover%>><%=val%></td>
+                             <% }
+                         }%>
+   <%                }
                 } %>
             </tr>
     <%      } %>

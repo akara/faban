@@ -45,12 +45,13 @@
         <link rel="icon" type="image/gif" href="/img/faban.gif"/>
         <link rel="stylesheet" type="text/css" href="/css/style.css" />
         <script type="text/javascript">
-             var editing = false;
-            function editText(id) {
+            var editing = false;
+            function editText(td_id) {
                 editing = true;
-                var td = document.getElementById(id);
-                var content = td.innerHTML;
-                td.innerHTML = '<div id="divid"><textarea id="txtarea" class="editing" >'+ content +'</textarea><br><input type="button" id="save" onclick="saveEdit(\'' + id + '\', \'txtarea\')" value="Save" /> <input type="button" id="cancel" onclick="cancelEdit(\'' + id + '\', \'' + content + '\')" value="Cancel" /></div>';
+                var td = document.getElementById(td_id);
+                var tddiv = document.getElementById(td_id+"div");
+                var content = tddiv.innerHTML;
+                td.innerHTML = '<textarea id="txtarea" class="editing" >'+ content +'</textarea><br><input type="button" id="save" onclick="saveEdit(\'' + td_id + '\', \'txtarea\')" value="Save"></input> <input type="button" id="cancel" onclick="cancelEdit(\'' + td_id + '\', \'' + content + '\')" value="Cancel"></input>';
             }
 
             function checkIfEditing() {
@@ -59,12 +60,13 @@
 
             function saveEdit(td_id, textarea) {
                 var td = document.getElementById(td_id);
-                td.innerHTML = document.getElementById(textarea).value;
+                var content = document.getElementById(textarea).value;
+                td.innerHTML = '<div id="' + td_id + 'div" onclick="if (checkIfEditing() == false) editText(\'' + td_id + '\');">' + content + '</div>';
                 if(td_id == "Tags"){
-                    updateTags(td.innerHTML);
+                    updateTags(content);
                 }
                 if(td_id == "Description"){
-                    updateDescription(td.innerHTML);
+                    updateDescription(content);
                 }
                 editing = false;
 
@@ -72,7 +74,7 @@
 
             function cancelEdit(td_id, content) {
                 var td = document.getElementById(td_id);
-                td.innerHTML = content;
+                td.innerHTML = '<div id="' + td_id + 'div" onclick="if (checkIfEditing() == false) editText(\'' + td_id + '\');">' + content + '</div>'  ;
                 editing = false;
             }
 
@@ -110,7 +112,7 @@
                 <tr <%if (j % 2 == 0) {%>class="even"<%} else {%>class="odd"<% }%>>
                     <td class="tablecell"><%= header[j]%></td>
                     <%if(header[j].equals("Description") || header[j].equals("Tags")){%>
-                        <td id="<%= header[j] %>" onclick="if (checkIfEditing() == false) editText('<%= header[j] %>');" class="tablecell" ><%=row[j]%></td>
+                        <td id="<%= header[j] %>" class="tablecell"><div id="<%= header[j] %>div" onclick="if (checkIfEditing() == false) editText('<%= header[j] %>');"><%=row[j]%></div></td>
                     <%}else{%>
                         <td id="<%= header[j] %>" class="tablecell" ><%=row[j]%></td>
                     <%}%>
