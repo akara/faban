@@ -8,7 +8,7 @@
         Purpose of the document follows.
 -->
 <services-tools>
-    <service id="ApacheHttpdService">
-        <class>com.sun.services.ApacheHttpdService</class>
+    <service id="GlassfishService">
+        <class>com.sun.services.GlassfishService</class>
     </service>
 </services-tools>

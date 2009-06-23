@@ -8,7 +8,10 @@
         Purpose of the document follows.
 -->
 <services-tools>
-    <service id="ApacheHttpdService">
-        <class>com.sun.services.ApacheHttpdService</class>
+    <service id="MemcachedService">
+        <class>com.sun.services.MemcachedService</class>
     </service>
+    <tool id="MemcacheStats" service="MemcachedService">
+        <class>com.sun.tools.MemcacheStats</class>
+    </tool>
 </services-tools>

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Mysqlstats.java,v 1.1 2009/06/01 17:02:50 sheetalpatil Exp $
+ * $Id: Mysqlstats.java,v 1.2 2009/06/23 19:02:13 sheetalpatil Exp $
  *
  * Copyright 2008 Sun Microsystems Inc. All Rights Reserved
  */
@@ -26,7 +26,6 @@ package com.sun.tools;
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
 import com.sun.faban.harness.Context;
-import com.sun.faban.harness.services.ServiceContext;
 import com.sun.faban.harness.tools.Configure;
 import com.sun.faban.harness.tools.Start;
 import com.sun.faban.harness.tools.Stop;
@@ -83,7 +82,7 @@ public class Mysqlstats {
     }
 
     @Start public void start() throws IOException, InterruptedException {
-        processRef = cmd.execute();
+        processRef = ctx.exec(cmd);
         logger.info(toolName + " Started with Cmd = " + toolCmd);
     }
 

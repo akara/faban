@@ -8,10 +8,10 @@
         Purpose of the document follows.
 -->
 <services-tools>
-    <service id="MySQL">
-        <class>com.sun.services.MySQL</class>
+    <service id="MySQLService">
+        <class>com.sun.services.MySQLService</class>
     </service>
-    <tool id="Mysqlstats" service="MySQL">
+    <tool id="Mysqlstats" service="MySQLService">
         <class>com.sun.tools.Mysqlstats</class>
     </tool>
 </services-tools>

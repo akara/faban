@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MySQL.java,v 1.1 2009/06/01 17:02:43 sheetalpatil Exp $
+ * $Id: MySQLService.java,v 1.1 2009/06/23 19:01:58 sheetalpatil Exp $
  *
  * Copyright 2008 Sun Microsystems Inc. All Rights Reserved
  */
@@ -29,6 +29,7 @@ import com.sun.faban.harness.RunContext;
 import com.sun.faban.harness.services.ServiceContext;
 import com.sun.faban.harness.Context;
 
+import com.sun.faban.harness.RemoteCallable;
 import com.sun.faban.harness.services.Configure;
 import com.sun.faban.harness.services.GetLogs;
 import com.sun.faban.harness.services.Startup;
@@ -36,6 +37,9 @@ import com.sun.faban.harness.services.Shutdown;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -48,23 +52,24 @@ import java.util.logging.Logger;
  * perform these operations remotely using this Service.
  * NOTE: It is assumed that the pid and err file are in $DBHOME/data.
  * 
- * @author Shanti Subramanyam
+ * @author Shanti Subramanyam modified by Sheetal Patil
  */
-public class MySQL {
+public class MySQLService {
 
     @Context public ServiceContext ctx;    
-    Logger logger = Logger.getLogger(MySQL.class.getName());
+    Logger logger = Logger.getLogger(MySQLService.class.getName());
     String dbHome,  myServers[];
     String mysqlCmd,  dataDir;
     
     @Configure public void configure() {
         myServers = new String[ctx.getHosts().length];
-        logger.info("Configuring mysql ");
+        logger.fine("Configuring mysql Started");
         myServers = ctx.getHosts();
         dbHome = ctx.getProperty("serverHome");
-        dataDir = dbHome + File.separator + "data" + File.separator;
-        mysqlCmd = dbHome + File.separator + "bin" +
-                File.separator + "mysqld_safe";
+        if (!dbHome.endsWith(File.separator))
+            dbHome = dbHome + File.separator;
+        dataDir = dbHome + "data" + File.separator;
+        mysqlCmd = dbHome + "bin" + File.separator + "mysqld_safe ";
         logger.info("MysqlService Configure complete.");
     }
 
@@ -73,12 +78,13 @@ public class MySQL {
         for (int i = 0; i < myServers.length; i++) {
             String pidFile = dataDir + myServers[i] + ".pid";
             logger.info("Starting mysql on " + myServers[i]);
-            Command startCmd = new Command(mysqlCmd);
+            Command startCmd = new Command(mysqlCmd + "--user=mysql " +
+                "--datadir=" + dataDir + " --pid-file=" + pidFile);
             logger.fine("Starting mysql with: " + mysqlCmd);
             startCmd.setSynchronous(false); // to run in bg
             try {
                 // Run the command in the background
-                CommandHandle ch = RunContext.exec(myServers[i], startCmd);
+                RunContext.exec(myServers[i], startCmd);
                 /*
                  * Make sure the server has started.
                  */
@@ -157,9 +163,64 @@ public class MySQL {
         }
     }
 
-    
+    /**
+     * transfer log files
+     * This method copies over the error_log to the run output directory
+     * and keeps only the portion of the log relevant for this run
+     * @param totalRunTime - the time in seconds for this run
+     *
+     * TODO: Modify code for mysql date/time format
+     */
     @GetLogs public void getLogs() {
-        logger.info("GetLogs Completed");
+        String duration = ctx.getRunDuration();
+        int totalRunTime = Integer.parseInt(duration);
+        for (int i = 0; i < myServers.length; i++) {
+            String myServer = myServers[i];
+            String outFile = RunContext.getOutDir() + "mysql_err." + myServer;
+            String errFile = dataDir + myServers[i] + ".err";
+            // copy the error_log to the master
+            if (!RunContext.getFile(myServer, errFile, outFile)) {
+                logger.warning("Could not copy " + errFile + " to " + outFile);
+                return;
+            }
+
+            try {
+                // Now get the start and end times of the run
+                GregorianCalendar calendar = getGregorianCalendar(myServer);
+
+                //format the end date
+                SimpleDateFormat df = new SimpleDateFormat("MMM,dd,HH:mm:ss");
+                String endDate = df.format(calendar.getTime());
+
+                calendar.add(Calendar.SECOND, (totalRunTime * (-1)));
+
+                String beginDate = df.format(calendar.getTime());
+
+                //parse the log file
+                Command parseCommand = new Command("mysql_trunc_err.sh " +
+                        beginDate + " " + endDate + " " + outFile);
+                RunContext.exec(parseCommand);
+
+            } catch (Exception e) {
+
+                logger.log(Level.WARNING, "Failed to tranfer log of " +
+                        myServer + '.', e);
+                logger.log(Level.FINE, "Exception", e);
+            }
+
+            logger.fine("XferLog Completed for " + myServer);
+        }
+
+    }
+
+    private static GregorianCalendar getGregorianCalendar(String hostName)
+            throws Exception {
+        return RunContext.exec(hostName, new RemoteCallable<GregorianCalendar>() {
+
+            public GregorianCalendar call() {
+                return new GregorianCalendar();
+            }
+        });
     }
    
 }

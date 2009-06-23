@@ -8,7 +8,10 @@
         Purpose of the document follows.
 -->
 <services-tools>
-    <service id="ApacheHttpdService">
-        <class>com.sun.services.ApacheHttpdService</class>
+    <service id="OracleService">
+        <class>com.sun.services.OracleService</class>
     </service>
+    <tool id="OracleTool" service="OracleService">
+        <class>com.sun.tools.OracleTool</class>
+    </tool>
 </services-tools>

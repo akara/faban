@@ -8,21 +8,21 @@
 -->
 <toolsets>
     <toolset>
-        <service>MySQLService</service>
+        <service>GlassfishService</service>
         <name>default</name>
         <includes>vmstat 10</includes>
         <includes>iostat -xn 10</includes>
         <includes>mpstat 10</includes>
     </toolset>
     <toolset>
-        <service>MySQLService</service>
+        <service>GlassfishService</service>
         <name>detail</name>
         <base>default</base>
         <includes>cpustat</includes>
         <includes>trapstat</includes>
     </toolset>
     <toolset>
-        <service>MySQLService</service>
+        <service>GlassfishService</service>
         <name>lite</name>
         <base>default</base>
         <excludes>iostat -xn 10</excludes>
