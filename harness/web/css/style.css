@@ -21,3 +21,9 @@
     border-bottom: 1px solid #C1DAD7;
     border-left: 1px solid #C1DAD7;
 }
+
+.icon {
+   border:0px solid;
+   width: 22px;
+   height: 22px;
+}

@@ -93,6 +93,11 @@
 
     <servlet-mapping>
         <servlet-name>ContentReader</servlet-name>
+        <url-pattern>/service_downloads/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>ContentReader</servlet-name>
         <url-pattern>/benchmarks/*</url-pattern>
     </servlet-mapping>
 
