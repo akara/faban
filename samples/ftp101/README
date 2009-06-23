@@ -1,5 +1,0 @@
-                    Ftp101 Sample README
-
-The Ftp101 sample provides a very simple FTP test that allows the tester to
-specify the read/write/reconnect ratio. You can certainly expand this benchmark
-further or just deploy the ftp101.jar file.
