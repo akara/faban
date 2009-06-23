@@ -19,7 +19,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: build.xml,v 1.3 2007/04/19 05:25:53 akara Exp $
+* $Id: build.xml,v 1.4 2009/06/23 16:48:30 akara Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 -->
@@ -28,8 +28,16 @@
     <!-- Compiler options -->
     <property file="build.properties"/>
     <property name="compile.output" value="build/classes"/>
+    <property name="compile.test.output" value="build/test/classes"/>
+    <property name="test.results.dir" value="build/test/output"/>
     <property name="jar.output" value="build/lib"/>
     <property name="jar.file" value="fabancommon.jar"/>
+
+    <path id="test.class.path">
+        <pathelement path="${compile.output}"/>
+        <pathelement path="${junit.jar}"/>
+        <pathelement path="${compile.test.output}"/>
+    </path>
 
     <path id="source.path">
         <dirset dir=".">
@@ -37,8 +45,14 @@
         </dirset>
     </path>
 
+    <path id="test.path">
+        <dirset dir=".">
+            <include name="test"/>
+        </dirset>
+    </path>
+
     <target name="compile"
-        description="Compile Faban Driver classes">
+        description="Compile Faban Common Facilities classes">
         <mkdir dir="${compile.output}"/>
         <javac destdir="${compile.output}" debug="${compiler.debug}"
             nowarn="${compiler.generate.no.warnings}"
@@ -47,6 +61,82 @@
             <compilerarg line="${compiler.args}"/>
             <src refid="source.path"/>
         </javac>
+    </target>
+
+    <target name="compile-tests" depends="compile"
+        description="Compile Faban Common Facilities JUnit Test Cases">
+        <mkdir dir="${compile.test.output}"/>
+        <javac destdir="${compile.test.output}" debug="${compiler.debug}"
+            nowarn="${compiler.generate.no.warnings}"
+            target="${compiler.target.version}"
+            memoryMaximumSize="${compiler.max.memory}" fork="true">
+            <compilerarg line="${compiler.args}"/>
+            <classpath refid="test.class.path"/>
+            <src refid="test.path"/>
+        </javac>
+    </target>
+
+    <target name="compile-selected-files-in-src">
+        <fail unless="files">Must set property "files"</fail>
+        <mkdir dir="${compile.output}"/>
+        <javac destdir="build" includes="${files}" srcdir="src"/>
+    </target>
+
+
+    <target name="run-tests" depends="compile-tests"
+        description="Compile Faban Harness JUnit Test Cases">
+        <mkdir dir="${test.results.dir}"/>
+        <junit showoutput="true"
+           fork="true"
+           failureproperty="tests.failed"
+           errorproperty="tests.failed">
+            <jvmarg value="-Dfaban.home=${java.io.tmpdir}"/>
+            <batchtest todir="${test.results.dir}">
+                <fileset dir="test">
+                    <include name="**/*Test.java"/>
+                </fileset>
+            </batchtest>
+            <classpath refid="test.class.path"/>
+            <formatter usefile="false" type="brief"/>
+            <formatter type="xml"/>
+        </junit>
+    </target>
+
+
+    <target name="run-single-test"
+        description="Runs Single JUnit Test Case">
+        <fail unless="run.class">Must set property "run.class"</fail>
+        <junit dir="${test.results.dir}" printsummary="true" showoutput="true" fork="true">
+            <jvmarg value="-Dfaban.home=${java.io.tmpdir}"/>
+            <classpath refid="test.class.path"></classpath>
+            <formatter type="brief" usefile="false"></formatter>
+            <formatter type="xml"></formatter>
+            <test name="${run.class}"></test>
+        </junit>
+    </target>
+
+    <target name="debug-single-test" depends="compile-tests"
+        description="Runs Single JUnit Test Case">
+        <fail unless="debug.class">Must set property "debug.class"</fail>
+        <path id="sourcepath">
+            <pathelement path="src/"></pathelement>
+            <pathelement path="test/"></pathelement>
+        </path>
+        <nbjpdastart transport="dt_socket" name="perspective" addressproperty="jpda.address">
+            <classpath refid="test.class.path"></classpath>
+            <sourcepath refid="sourcepath"></sourcepath>
+        </nbjpdastart>
+        <junit dir="${test.results.dir}" printsummary="true" showoutput="true" fork="true">
+            <jvmarg value="-Xdebug"/>
+            <jvmarg value="-Xnoagent"/>
+            <jvmarg value="-Dfaban.home=${java.io.tmpdir}"/>
+            <jvmarg value="-Djava.compiler=none"/>
+            <jvmarg value="-Xrunjdwp:transport=dt_socket,address=${jpda.address},suspend=y"/>
+            <formatter type="xml"></formatter>
+            <formatter type="brief"  usefile="false"></formatter>
+            <classpath refid="test.class.path"></classpath>
+            <test name="${debug.class}"></test>
+        </junit>
     </target>
 
     <target name="rmic" depends="compile"

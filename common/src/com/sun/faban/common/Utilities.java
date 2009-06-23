@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Utilities.java,v 1.11 2009/06/23 14:42:34 akara Exp $
+ * $Id: Utilities.java,v 1.12 2009/06/23 16:46:38 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -322,7 +322,7 @@ public class Utilities {
                                 "para", "middot", "cedil", "sup1", "ordm",
                                 "raquo", "frac14", "frac12", "frac34",
                                 "iquest"};
-        xmlEscapes = new HashSet<String>();
+        xmlEscapes = new HashSet<String>(escStrings.length);
         for (String escString : escStrings)
             xmlEscapes.add(escString);
     }
