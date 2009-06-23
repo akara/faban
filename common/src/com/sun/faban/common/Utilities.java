@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Utilities.java,v 1.7 2009/05/17 19:56:21 akara Exp $
+ * $Id: Utilities.java,v 1.8 2009/06/23 06:55:47 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,10 +25,7 @@ package com.sun.faban.common;
 
 import java.io.File;
 import java.net.URL;
-import java.util.List;
-import java.util.Set;
-import java.util.LinkedHashSet;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
@@ -36,6 +33,8 @@ import java.util.regex.Matcher;
  * Common utilities, usually accessible via static import.
  */
 public class Utilities {
+
+    private static HashSet<String> xmlEscapes;
 
     /**
      * Parses a string escaped with \n, \t, \020, etc. Returns the
@@ -256,11 +255,75 @@ public class Utilities {
             switch(msgChars[i]) {
                 case '<' : msgBuffer.append("&lt;");      break;
                 case '>' : msgBuffer.append("&gt;");      break;
-                case '&' : msgBuffer.append("&amp;");     break;
                 case '"' : msgBuffer.append("&quot;");    break;
                 case '\'': msgBuffer.append("&apos;");    break;
+                case '&' : i = searchEscapedXML(
+                                            message, msgChars, i, msgBuffer);
+                           break;
                 default  : msgBuffer.append(msgChars[i]);
             }
         }
+    }
+
+    private static int searchEscapedXML(String message, char[] msgChars,
+                                         int ampIdx, StringBuilder msgBuffer) {
+        // First search the message for any ';' char, as in &..; escape
+        // sequences.
+        int seqStart = ampIdx + 1;
+        int semiIdx = message.indexOf(';', seqStart);
+        if (semiIdx < ampIdx) { // not found
+            msgBuffer.append("&amp;");
+            return ampIdx;
+        } else if (msgChars[seqStart] == '#') { // Indicating a number
+            ++seqStart;
+            if (msgChars[seqStart] == 'x' || msgChars[seqStart] == 'X') { // hex
+                for (int i = ++seqStart; i < semiIdx; i++) {
+                    if ((msgChars[i] >= '0' && msgChars[i] <= '9') ||
+                        (msgChars[i] >= 'a' && msgChars[i] <= 'f') ||
+                        (msgChars[i] >= 'A' && msgChars[i] <= 'F')) {
+                        continue;
+                    } else {
+                        msgBuffer.append("&amp;");
+                        return ampIdx;
+                    }
+                }
+            } else {
+                for (int i = seqStart; i < semiIdx; i++) {
+                    if (msgChars[i] >= '0' && msgChars[i] <= '9') {
+                        continue;
+                    } else {
+                        msgBuffer.append("&amp;");
+                        return ampIdx;
+                    }
+                }
+            }
+            msgBuffer.append(message.substring(ampIdx, semiIdx + 1));
+            return semiIdx;
+        } else { // expecting a valid sequence.
+            if (xmlEscapes == null)
+                initXMLEscapes();
+            String sequence = message.substring(seqStart, semiIdx);
+            if (xmlEscapes.contains(sequence)) {
+                msgBuffer.append('&').append(sequence).append(';');
+                return semiIdx;
+            } else {
+                msgBuffer.append("&amp;");
+                return ampIdx;
+            }
+        }
+    }
+
+    private static void initXMLEscapes() {
+        String[] escStrings = { "quot", "amp", "apos", "lt", "gt", "nbsp",
+                                "iexcl", "cent", "pound", "curren", "yen",
+                                "brvbar", "sect", "uml", "copy", "ordf",
+                                "laquo", "not", "shy", "reg", "macr", "deg",
+                                "plusmn", "sup2", "sup3", "acute", "micro",
+                                "para", "middot", "cedil", "sup1", "ordm",
+                                "raquo", "frac14", "frac12", "frac34",
+                                "iquest"};
+        xmlEscapes = new HashSet<String>();
+        for (String escString : escStrings)
+            xmlEscapes.add(escString);
     }
 }
