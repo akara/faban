@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Utilities.java,v 1.8 2009/06/23 06:55:47 akara Exp $
+ * $Id: Utilities.java,v 1.9 2009/06/23 07:08:04 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -257,15 +257,14 @@ public class Utilities {
                 case '>' : msgBuffer.append("&gt;");      break;
                 case '"' : msgBuffer.append("&quot;");    break;
                 case '\'': msgBuffer.append("&apos;");    break;
-                case '&' : i = searchEscapedXML(
-                                            message, msgChars, i, msgBuffer);
+                case '&' : i = checkEscapedXML(message, msgChars, i, msgBuffer);
                            break;
                 default  : msgBuffer.append(msgChars[i]);
             }
         }
     }
 
-    private static int searchEscapedXML(String message, char[] msgChars,
+    private static int checkEscapedXML(String message, char[] msgChars,
                                          int ampIdx, StringBuilder msgBuffer) {
         // First search the message for any ';' char, as in &..; escape
         // sequences.
