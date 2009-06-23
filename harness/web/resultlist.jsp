@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultlist.jsp,v 1.23 2009/06/23 18:21:19 sheetalpatil Exp $
+ * $Id: resultlist.jsp,v 1.24 2009/06/23 21:35:58 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -38,6 +38,7 @@
     response.setHeader("Cache-Control", "no-cache");
     SortableTableModel resultTable = (SortableTableModel)request.getAttribute("table.model");
     String feedURL = (String)request.getAttribute("feedURL");
+    String tagInSearch = (String)request.getAttribute("tagInSearch");
     String sortDirection = "DESCENDING";
     //String sort = "<img src=/img/sort_desc.gif></img>";
     int rows;
@@ -92,8 +93,11 @@
                   }else if(resultTable.getSortDirection() == SortDirection.ASCENDING){
                       sortDirection = "DESCENDING";
                   }
+                  String sortLink = "/controller/results/list?sortColumn=" + i + "&sortDirection=" + sortDirection.trim();
+                  if(tagInSearch != null && tagInSearch.length() > 0)
+                      sortLink = "/controller/results/list?inputtag="+ tagInSearch.trim() +"&sortColumn=" + i + "&sortDirection=" + sortDirection.trim();
     %>
-                  <th style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="header"><a href="/controller/results/list?sortColumn=<%= i %>&sortDirection=<%= sortDirection.trim() %>" target="main"><%= resultTable.getHeader(i)%></a></th>
+                  <th style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="header"><a href="<%= sortLink %>" target="main"><%= resultTable.getHeader(i)%></a></th>
     <%      } %>
               </tr>
     <%

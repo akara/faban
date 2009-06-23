@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Results.java,v 1.6 2009/06/23 18:34:08 sheetalpatil Exp $
+ * $Id: Results.java,v 1.7 2009/06/23 21:35:58 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -83,6 +83,7 @@ public class Results {
                 b.append(tagName);
             }
             feedURL = b.toString();
+            req.setAttribute("tagInSearch", tag);
         } else if (col >= 0 && col < 8) {
             resultTable = RunResult.getResultTable(usrEnv.getSubject(), col, sortDirection.trim());
         } else {
