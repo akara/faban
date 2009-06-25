@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DefaultFabanBenchmark2.java,v 1.3 2009/05/21 20:54:04 akara Exp $
+ * $Id: DefaultFabanBenchmark2.java,v 1.4 2009/06/25 23:13:39 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -188,7 +188,7 @@ public class DefaultFabanBenchmark2 {
                         } else if (agents == minAgents) {
                             // If there is more than one least busy, pick
                             // the first one that was not previously assigned.
-                            if (leastBusyHost == previousHost)
+                            if (leastBusyHost.equals(previousHost))
                                 leastBusyHost = hostAgentsEntry.getKey();
                         }
                     }

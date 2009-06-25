@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ParamRepository.java,v 1.15 2009/06/23 18:34:09 sheetalpatil Exp $
+ * $Id: ParamRepository.java,v 1.16 2009/06/25 23:13:39 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -63,31 +63,70 @@ public class ParamRepository {
         return reader.getValue(xpath);
     }
 
+    /**
+     * Generic parameter access method.
+     * @param xpath string
+     * @param top element
+     * @return value of the parameter
+     */
     public String getParameter(String xpath, Element top) {
         return reader.getValue(xpath, top);
     }
 
+    /**
+     * Generic method to get NodeList for a given tagName.
+     * @param tagName of type string
+     * @return NodeList for the tagName
+     */
     public NodeList getNodeListForTagName(String tagName){
         return reader.getNodeListForTagName(tagName);
     }
 
-     public NodeList getTopLevelElements() {
+    /**
+     * Generic method to get a list of top level nodes.
+     * @return NodeList
+     */
+    public NodeList getTopLevelElements() {
         NodeList topLevelElements = reader.getTopLevelElements();
         return topLevelElements;
     }
 
+     /**
+     * Generic method to get NodeList for a given xpath.
+     * @param xpath string
+     * @return NodeList for the xpath
+     */
     public NodeList getNodes(String xPath) {
         return reader.getNodes(xPath);
     }
 
+    /**
+     * Generic method to get NodeList for a given xpath
+     * with respect to base node.
+     * @param xpath string
+     * @param top element
+     * @return NodeList
+     */
     public NodeList getNodes(String xPath, Element top) {
         return reader.getNodes(xPath, top);
     }
 
+    /**
+     * Generic method to get a Node for a given xpath.
+     * @param xpath string
+     * @return Node for the xpath
+     */
     public Node getNode(String xPath) {
         return reader.getNode(xPath);
     }
 
+    /**
+     * Generic method to get a Node for a given xpath
+     * with respect to base node.
+     * @param xpath string
+     * @param top element
+     * @return Node for the xpath
+     */
     public Node getNode(String xPath, Element top) {
         return reader.getNode(xPath, top);
     }
@@ -213,6 +252,12 @@ public class ParamRepository {
         return enabledHosts;
     }
 
+    /**
+     * Obtains the list of enabled hosts.
+     * @param base element
+     * @return A list of enabled hosts, grouped by host type.
+     * @throws ConfigurationException
+     */
     public String[] getEnabledHosts(Element base) throws ConfigurationException {
         String[] enabledHosts;
         if (getBooleanValue("fa:hostConfig/fh:enabled", base))
@@ -222,8 +267,14 @@ public class ParamRepository {
        return enabledHosts;
     }
 
-
-    public List<NameValuePair<Integer>> getEnabledHostPorts(Element base) throws ConfigurationException {
+    /**
+     * Obtains the list of enabled hostports.
+     * @param base element
+     * @return A list of enabled hostports.
+     * @throws ConfigurationException
+     */
+    public List<NameValuePair<Integer>> getEnabledHostPorts(Element base)
+            throws ConfigurationException {
         if (getBooleanValue("fa:hostConfig/fh:enabled", base))
             return getHostPorts(base);
         else
@@ -375,12 +426,20 @@ public class ParamRepository {
     /**
      * This method reads a value using the XPath and converts it to a boolean
      * @param xpath XPath expression to the value which is true or false
+     * @param base element
      * @return true or false
      */
     public boolean getBooleanValue(String xpath, Element base) {
         return  Boolean.valueOf(reader.getValue(xpath, base)).booleanValue();
     }
 
+    /**
+     * This method reads a value using the XPath and converts it to a boolean
+     * @param xpath XPath expression to the value which is true or false
+     * @param base element
+     * @param booleanValue 
+     * @return true or false
+     */
     public boolean getBooleanValue(String xpath, Element base,
                                    boolean defaultValue) {
         String s = reader.getValue(xpath, base);

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Download.java,v 1.2 2009/06/23 18:34:07 sheetalpatil Exp $
+ * $Id: Download.java,v 1.3 2009/06/25 23:13:38 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -49,19 +49,31 @@ public class Download {
     static Logger logger = Logger.getLogger(Download.class.getName());
     byte[] buffer = new byte[8192];
 
-    public void loadBenchmark(String benchmarkName, String context) 
+    /**
+     * Downloads benchmark.
+     * @param benchmarkName
+     * @param context
+     * @throws java.io.IOException
+     */
+    public void loadBenchmark(String benchmarkName, String context)
             throws IOException {
         download(Config.BENCHMARK_DOWNLOAD_PATH, benchmarkName, 
                  Config.BENCHMARK_DIR, context);
     }
 
+    /**
+     * Downloads service.
+     * @param serviceLocation
+     * @param context
+     * @throws java.io.IOException
+     */
     public void loadService(String serviceLocation, String context)
             throws IOException {
         download(Config.SERVICE_DOWNLOAD_PATH, serviceLocation,
                  Config.SERVICE_DIR, context);
     }
 
-    public void download(String src, String name, String dest, String context)
+    private void download(String src, String name, String dest, String context)
             throws IOException {
         logger.fine("faban.download = " + context);
         if (context == null)

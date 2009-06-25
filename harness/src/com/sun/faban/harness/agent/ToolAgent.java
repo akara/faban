@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ToolAgent.java,v 1.6 2009/06/25 23:13:38 sheetalpatil Exp $
+ * $Id: ToolAgent.java,v 1.7 2009/06/25 23:15:52 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -116,5 +116,9 @@ public interface ToolAgent extends Remote {
      */
     public void waitFor() throws RemoteException;
 
+    /**
+     * This method is responsible for post processing tools.
+     * @throws RemoteException
+     */
     public void postprocess() throws RemoteException;
 }
