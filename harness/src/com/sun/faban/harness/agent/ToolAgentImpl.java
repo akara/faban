@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ToolAgentImpl.java,v 1.7 2009/06/23 18:34:07 sheetalpatil Exp $
+ * $Id: ToolAgentImpl.java,v 1.8 2009/06/25 23:13:38 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -39,9 +39,11 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.rmi.server.Unreferenced;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
@@ -67,6 +69,10 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
     Logger logger;
     CountDownLatch latch;
 
+    /**
+     * Constructor
+     * @throws java.rmi.RemoteException
+     */
     public ToolAgentImpl() throws RemoteException {
         super();
         logger = Logger.getLogger(this.getClass().getName());
@@ -81,8 +87,12 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
      * the specified tools.
      * @param toollist - each element in the array is the
      * name of a tool and optional arguments, e.g "sar -u -c"
+     * @param osToolSet list of os tools
+     * @param outDir output directory of the run
+     * @throws RemoteException, IOException
+     *
      */
-    public void configure(List<MasterToolContext> toolList, List<String> osToolSet, String outDir)
+    public void configure(List<MasterToolContext> toolList, Set<String> osToolSet, String outDir)
             throws RemoteException, IOException {
         List<MasterToolContext> toollist = new ArrayList<MasterToolContext>();
         if(toolList != null){
@@ -94,7 +104,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
                     StringTokenizer tt = new StringTokenizer(tool);
                     String toolId = tt.nextToken();
                     String toolKey = toolId;
-                    ArrayList<String> toolset_tools = new ArrayList<String>();
+                    Set<String> toolset_tools = new LinkedHashSet<String>();
                     if (toolSetsMap.containsKey(toolKey)) {
                         toolset_tools.addAll(toolSetsMap.get(toolKey));
                         for (String t1 : toolset_tools) {
@@ -178,6 +188,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
      * This method is responsible for starting all tools
      * @param 	delay - time to delay before starting
      * @return true if all tools started successfully, else false
+     * @throws RemoteException
      */
     public boolean start(int delay) throws RemoteException {
         int i;
@@ -197,6 +208,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
      * @param 	delay - time to delay before starting
      * @param duration after which tools must be stopped
      * @return true if all tools started successfully, else false
+     * @throws RemoteException
      */
     public boolean start(int delay, int duration) throws RemoteException {
         int i;
@@ -211,7 +223,10 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
     }
 
     /**
-     * Start only specified tools 
+     * Start only specified tools
+     * @param 	delay - time to delay before starting
+     * @param 	t - specific list of tools to start
+     * @throws RemoteException
      */
     public boolean start(int delay, String[] t)
             throws RemoteException {
@@ -220,7 +235,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
         for (j = 0; j < t.length; j++) {
             for (i = 0; i < tools.length; i++) {
                 if (toolNames[i].equals(t[j])) {
-                    if ( ! tools[i].start(delay)) {
+                    if ( tools[i] == null || ! tools[i].start(delay)) {
                         ret = false;
                         logger.severe("Could not start tool " +
                                     toolNames[i]);
@@ -233,7 +248,11 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
     }
 
     /**
-     * Start only specified tools
+     * Start only specified tools for specific duration
+     * @param delay - time to delay before starting
+     * @param t - specific list of tools to start
+     * @param duration after which tools must be stopped
+     * @throws RemoteException
      */
     public boolean start(int delay, String[] t, int duration)
             throws RemoteException {
@@ -242,7 +261,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
         for (j = 0; j < t.length; j++) {
             for (i = 0; i < tools.length; i++) {
                 if (toolNames[i].equals(t[j])) {
-                    if ( ! tools[i].start(delay, duration)) {
+                    if ( tools[i] == null || ! tools[i].start(delay, duration)) {
                         ret = false;
                         logger.severe("Could not start tool " +
                                 toolNames[i]);
@@ -258,22 +277,25 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
      * This method is responsible for stopping the tools
      */
     public void stop() {
-        int i;
-        for (i = 0; i < tools.length; i++) {
-            try {
-                tools[i].stop();
-            }
-            catch (Exception e) {
-                logger.log(Level.WARNING, "ToolAgent: toolName = " +
-                        toolNames[i] + " cannot stop", e);
+        for (int i = 0; i < tools.length; i++) {
+            if (tools[i] != null){
+                try {
+                    tools[i].stop();
+                }
+                catch (Exception e) {
+                    logger.log(Level.WARNING, "ToolAgent: toolName = " +
+                            toolNames[i] + " cannot stop", e);
+                }
             }
         }
     }
 
+    /**
+     * This method is responsible for stopping specific list of tools
+     */
     public void stop(String t[]) {
-        int i, j;
-        for (j = 0; j < t.length; j++) {
-            for (i = 0; i < tools.length; i++) {
+        for (int j = 0; j < t.length; j++) {
+            for (int i = 0; i < tools.length; i++) {
                 if (tools[i] != null && toolNames[i].equals(t[j])) {
                     try {
                         tools[i].stop();
@@ -286,6 +308,23 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
         }
     }
 
+    public void postprocess() {
+        for (int i = 0; i < tools.length; i++) {
+            if (tools[i] != null){
+                try {
+                    tools[i].postprocess();
+                }
+                catch (Exception e) {
+                    logger.log(Level.WARNING, "ToolAgent: toolName = " +
+                            toolNames[i] + " cannot stop", e);
+                }
+            }
+        }
+    }
+
+    /**
+     *  Waits for all tools to finish up.
+     */
     public void waitFor() {
         try {
             latch.await();
@@ -295,15 +334,22 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
         }
     }
 
+    /**
+     *  Kills all the tools.
+     */
     public void kill() {
         logger.info("Killing tools");
-        for (int i = 0; i < tools.length; i++)
-            try {
-                tools[i].kill();
-            } catch (Exception e) {
-                logger.log(Level.WARNING, "ToolAgent: toolName = " +
-                        toolNames[i] + " cannot kill", e);
+        for (int i = 0; i < tools.length; i++){
+            if (tools[i] != null){
+                try {
+                    tools[i].kill();
+                } catch (Exception e) {
+                    logger.log(Level.WARNING, "ToolAgent: toolName = " +
+                            toolNames[i] + " cannot kill", e);
+                }
             }
+        }
+            
     }
 
     /**
@@ -316,6 +362,11 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
         kill();
     }
 
+    /**
+     * Downloads the tools
+     * @param toollist list of tool contexts
+     * @throws java.io.IOException
+     */
     private void downloadTools(List<MasterToolContext> toollist) throws IOException {
         LinkedHashSet<ToolDescription> downloads = new LinkedHashSet<ToolDescription>();
         for (int i=0; i < toollist.size(); i++) {
@@ -332,6 +383,10 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
         }
     }
 
+    /**
+     * Obtains the OS toolsets
+     * @return LinkedHashMap
+     */
     protected LinkedHashMap<String, List<String>> parseOSToolSets() {
         LinkedHashMap<String, List<String>> toolSetsMap =
             new LinkedHashMap<String, List<String>>();
