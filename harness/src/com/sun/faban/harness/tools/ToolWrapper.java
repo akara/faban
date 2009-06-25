@@ -54,6 +54,7 @@ public class ToolWrapper {
     Method startMethod;
     Method stopMethod;
     Method configureMethod;
+    Method postprocessMethod;
 
     static final int NOT_STARTED = 0;
     static final int STARTED = 1;
@@ -119,6 +120,15 @@ public class ToolWrapper {
                     configureMethod = method;
                 } else {
                     logger.severe("Error: Multiple @Configure methods.");
+                }
+            }
+            if (method.getAnnotation(Postprocess.class) != null) {
+                if (!conformsToSpec(method))
+                    continue;
+                if (postprocessMethod == null) {
+                    postprocessMethod = method;
+                } else {
+                    logger.severe("Error: Multiple @PostProcess methods.");
                 }
             }
         }
@@ -195,6 +205,22 @@ public class ToolWrapper {
         }
     }
 
+    public void postprocess() throws Exception {
+        if (toolStatus == STOPPED){
+            if (postprocessMethod != null)
+                try {
+                    postprocessMethod.invoke(this.tool,new Object[] {});
+                } catch (InvocationTargetException e) {
+                    throwSourceException(e);
+                }
+
+            // xfer log file to master machine, log any errors
+            xferLog();
+            logger.fine(toolName + " Done ");
+            finish();
+        }
+    }
+
     private void start() throws Exception {
         if (startMethod != null){
             try {
@@ -261,7 +287,6 @@ public class ToolWrapper {
      */
     public void stop() throws Exception {
         stop(true);
-        finish();
     }
 
     /**
@@ -275,8 +300,6 @@ public class ToolWrapper {
                 
                 // saveToolLogs(tool.getInputStream(), tool.getErrorStream());
                 toolStatus = STOPPED;
-                // xfer log file to master machine, log any errors
-                xferLog();
                 logger.fine(toolName + " Stopped ");
         } else if (warn && toolStatus == NOT_STARTED)
             logger.warning("Tool not started but stop called for " + toolName);
@@ -315,5 +338,5 @@ public class ToolWrapper {
         stop(false);
         finish();
     }
-
+    
 }

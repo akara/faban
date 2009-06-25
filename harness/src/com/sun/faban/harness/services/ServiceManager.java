@@ -27,7 +27,6 @@ import com.sun.faban.harness.ParamRepository;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.Run;
 import com.sun.faban.harness.engine.DeployImageClassLoader;
-import com.sun.faban.harness.engine.RunQ;
 import com.sun.faban.harness.tools.MasterToolContext;
 import com.sun.faban.harness.tools.ToolDescription;
 import com.sun.faban.harness.util.XMLReader;
@@ -318,7 +317,7 @@ public class ServiceManager {
                         sd.locationType + File.separator + sd.location);
 
                 String toolCmds = par.getParameter("fh:tools", serviceElement);
-                ArrayList<String> tools = new ArrayList<String>();
+                Set<String> tools = new LinkedHashSet<String>();
                 if (toolCmds.toUpperCase().equals("NONE")) {
                 }else if(toolCmds.length() != 0){
                     StringTokenizer st = new StringTokenizer(toolCmds, ";");
@@ -327,7 +326,7 @@ public class ServiceManager {
                     }
                 }else if ("".equals(toolCmds) && toolCmds.length() == 0){
                     String key = "default" + '/' + serviceName;
-                    ArrayList<String> toolset_tools = new ArrayList<String>();
+                    Set<String> toolset_tools = new LinkedHashSet<String>();
                     if(toolSetsMap.containsKey(key)){
                             toolset_tools.addAll(toolSetsMap.get(key));
                             for (String t1 : toolset_tools){
@@ -368,7 +367,7 @@ public class ServiceManager {
                         StringTokenizer tt = new StringTokenizer(tool);
                         String toolId = tt.nextToken();
                         String toolKey = toolId + '/' + serviceName;
-                        ArrayList<String> toolset_tools = new ArrayList<String>();
+                        Set<String> toolset_tools = new LinkedHashSet<String>();
                         if(toolSetsMap.containsKey(toolKey)){
                             toolset_tools.addAll(toolSetsMap.get(toolKey));
                             for (String t1 : toolset_tools){

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.40 2009/06/23 18:34:08 sheetalpatil Exp $
+ * $Id: GenericBenchmark.java,v 1.41 2009/06/25 23:13:38 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -70,11 +70,20 @@ public class GenericBenchmark {
     private int runStatus = Run.FAILED;
     private int stdyState = 0;
 
+    /**
+     * Constructor
+     * @param r run
+     */
     public GenericBenchmark(Run r) {
         this.run = r;
     }
 
     @SuppressWarnings("static-access")
+
+    /**
+     * Responsible for configuring, starting and stopping services and tools
+     * Creats the actual benchmark object and requests it to execute the run.
+     */
     public void start() {
         ParamRepository par = null;
         ServerConfig server;
@@ -439,6 +448,10 @@ public class GenericBenchmark {
         }
     }
 
+    /**
+     * Responsible for doing the postprocessing 
+     * @return true if successful
+     */
     private boolean postProcess() {
         // Create the dir for storing Xanadu XMLs
         String outDir = run.getOutDir();

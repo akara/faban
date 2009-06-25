@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ToolService.java,v 1.11 2009/06/23 18:34:08 sheetalpatil Exp $
+ * $Id: ToolService.java,v 1.12 2009/06/25 23:13:38 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -75,6 +75,9 @@ final public class ToolService {
         return toolService;
     }
 
+    /**
+     * Intializes logger
+     */
     public void init() {
         logger = Logger.getLogger(this.getClass().getName());
     }
@@ -123,12 +126,12 @@ final public class ToolService {
         }
 
         // Temporary tool list for host class being processed.
-        HashMap<String, ArrayList<String>> osHostMap =
-                new HashMap<String, ArrayList<String>>();
+        HashMap<String, Set<String>> osHostMap =
+                new HashMap<String, Set<String>>();
         
         // First we flatten out the classes into host names and tools sets
         for (int i = 0; i < hostClasses.size(); i++) {
-            ArrayList<String> toolset = new ArrayList<String>();
+            Set<String> toolset = new LinkedHashSet<String>();
             // Get the hosts list in the class.
             String[] hosts = hostClasses.get(i);
             if (hosts.length == 0) {
@@ -214,7 +217,7 @@ final public class ToolService {
                 logger.fine("Configuring ToolAgent at " + serviceName);
 
                 List<MasterToolContext> toolList = hostMap.get(hostNames[i]);
-                List<String> osToolList = osHostMap.get(hostNames[i]);
+                Set<String> osToolList = osHostMap.get(hostNames[i]);
                 if ((toolList != null && toolList.size() > 0) ||
                     (osToolList != null && osToolList.size() > 0) ) {
                     toolAgents[i].configure(toolList, osToolList, outDir);
@@ -288,6 +291,15 @@ final public class ToolService {
                     toolAgents[i].stop();
             } catch (Exception e) {
                 logger.log(Level.WARNING, "Error in Stopping tools on " +
+                        "machine " + hostNames[i] + ".", e);
+            }
+        }
+        for (int i = 0; i < toolAgents.length; i++) {
+            try {
+                if (toolAgents[i] != null)
+                    toolAgents[i].postprocess();
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Error in post-processing tools on " +
                         "machine " + hostNames[i] + ".", e);
             }
         }

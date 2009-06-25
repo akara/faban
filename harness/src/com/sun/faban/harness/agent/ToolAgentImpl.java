@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ToolAgentImpl.java,v 1.8 2009/06/25 23:13:38 sheetalpatil Exp $
+ * $Id: ToolAgentImpl.java,v 1.9 2009/06/25 23:15:52 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -308,6 +308,9 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
         }
     }
 
+    /**
+     * This method is responsible for post processing tools
+     */
     public void postprocess() {
         for (int i = 0; i < tools.length; i++) {
             if (tools[i] != null){

@@ -47,6 +47,11 @@ public class CommandLineTool {
     String toolName;
     List<String> toolArgs;
 
+    /**
+     * Configures the command line tool.
+     * Tasks done in this method includes building the
+     * toolCmd using the params from the tool context.
+     */
     @Configure public void config() {
         toolName = ctx.getToolName();
         toolArgs = ctx.getToolArgs();
@@ -61,11 +66,19 @@ public class CommandLineTool {
 
     }
 
+    /**
+     * This method is responsible for starting the command line tool.
+     *
+     */
     @Start public void start() throws IOException, InterruptedException {
         processRef = ctx.exec(cmd);
         logger.fine(toolName + " Started with Cmd = " + toolCmd);
     }
 
+    /**
+     * This method is responsible for stopping the command line tool.
+     *
+     */
     @Stop public void stop() throws IOException, InterruptedException {
         logger.fine("Stopping tool " + this.toolCmd);
         processRef.destroy();

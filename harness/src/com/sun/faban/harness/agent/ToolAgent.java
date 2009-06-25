@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ToolAgent.java,v 1.5 2009/06/23 18:34:07 sheetalpatil Exp $
+ * $Id: ToolAgent.java,v 1.6 2009/06/25 23:13:38 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;
+import java.util.Set;
 
 /**
  * The methods in this interface are the public face of 
@@ -45,18 +46,25 @@ public interface ToolAgent extends Remote {
      * this machine
      * @param toollist - each element in the array is the
      * name of a tool and optional arguments, e.g "sar -u -c"
+     * @param osToolSet list of os tools
      * @param outDir output directory of the run
+     * @throws RemoteException, IOException
      */
-    void configure(List<MasterToolContext> toollist, List<String> osToolSet,
+    void configure(List<MasterToolContext> toollist, Set<String> osToolSet,
             String outDir)
             throws RemoteException, IOException;
 
+    /**
+     * This method is responsible for killing all tools
+     * @throws java.rmi.RemoteException
+     */
     void kill() throws RemoteException;
 
     /**
      * This method is responsible for starting all tools
      * @param 	delay - time to delay before starting
      * @return 	true if tool started successfully
+     * @throws RemoteException
      */
     boolean start(int delay) throws RemoteException;
 	
@@ -65,36 +73,48 @@ public interface ToolAgent extends Remote {
      * @return 	true if tool started successfully
      * @param 	delay - time to delay before starting
      * @param duration after which tools must be stopped
+     * @throws RemoteException
      */
     boolean start(int delay, int duration) throws RemoteException;
 
     /**
-     * Start only specified tools 
+     * Start only specified tools
+     * @param 	delay - time to delay before starting
+     * @param 	tools - specific list of tools to start
+     * @throws RemoteException
+     *
      */
     boolean start(int delay, String[] tools)
 	throws RemoteException;
 
     /**
-     * Start only specified tools
-     * @param 	delay - time to delay before starting
+     * Start only specified tools for specific duration
+     * @param delay - time to delay before starting
+     * @param tools - specific list of tools to start
      * @param duration after which tools must be stopped
+     * @throws RemoteException
      */
     boolean start(int delay, String[] tools, int duration)
 	throws RemoteException;
 
     /**
      * This method is responsible for stopping the tools
+     * @throws RemoteException
      */
     public void stop () throws RemoteException;
 
     /**
      * Stopping specific tools.
      * @param tools The tools to stop.
+     * @throws RemoteException
      */ 
     public void stop (String tools[]) throws RemoteException;
 
     /**
      * Waits for all tools to finish up.
+     * @throws RemoteException
      */
     public void waitFor() throws RemoteException;
+
+    public void postprocess() throws RemoteException;
 }

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Cpustat.java,v 1.10 2009/06/23 18:34:08 sheetalpatil Exp $
+ * $Id: Cpustat.java,v 1.11 2009/06/25 23:13:38 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -62,5 +62,10 @@ public class Cpustat extends CommandLineTool{
         cmd.setStreamHandling(Command.STDOUT, Command.CAPTURE);
         cmd.setOutputFile(Command.STDOUT, postFile);
         ctx.exec(cmd);
+    }
+
+    @Postprocess
+    public void postprocess() throws IOException, InterruptedException {
+
     }
 }
