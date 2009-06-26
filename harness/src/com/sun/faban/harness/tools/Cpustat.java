@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Cpustat.java,v 1.11 2009/06/25 23:13:38 sheetalpatil Exp $
+ * $Id: Cpustat.java,v 1.12 2009/06/26 17:18:20 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -36,6 +36,8 @@ import java.io.IOException;
  */
 public class Cpustat extends CommandLineTool{
 
+    private long stopTime;
+
     @Configure
     public void configure() {
         super.config();
@@ -51,21 +53,18 @@ public class Cpustat extends CommandLineTool{
     @Stop
     public void stop() throws IOException, InterruptedException {
         super.stop();
-
-        String rawFile = ctx.getOutputFile();
-        String postFile = rawFile.replace(".raw.", ".xan.");
-        ctx.setOutputFile(postFile);
-
-        Thread.sleep(500);
-
-        cmd = new Command("cpustat-post");
-        cmd.setStreamHandling(Command.STDOUT, Command.CAPTURE);
-        cmd.setOutputFile(Command.STDOUT, postFile);
-        ctx.exec(cmd);
+        stopTime = System.currentTimeMillis();
     }
 
     @Postprocess
     public void postprocess() throws IOException, InterruptedException {
-
+        String rawFile = ctx.getOutputFile();
+        String postFile = rawFile.replace(".raw.", ".xan.");
+        ctx.setOutputFile(postFile);
+        long sleepTime = stopTime + 500 - System.currentTimeMillis();
+        if (sleepTime > 0)
+            Thread.sleep(sleepTime);
+        cmd = new Command("cpustat-post");
+        ctx.execSetOutputStream(cmd);
     }
 }

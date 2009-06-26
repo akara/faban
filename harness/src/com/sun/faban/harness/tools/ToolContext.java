@@ -109,7 +109,8 @@ public class ToolContext extends MasterToolContext {
      */
     public CommandHandle execSetOutputStream(Command cmd, int stream)
             throws IOException, InterruptedException {
-        cmd.setOutputFile(stream, localOutputFile);
+        cmd.setStreamHandling(stream, Command.CAPTURE);
+        cmd.setOutputFile(stream, localOutputFile);        
         wrapper.outputHandle = wrapper.cmdAgent.execute(cmd);
         wrapper.outputStream = stream;
         return wrapper.outputHandle;
