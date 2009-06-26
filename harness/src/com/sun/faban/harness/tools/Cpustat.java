@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Cpustat.java,v 1.12 2009/06/26 17:18:20 akara Exp $
+ * $Id: Cpustat.java,v 1.13 2009/06/26 18:30:13 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -65,6 +65,6 @@ public class Cpustat extends CommandLineTool{
         if (sleepTime > 0)
             Thread.sleep(sleepTime);
         cmd = new Command("cpustat-post");
-        ctx.execSetOutputStream(cmd);
+        ctx.exec(cmd, true);
     }
 }

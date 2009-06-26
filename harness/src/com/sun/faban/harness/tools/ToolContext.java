@@ -86,34 +86,40 @@ public class ToolContext extends MasterToolContext {
     }
 
     /**
-     * Executes a command and use the stdout from this command as the
+     * Executes a command, optionally use the stdout from this command as the
      * tool output.
      * @param cmd The command to execute
+     * @param useOutput Whether to use the output from this command
      * @return The command handle to this command
      * @throws IOException The command failed to execute
      * @throws InterruptedException Interrupted waiting for the command
      */
-    public CommandHandle execSetOutputStream(Command cmd)
+    public CommandHandle exec(Command cmd, boolean useOutput)
             throws IOException, InterruptedException {
-        return execSetOutputStream(cmd, Command.STDOUT);
+        return exec(cmd, useOutput, Command.STDOUT);
     }
 
     /**
-     * Executes a command and use an output stream from this command as
-     * the tool output.
+     * Executes a command, optionally use the stdout or stderr from this
+     * command as the tool output.
      * @param cmd The command to execute
+     * @param useOutput Whether to use the output from this command
      * @param stream The stream to use as the output, STDOUT or STDERR
      * @return The command handle to this command
      * @throws IOException The command failed to execute
      * @throws InterruptedException Interrupted waiting for the command
      */
-    public CommandHandle execSetOutputStream(Command cmd, int stream)
+    public CommandHandle exec(Command cmd, boolean useOutput, int stream)
             throws IOException, InterruptedException {
-        cmd.setStreamHandling(stream, Command.CAPTURE);
-        cmd.setOutputFile(stream, localOutputFile);        
-        wrapper.outputHandle = wrapper.cmdAgent.execute(cmd);
-        wrapper.outputStream = stream;
-        return wrapper.outputHandle;
+        if (useOutput) {
+            cmd.setStreamHandling(stream, Command.CAPTURE);
+            cmd.setOutputFile(stream, localOutputFile);
+            wrapper.outputHandle = wrapper.cmdAgent.execute(cmd);
+            wrapper.outputStream = stream;
+            return wrapper.outputHandle;
+        } else {
+            return wrapper.cmdAgent.execute(cmd);
+        }
     }
 
     /**
