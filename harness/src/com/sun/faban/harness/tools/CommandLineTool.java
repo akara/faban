@@ -24,8 +24,8 @@ package com.sun.faban.harness.tools;
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
 import com.sun.faban.harness.Context;
+
 import java.io.IOException;
-import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -60,7 +60,6 @@ public class CommandLineTool {
         if (toolArgs != null)
             toolCmd.addAll(toolArgs);
         cmd = new Command(toolCmd);
-        cmd.setOutputFile(Command.STDOUT, ctx.getOutputFile());
         cmd.setSynchronous(false);
         logger.fine(toolName + " Configured with toolCmd " + toolCmd);
 
@@ -71,7 +70,7 @@ public class CommandLineTool {
      *
      */
     @Start public void start() throws IOException, InterruptedException {
-        processRef = ctx.exec(cmd);
+        processRef = ctx.execSetOutputStream(cmd);
         logger.fine(toolName + " Started with Cmd = " + toolCmd);
     }
 
@@ -84,5 +83,4 @@ public class CommandLineTool {
         processRef.destroy();
         processRef.waitFor(10000);
     }
-
 }

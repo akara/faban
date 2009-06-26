@@ -23,6 +23,7 @@
 package com.sun.faban.harness.tools;
 
 import com.sun.faban.common.FileTransfer;
+import com.sun.faban.common.CommandHandle;
 import com.sun.faban.harness.Context;
 import com.sun.faban.harness.agent.CmdAgentImpl;
 import com.sun.faban.harness.agent.FileAgent;
@@ -64,6 +65,8 @@ public class ToolWrapper {
     CountDownLatch latch;
     boolean countedDown = false;
     String outfile;	// Name of stdout,stderr from tool
+    CommandHandle outputHandle;
+    int outputStream;
     String toolName;
     String path = null; // The path to the tool.
     CmdAgentImpl cmdAgent;
@@ -313,18 +316,25 @@ public class ToolWrapper {
             return;
         }
         try {
-            FileTransfer transfer = new FileTransfer(logfile, outfile);
+            FileTransfer transfer;
+            if (outputHandle != null) {
+                transfer = outputHandle.fetchOutput(outputStream, outfile);
+            } else {
+                transfer = new FileTransfer(logfile, outfile);
+            }
             logger.fine("Transferring log from " + logfile + " to " + outfile);
-            // Use FileAgent on master machine to copy log
-            String s = Config.FILE_AGENT;
-            FileAgent fa = (FileAgent) CmdAgentImpl.getRegistry().getService(s);
-            if (fa.push(transfer) != transfer.getSize())
-                logger.info("Invalid transfer size");
 
+            // Use FileAgent on master machine to copy log
+            if (transfer != null) {
+                String s = Config.FILE_AGENT;
+                FileAgent fa =
+                        (FileAgent) CmdAgentImpl.getRegistry().getService(s);
+                if (fa.push(transfer) != transfer.getSize())
+                    logger.info("Invalid transfer size");
+            }
         } catch (IOException e) {
             logger.log(Level.INFO, "Error transferring " + logfile, e);
         }
-
     }
 
     protected void finish() {

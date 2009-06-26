@@ -73,9 +73,64 @@ public class ToolContext extends MasterToolContext {
         return serviceCtx;
     }
 
+    /**
+     * Executes a command. The tool always executes the command locally.
+     * @param cmd The command to execute
+     * @return The command handle to this command
+     * @throws IOException The command failed to execute
+     * @throws InterruptedException Interrupted waiting for the command
+     */
     public CommandHandle exec(Command cmd)
             throws IOException, InterruptedException {
         return wrapper.cmdAgent.execute(cmd);
+    }
+
+    /**
+     * Executes a command and use the stdout from this command as the
+     * tool output.
+     * @param cmd The command to execute
+     * @return The command handle to this command
+     * @throws IOException The command failed to execute
+     * @throws InterruptedException Interrupted waiting for the command
+     */
+    public CommandHandle execSetOutputStream(Command cmd)
+            throws IOException, InterruptedException {
+        return execSetOutputStream(cmd, Command.STDOUT);
+    }
+
+    /**
+     * Executes a command and use an output stream from this command as
+     * the tool output.
+     * @param cmd The command to execute
+     * @param stream The stream to use as the output, STDOUT or STDERR
+     * @return The command handle to this command
+     * @throws IOException The command failed to execute
+     * @throws InterruptedException Interrupted waiting for the command
+     */
+    public CommandHandle execSetOutputStream(Command cmd, int stream)
+            throws IOException, InterruptedException {
+        cmd.setOutputFile(stream, localOutputFile);
+        wrapper.outputHandle = wrapper.cmdAgent.execute(cmd);
+        wrapper.outputStream = stream;
+        return wrapper.outputHandle;
+    }
+
+    /**
+     * Sets the stdout from a command to be used as the tool output.
+     * @param handle The command handle to the command to capture.
+     */
+    public void setOutputStream(CommandHandle handle) {
+        setOutputStream(handle, Command.STDOUT);
+    }
+
+    /**
+     * Sets the stdout or stderr from a command to be used as the tool output.
+     * @param handle The command handle to the command to capture
+     * @param stream The stream to use as the output, STDOUT or STDERR
+     */
+    public void setOutputStream(CommandHandle handle, int stream) {
+        wrapper.outputHandle = handle;
+        wrapper.outputStream = stream;
     }
 
 }
