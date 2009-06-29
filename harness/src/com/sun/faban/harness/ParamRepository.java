@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ParamRepository.java,v 1.16 2009/06/25 23:13:39 sheetalpatil Exp $
+ * $Id: ParamRepository.java,v 1.17 2009/06/29 21:29:09 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -93,7 +93,7 @@ public class ParamRepository {
 
      /**
      * Generic method to get NodeList for a given xpath.
-     * @param xpath string
+     * @param xPath string
      * @return NodeList for the xpath
      */
     public NodeList getNodes(String xPath) {
@@ -103,7 +103,7 @@ public class ParamRepository {
     /**
      * Generic method to get NodeList for a given xpath
      * with respect to base node.
-     * @param xpath string
+     * @param xPath string
      * @param top element
      * @return NodeList
      */
@@ -113,7 +113,7 @@ public class ParamRepository {
 
     /**
      * Generic method to get a Node for a given xpath.
-     * @param xpath string
+     * @param xPath string
      * @return Node for the xpath
      */
     public Node getNode(String xPath) {
@@ -123,7 +123,7 @@ public class ParamRepository {
     /**
      * Generic method to get a Node for a given xpath
      * with respect to base node.
-     * @param xpath string
+     * @param xPath string
      * @param top element
      * @return Node for the xpath
      */
@@ -437,7 +437,7 @@ public class ParamRepository {
      * This method reads a value using the XPath and converts it to a boolean
      * @param xpath XPath expression to the value which is true or false
      * @param base element
-     * @param booleanValue 
+     * @param defaultValue
      * @return true or false
      */
     public boolean getBooleanValue(String xpath, Element base,

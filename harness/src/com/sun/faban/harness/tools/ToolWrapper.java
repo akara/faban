@@ -64,6 +64,7 @@ public class ToolWrapper {
     int toolStatus = NOT_STARTED;
     CountDownLatch latch;
     boolean countedDown = false;
+    boolean postprocessed = false;
     String outfile;	// Name of stdout,stderr from tool
     CommandHandle outputHandle;
     int outputStream;
@@ -209,17 +210,24 @@ public class ToolWrapper {
     }
 
     public void postprocess() throws Exception {
-        if (toolStatus == STOPPED){
-            if (postprocessMethod != null)
-                try {
-                    postprocessMethod.invoke(this.tool,new Object[] {});
-                } catch (InvocationTargetException e) {
-                    throwSourceException(e);
-                }
+        if (postprocessed)
+            return;
+        postprocessed = true;
+        logger.fine(toolName + " post-processing.");
+        try {
+            if (toolStatus == STOPPED){
+                if (postprocessMethod != null)
+                    try {
+                        postprocessMethod.invoke(this.tool,new Object[] {});
+                    } catch (InvocationTargetException e) {
+                        throwSourceException(e);
+                    }
 
-            // xfer log file to master machine, log any errors
-            xferLog();
-            logger.fine(toolName + " Done ");
+                // xfer log file to master machine, log any errors
+                xferLog();
+                logger.fine(toolName + " Done ");
+            }
+        } finally {
             finish();
         }
     }
@@ -269,19 +277,33 @@ public class ToolWrapper {
 
     public boolean start(int delay, int duration) {
         if(this.start(delay)) {
-            TimerTask stopTask = new TimerTask() {
-                public void run() {
-                    try {
-                        stop();
-                    } catch (Exception ex) {
-                        logger.log(Level.SEVERE, null, ex);
-                    }
-                }
-            };
-            timer.schedule(stopTask, (delay + duration) * 1000);
+            timer.schedule(new StopTask(), (delay + duration) * 1000);
             return true;
         } else {
             return false;
+        }
+    }
+
+    private class StopTask extends TimerTask {
+        public void run() {
+            try {
+                stop();
+                // Schedule it out 0.5 secs just to ensure
+                // the other tools' stops are called first.
+                timer.schedule(new PostprocessTask(), 500);
+            } catch (Exception ex) {
+                logger.log(Level.SEVERE, ex.getMessage(), ex);
+            }
+        }
+    }
+
+    private class PostprocessTask extends TimerTask {
+        public void run() {
+            try {
+                postprocess();
+            } catch (Exception ex) {
+                logger.log(Level.SEVERE, ex.getMessage(), ex);
+            }
         }
     }
 

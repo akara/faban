@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ToolAgentImpl.java,v 1.9 2009/06/25 23:15:52 sheetalpatil Exp $
+ * $Id: ToolAgentImpl.java,v 1.10 2009/06/29 21:29:07 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -28,23 +28,17 @@ import com.sun.faban.harness.tools.CommandLineTool;
 import com.sun.faban.harness.tools.MasterToolContext;
 import com.sun.faban.harness.tools.ToolDescription;
 import com.sun.faban.harness.tools.ToolWrapper;
-
 import com.sun.faban.harness.util.XMLReader;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
 import java.io.File;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.rmi.server.Unreferenced;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -85,15 +79,15 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
      * This method configures the tools that must be run on
      * this machine by calling the configure method on each of
      * the specified tools.
-     * @param toollist - each element in the array is the
+     * @param toolList - each element in the array is the
      * name of a tool and optional arguments, e.g "sar -u -c"
      * @param osToolSet list of os tools
      * @param outDir output directory of the run
-     * @throws RemoteException, IOException
+     * @throws IOException
      *
      */
     public void configure(List<MasterToolContext> toolList, Set<String> osToolSet, String outDir)
-            throws RemoteException, IOException {
+            throws IOException {
         List<MasterToolContext> toollist = new ArrayList<MasterToolContext>();
         if(toolList != null){
             toollist.addAll(toolList);
@@ -315,6 +309,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
         for (int i = 0; i < tools.length; i++) {
             if (tools[i] != null){
                 try {
+                    logger.finer("Postprocessing " + toolNames[i]);
                     tools[i].postprocess();
                 }
                 catch (Exception e) {

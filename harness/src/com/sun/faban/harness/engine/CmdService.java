@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.50 2009/05/28 21:03:23 akara Exp $
+ * $Id: CmdService.java,v 1.51 2009/06/29 21:29:07 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -1496,8 +1496,9 @@ final public class CmdService { 	// The final keyword prevents clones
      * @param destfile - Name of destination file
      * @param append to dest file or overwrite it
      * @return true/false if copy was successful/failed
+     * @deprecated
      */
-    public synchronized boolean copy(String srcmachine, String destmachine,
+    @Deprecated public synchronized boolean copy(String srcmachine, String destmachine,
             String srcfile, String destfile,
             boolean append) {
 
@@ -1549,7 +1550,17 @@ final public class CmdService { 	// The final keyword prevents clones
         return true;
     }
 
-    public synchronized boolean move(String srcmachine, String destmachine,
+    /**
+     *
+     * @param srcmachine
+     * @param destmachine
+     * @param srcfile
+     * @param destfile
+     * @param append
+     * @return Whether the move succeeded
+     * @deprecated
+     */
+    @Deprecated public synchronized boolean move(String srcmachine, String destmachine,
             String srcfile, String destfile,
             boolean append) {
         // First copy the file then delete
@@ -1681,8 +1692,9 @@ final public class CmdService { 	// The final keyword prevents clones
      * @param destfile - Name of destination file
      * @param append to dest file or overwrite it
      * @return true/false if copy was successful/failed
+     * @deprecated
      */
-    public synchronized boolean copyBytes(String srcmachine,
+    @Deprecated public synchronized boolean copyBytes(String srcmachine,
             String destmachine,
             String srcfile, String destfile,
             boolean append) {

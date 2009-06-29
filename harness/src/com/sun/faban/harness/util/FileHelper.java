@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileHelper.java,v 1.20 2009/03/31 00:24:56 sheetalpatil Exp $
+ * $Id: FileHelper.java,v 1.21 2009/06/29 21:29:08 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -497,8 +497,9 @@ public class FileHelper {
      * @param outFile The output file name on the Faban master
      * @param move Whether to remove the original file or not
      * @return True if the transfer is complete, false otherwise.
+     * @deprecated
      */
-    public static boolean xferFile(String inFile, String outFile, boolean move) {
+    @Deprecated public static boolean xferFile(String inFile, String outFile, boolean move) {
         File f = new File(inFile);
         if(!f.exists())
             return false ;

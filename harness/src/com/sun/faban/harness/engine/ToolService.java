@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ToolService.java,v 1.12 2009/06/25 23:13:38 sheetalpatil Exp $
+ * $Id: ToolService.java,v 1.13 2009/06/29 21:29:08 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -297,6 +297,7 @@ final public class ToolService {
         for (int i = 0; i < toolAgents.length; i++) {
             try {
                 if (toolAgents[i] != null)
+                    logger.fine("Post-processing tools on " + hostNames[i]);
                     toolAgents[i].postprocess();
             } catch (Exception e) {
                 logger.log(Level.WARNING, "Error in post-processing tools on " +

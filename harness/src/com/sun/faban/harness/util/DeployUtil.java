@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DeployUtil.java,v 1.19 2009/06/23 18:34:07 sheetalpatil Exp $
+ * $Id: DeployUtil.java,v 1.20 2009/06/29 21:29:08 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,11 +25,10 @@ package com.sun.faban.harness.util;
 
 import com.sun.faban.common.Command;
 import com.sun.faban.common.Utilities;
-import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.BenchmarkDescription;
+import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.engine.RunQ;
 import com.sun.faban.harness.services.ServiceManager;
-import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Node;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -38,14 +37,12 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
 import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.Date;
-import java.util.ArrayList;
-import java.text.SimpleDateFormat;
-import java.util.Set;
-import org.w3c.dom.NodeList;
 
 /**
  * Benchmark deployment utility used to check/generate the deployment
@@ -81,11 +78,12 @@ public class DeployUtil {
      * Unjars the content a benchmark jar file into the benchmark directory.
      * @param benchName The name of the benchmark
      */
-    public static void unjar(String benchName) throws IOException, Exception {
+    public static void unjar(File jarFile, String benchName)
+            throws IOException, Exception {
                 
         logger.info("Redeploying " + benchName);
 
-        String jarName = benchName + ".jar";
+        String jarName = jarFile.getName();
         File dir = new File(Config.BENCHMARK_DIR, benchName);
 
         if (dir.exists())
@@ -93,7 +91,7 @@ public class DeployUtil {
 
         dir.mkdir();
 
-        FileHelper.unjar(Config.BENCHMARK_DIR + jarName, dir.getAbsolutePath());
+        FileHelper.unjar(jarFile.getAbsolutePath(), dir.getAbsolutePath());
         File runXml = new File(Config.BENCHMARK_DIR + benchName + File.separator + "META-INF" + File.separator + "run.xml");
         File servicesToolsXml = new File(Config.BENCHMARK_DIR + benchName + File.separator + "META-INF" + File.separator + "services-tools.xml");
         if (servicesToolsXml.exists() && !runXml.exists()) {
@@ -279,9 +277,9 @@ public class DeployUtil {
         File serviceDir = new File(SERVICEDIR, serviceName);
         if (serviceDir.isDirectory()) {
             if (jarFile.lastModified() > serviceDir.lastModified())
-                deployService(serviceName);
+                deployService(jarFile, serviceName);
         } else {
-            deployService(serviceName);
+            deployService(jarFile, serviceName);
         }
     }
 
@@ -289,16 +287,16 @@ public class DeployUtil {
         File benchDir = new File(BENCHMARKDIR, benchName);
         if (benchDir.isDirectory()) {
             if (jarFile.lastModified() > benchDir.lastModified())
-                deployBenchmark(benchName);
+                deployBenchmark(jarFile, benchName);
         } else {
-            deployBenchmark(benchName);
+            deployBenchmark(jarFile, benchName);
         }
     }
 
-    public static void deployBenchmark(String benchName) {
+    public static void deployBenchmark(File jarFile, String benchName) {
         if (canDeployBenchmark(benchName))
             try {
-                unjar(benchName);
+                unjar(jarFile, benchName);
                 generateDD(benchName);
                 generateXform(benchName);
             } catch (Exception e) {
@@ -307,10 +305,10 @@ public class DeployUtil {
             }
     }
 
-    public static void deployService(String serviceBundleName) {
+    public static void deployService(File jarFile, String serviceBundleName) {
         if (canDeployService(serviceBundleName))
             try {
-                unjar(serviceBundleName);
+                unjar(jarFile, serviceBundleName);
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Error deploying serviceBundle \"" +
                         serviceBundleName + "\"", e);

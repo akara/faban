@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DeployImageClassLoader.java,v 1.1 2009/05/21 10:13:24 sheetalpatil Exp $
+ * $Id: DeployImageClassLoader.java,v 1.2 2009/06/29 21:29:07 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -53,7 +53,8 @@ public class DeployImageClassLoader extends URLClassLoader {
     /**
      * Obtains an instance of the classloader for a certain deploy image
      * (benchmark or service).
-     * @param nameOrPath The name of the benchmark or the full path to a deploy image
+     * @param type The type of the deploy image, benchmark or service
+     * @param dir The directory containing the deploy image
      * @param parent The parent class loader
      * @return The class loader to load the benchmarks or resources
      */

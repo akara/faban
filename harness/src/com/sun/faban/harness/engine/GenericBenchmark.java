@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.41 2009/06/25 23:13:38 sheetalpatil Exp $
+ * $Id: GenericBenchmark.java,v 1.42 2009/06/29 21:29:07 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -242,12 +242,6 @@ public class GenericBenchmark {
                 len = s.length();
             }
             if (len > 0) {
-                //if (s == null || s.length() == 0) {
-                    //logger.severe("Configuration runControl/steadyState not set.");
-                    //return;
-                    //logger.info("Configuration runControl/steadyState left open");
-                //}
-
                 try {
                     stdyState = Integer.parseInt(s);
                 } catch (NumberFormatException e) {
@@ -308,11 +302,11 @@ public class GenericBenchmark {
             try {
                 if (stdyState > 0) {
                     tools.start(delay, stdyState);
-                    logger.info("Started tools with tools." +
+                    logger.fine("Started tools with tools." +
                             "start(delay, stdyState)");
                 }else{
                     tools.start(delay);
-                    logger.info("Started tools with tools.start(delay)");
+                    logger.fine("Started tools with tools.start(delay)");
                 }
             } catch (Exception e) {
                 logger.log(Level.WARNING, "ToolService not started.", e);
@@ -328,13 +322,28 @@ public class GenericBenchmark {
                 return;
             }
 
+            // s represents the string value of steady state.
+            // We only call stop here for benchmarks that do not have
+            // a firm length, i.e. no steady state.
             if (s == null || s.length() == 0) {
                 logger.info("Stop called for tools");
                 tools.stop();
                 logger.info("Stopped tools");
             }
+
+            // Even if the run got killed, we can arrive here.
+            // So we need to check the killed flag first.
+            if (runStatus != Run.KILLED) {
+                tools.waitFor();
+                runStatus = Run.COMPLETED;
+            }
+
+            // After the tools are all done, we shutdown the service.
             serviceMgr.shutdown();
+
             try {
+                // Postprocessing may need tools output. So the postRun
+                // must be called after all tools and services are done.
                 bmw.postRun();
             } catch (Throwable t) {
                 logger.log(Level.SEVERE, "Post run failed!", t);
@@ -349,12 +358,6 @@ public class GenericBenchmark {
 
             logger.info("END TIME : " + new java.util.Date());
 
-            // Even if the run got killed, we can arrive here.
-            // So we need to check the killed flag first.
-            if (runStatus != Run.KILLED) {
-                tools.waitFor();
-                runStatus = Run.COMPLETED;
-            }
             return;
         } catch (Throwable t) {
             logger.log(Level.SEVERE,
