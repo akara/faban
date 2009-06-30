@@ -17,13 +17,13 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TimedSocketFactory.java,v 1.4 2008/05/06 21:58:12 akara Exp $
+ * $Id: TimedSocketFactory.java,v 1.5 2009/06/30 06:34:50 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver.transport.util;
 
-import com.sun.faban.driver.transport.http.SocketFactory;
+import com.sun.faban.driver.transport.sunhttp.SocketFactory;
 
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -39,14 +39,14 @@ import java.io.IOException;
 public class TimedSocketFactory extends SocketFactory {
 
     /**
-     * @see com.sun.faban.driver.transport.http.SocketFactory#createSocket(java.net.Proxy)
+     * @see com.sun.faban.driver.transport.sunhttp.SocketFactory#createSocket(java.net.Proxy)
      */
 	public Socket createSocket(Proxy proxy) {
         return new TimedSocket(proxy);
     }
 
     /**
-     * @see com.sun.faban.driver.transport.http.SocketFactory#createSocket(java.net.Proxy)
+     * @see com.sun.faban.driver.transport.sunhttp.SocketFactory#createSocket(java.net.Proxy)
      */
     @Override public Socket createSocket() throws IOException {
         return new TimedSocket();

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MultipleTransport.java,v 1.4 2008/09/10 18:25:56 akara Exp $
+ * $Id: MultipleTransport.java,v 1.5 2009/06/30 06:34:49 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
