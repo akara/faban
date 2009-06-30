@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: HttpTransport.java,v 1.15 2009/06/29 23:49:38 akara Exp $
+ * $Id: HttpTransport.java,v 1.16 2009/06/30 06:36:32 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -55,25 +55,21 @@ import java.util.Map;
  */
 public class HttpTransport {
 
-    public static final int SUN = 0;
-    public static final int APACHE_3 = 1;
-
-    static final Class[] providers = {
-        com.sun.faban.driver.transport.http.SunHttpTransport.class ,
-        com.sun.faban.driver.transport.http.ApacheHC3Transport.class
-    };
-
-    static Class provider = providers[0];
+    static String provider =
+            "com.sun.faban.driver.transport.sunhttp.SunHttpTransport";
 
     HttpTransport delegate = null;
 
-    public static void setProvider(int providerType) {
-        provider = providers[providerType];
+    public static void setProvider(String newProvider) {
+        provider = newProvider;
     }
 
     public static HttpTransport newInstance() {
         try {
-            return (HttpTransport) provider.newInstance();
+            return (HttpTransport) Class.forName(provider).
+                    asSubclass(HttpTransport.class).newInstance();
+        } catch (ClassNotFoundException e) {
+            throw new FatalException("Cannot find transport class.", e);
         } catch (InstantiationException e) {
             throw new FatalException("Cannot instantiate transport.", e);
         } catch (IllegalAccessException e) {
