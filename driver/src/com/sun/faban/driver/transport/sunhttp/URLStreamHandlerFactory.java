@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: URLStreamHandlerFactory.java,v 1.1 2009/06/30 06:33:27 akara Exp $
+ * $Id: URLStreamHandlerFactory.java,v 1.2 2009/06/30 19:33:02 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -186,7 +186,7 @@ public class URLStreamHandlerFactory
     public URLStreamHandlerFactory() {
         try {
             Class.forName(
-                    "com.sun.faban.driver.transport.http.HttpClient");
+                    "com.sun.faban.driver.transport.sunhttp.HttpClient");
         } catch (ClassNotFoundException cnfe) {
             throw new IllegalArgumentException("Can't find httpclient class");
         }

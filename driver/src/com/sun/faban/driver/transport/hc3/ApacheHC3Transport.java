@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ApacheHC3Transport.java,v 1.1 2009/06/30 06:32:40 akara Exp $
+ * $Id: ApacheHC3Transport.java,v 1.2 2009/06/30 19:32:59 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -106,16 +106,34 @@ public class ApacheHC3Transport extends HttpTransport {
     private HashSet<String> texttypes;
 
     /**
-     * Constructs a new SunHttpTransport object.
+     * Constructs a new ApacheHC3Transport object.
      */
     public ApacheHC3Transport() {
-        // No retries in a driver.
-        // hc.getParams().setParameter(HttpMethodParams.RETRY_HANDLER,
-        //        new DefaultHttpMethodRetryHandler(0, false));
         hc.getHttpConnectionManager().getParams().setConnectionTimeout(30000);
 
     	texttypes = new HashSet<String>();
         texttypes.add("application/json");
+    }
+
+    /**
+     * Sets whether the client should retry or not.
+     * @param retry Whether to retry failed attempts
+     */
+    public void setRetry(boolean retry) {
+        if (retry)
+            hc.getParams().setParameter(HttpMethodParams.RETRY_HANDLER,
+                    new DefaultHttpMethodRetryHandler(1, true));
+        else
+            hc.getParams().setParameter(HttpMethodParams.RETRY_HANDLER,
+                    new DefaultHttpMethodRetryHandler(0, false));
+    }
+
+    /**
+     * Obtains the HttpClient instance backing this transport.
+     * @return The backing instance
+     */
+    public HttpClient getHttpClient() {
+        return hc;
     }
 
     /**
