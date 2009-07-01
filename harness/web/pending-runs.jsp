@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: pending-runs.jsp,v 1.7 2009/02/28 18:03:50 akara Exp $
+ * $Id: pending-runs.jsp,v 1.8 2009/07/01 22:31:51 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -35,7 +35,7 @@
         <meta name="Author" content="Ramesh Ramachandran"/>
         <meta name="Description" content="Pending Runs"/>
         <title>Pending Runs [<%= Config.FABAN_HOST %>]</title>
-
+        <link rel="stylesheet" type="text/css" href="/css/style.css" />
         <link rel="icon" type="image/gif" href="img/faban.gif">
     </head>
     <body>
@@ -63,12 +63,13 @@
         %>
                 <form  method="post" action="delete-runs.jsp">
         <%      } %>
-                    <table cellpadding="2" cellspacing="0" border="1" width="80%" align="center">
+                    <center>
+                    <table BORDER=0 CELLPADDING=4 CELLSPACING=3 width="80%" align="center" style="padding:2px; border: 2px solid #cccccc;">
                     <tbody>
                     <tr>
-                        <th>Run ID</th>
-                        <th>Benchmark</th>
-                        <th>Description</th>
+                        <th style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="header">Run ID</th>
+                        <th style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="header">Benchmark</th>
+                        <th style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="header">Description</th>
                     </tr>
         <%
                 for(int i=0; i < pending.length; i++) {
@@ -76,7 +77,7 @@
         %>
                     <tr>
 
-                        <td style="text-align: right;">
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell" style="text-align: right;">
         <%
                         if (killAllowed[i]) {
         %>
@@ -85,8 +86,8 @@
                         }
         %>
                             <%= pending[i][0] %></td>
-                        <td><%= pending[i][1]%></td>
-                        <td><%= pending[i][2]%></td>
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><%= pending[i][1]%></td>
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><%= pending[i][2]%></td>
                     </tr>
          <%     } %>
                  </tbody>
