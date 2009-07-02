@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MasterImpl.java,v 1.7 2009/06/23 06:58:30 akara Exp $
+ * $Id: MasterImpl.java,v 1.8 2009/07/02 18:04:19 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -751,7 +751,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         }
 
         public Metrics getMutableMetrics(int idx) {
-            return metrices.get(idx);
+            return (Metrics) metrices.get(idx).clone();
         }
 
         public void add(Metrics instance, int idx) {
