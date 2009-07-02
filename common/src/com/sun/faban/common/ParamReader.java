@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ParamReader.java,v 1.3 2008/02/26 19:26:41 akara Exp $
+ * $Id: ParamReader.java,v 1.4 2009/07/02 20:26:40 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -55,6 +55,7 @@ public class ParamReader {
 
     static Logger logger = Logger.getLogger(ParamReader.class.getName());
 
+    /** The base Faban namespace URI. */ 
     public static final String FABANURI = "http://faban.sunsource.net/ns/faban";
 
     /** List of xpaths and their prefixes. */

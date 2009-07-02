@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CommandHandle.java,v 1.4 2008/03/14 06:31:33 akara Exp $
+ * $Id: CommandHandle.java,v 1.5 2009/07/02 20:26:40 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -37,11 +37,13 @@ public interface CommandHandle extends Remote {
     /**
      * Obtains the command string this command handle represents.
      * @return The command string executed.
+     * @throws RemoteException A network error occurred
      */
     public String getCommandString() throws RemoteException;
 
     /**
      * Forfully terminates the command.
+     * @throws RemoteException A network error occurred
      */
     public void destroy() throws RemoteException;
 
@@ -71,7 +73,8 @@ public interface CommandHandle extends Remote {
     /**
      * Obtains the stdout or stderr of the command.
      * @param streamId Command.STDOUT or Command.STDERR
-     * @throws java.io.IOException There is an error getting the output
+     * @return The output of the command, as a byte array
+     * @throws IOException There is an error getting the output
      * @throws IllegalStateException The command is not yet terminated or
      *                               does not record output
      * @throws RemoteException A network error occurred

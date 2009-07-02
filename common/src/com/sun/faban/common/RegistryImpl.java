@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RegistryImpl.java,v 1.6 2008/03/05 02:49:51 akara Exp $
+ * $Id: RegistryImpl.java,v 1.7 2009/07/02 20:26:40 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -134,8 +134,7 @@ public class RegistryImpl extends UnicastRemoteObject implements Registry {
      * @return true if registration succeeded, false if there is already
      *         an object registered by this name.
      */
-    public synchronized boolean register(String name, Remote service)
-            throws RemoteException {
+    public synchronized boolean register(String name, Remote service) {
 
         logger.fine("Registry: Registering " + name +
                 " on machine " + getCaller());
@@ -163,9 +162,7 @@ public class RegistryImpl extends UnicastRemoteObject implements Registry {
      *         an object registered by this name.
      */
     public synchronized boolean register(String type, String name,
-                                         Remote service)
-            throws RemoteException {
-
+                                         Remote service) {
         if (service == null)
             throw new NullPointerException("Type: " + type + ", Name: " +
                     name + "| Service reference is null");
@@ -325,7 +322,7 @@ public class RegistryImpl extends UnicastRemoteObject implements Registry {
     }
 
     /**
-      * Get the number of registered Services of a type
+      * Get the number of registered Services of a type.
       * @param type of service
       * @return int number of registered services
       */
@@ -358,7 +355,7 @@ public class RegistryImpl extends UnicastRemoteObject implements Registry {
     }
 
     /**
-     * Kill is called to exit the RMI registry and Registry
+     * Kill is called to exit the RMI registry and Registry.
      */
     public void kill() {
         logger.info("Unregistering Services");
@@ -392,12 +389,12 @@ public class RegistryImpl extends UnicastRemoteObject implements Registry {
         logger.info("Registry will exit in 5 secs");
     }
 
-
-
     /**
-     * Registration for RMI serving
+     * Registration for RMI serving.
+     *
+     * @param args Command line arguments, not used
      */
-    public static void main(String [] argv) {
+    public static void main(String[] args) {
 
         String portString = System.getProperty("faban.registry.port");
         if (portString != null)

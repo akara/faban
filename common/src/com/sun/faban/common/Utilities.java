@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Utilities.java,v 1.12 2009/06/23 16:46:38 akara Exp $
+ * $Id: Utilities.java,v 1.13 2009/07/02 20:26:40 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -87,8 +87,8 @@ public class Utilities {
     }
 
     /**
-     * Obtains the JAVA_HOME of the current JVM.
-     * @return The current JAVA_HOME
+     * Obtains the javaHome of the current JVM.
+     * @return The current javaHome
      */
     public static String getJavaHome() {
         String javaHome = System.getProperty("java.home");
@@ -146,7 +146,7 @@ public class Utilities {
 
     /**
      * Parses the host:port string and puts the list of host:port pairs
-     * into the hostPortList
+     * into the hostPortList.
      * @param hostPorts The host:port string
      * @param hostPortList The list to insert the host:port pairs
      * @param hostSet The set to insert host names, null if not needed

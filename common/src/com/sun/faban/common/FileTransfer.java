@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileTransfer.java,v 1.3 2008/05/02 23:16:18 akara Exp $
+ * $Id: FileTransfer.java,v 1.4 2009/07/02 20:26:40 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -93,6 +93,13 @@ public class FileTransfer implements Externalizable {
         }
     }
 
+    /**
+     * Creates a file transfer object from a byte buffer.
+     * @param buffer The buffer
+     * @param offset The starting offset to use
+     * @param length The length of data to use, in bytes
+     * @param dest The destination file
+     */
     public FileTransfer(byte[] buffer, int offset, int length, String dest) {
         this.src = "";
         this.dest = dest;

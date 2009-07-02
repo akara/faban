@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FabanShell.java,v 1.2 2009/05/30 04:46:42 akara Exp $
+ * $Id: FabanShell.java,v 1.3 2009/07/02 20:26:40 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -36,8 +36,9 @@ import java.io.OutputStream;
  */
 public class FabanShell extends Thread {
 
-    public static String JAVA_HOME = System.getenv("JAVA_HOME");
-    public static final String FABAN_HOME = System.getenv("FABAN_HOME");
+    static final String FABAN_HOME = System.getenv("FABAN_HOME");
+
+    static String javaHome = System.getenv("javaHome");
 
     private InputStream in;
     private OutputStream out;
@@ -67,13 +68,17 @@ public class FabanShell extends Thread {
             e.printStackTrace();
         }
     }
-    
+
+    /**
+     * Starts and runs the command shell.
+     * @param args The command line arguments passed to the shell
+     */
     public static void main(String[] args) {
 
         // Check the environment settings.
         boolean javaHomeEnv = true;
-        if (JAVA_HOME == null || JAVA_HOME.length() == 0) {
-            JAVA_HOME = Utilities.getJavaHome();
+        if (javaHome == null || javaHome.length() == 0) {
+            javaHome = Utilities.getJavaHome();
             javaHomeEnv = false;
         }
 
@@ -85,7 +90,7 @@ public class FabanShell extends Thread {
         StringBuilder classPath = new StringBuilder();
 
         // Check whether we have a JDK, if necessary.
-        String javaLibs = JAVA_HOME + File.separator + "lib";
+        String javaLibs = javaHome + File.separator + "lib";
         String needJDK = System.getProperty("fabanshell.needJDK");
         if ("true".equalsIgnoreCase(needJDK)) {
             boolean isJDK = false;
@@ -101,17 +106,17 @@ public class FabanShell extends Thread {
                 }
             }
             if (!isJDK) {
-                System.err.println("Could not find a JDK at " + JAVA_HOME +
+                System.err.println("Could not find a JDK at " + javaHome +
                         ". Please make sure the JDK is installed and set " +
-                        "JAVA_HOME or PATH accordingly.");
+                        "javaHome or PATH accordingly.");
                 System.exit(1);
             }
         }
 
         if (!javaHomeEnv)
-            System.err.println("JAVA_HOME not set. Using " + JAVA_HOME + ".");
+            System.err.println("javaHome not set. Using " + javaHome + ".");
 
-        String java = JAVA_HOME + File.separator + "bin" +
+        String java = javaHome + File.separator + "bin" +
                                                     File.separator + "java";
         String fabanLibs = FABAN_HOME + File.separator + "lib" + File.separator;
         File fabanLibDir = new File(fabanLibs);
