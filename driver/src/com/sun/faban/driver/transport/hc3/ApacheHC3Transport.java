@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ApacheHC3Transport.java,v 1.2 2009/06/30 19:32:59 akara Exp $
+ * $Id: ApacheHC3Transport.java,v 1.3 2009/07/03 01:52:35 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -95,10 +95,10 @@ public class ApacheHC3Transport extends HttpTransport {
     /** The byte buffer used for the reads in read* methods. */
     private byte[] byteReadBuffer = new byte[8192];
 
-    /** The char used for the reads in fetch* methods */
+    /** The char used for the reads in fetch* methods. */
     private char[] charReadBuffer = new char[8192];
 
-    /** A cache for already-compiled regex patterns */
+    /** A cache for already-compiled regex patterns. */
     private HashMap<String, Pattern> patternCache;
 
     private boolean followRedirects = false;
@@ -167,7 +167,7 @@ public class ApacheHC3Transport extends HttpTransport {
 
     /**
      * Initializes or re-initializes the buffer.
-     * @param size
+     * @param size The size of the buffer
      */
     private void reInitBuffer(int size) {
         if (charBuffer == null)
@@ -933,7 +933,8 @@ public class ApacheHC3Transport extends HttpTransport {
     }
 
     /**
-     * @return responseCode
+     * Obtains the response code of the previous request.
+     * @return responseCode The response code
      */
     public int getResponseCode() {
         return responseCode;

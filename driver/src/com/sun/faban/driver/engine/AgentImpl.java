@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentImpl.java,v 1.7 2009/06/30 19:32:59 akara Exp $
+ * $Id: AgentImpl.java,v 1.8 2009/07/03 01:52:34 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -78,13 +78,16 @@ public class AgentImpl extends UnicastRemoteObject
     private boolean runAborted = false;
     StatsCollector statsCollector;
 
-    public int timeToRunFor = 1;
-    public int runningThreads = 0;
-    public VariableLoadHandlerThread threadController;
+    int timeToRunFor = 1;
+    int runningThreads = 0;
+    VariableLoadHandlerThread threadController;
 
     /**
-     * Constructor
-     * Create properties object from file
+     * Constructs the AgentImpl object.
+     * @param driverName The type name of the driver to execute
+     * @param agentId The id of this agent, unique among agents of same driver
+     * @param master The master system
+     * @throws Exception Any issue that may occur as part of the construction
      */
     AgentImpl(String driverName, String agentId, String master)
             throws Exception {
@@ -125,7 +128,7 @@ public class AgentImpl extends UnicastRemoteObject
     }
 
     /**
-     * Configures each agents with the props passed
+     * Configures each agents with the properties passed
      * The threads are created at this point
      * @param master the remote interface to the Master
      * @param runInfo run information passed by Master

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ProtocolTimedSocketFactory.java,v 1.1 2009/06/30 06:32:40 akara Exp $
+ * $Id: ProtocolTimedSocketFactory.java,v 1.2 2009/07/03 01:52:35 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -69,6 +69,8 @@ public class ProtocolTimedSocketFactory implements ProtocolSocketFactory {
 
     /**
      * All instances of ProtocolTimedSocketFactory are the same.
+     * @param obj The other object to compare to
+     * @return true if obj is a ProtocolTimedSocketFactory, false otherwise
      */
     public boolean equals(Object obj) {
         return ((obj != null) && obj.getClass().equals(getClass()));
@@ -76,6 +78,7 @@ public class ProtocolTimedSocketFactory implements ProtocolSocketFactory {
 
     /**
      * All instances of ProtocolTimedSocketFactory have the same hash code.
+     * @return The hash code of the class, thus all instances are the same
      */
     public int hashCode() {
         return getClass().hashCode();

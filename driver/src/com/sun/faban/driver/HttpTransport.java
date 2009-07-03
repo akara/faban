@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: HttpTransport.java,v 1.16 2009/06/30 06:36:32 akara Exp $
+ * $Id: HttpTransport.java,v 1.17 2009/07/03 01:52:37 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -60,10 +60,23 @@ public class HttpTransport {
 
     HttpTransport delegate = null;
 
+    /**
+     * Sets the provider class. NewInstance() will instantiate the
+     * given provider.
+     * @param newProvider The fully qualified name of the provider class
+     */
     public static void setProvider(String newProvider) {
         provider = newProvider;
     }
 
+    /**
+     * Creates an instance of HttpTransport with a fresh state. The actual
+     * instance created may be a subclass of HttpTransport fitting to the
+     * desired transport mechanism. You can select the transport provider
+     * by calling setProvider() before calling newInstance().
+     * @return A new instance of HttpTransport or a subclass thereof
+     * @see #setProvider(java.lang.String)
+     */
     public static HttpTransport newInstance() {
         try {
             return (HttpTransport) Class.forName(provider).
@@ -659,6 +672,7 @@ public class HttpTransport {
     }
 
     /**
+     * Obtains the response code of the last request.
      * @return responseCode
      */
     public int getResponseCode() {

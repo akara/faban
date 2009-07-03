@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DriverContext.java,v 1.4 2009/05/17 20:02:02 akara Exp $
+ * $Id: DriverContext.java,v 1.5 2009/07/03 01:52:34 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -102,6 +102,7 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
     /**
      * Constructs a DriverContext. Called only from AgentThread.
      * @param thread The AgentThread used by this context
+     * @param timer The timer used by this thread
      */
     DriverContext(AgentThread thread, Timer timer) {
         className = getClass().getName();
@@ -269,6 +270,7 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
     /**
      * Parses the properties DOM tree in puts the output into a HashMap.
      * Returns properties so that we do not have the effect of double-checks.
+     * @param propertiesElement The DOM element containing the properties
      * @return The resulting map
      */
     private static synchronized HashMap<String, String[]> parseProperties(
@@ -625,7 +627,7 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      */
     public static class TimingInfo {
     	/**
-    	 * Intended Invoke Time
+    	 * Intended Invoke Time.
     	 */
         public long intendedInvokeTime = TIME_NOT_SET;
         /**
@@ -633,7 +635,7 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
          */
         public long invokeTime = TIME_NOT_SET;
         /**
-         * Respond Time
+         * Respond Time.
          */
         public long respondTime = TIME_NOT_SET;
         /**

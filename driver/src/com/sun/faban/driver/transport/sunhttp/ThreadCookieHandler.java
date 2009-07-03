@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ThreadCookieHandler.java,v 1.1 2009/06/30 06:33:27 akara Exp $
+ * $Id: ThreadCookieHandler.java,v 1.2 2009/07/03 01:52:36 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -342,6 +342,7 @@ public class ThreadCookieHandler {
          * Parses the cookie as represented in the response header into a
          * cookie object.
          * @param cookieString The string from the response header
+         * @param h The instance of the ThreadCookieHandler to parse and store
          * @return The resulting cookie
          */
         static Cookie parseCookie(String cookieString, ThreadCookieHandler h) {
@@ -610,7 +611,7 @@ public class ThreadCookieHandler {
          * they are considered equivalent within the effective host's domain.
          * Cookies that do not share the effective host/domain may not
          * be compared.
-         * @return
+         * @return The hash code of this cookie
          */
         @Override
 		public int hashCode() {
@@ -658,7 +659,8 @@ public class ThreadCookieHandler {
                 new HashMap<String, DomainCookieStore>();
 
         /**
-         * @param version
+         * Constructs the cookie store.
+         * @param version The cookie version being used
          */
         public CookieStore(int version) {
             this.version = version;
@@ -667,6 +669,7 @@ public class ThreadCookieHandler {
         /**
          * Adds the cookie to the applicable domain.
          * @param cookie The cookie
+         * @param h the ThreadCookieHandler to add the cookie
          */
         void add(Cookie cookie, ThreadCookieHandler h) {
             DomainCookieStore dStore = store.get(cookie.domain);
@@ -791,7 +794,7 @@ public class ThreadCookieHandler {
                 new HashMap<String, NameCookieStore>();
 
         /**
-         * Creates a cookie store for the given domain
+         * Creates a cookie store for the given domain.
          * @param domain The domain this store is applicable to.
          */
         DomainCookieStore(String domain) {
@@ -801,6 +804,7 @@ public class ThreadCookieHandler {
         /**
          * Adds a cookie to this, separated by its name.
          * @param cookie The cookie
+         * @param h The thread cookie handler to store
          */
         void add(Cookie cookie, ThreadCookieHandler h) {
             NameCookieStore nStore = store.get(cookie.name);
@@ -889,7 +893,7 @@ public class ThreadCookieHandler {
     }
 
     /**
-     * Stores the cookies for a certain cookie name
+     * Stores the cookies for a certain cookie name.
      */
     static class NameCookieStore implements Comparable<NameCookieStore> {
 
@@ -902,6 +906,7 @@ public class ThreadCookieHandler {
         /**
          * Constructs a cookie store for a certain name.
          * @param name The name of the cookie
+         * @param h The thread cookie handler to use
          */
         NameCookieStore(String name, ThreadCookieHandler h) {
             this.name = name;

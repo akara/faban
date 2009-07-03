@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FatalException.java,v 1.4 2008/09/10 18:25:57 akara Exp $
+ * $Id: FatalException.java,v 1.5 2009/07/03 01:52:37 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -33,10 +33,8 @@ package com.sun.faban.driver;
  */
 public class FatalException extends RuntimeException {
 
-    /**
-	 * SerialVersionUID
-	 */
 	private static final long serialVersionUID = 1L;
+    
 	private boolean logged = false;
 
     /**

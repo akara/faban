@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.8 2009/05/17 20:02:02 akara Exp $
+ * $Id: Metrics.java,v 1.9 2009/07/03 01:52:35 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -66,23 +66,45 @@ public class Metrics implements Serializable, Cloneable,
     63% savings when compared to 1000 buckets. The logic will be slightly
     more complicated but by not much.
     */
+
+    /** The bucket size ratio between coarse and fine response time buckets. */
     public static final int RESPBUCKET_SIZE_RATIO = 10;
-    public static final int COARSE_RESPBUCKETS = 70; // Percentage coarse.
+
+    /** The number and percentage of coarse response time buckets. */
+    public static final int COARSE_RESPBUCKETS = 70;
+
+    /** The number of fine response time buckets. */
     public static final int FINE_RESPBUCKETS = (100 - COARSE_RESPBUCKETS) *
                                                     RESPBUCKET_SIZE_RATIO;
+
+    /** The total number of response time buckets. */
     public static final int RESPBUCKETS = FINE_RESPBUCKETS + COARSE_RESPBUCKETS;
 
     /** Number of delay time buckets in histogram. */
     public static final int DELAYBUCKETS = 100;
 
     // We use double here to prevent cumulative errors
+
+    /** Size of the fine response time bucket. */
     protected long fineRespBucketSize;  // Size of the fine and coarse
+
+    /** Size of the coarse response time bucket. */
     protected long coarseRespBucketSize; // response time buckets, in ns.
-    protected long fineRespHistMax; // Max fine response time
-    protected long coarseRespHistMax; // Max coarse response time
-    protected long delayBucketSize; // Size of each delay time bucket, in ns
-    protected long graphBucketSize;  // Size of each graph bucket, in ns
-    protected int graphBuckets;     // Number of graph buckets
+
+    /** Max fine response time. */
+    protected long fineRespHistMax;
+
+    /** Max coarse response time. */
+    protected long coarseRespHistMax;
+
+    /** Size of each delay time bucket, in ns. */
+    protected long delayBucketSize;
+
+    /** Size of each graph bucket, in ns. */
+    protected long graphBucketSize;
+
+    /** Number of graph buckets. */
+    protected int graphBuckets;
 
     int threadCnt = 0;		// Threads this stat object is representing
 
@@ -228,7 +250,8 @@ public class Metrics implements Serializable, Cloneable,
     protected transient AgentThread thread;    
     
     /**
-     * @param agent
+     * Constructs a Metrics object for this agent thread.
+     * @param agent The agent thread
      */
     public Metrics(AgentThread agent) {
         this.thread = agent;
@@ -725,6 +748,8 @@ public class Metrics implements Serializable, Cloneable,
     }
 
     /**
+     * Makes a deep copy of this metrics object.
+     * @return The copy of this metrics object
      * @see java.lang.Object#clone()
      */
     @Override

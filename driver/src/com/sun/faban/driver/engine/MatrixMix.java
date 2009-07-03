@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MatrixMix.java,v 1.1 2008/09/10 18:25:54 akara Exp $
+ * $Id: MatrixMix.java,v 1.2 2009/07/03 01:52:35 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -43,10 +43,8 @@ import java.lang.annotation.Annotation;
  */
 public class MatrixMix extends Mix {
 
-    /**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
+
 	double[][] mix;
 
     /**
@@ -411,6 +409,8 @@ public class MatrixMix extends Mix {
     }
 
     /**
+     * Provides a string representation of this MatrixMix.
+     * @return The string representation
      * @see java.lang.Object#toString()
      */
     @Override
@@ -502,6 +502,8 @@ public class MatrixMix extends Mix {
         }
 
         /**
+         * Provides a string representation of this selector.
+         * @return The string representation
          * @see java.lang.Object#toString()
          */
         @Override

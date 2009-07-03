@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MasterImpl.java,v 1.8 2009/07/02 18:04:19 akara Exp $
+ * $Id: MasterImpl.java,v 1.9 2009/07/03 01:52:35 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -61,9 +61,6 @@ import java.util.logging.SimpleFormatter;
  */
 public class MasterImpl extends UnicastRemoteObject implements Master {
 
-    /**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 
 	// This field is a legal requirement and serves no other purpose.
@@ -122,7 +119,8 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
             "d\351sign\351s, sont rigoureusement interdites.\n";
 
     private String className = getClass().getName();
-    protected Logger logger = Logger.getLogger(className);
+
+    private Logger logger = Logger.getLogger(className);
 
     BenchmarkDefinition benchDef;
 
@@ -136,26 +134,32 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
     /** Remaining threads to be distributed to the first agents. */
     protected int[] remainderThreads;
 
-    /** The RunInfo structure */
+    /** The RunInfo structure. */
     protected RunInfo runInfo;
 
-    protected Timer timer; // The time recorder.
+    /** The time recorder. */
+    protected Timer timer;
 
+    /** Convenience accessor to the file separator. */
     protected static String fs = System.getProperty("file.separator");
 
     private boolean runAborted = false;
 
+    /** The lock object for the state. */
     protected final Object stateLock = new Object();
+
+    /** The current state of the master. */
     protected MasterState state = MasterState.CONFIGURING;
 
+    /** The scheduler used in the master. */
     protected java.util.Timer scheduler;
 
     StatsWriter statsWriter;
 
     /**
-     * Creates and exports a new Master
+     * Creates and exports a new Master.
      *
-     * @throws java.rmi.RemoteException if failed to export object
+     * @throws RemoteException if failed to export object
      */
     protected MasterImpl() throws RemoteException {
         super();
@@ -376,6 +380,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
      * Contacts the registry and gets references for all agents.
      * Then calculates the load distribution to each agentImpl.
      * @return The total number of agents configured
+     * @throws Exception Any error that could happen configuring the master
      */
     protected int configure() throws Exception {
 
@@ -462,6 +467,10 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         return totalAgentCnt;
     }
 
+    /**
+     * Configures a local, in-process agent.
+     * @throws Exception If anything goes wrong during the configuration
+     */
     protected void configureLocal() throws Exception {
         int driverToRun = -1;
         if (runInfo.driverConfigs.length > 1) {
@@ -520,8 +529,9 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
     }
 
     /**
-     * configureAgents()
-     * Get a list of all the registered agents and parseProperties them
+     * Configures all agents for a driver type.
+     * @param driverType The driver type id to configure
+     * @throws Exception If anything goes wrong in the process
      */
     private void configureAgents(int driverType) throws Exception {
 
@@ -578,6 +588,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
      * i.e the Master does not wait for an Agent. Instead, we
      * wait for the total length of the run, after we signal
      * all the agents to start.
+     * @throws Exception Anything that could go wrong during the run
      */
     private void executeRun() throws Exception {
 
@@ -915,6 +926,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
      * Aggregates results of incompatible stats and prints the benchmark
      * summary report header.
      * @param results The per-driver metrics
+     * @param host The host name for which to create the summary report, or null
      * @return The report as a char sequence
      */
     @SuppressWarnings("boxing")
@@ -991,6 +1003,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
     /**
      * Aggregates detail results into a single buffer.
      * @param results The per-driver metrics
+     * @param host The host name for which to create the detail report, or null
      * @return The report as a char sequence
      */
     private CharSequence createDetailReport(Metrics[] results, String host) {
@@ -1203,6 +1216,10 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         return System.currentTimeMillis();
     }
 
+    /**
+     * Introduces a state change in the master.
+     * @param newState The new state
+     */
     protected void changeState(MasterState newState) {
         synchronized (stateLock) {
             state = newState;
@@ -1226,7 +1243,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 
     /**
      * Wait for a certain state on the master.
-     * @param state
+     * @param state The state to wait for
      */
     public void waitForState(MasterState state) {
         synchronized (stateLock) {

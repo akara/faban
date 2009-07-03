@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentThread.java,v 1.2 2009/05/11 17:14:39 akara Exp $
+ * $Id: AgentThread.java,v 1.3 2009/07/03 01:52:34 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -58,8 +58,9 @@ public abstract class AgentThread extends Thread {
 		 * Enum#compareTo is used which is based on the order of these RunStates.
 		 * !!!
 		 */
+
 		/**
-		 * The {@link AgentThread} thread has not started
+		 * The {@link AgentThread} thread has not started.
 		 */
 	    NOT_STARTED,
 	    /**
@@ -115,13 +116,14 @@ public abstract class AgentThread extends Thread {
     long endRampDown = Long.MAX_VALUE;
     int cycleCount = 0; // The cycles executed so far
 
-    /** Run configuration from the Master */
+    /** Run configuration from the Master. */
     RunInfo runInfo;
 
     boolean startTimeSet = false;
 
     boolean stopped = false;
 
+    /** Constant value for specifying that the time is not set. */
     public static final long TIME_NOT_SET = Long.MIN_VALUE;
 
     /**
@@ -333,7 +335,7 @@ public abstract class AgentThread extends Thread {
     }
 
     /**
-     * Executes the method market with @OnceBefore in thread 0
+     * Executes the method market with @OnceBefore in thread 0.
      */
     void preRun() {
         // Thread 0 needs to do the preRun
@@ -352,7 +354,7 @@ public abstract class AgentThread extends Thread {
     }
 
     /**
-     * Executes the method market with @OnceAfter in thread 0
+     * Executes the method market with @OnceAfter in thread 0.
      */
     void postRun() {
         if (id == 0 && driverConfig.postRun != null &&

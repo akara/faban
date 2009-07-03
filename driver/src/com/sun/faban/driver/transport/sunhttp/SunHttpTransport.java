@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: SunHttpTransport.java,v 1.1 2009/06/30 06:33:27 akara Exp $
+ * $Id: SunHttpTransport.java,v 1.2 2009/07/03 01:52:36 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -89,16 +89,16 @@ public class SunHttpTransport extends HttpTransport {
     /** The byte buffer used for the reads in read* methods. */
     private byte[] byteReadBuffer = new byte[8192];
 
-    /** The char used for the reads in fetch* methods */
+    /** The char used for the reads in fetch* methods. */
     private char[] charReadBuffer = new char[8192];
 
-    /** A cache for already-compiled regex patterns */
+    /** A cache for already-compiled regex patterns. */
     private HashMap<String, Pattern> patternCache;
 
     /** Reference to the thread local cookie handler. */
     private ThreadCookieHandler cookieHandler;
 
-    /** Default header when we do http posts, if no header is given */
+    /** Default header when we do http posts, if no header is given. */
     private HashMap<String, String> defaultPostHeader;
 
     private boolean followRedirects = false;
@@ -144,7 +144,7 @@ public class SunHttpTransport extends HttpTransport {
     }
     /**
      * Initializes or re-initializes the buffer.
-     * @param size
+     * @param size The size of the buffer
      */
     private void reInitBuffer(int size) {
         if (charBuffer == null)
@@ -945,7 +945,8 @@ public class SunHttpTransport extends HttpTransport {
     }
 
     /**
-     * @return responseCode
+     * Obtains the response code of the previous request.
+     * @return responseCode The response code
      */
     public int getResponseCode() {
         return responseCode;

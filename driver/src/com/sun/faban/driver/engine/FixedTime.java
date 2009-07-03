@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FixedTime.java,v 1.1 2008/09/10 18:25:54 akara Exp $
+ * $Id: FixedTime.java,v 1.2 2009/07/03 01:52:34 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -36,10 +36,8 @@ import java.io.IOException;
  */
 public class FixedTime extends Cycle {
 
-    /**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
+    
 	long cycleTime;
 
     /**

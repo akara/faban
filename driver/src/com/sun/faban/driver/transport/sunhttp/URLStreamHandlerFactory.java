@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: URLStreamHandlerFactory.java,v 1.2 2009/06/30 19:33:02 akara Exp $
+ * $Id: URLStreamHandlerFactory.java,v 1.3 2009/07/03 01:52:36 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -181,7 +181,7 @@ public class URLStreamHandlerFactory
         implements java.net.URLStreamHandlerFactory {
 
     /**
-     * Construct a {@link URLStreamHandlerFactory}
+     * Construct a {@link URLStreamHandlerFactory}.
      */
     public URLStreamHandlerFactory() {
         try {
@@ -193,6 +193,9 @@ public class URLStreamHandlerFactory
     }
 
     /**
+     * Creates a URL stream handler for a given protocol.
+     * @param protocol The protocol
+     * @return The URL stream handler
      * @see java.net.URLStreamHandlerFactory#createURLStreamHandler(java.lang.String)
      */
     public URLStreamHandler createURLStreamHandler(String protocol) {

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Agent.java,v 1.4 2009/06/30 19:32:58 akara Exp $
+ * $Id: Agent.java,v 1.5 2009/07/03 01:52:34 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -38,33 +38,35 @@ import java.rmi.RemoteException;
  */
 public interface Agent extends Remote {
 
-	/**
-	 * initialize remote Agents
-	 * @param master 
-	 * @param runInfo run properties
-	 * @param driverType 
-     * @param timer the timer
-	 * @throws RemoteException 
-	 */
+    /**
+     * Configures each agents with the properties passed
+     * The threads are created at this point
+     * @param master the remote interface to the Master
+     * @param runInfo run information passed by Master
+     * @param driverType
+     * @param timer BenchmarkDefinition Start time
+     * @throws RemoteException A network error occurred
+     */
 	public void configure(Master master, RunInfo runInfo, int driverType,
                           Timer timer) throws RemoteException;
 
     /**
      * Obtains the id of this agent.
      * @return The id of this agent.
+     * @throws RemoteException A network error occurred
      */
     public int getId() throws RemoteException;
     
     /**
      * Wait until all threads are started.
-     * @throws RemoteException 
+     * @throws RemoteException A network error occurred
      */
     public void waitForThreadStart() throws RemoteException;
 
     /**
      * Sets the actual run start time.
      * @param msTime The relative millisec time of the benchmark start.
-     * @throws RemoteException
+     * @throws RemoteException A network error occurred
      */
     public void setStartTime(int msTime) throws RemoteException;
 
@@ -73,20 +75,20 @@ public interface Agent extends Remote {
 	 * the Agent.
 	 * The stats object is actually different for each Agent.
 	 * @return The stats of the run.
-	 * @throws RemoteException 
+     * @throws RemoteException A network error occurred
 	 * @see com.sun.faban.driver.engine.Metrics
 	 */
 	public Metrics getResults() throws RemoteException;
 
     /**
      * Waits for all the agentImpl's threads to terminate.
-     * @throws java.rmi.RemoteException
+     * @throws RemoteException A network error occurred
      */
     public void join() throws RemoteException;
 
     /**
-     * This method is responsible for aborting a run
-     * @throws RemoteException 
+     * This method is responsible for aborting a run.
+     * @throws RemoteException A network error occurred
      */
     public void kill() throws RemoteException;
 
@@ -95,7 +97,7 @@ public interface Agent extends Remote {
      * Logs the stack trace for all these threads but does not actually
      * wait for the threads to terminate (join). Terminate is called
      * while join is hanging on some thread that refuses to terminate.
-     * @throws RemoteException 
+     * @throws RemoteException A network error occurred
      */
     public void terminate() throws RemoteException;
 }

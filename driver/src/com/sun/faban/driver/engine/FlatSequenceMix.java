@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FlatSequenceMix.java,v 1.1 2008/09/10 18:25:54 akara Exp $
+ * $Id: FlatSequenceMix.java,v 1.2 2009/07/03 01:52:34 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -64,10 +64,8 @@ import java.lang.annotation.Annotation;
  */
 public class FlatSequenceMix extends Mix {
 
-    /**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
+
 	private String[] operationNames;
     private int[][] operationSequences;
     double[] mix;
@@ -159,6 +157,7 @@ public class FlatSequenceMix extends Mix {
     }
 
     /**
+     * Returns an array of the operation names used in this FlatMix.
      * @return operations The names of the operations
      */
     public String[] operations() {
@@ -261,6 +260,8 @@ public class FlatSequenceMix extends Mix {
     }
 
     /**
+     * Provides a string representation of this FlatSequenceMix.
+     * @return The string representation
      * @see java.lang.Object#toString()
      */
     @Override
@@ -297,7 +298,7 @@ public class FlatSequenceMix extends Mix {
     }
 
     /**
-     * The selector implementation for the FlatSequenceMix
+     * The selector implementation for the FlatSequenceMix.
      */
     public static class Selector extends Mix.Selector {
 
