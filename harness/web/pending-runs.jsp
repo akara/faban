@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: pending-runs.jsp,v 1.8 2009/07/01 22:31:51 sheetalpatil Exp $
+ * $Id: pending-runs.jsp,v 1.9 2009/07/03 02:11:54 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -72,11 +72,12 @@
                         <th style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="header">Description</th>
                     </tr>
         <%
+                final String[] rowType = {"even", "odd"};
                 for(int i=0; i < pending.length; i++) {
                     String runqDir = pending[i][1] + "." + pending[i][0];
-        %>
-                    <tr>
 
+        %>
+                    <tr class="<%=rowType[i % 2]%>">
                         <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell" style="text-align: right;">
         <%
                         if (killAllowed[i]) {
