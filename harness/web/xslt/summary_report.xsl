@@ -295,7 +295,7 @@
                                     <td class="tablecell" style="text-align: left;"><xsl:value-of select="description"/></td>
                                     <td class="tablecell"><xsl:value-of select="result"/></td>
                                     <td class="tablecell"><xsl:value-of select="target"/></td>
-                                    <td><xsl:value-of select="allowedDeviation"/></td>
+                                    <td class="tablecell"><xsl:value-of select="allowedDeviation"/></td>
                                     <xsl:choose>
                                         <xsl:when test="passed='true'">
                                             <td class="tablecell" style="color: rgb(0, 192, 0);">PASSED</td>
