@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DefaultFabanBenchmark.java,v 1.17 2009/06/25 23:13:39 sheetalpatil Exp $
+ * $Id: DefaultFabanBenchmark.java,v 1.18 2009/07/20 19:00:23 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -259,6 +259,8 @@ public class DefaultFabanBenchmark implements Benchmark {
 
     /**
      * This method is responsible for starting the benchmark run
+     *
+     * @throws Exception if any error occurred.
      */
     public void start() throws Exception {
 

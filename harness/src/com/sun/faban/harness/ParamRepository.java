@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ParamRepository.java,v 1.17 2009/06/29 21:29:09 akara Exp $
+ * $Id: ParamRepository.java,v 1.18 2009/07/20 19:00:23 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -57,7 +57,7 @@ public class ParamRepository {
     /**
      * Generic parameter access method.
      * @param xpath
-     * @return value of the parameter
+     * @return value of the parameter of type string
      */
     public String getParameter(String xpath) {
         return reader.getValue(xpath);
