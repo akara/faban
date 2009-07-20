@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunDaemon.java,v 1.30 2009/03/03 02:28:35 sheetalpatil Exp $
+ * $Id: RunDaemon.java,v 1.31 2009/07/20 22:31:55 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -129,7 +129,8 @@ public class RunDaemon implements Runnable {
      * @param name The name of the run to fetch
      * @return The run object for the next run
      */
-    public Run fetchNextRun(String name) throws RunEntryException, IOException, ClassNotFoundException {
+    public Run fetchNextRun(String name) throws RunEntryException, IOException,
+            ClassNotFoundException {
 
         // get the lock for the runq.
         runqLock.grabLock();
@@ -444,6 +445,9 @@ public class RunDaemon implements Runnable {
         }
     }
 
+    /**
+     * Exits the RunDaemon
+     */
     public void exit() {
         logger.info("RunDaemon Exit called");
         keepRunning = false;
@@ -451,6 +455,10 @@ public class RunDaemon implements Runnable {
         resumeRunDaemonThread();
     }
 
+    /**
+     * Obtains RunDaemon thread status
+     * @return status of RunDaemon thread
+     */
     public String getRunDaemonThreadStatus() {
         if (runDaemonThread != null) {
             synchronized (runDaemonThread) {

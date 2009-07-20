@@ -37,31 +37,55 @@ public class InterfaceBenchmarkWrapper extends BenchmarkWrapper {
         benchmark = c.newInstance();
     }
 
+    /**
+     *
+     * @throws java.lang.Exception
+     */
     @Override
     void validate() throws Exception {
         benchmark.validate();
     }
 
+    /**
+     *
+     * @throws java.lang.Exception
+     */
     @Override
     void configure() throws Exception {
        benchmark.configure();
     }
 
+    /**
+     *
+     * @throws java.lang.Exception
+     */
     @Override
     void start() throws Exception {
         benchmark.start();
     }
 
+    /**
+     *
+     * @throws java.lang.Exception
+     */
     @Override
     void end() throws Exception {
         benchmark.end();
     }
 
+    /**
+     *
+     * @throws java.lang.Exception
+     */
     @Override
     void postRun() throws Exception {
         // Noop.
     }
 
+    /**
+     *
+     * @throws java.lang.Exception
+     */
     @Override
     void kill() throws Exception {
         benchmark.kill();

@@ -143,6 +143,10 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
             }
     }
 
+    /**
+     * Invokes a benchmark's method annotated by @Validate
+     * @throws java.lang.Exception
+     */
     void validate() throws Exception {
         if (validateMethod != null){
             try {
@@ -153,6 +157,10 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
         }
     }
 
+    /**
+     * Invokes a benchmark's method annotated by @Configure
+     * @throws java.lang.Exception
+     */
     void configure() throws Exception {
         if (configureMethod != null){
             try {
@@ -163,6 +171,10 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
         }
     }
 
+    /**
+     * Invokes a benchmark's method annotated by @StartRun
+     * @throws java.lang.Exception
+     */
     void start() throws Exception {
         if (startMethod != null){
             try {
@@ -173,6 +185,10 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
         }
     }
 
+    /**
+     * Invokes a benchmark's method annotated by @EndRun
+     * @throws java.lang.Exception
+     */
     void end() throws Exception {
         if (endMethod != null){
             try {
@@ -183,6 +199,10 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
         }
     }
 
+    /**
+     * Invokes a benchmark's method annotated by @PostRun
+     * @throws java.lang.Exception
+     */
     void postRun() throws Exception {
         if (postRunMethod != null){
             try {
@@ -193,6 +213,10 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
         }
     }
 
+    /**
+     * Invokes a benchmark's method annotated by @KillRun
+     * @throws java.lang.Exception
+     */
     void kill() throws Exception {
         if (killMethod != null){
             try {

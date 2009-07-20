@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunFacade.java,v 1.3 2006/10/25 23:04:43 akara Exp $
+ * $Id: RunFacade.java,v 1.4 2009/07/20 22:31:55 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -50,10 +50,17 @@ public class RunFacade {
         return instance;
     }
 
+    /**
+     * Returns instance of RunFacade
+     * @return RunFacade
+     */
     public static RunFacade getInstance() {
         return instance;
     }
 
+    /**
+     * Resets the instance
+     */
     static void clearInstance() {
         instance = null;
     }

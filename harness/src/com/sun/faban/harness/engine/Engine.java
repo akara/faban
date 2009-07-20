@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Engine.java,v 1.11 2008/02/27 23:45:16 akara Exp $
+ * $Id: Engine.java,v 1.12 2009/07/20 22:31:55 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -61,6 +61,12 @@ public class Engine {
     private Engine() {
     }
 
+    /**
+     * Initializes the instance if it is not already initialized.
+     * @param ctx
+     * @param request
+     * @throws java.io.IOException
+     */
     public static void initIfNotInited(ServletContext ctx,
                                        HttpServletRequest request)
             throws IOException {
@@ -78,6 +84,9 @@ public class Engine {
         }
     }
 
+    /**
+     * Terminates the instance
+     */
     public static void destroy() {
         if (INITIALIZED.compareAndSet(true, false))
             instance.terminate();
