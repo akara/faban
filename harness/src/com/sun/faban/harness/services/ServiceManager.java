@@ -85,6 +85,12 @@ public class ServiceManager {
         return deployments;
     }
 
+    /**
+     * Constructor
+     * @param par
+     * @param run
+     * @throws java.lang.Exception
+     */
     public ServiceManager(ParamRepository par, Run run)
             throws Exception{
         String benchmark = run.getBenchmarkName();
@@ -128,6 +134,11 @@ public class ServiceManager {
         }
     }
 
+    /**
+     * Creates a hashmap for services and tools
+     * @param type
+     * @param dir
+     */
     public void parseServicesAndTools(String type, String dir) {
 
         String metaInf = Config.FABAN_HOME + File.separator + type +
@@ -423,6 +434,11 @@ public class ServiceManager {
         }
     }
 
+    /**
+     * Creates a hashmap for toolsets
+     * @param type
+     * @param dir
+     */
     public void parseToolSets(String type, String dir) {
         String metaInf = Config.FABAN_HOME + File.separator + type +
                 File.separator + dir + File.separator + "META-INF";
@@ -496,40 +512,67 @@ public class ServiceManager {
         
     }
 
+    /**
+     * Returns a list of MasterToolContext
+     * @return List
+     */
     public List<MasterToolContext> getTools() {
         return toolList;
     }
 
+    /**
+     * Clears the logs
+     * @throws java.lang.Exception
+     */
     public void clearLogs() throws Exception{
         for(ServiceWrapper sw : loadedServicesList){
             sw.clearLogs();
         }
     }
 
+    /**
+     * Configures the service
+     * @throws java.lang.Exception
+     */
     public void configure() throws Exception {
         for(ServiceWrapper sw : loadedServicesList){
             sw.configure();
         }
     }
 
+    /**
+     * @throws java.lang.Exception
+     */
     public void getConfig() throws Exception {
         for(ServiceWrapper sw : loadedServicesList){
             sw.getConfig();
         }
     }
 
+    /**
+     *
+     * @throws java.lang.Exception
+     */
     public void getLogs() throws Exception {
         for(ServiceWrapper sw : loadedServicesList){
             sw.getLogs();
         }
     }
 
+    /**
+     *
+     * @throws java.lang.Exception
+     */
     public void startup() throws Exception {
         for(ServiceWrapper sw : loadedServicesList){
             sw.startup();
         }
     }
 
+    /**
+     * 
+     * @throws java.lang.Exception
+     */
     public void shutdown() throws Exception {
         for (ServiceContext ctx : ctxList) {
             

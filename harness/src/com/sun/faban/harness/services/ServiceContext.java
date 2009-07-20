@@ -45,6 +45,14 @@ public class ServiceContext implements Serializable {
 
     private Properties properties = new Properties();
 
+    /**
+     * Constructor
+     * @param desc
+     * @param par
+     * @param roleElement
+     * @param properties
+     * @throws com.sun.faban.harness.ConfigurationException
+     */
     ServiceContext(ServiceDescription desc, ParamRepository par, 
                     Element roleElement, Properties properties)
             throws ConfigurationException {
@@ -58,22 +66,43 @@ public class ServiceContext implements Serializable {
             hostPorts = Collections.unmodifiableList(par.getEnabledHostPorts(roleElement));
     }    
 
+    /**
+     * Obtains a list of hosts
+     * @return string array of hosts
+     */
     public String[] getHosts() {
         return hosts.clone();
     }
 
+    /**
+     * Obtains a list of hostports
+     * @return List of hostports
+     */
     public List<NameValuePair<Integer>> getHostPorts() {
         return hostPorts;
     }
 
+    /**
+     * Obtains host role
+     * @return host role
+     */
     public String getHostRole() {
         return role;
     }
 
+    /**
+     * Obtains the property for a given key.
+     * @param key
+     * @return
+     */
     public String getProperty(String key) {
         return properties.getProperty(key);
     }
 
+    /**
+     * Obtains the run duration
+     * @return duration of steady state as String
+     */
     public String getRunDuration() {
         return steadyState;
     }

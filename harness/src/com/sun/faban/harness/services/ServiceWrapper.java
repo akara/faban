@@ -154,6 +154,10 @@ public class ServiceWrapper {
             }
     }
 
+    /**
+     * Invokes service's method annotated by @ClearLogs
+     * @throws java.lang.Exception
+     */
     void clearLogs() throws Exception {
         if (clearLogsMethod != null){
             try {
@@ -164,6 +168,10 @@ public class ServiceWrapper {
         }
     }
 
+    /**
+     * Invokes service's method annotated by @Configure
+     * @throws java.lang.Exception
+     */
     void configure() throws Exception {
         if (configureMethod != null){
             try {
@@ -174,6 +182,10 @@ public class ServiceWrapper {
         }
     }
 
+    /**
+     * Invokes service's method annotated by @GetConfig
+     * @throws java.lang.Exception
+     */
     void getConfig() throws Exception {
         if (getConfigMethod != null){
             try {
@@ -184,6 +196,10 @@ public class ServiceWrapper {
         }
     }
 
+   /**
+     * Invokes service's method annotated by @GetLogs
+     * @throws java.lang.Exception
+     */
     void getLogs() throws Exception {
         if (getLogsMethod != null){
             try {
@@ -194,6 +210,10 @@ public class ServiceWrapper {
         }
     }
 
+    /**
+     * Invokes service's method annotated by @Startup
+     * @throws java.lang.Exception
+     */
     void startup() throws Exception {
         if (startupMethod != null){
             try {
@@ -204,6 +224,10 @@ public class ServiceWrapper {
         }
     }
 
+    /**
+     * Invokes service's method annotated by @Shutdown
+     * @throws java.lang.Exception
+     */
     void shutdown() throws Exception {
         if (shutdownMethod != null){
             try {

@@ -37,7 +37,14 @@ public class ServiceDescription implements Serializable {
     public String serviceClass;
     public String locationType;
     public String location;
-    
+
+    /**
+     * Constructor
+     * @param id
+     * @param serviceClass
+     * @param type
+     * @param location
+     */
     ServiceDescription(String id, String serviceClass, String type, String location) {
         this.id = id;
         this.serviceClass = serviceClass;
