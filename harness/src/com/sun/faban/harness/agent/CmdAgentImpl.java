@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgentImpl.java,v 1.26 2009/05/30 17:54:13 akara Exp $
+ * $Id: CmdAgentImpl.java,v 1.27 2009/07/20 20:58:04 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -103,6 +103,12 @@ public class CmdAgentImpl extends UnicastRemoteObject
         super();
     }
 
+    /**
+     * Sets the benchmark name in the command map file
+     * @param benchName
+     * @param libPath
+     * @throws java.lang.Exception
+     */
     void setBenchName(String benchName, List<String> libPath) throws Exception {
         baseClassPath = getBaseClassPath(benchName);
         this.libPath = getLibPath(benchName, libPath);
@@ -288,6 +294,13 @@ public class CmdAgentImpl extends UnicastRemoteObject
             return false;
     }
 
+    /**
+     * Registers and starts agent
+     * @param agentClass
+     * @param identifier
+     * @return
+     * @throws java.lang.Exception
+     */
     public boolean startAgent(Class agentClass, String identifier) throws Exception {
         try {
             Remote agent = (Remote)agentClass.newInstance();
@@ -726,14 +739,26 @@ public class CmdAgentImpl extends UnicastRemoteObject
         kill();
     }
 
+    /**
+     * Obtains the registry
+     * @return Registry
+     */
     public static Registry getRegistry() {
         return AgentBootstrap.registry;
     }
 
+    /**
+     * Obtains the host
+     * @return hostname
+     */
     public static String getHost() {
         return AgentBootstrap.host;
     }
 
+    /**
+     * Obtains the master host
+     * @return master hostname
+     */
     public static String getMaster() {
         return AgentBootstrap.master;
     }

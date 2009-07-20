@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileServiceImpl.java,v 1.4 2008/03/14 06:38:20 akara Exp $
+ * $Id: FileServiceImpl.java,v 1.5 2009/07/20 20:58:04 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -56,6 +56,8 @@ class FileServiceImpl extends UnicastRemoteObject
      * Open a file for reading or writing
      * @param file to access
      * @param file open mode - READ or WRITE/APPEND
+     *
+     * @throws FileServiceException, RemoteException
      */
     public FileServiceImpl(String file, int mode) throws
             RemoteException, FileServiceException {
@@ -86,6 +88,8 @@ class FileServiceImpl extends UnicastRemoteObject
     /**
      * This method is responsible for reading a whole file or a whole remainder
      * of the file. Up to 2GB are read at a time.
+     *
+     * @throws FileServiceException
      */
     public byte[] read() throws FileServiceException {
         long remainder = inSize - offset;
@@ -98,7 +102,12 @@ class FileServiceImpl extends UnicastRemoteObject
         return verifiedReadBytes(readSize);
     }
 
-
+    /**
+     * This method is responsible for reading a whole remainder
+     * of the file.
+     *
+     * @throws FileServiceException
+     */
     public byte[] readBytes(int readSize) throws FileServiceException {
         long remainder = inSize - offset;
         if (readSize > remainder) {
@@ -133,12 +142,20 @@ class FileServiceImpl extends UnicastRemoteObject
     /**
      * This method is responsible for writing to a file
      * @param buffer to write
+     *
+     * @throws FileServiceException
      */
     public void write (byte[] buffer) throws FileServiceException {
         writeBytes(buffer, 0, buffer.length);
     }
 
-
+    /**
+     * This method is responsible for writing bytes to a file
+     * @param buffer
+     * @param begin
+     * @param end
+     * @throws com.sun.faban.harness.agent.FileServiceException
+     */
     public void writeBytes (byte[] buffer, int begin, int end) throws FileServiceException {
         try {
             if (out == null) {

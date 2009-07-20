@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentBootstrap.java,v 1.20 2009/05/30 23:46:59 akara Exp $
+ * $Id: AgentBootstrap.java,v 1.21 2009/07/20 20:58:04 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -394,6 +394,10 @@ public class AgentBootstrap {
         }
     }
 
+    /**
+     * Unregisters all the registered services
+     * @throws java.rmi.RemoteException
+     */
     static void deregisterAgents() throws RemoteException {
         synchronized(registeredNames) {
             for (String name : registeredNames)
@@ -403,6 +407,9 @@ public class AgentBootstrap {
         }
     }
 
+    /**
+     * Terminates the agents
+     */
     static void terminateAgents() {
         if (!daemon) {
             System.exit(0);
