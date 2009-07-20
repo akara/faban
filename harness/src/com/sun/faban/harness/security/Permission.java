@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Permission.java,v 1.2 2006/08/18 05:53:44 akara Exp $
+ * $Id: Permission.java,v 1.3 2009/07/20 22:52:38 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -72,6 +72,10 @@ public enum Permission {
      */
     WRITE;
 
+    /**
+     * Converts string to lowercase.
+     * @return String
+     */
     public String toString() {
         return name().toLowerCase();
     }
