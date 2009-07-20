@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: BenchmarkDescription.java,v 1.12 2008/12/05 22:02:14 sheetalpatil Exp $
+ * $Id: BenchmarkDescription.java,v 1.13 2009/07/20 21:59:46 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -104,6 +104,12 @@ public class BenchmarkDescription implements Serializable {
         return benchDirMap;
     }
 
+    /**
+     * Obtains a map of benchmarks using the directory (or short name)
+     * as the key.
+     * @param deploy of type boolean
+     * @return
+     */
     public static Map<String, BenchmarkDescription> getBenchDirMap(
             boolean deploy) {
         checkMaps(deploy);
