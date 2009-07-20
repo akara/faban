@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Benchmark.java,v 1.3 2007/05/24 01:04:39 akara Exp $
+ * $Id: Benchmark.java,v 1.4 2009/07/20 18:48:07 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -30,8 +30,9 @@ package com.sun.faban.harness;
  *
  * @author Ramesh Ramachandran
  * @see com.sun.faban.harness.engine.GenericBenchmark
+ * @deprecated Please use the benchmark annotations going forward
  */
-public interface Benchmark {
+@Deprecated public interface Benchmark {
 
     /**
      * Allows benchmark to validate the configuration file. Note that no
