@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FlexBuffer.java,v 1.2 2006/06/29 19:38:42 akara Exp $
+ * $Id: FlexBuffer.java,v 1.3 2009/07/20 22:45:21 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -625,6 +625,10 @@ public class FlexBuffer {
         return result;
     }
 
+    /**
+     * Returns Tokenizer instance
+     * @return Tokenizer
+     */
     public Tokenizer getTokenizer() {
         return new Tokenizer();
     }
@@ -686,6 +690,11 @@ public class FlexBuffer {
             return getTrimmedString(oldPosition, eol - oldPosition);
         }
 
+        /**
+         * Returns next token
+         * @param bytes
+         * @return String
+         */
         public String nextToken(byte[] bytes) {
             byte[] cBuffer = null;
             int start = position;
@@ -774,11 +783,21 @@ public class FlexBuffer {
             return new String(result);
         }
 
+        /**
+         * Returns next token
+         * @param c
+         * @return String
+         */
         public String nextToken(byte c) {
             byte[] search = { c };
             return nextToken(search);
         }
 
+        /**
+         * Returns next token
+         * @param s
+         * @return String
+         */
         public String nextToken(String s) {
             int tokenStart = indexOf(s, position);
             if (tokenStart == -1)
@@ -789,6 +808,10 @@ public class FlexBuffer {
             return result;
         }
 
+        /**
+         * Returns position of end of data.
+         * @return boolean
+         */
         public boolean endOfData() {
             return position == totalSize;
         }
