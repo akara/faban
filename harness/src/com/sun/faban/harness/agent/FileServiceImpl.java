@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileServiceImpl.java,v 1.5 2009/07/20 20:58:04 sheetalpatil Exp $
+ * $Id: FileServiceImpl.java,v 1.6 2009/07/21 22:54:46 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -53,7 +53,7 @@ class FileServiceImpl extends UnicastRemoteObject
     private String filehost;
 
     /**
-     * Open a file for reading or writing
+     * Open a file for reading or writing.
      * @param file to access
      * @param file open mode - READ or WRITE/APPEND
      *
@@ -140,7 +140,7 @@ class FileServiceImpl extends UnicastRemoteObject
 
 
     /**
-     * This method is responsible for writing to a file
+     * This method is responsible for writing to a file.
      * @param buffer to write
      *
      * @throws FileServiceException
@@ -150,7 +150,7 @@ class FileServiceImpl extends UnicastRemoteObject
     }
 
     /**
-     * This method is responsible for writing bytes to a file
+     * This method is responsible for writing bytes to a file.
      * @param buffer
      * @param begin
      * @param end
@@ -173,7 +173,7 @@ class FileServiceImpl extends UnicastRemoteObject
 
 
     /**
-     * Close the file opened previously
+     * Close the file opened previously.
      */
     public void close() {
         try {

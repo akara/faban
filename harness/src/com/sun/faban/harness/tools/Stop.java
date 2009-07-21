@@ -29,7 +29,7 @@ import java.lang.annotation.Target;
 
 
 /**
- *
+ * Annotation used for stopping a tool.
  * @author Sheetal Patil
  */
 

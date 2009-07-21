@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileHelper.java,v 1.21 2009/06/29 21:29:08 akara Exp $
+ * $Id: FileHelper.java,v 1.22 2009/07/21 22:54:45 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -45,7 +45,7 @@ public class FileHelper {
     
     private static Logger logger = Logger.getLogger(FileHelper.class.getName());
     /**
-      * This method copies a file
+      * This method copies a file.
       * @param srcFile  - the full pathname of the source file
       * @param destFile  - the full pathname of the destination file
       * @param append - should destination file be appended with source file
@@ -73,7 +73,7 @@ public class FileHelper {
       * This updates only the first occurrence of the prop
       * in the file to eliminate cases where it changes
       * props defined like PROP=$PROP:MYPROP
-      * We expect only one prop per line in the file
+      * We expect only one prop per line in the file.
       * @param fileName  - the full pathname of the file
       * @param prop - property names and their new values
       */    
@@ -137,7 +137,7 @@ public class FileHelper {
       * finds the token and replaces it with new value
       * This method updates only the first occurrence of
       * the token in the file to eliminate cases where it
-      * changes props defined like PROP=$PROP:MYPROP
+      * changes props defined like PROP=$PROP:MYPROP.
       * @param fileName  - the full pathname of the file
       * @param token - to find
       * @param replacement - the replacement string
@@ -210,7 +210,7 @@ public class FileHelper {
 
     /**
       * This method opens, traverses through the file and
-      * finds the token, it will avoid comments when searching
+      * finds the token, it will avoid comments when searching.
       * @param fileName  - the full pathname of the file
       * @param token - token to serch for
       */
@@ -339,7 +339,7 @@ public class FileHelper {
     }
 
     /**
-     * Jars up a directory to a given Jar file
+     * Jars up a directory to a given Jar file.
      * @param dir The base directory to jar (not included in output)
      * @param fileNames The file names to jar, can be multiple
      * @param jarPath The pathname of the jar file
@@ -400,7 +400,7 @@ public class FileHelper {
 
     /**
      * Unjars a temporary jar file xxxx.jar under the directory
-     * xxxx in the same path
+     * xxxx in the same path.
      * @param tmpJarFile The temporary jar file
      * @return The file reference to the resulting directory
      * @throws IOException If there is an error unjaring
@@ -447,7 +447,12 @@ public class FileHelper {
         return content;
     }
 
-
+    /**
+     * Writes the entire content to file. Replaces the file if it already exists.
+     * @param string
+     * @param file
+     * @throws java.io.IOException
+     */
     public static void writeContentToFile(String string, File file)
             throws IOException {
         //StringTokenizer t = new StringTokenizer(string," \n,\t");
@@ -465,6 +470,13 @@ public class FileHelper {
         rf.close();
     }
 
+    /**
+     * Reads a whole file and obtains the contents as a formatted string with
+     * "\n" seperated.
+     * @param file
+     * @return string
+     * @throws java.io.IOException
+     */
     public static String readContentFromFile(File file) throws IOException {
         String content = null;
         StringBuilder formattedTags = new StringBuilder();
@@ -478,6 +490,12 @@ public class FileHelper {
         return formattedTags.toString();
     }
 
+    /**
+     * Obtains the content of a file as a strin array.
+     * @param file
+     * @return string array
+     * @throws java.io.IOException
+     */
     public static String[] readArrayContentFromFile(File file)
             throws IOException {
         String content = null;

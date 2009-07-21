@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FlexBuffer.java,v 1.3 2009/07/20 22:45:21 sheetalpatil Exp $
+ * $Id: FlexBuffer.java,v 1.4 2009/07/21 22:54:49 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -353,6 +353,12 @@ public class FlexBuffer {
         }
     }
 
+    /**
+     * Trims the string based on the position and the length.
+     * @param pos
+     * @param length
+     * @return
+     */
     public String getTrimmedString(int pos, int length) {
 
         // 1. Some basic checks.
@@ -472,6 +478,11 @@ public class FlexBuffer {
         return indexOf(s, 0);
     }
 
+    /**
+     * Checks if the string ends with provided string.
+     * @param s
+     * @return
+     */
     public boolean endsWith(String s) {
         byte[] sample = s.getBytes();
         int lastIdx = totalSize % initialSize;
@@ -626,7 +637,7 @@ public class FlexBuffer {
     }
 
     /**
-     * Returns Tokenizer instance
+     * Returns Tokenizer instance.
      * @return Tokenizer
      */
     public Tokenizer getTokenizer() {
@@ -691,7 +702,7 @@ public class FlexBuffer {
         }
 
         /**
-         * Returns next token
+         * Returns next token.
          * @param bytes
          * @return String
          */
@@ -784,7 +795,7 @@ public class FlexBuffer {
         }
 
         /**
-         * Returns next token
+         * Returns next token.
          * @param c
          * @return String
          */
@@ -794,7 +805,7 @@ public class FlexBuffer {
         }
 
         /**
-         * Returns next token
+         * Returns next token.
          * @param s
          * @return String
          */

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ToolService.java,v 1.13 2009/06/29 21:29:08 akara Exp $
+ * $Id: ToolService.java,v 1.14 2009/07/21 22:54:48 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -66,7 +66,7 @@ final public class ToolService {
 
     /**
      * This method is the only way that an external object
-     * can get a reference to the singleton ToolService
+     * can get a reference to the singleton ToolService.
      * @return reference to the single ToolService
      */
     public static ToolService getHandle() {
@@ -76,7 +76,7 @@ final public class ToolService {
     }
 
     /**
-     * Intializes logger
+     * Intializes logger.
      */
     public void init() {
         logger = Logger.getLogger(this.getClass().getName());
@@ -84,7 +84,7 @@ final public class ToolService {
 
     /**
      * This method initializes the ToolAgent RMI server processes
-     * on the specified set of machines
+     * on the specified set of machines.
      * @param par The parameter repository
      * @param outDir The run output directory, relative to Config.OUT_DIR
      * @return true if setup successful, else false
@@ -237,7 +237,7 @@ final public class ToolService {
 
     
     /**
-     * Start all tools on all machines
+     * Start all tools on all machines.
      * @param delay after which tools should start
      */
     public void start(int delay) {
@@ -257,7 +257,7 @@ final public class ToolService {
     }
 
     /**
-     * Start all tools on all machines
+     * Start all tools on all machines.
      * @param delay after which tools should start
      * @param duration after which tools must be stopped
      */
@@ -278,7 +278,7 @@ final public class ToolService {
     }
 
     /**
-     * Stop all tools on all machines
+     * Stop all tools on all machines.
      *
      */
     public void stop() {
@@ -307,7 +307,7 @@ final public class ToolService {
     }
 
     /**
-     * Kill all tools and ToolAgents
+     * Kill all tools and ToolAgents.
      * This method is called when a run must be aborted
      * or at the end of a benchmark run.
      */

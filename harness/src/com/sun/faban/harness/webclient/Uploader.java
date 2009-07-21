@@ -17,7 +17,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: Uploader.java,v 1.10 2009/05/21 10:13:27 sheetalpatil Exp $
+* $Id: Uploader.java,v 1.11 2009/07/21 22:54:48 sheetalpatil Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 */
@@ -45,12 +45,22 @@ import org.apache.commons.fileupload.FileUploadException;
 import static com.sun.faban.harness.util.FileHelper.*;
 
 /**
+ * This is a controller class.
+ *
  * @author Sheetal Patil
  */
 
 public class Uploader {
   private static Logger logger = Logger.getLogger(ResultAction.class.getName());
 
+  /**
+   * Checks the existence of the runs on the repository.
+   * @param request
+   * @param response
+   * @return String
+   * @throws java.io.IOException
+   * @throws javax.servlet.ServletException
+   */
   public String checkRuns(HttpServletRequest request, HttpServletResponse
                                 response) throws IOException, ServletException {
             HashSet<String> duplicateSet = new HashSet<String>();
@@ -127,6 +137,12 @@ public class Uploader {
             return found;
         }
 
+        /**
+         * Updates the tags file.
+         * @param req
+         * @param resp
+         * @throws java.io.IOException
+         */
         public void updateTagsFile(HttpServletRequest req,
             HttpServletResponse resp) throws IOException{
             String tags = req.getParameter("tags");
@@ -158,6 +174,12 @@ public class Uploader {
             w.close();
         }
 
+        /**
+         * Updates the run description.
+         * @param req
+         * @param resp
+         * @throws java.io.IOException
+         */
         public void updateRunDesc(HttpServletRequest req,
             HttpServletResponse resp) throws IOException{
             String runId = req.getParameter("runId");
@@ -193,6 +215,15 @@ public class Uploader {
             te.save();
         }
 
+        /**
+         * Responsible for uploading the runs.
+         * @param request
+         * @param response
+         * @return String
+         * @throws java.io.IOException
+         * @throws javax.servlet.ServletException
+         * @throws java.lang.ClassNotFoundException
+         */
         public String uploadRuns(HttpServletRequest request, HttpServletResponse
                                 response) throws IOException, ServletException, ClassNotFoundException {
             // 3. Upload the run

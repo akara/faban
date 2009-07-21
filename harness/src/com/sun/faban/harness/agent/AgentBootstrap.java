@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentBootstrap.java,v 1.21 2009/07/20 20:58:04 sheetalpatil Exp $
+ * $Id: AgentBootstrap.java,v 1.22 2009/07/21 22:54:46 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -408,7 +408,7 @@ public class AgentBootstrap {
     }
 
     /**
-     * Terminates the agents
+     * Terminates the agents.
      */
     static void terminateAgents() {
         if (!daemon) {

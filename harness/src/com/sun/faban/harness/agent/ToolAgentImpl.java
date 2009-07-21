@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ToolAgentImpl.java,v 1.10 2009/06/29 21:29:07 akara Exp $
+ * $Id: ToolAgentImpl.java,v 1.11 2009/07/21 22:54:46 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -64,7 +64,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
     CountDownLatch latch;
 
     /**
-     * Constructor
+     * Constructor.
      * @throws java.rmi.RemoteException
      */
     public ToolAgentImpl() throws RemoteException {
@@ -179,7 +179,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
     }
 
     /**
-     * This method is responsible for starting all tools
+     * This method is responsible for starting all tools.
      * @param 	delay - time to delay before starting
      * @return true if all tools started successfully, else false
      * @throws RemoteException
@@ -198,7 +198,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
 
 
     /**
-     * This method is responsible for starting all tools
+     * This method is responsible for starting all tools.
      * @param 	delay - time to delay before starting
      * @param duration after which tools must be stopped
      * @return true if all tools started successfully, else false
@@ -217,7 +217,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
     }
 
     /**
-     * Start only specified tools
+     * Start only specified tools.
      * @param 	delay - time to delay before starting
      * @param 	t - specific list of tools to start
      * @throws RemoteException
@@ -242,7 +242,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
     }
 
     /**
-     * Start only specified tools for specific duration
+     * Start only specified tools for specific duration.
      * @param delay - time to delay before starting
      * @param t - specific list of tools to start
      * @param duration after which tools must be stopped
@@ -268,7 +268,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
     }
 
     /**
-     * This method is responsible for stopping the tools
+     * This method is responsible for stopping the tools.
      */
     public void stop() {
         for (int i = 0; i < tools.length; i++) {
@@ -285,7 +285,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
     }
 
     /**
-     * This method is responsible for stopping specific list of tools
+     * This method is responsible for stopping specific list of tools.
      */
     public void stop(String t[]) {
         for (int j = 0; j < t.length; j++) {
@@ -303,7 +303,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
     }
 
     /**
-     * This method is responsible for post processing tools
+     * This method is responsible for post processing tools.
      */
     public void postprocess() {
         for (int i = 0; i < tools.length; i++) {
@@ -361,7 +361,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
     }
 
     /**
-     * Downloads the tools
+     * Downloads the tools.
      * @param toollist list of tool contexts
      * @throws java.io.IOException
      */
@@ -382,7 +382,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
     }
 
     /**
-     * Obtains the OS toolsets
+     * Obtains the OS toolsets.
      * @return LinkedHashMap
      */
     protected LinkedHashMap<String, List<String>> parseOSToolSets() {

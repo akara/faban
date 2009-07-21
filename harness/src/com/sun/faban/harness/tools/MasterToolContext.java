@@ -31,6 +31,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.xml.sax.SAXException;
 
 /**
+ * This class provides a context for every tool. Each tool has only one context.
  *
  * @author Sheetal Patil
  */
@@ -43,6 +44,12 @@ public class MasterToolContext implements Serializable {
     ServiceContext serviceCtx;
     String params = null;
 
+    /**
+     * Constructor.
+     * @param tool
+     * @param ctx
+     * @param desc
+     */
     public MasterToolContext(String tool, ServiceContext ctx, ToolDescription desc) {
         StringTokenizer tt = new StringTokenizer(tool);
         String toolName = tt.nextToken().trim();
@@ -54,22 +61,42 @@ public class MasterToolContext implements Serializable {
         this.tool = tool;
     }
 
+    /**
+     * Returns the tool id.
+     * @return toolid as string
+     */
     public String getToolId() {
         return toolId;
     }
 
+    /**
+     * Returns the tool name.
+     * @return tool name as string
+     */
     public String getTool() {
         return tool;
     }
 
+    /**
+     * Returns ToolDescription.
+     * @return ToolDescription
+     */
     public ToolDescription getToolDescription() {
             return toolDesc;    
     }
 
+    /**
+     * Returns ServiceContext of the tool.
+     * @return ServiceContext
+     */
     public ServiceContext getToolServiceContext() {
        return serviceCtx;     
     }
 
+    /**
+     * Returns tool parameters.
+     * @return params as String
+     */
     public String getToolParams() {
         return params;
     }

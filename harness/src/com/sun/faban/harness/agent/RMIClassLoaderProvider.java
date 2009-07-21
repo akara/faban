@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RMIClassLoaderProvider.java,v 1.1 2008/08/12 17:17:17 akara Exp $
+ * $Id: RMIClassLoaderProvider.java,v 1.2 2009/07/21 22:54:46 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -96,7 +96,7 @@ public class RMIClassLoaderProvider extends RMIClassLoaderSpi {
      * if <code>codebase</code> is <code>null</code> and a provider-specific
      * URL used to load classes is invalid
      * @throws	ClassNotFoundException if a definition for the class
-     * could not be found at the specified location
+     * could not be found at the specified location.
      */
     public Class<?> loadClass(String codebase, String name,
                               ClassLoader defaultLoader)

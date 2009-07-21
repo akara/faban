@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunResult.java,v 1.6 2009/06/23 18:34:08 sheetalpatil Exp $
+ * $Id: RunResult.java,v 1.7 2009/07/21 22:54:48 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -329,7 +329,17 @@ public class RunResult {
     }
 
 
-    public static SortableTableModel getResultTable(Subject user, String tags, int column, String sortDirection)
+    /**
+     * Returns the SortableTableModel with tag search.
+     * @param user
+     * @param tags
+     * @param column
+     * @param sortDirection
+     * @return SortableTableModel
+     * @throws java.io.IOException
+     */
+    public static SortableTableModel getResultTable(Subject user, String tags,
+            int column, String sortDirection)
             throws IOException {
         TagEngine tagEngine;
         try {
@@ -362,7 +372,14 @@ public class RunResult {
         }
         return generateTable(resultList, column, sortDirection);
     }
-    
+
+    /**
+     * Returns the SortableTableModel.
+     * @param user
+     * @param column
+     * @param sortDirection
+     * @return SortableTableModel
+     */
     public static SortableTableModel getResultTable(Subject user, int column, String sortDirection) {
 
         File[] dirs = new File(Config.OUT_DIR).listFiles();
@@ -390,7 +407,15 @@ public class RunResult {
         return generateTable(runs, column, sortDirection);
     }
 
-    static SortableTableModel generateTable(List<RunResult> runs, int column, String sortDirection) {
+    /**
+     * Generates the table.
+     * @param runs
+     * @param column
+     * @param sortDirection
+     * @return SortableTableModel
+     */
+    static SortableTableModel generateTable(List<RunResult> runs, int column,
+            String sortDirection) {
 
         HashSet<String> scaleNames = new HashSet<String>();
         HashSet<String> scaleUnits = new HashSet<String>();
@@ -681,6 +706,11 @@ public class RunResult {
         }
     }
 
+    /**
+     * Obtains the list of feeds.
+     * @param user
+     * @return List<FeedRecord>.
+     */
     public static List<FeedRecord> getFeeds(Subject user) {
 
         File[] dirs = new File(Config.OUT_DIR).listFiles();
@@ -705,6 +735,13 @@ public class RunResult {
         return sortAndLimit(feedList);
     }
 
+    /**
+     * Obtains the list of feeds based on tags.
+     * @param user
+     * @param tags
+     * @return List<FeedRecord>
+     * @throws java.io.IOException
+     */
     public static List<FeedRecord> getFeeds(Subject user, String[] tags) 
             throws IOException {
 

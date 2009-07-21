@@ -31,6 +31,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * This is a wrapper class for service.
  *
  * @author Sheetal Patil
  */
@@ -47,7 +48,12 @@ public class ServiceWrapper {
     Method startupMethod;
     Method shutdownMethod;
 
-
+    /**
+     * Constructor.
+     * @param serviceClass
+     * @param ctx
+     * @throws java.lang.Exception
+     */
     ServiceWrapper(Class serviceClass, ServiceContext ctx) throws Exception {
         service = serviceClass.newInstance();
         Method[] methods = serviceClass.getMethods();
@@ -155,7 +161,7 @@ public class ServiceWrapper {
     }
 
     /**
-     * Invokes service's method annotated by @ClearLogs
+     * Invokes service's method annotated by @ClearLogs.
      * @throws java.lang.Exception
      */
     void clearLogs() throws Exception {
@@ -169,7 +175,7 @@ public class ServiceWrapper {
     }
 
     /**
-     * Invokes service's method annotated by @Configure
+     * Invokes service's method annotated by @Configure.
      * @throws java.lang.Exception
      */
     void configure() throws Exception {
@@ -183,7 +189,7 @@ public class ServiceWrapper {
     }
 
     /**
-     * Invokes service's method annotated by @GetConfig
+     * Invokes service's method annotated by @GetConfig.
      * @throws java.lang.Exception
      */
     void getConfig() throws Exception {
@@ -197,7 +203,7 @@ public class ServiceWrapper {
     }
 
    /**
-     * Invokes service's method annotated by @GetLogs
+     * Invokes service's method annotated by @GetLogs.
      * @throws java.lang.Exception
      */
     void getLogs() throws Exception {
@@ -211,7 +217,7 @@ public class ServiceWrapper {
     }
 
     /**
-     * Invokes service's method annotated by @Startup
+     * Invokes service's method annotated by @Startup.
      * @throws java.lang.Exception
      */
     void startup() throws Exception {
@@ -225,7 +231,7 @@ public class ServiceWrapper {
     }
 
     /**
-     * Invokes service's method annotated by @Shutdown
+     * Invokes service's method annotated by @Shutdown.
      * @throws java.lang.Exception
      */
     void shutdown() throws Exception {

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.51 2009/06/29 21:29:07 akara Exp $
+ * $Id: CmdService.java,v 1.52 2009/07/21 22:54:48 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -131,7 +131,7 @@ final public class CmdService { 	// The final keyword prevents clones
 
     /**
      *
-     * @return master machine name
+     * @return master machine name.
      */
     public String getMaster() {
         return master;
@@ -170,9 +170,9 @@ final public class CmdService { 	// The final keyword prevents clones
 
     /**
      * This method initializes the CmdAgent RMI server processes
-     * on the specified set of machines
+     * on the specified set of machines.
      * This method can be called multiple times to initialize multiple
-     * classes of machines
+     * classes of machines.
      * @param hosts String[][] of machines
      * @return true if successful, false if setup failed
      *
@@ -1077,7 +1077,7 @@ final public class CmdService { 	// The final keyword prevents clones
     }
 
     /**
-     * Start a command on a single machine
+     * Start a command on a single machine.
      */
     public boolean start(String machine, String command, int seq,
             int priority) throws Exception {
@@ -1089,7 +1089,7 @@ final public class CmdService { 	// The final keyword prevents clones
     }
 
     /**
-     * Start commands in background
+     * Start commands in background.
      *
      * @param machines on which command should be started
      * @param cmd command to be started
@@ -1107,7 +1107,7 @@ final public class CmdService { 	// The final keyword prevents clones
 
     /**
      * Start command in background and wait for the
-     * specified message
+     * specified message.
      * @param machines on which command should be started
      * @param cmd command to be started
      * @param ident to identify this command later null if you don't want to do wait
@@ -1133,7 +1133,7 @@ final public class CmdService { 	// The final keyword prevents clones
     }
 
     /**
-     * Start a command in background on a single machine
+     * Start a command in background on a single machine.
      */
     public void start(String machine, String command, String ident,
             int priority) throws Exception {
@@ -1177,6 +1177,15 @@ final public class CmdService { 	// The final keyword prevents clones
         return retVal;
     }
 
+    /**
+     * Starts java command.
+     *
+     * @param machines
+     * @param cmd
+     * @param ident
+     * @param env
+     * @throws java.lang.Exception
+     */
     public void startJavaCmd(String machines[], String cmd,
             String ident, String env[]) throws Exception {
 
@@ -1191,7 +1200,7 @@ final public class CmdService { 	// The final keyword prevents clones
     }
 
     /**
-     * Start the agent on a single machine
+     * Start the agent on a single machine.
      */
     public boolean startAgent(String machine, Class agentClass, String identifier) throws Exception {
 
@@ -1225,7 +1234,7 @@ final public class CmdService { 	// The final keyword prevents clones
     /**
      * Wait for command started earlier in background
      * This method calls wait on all the CmdAgent objects for
-     * the listed machines
+     * the listed machines.
      *
      * @param machine on which to wait
      * @param ident used to identify command in 'start' call
@@ -1243,7 +1252,7 @@ final public class CmdService { 	// The final keyword prevents clones
     /**
      * Wait for command started earlier in background
      * This method calls wait on all the CmdAgent objects for
-     * the listed machines
+     * the listed machines.
      *
      * @param machines on which to wait
      * @param ident used to identify command in 'start' call
@@ -1262,7 +1271,7 @@ final public class CmdService { 	// The final keyword prevents clones
     /**
      * Kill command started earlier in background
      * This method calls kill on all the CmdAgent objects for
-     * the listed machines
+     * the listed machines.
      * @param machines on which to issue kill
      * @param ident used to identify command in 'start' call
      */
@@ -1301,7 +1310,7 @@ final public class CmdService { 	// The final keyword prevents clones
     }
 
     /**
-     * Gets a property from a given file
+     * Gets a property from a given file.
      * @param machine The machine name
      * @param propFile The property file name
      * @param propName The property key name
@@ -1314,7 +1323,7 @@ final public class CmdService { 	// The final keyword prevents clones
     }
 
     /**
-     * Kill all commands currently running and cleanup
+     * Kill all commands currently running and cleanup.
      * This method is called when a run must be aborted
      * or at the end of a benchmark run.
      */
@@ -1489,7 +1498,7 @@ final public class CmdService { 	// The final keyword prevents clones
     /**
      * Copy a file from one remote machine to another
      * This method essentially does the work of 'rcp'
-     * using the FileAgents on the machines
+     * using the FileAgents on the machines.
      * @param srcmachine - Name of source machine
      * @param destmachine - Name of destination machine
      * @param srcfile - Name of source file
@@ -1585,6 +1594,12 @@ final public class CmdService { 	// The final keyword prevents clones
         return false;
     }
 
+    /**
+     * Obtains the temporary dircteroy for the given machine.
+     *
+     * @param machine
+     * @return
+     */
     public String getTmpDir(String machine) {
         try {
             return findCmdAgent(machine).getTmpDir();
@@ -1619,6 +1634,13 @@ final public class CmdService { 	// The final keyword prevents clones
         return filep.get(index);
     }
 
+    /**
+     * Deletes the file from the machine.
+     *
+     * @param srcmachine
+     * @param srcfile
+     * @return
+     */
     public synchronized boolean delete(String srcmachine, String srcfile) {
         try {
             return findFileAgent(srcmachine).removeFile(srcfile);
@@ -1630,6 +1652,14 @@ final public class CmdService { 	// The final keyword prevents clones
         }
     }
 
+    /**
+     * Deletes the file from the machine based on the filter provided.
+     *
+     * @param srcmachine
+     * @param dir
+     * @param filter
+     * @return
+     */
     public synchronized boolean delete(String srcmachine, String dir,
             com.sun.faban.harness.FileFilter filter) {
         try {
@@ -1646,7 +1676,7 @@ final public class CmdService { 	// The final keyword prevents clones
     /**
      * Copy a file from one remote machine to a stream on the master.
      * This method essentially does the work of 'rcp'
-     * using the FileAgents on the machines
+     * using the FileAgents on the machines.
      * @param srcmachine - Name of source machine
      * @param srcfile - Name of source file
      * @param stream The stream to copy the content to
@@ -1685,7 +1715,7 @@ final public class CmdService { 	// The final keyword prevents clones
     /**
      * Copy a file from one remote machine to another
      * This method essentially does the work of 'rcp'
-     * using the FileAgents on the machines
+     * using the FileAgents on the machines.
      * @param srcmachine - Name of source machine
      * @param destmachine - Name of destination machine
      * @param srcfile - Name of source file
@@ -1755,7 +1785,7 @@ final public class CmdService { 	// The final keyword prevents clones
     }
 
     /**
-     * Set the Log level for Agents
+     * Set the Log level for Agents.
      * @param name Logger name
      * @param level Log level
      */

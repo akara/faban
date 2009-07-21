@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Collector.java,v 1.5 2009/06/23 18:34:08 sheetalpatil Exp $
+ * $Id: Collector.java,v 1.6 2009/07/21 22:54:47 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -59,10 +59,16 @@ public class Collector extends CommandLineTool{
     private ArrayList<String> pids = new ArrayList<String>();
     
 
+    /**
+     * This method is responsible for configuring the tool utility.
+     */
     public void configure() {
         super.config();
     }
 
+    /**
+     * This method is responsible for starting the tool utility.
+     */
     public void start() throws IOException, InterruptedException {
         // Locate the process with collector, starting with user processes.
         cmd = new Command("/usr/bin/ps", "-u", System.getProperty("user.name"));
@@ -115,6 +121,9 @@ public class Collector extends CommandLineTool{
         super.start();
     }
 
+    /**
+     * This method is responsible for stopping the tool utility.
+     */
     public void stop() throws InterruptedException, IOException {
         // We use the same command to start and stop the collection
         // So there is no need to reconstruct the command strings.
@@ -131,5 +140,5 @@ public class Collector extends CommandLineTool{
         super.stop();
     }
 
-    // All other methods are inherited from GenericTool
+    // All other methods are inherited from CommandLineTool
 }

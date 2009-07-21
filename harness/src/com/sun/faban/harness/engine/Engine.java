@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Engine.java,v 1.12 2009/07/20 22:31:55 sheetalpatil Exp $
+ * $Id: Engine.java,v 1.13 2009/07/21 22:54:48 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -85,7 +85,7 @@ public class Engine {
     }
 
     /**
-     * Terminates the instance
+     * Terminates the instance.
      */
     public static void destroy() {
         if (INITIALIZED.compareAndSet(true, false))

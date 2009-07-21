@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunQLock.java,v 1.4 2006/10/08 08:36:56 akara Exp $
+ * $Id: RunQLock.java,v 1.5 2009/07/21 22:54:48 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -40,7 +40,7 @@ public class RunQLock {
     private Logger logger;
 
     /**
-     * Constructor
+     * Constructor.
      *
      */
     public RunQLock() {

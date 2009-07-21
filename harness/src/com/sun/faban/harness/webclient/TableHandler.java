@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TableHandler.java,v 1.11 2009/06/23 18:34:08 sheetalpatil Exp $
+ * $Id: TableHandler.java,v 1.12 2009/07/21 22:54:48 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -59,6 +59,10 @@ class TableHandler extends LogParseHandler {
         }
     }
 
+    /**
+     * Processes the records.
+     * @throws java.io.IOException
+     */
     @Override
     public void processRecord() throws IOException {
         if (logBuffer != null) {
@@ -81,11 +85,19 @@ class TableHandler extends LogParseHandler {
         }
     }
 
+    /**
+     * Processes the details.
+     * @param qName
+     */
     public void processDetail(String qName) {
         if ("exception".equals(qName))
             logRecord.exceptionFlag = true;
     }
 
+    /**
+     * Prints the table to the screen.
+     * @throws java.io.IOException
+     */
     public void printHtml()
             throws IOException {
         

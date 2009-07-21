@@ -17,7 +17,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: ResultAction.java,v 1.14 2009/05/21 10:13:27 sheetalpatil Exp $
+* $Id: ResultAction.java,v 1.15 2009/07/21 22:54:48 sheetalpatil Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 */
@@ -109,6 +109,12 @@ public class ResultAction {
         return "/edit_archive.jsp";
     }
 
+    /**
+     * Obtains the tags list for each profile.
+     * @param req
+     * @param resp
+     * @throws java.io.IOException
+     */
     public void profileTagList (HttpServletRequest req,
             HttpServletResponse resp) throws IOException {
         String profile = req.getParameter("profileselected");
@@ -259,6 +265,13 @@ public class ResultAction {
         return "/edit_analysis.jsp";
     }
 
+    /**
+     * This method is responsible for analyzing the runs.
+     * @param request
+     * @param response
+     * @return string
+     * @throws java.io.IOException
+     */
     public String analyze(HttpServletRequest request,
                           HttpServletResponse response) throws IOException {
 
@@ -317,6 +330,16 @@ public class ResultAction {
         return null;
     }
 
+    /**
+     * This method is responsible for archiving the runs to the repository.
+     * @param request
+     * @param response
+     * @return String
+     * @throws java.io.IOException
+     * @throws java.io.FileNotFoundException
+     * @throws java.text.ParseException
+     * @throws java.lang.ClassNotFoundException
+     */
     public String archive(HttpServletRequest request,
                         HttpServletResponse response) throws IOException,
                         FileNotFoundException, ParseException, ClassNotFoundException {
@@ -444,7 +467,7 @@ public class ResultAction {
     }
 
     /**
-     * Edit run.xml file
+     * Edit run.xml file.
      * @param result
      */
     public static void editXML(RunResult result){
@@ -466,9 +489,9 @@ public class ResultAction {
     }
 
     /**
-     * Jar up the run by runId
+     * Jar up the run by runId.
      * @param runId
-     * @return
+     * @return File
      * @throws IOException 
      */
     private File jarUpRun(String runId) throws IOException{
@@ -479,6 +502,13 @@ public class ResultAction {
         //return new File(Config.TMP_DIR, "test.jar");
     }   
 
+    /**
+     * This method is responsible for uploading the runs to repository.
+     * @param uploadSet
+     * @param replaceSet
+     * @return HashSet
+     * @throws java.io.IOException
+     */
     public static HashSet<String> uploadRuns(HashSet<File> uploadSet,
                                HashSet<String> replaceSet) throws IOException {
         // 3. Upload the run

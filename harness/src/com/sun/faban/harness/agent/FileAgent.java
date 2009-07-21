@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileAgent.java,v 1.7 2008/05/02 23:17:32 akara Exp $
+ * $Id: FileAgent.java,v 1.8 2009/07/21 22:54:46 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -36,20 +36,22 @@ import java.io.*;
  * @see com.sun.faban.harness.agent.FileService
  */
 public interface FileAgent extends Remote {
-
-    public static final int READ = 1;	/* Open for reading */
-    public static final int WRITE = 2;	/* Open for writing */
-    public static final int APPEND = 3;	/* Open for write in append mode */
+    /** Open for reading. */
+    public static final int READ = 1;
+    /** Open for writing. */
+    public static final int WRITE = 2;
+    /** Open for write in append mode. */
+    public static final int APPEND = 3;	
 
     /**
-     * Open a file for reading and/or writing
+     * Open a file for reading and/or writing.
      * @param file filename
      * @param mode file open mode - READ, WRITE, APPEND
      */
     public FileService open(String file, int mode) throws RemoteException, FileServiceException;
 
     /**
-     * Read a file from this machine and return the contents as a String
+     * Read a file from this machine and return the contents as a String.
      * 
      * @param file name of the file
      * @return String contents of the file.
@@ -59,7 +61,7 @@ public interface FileAgent extends Remote {
 	throws RemoteException, IOException, FileNotFoundException;
 
     /**
-     * Write the given file to this machine
+     * Write the given file to this machine.
      * 
      * @param file path
      * @param contents of the file.
@@ -91,7 +93,7 @@ public interface FileAgent extends Remote {
                                com.sun.faban.harness.FileFilter filter)
             throws RemoteException;
     /**
-     * Gets a property from a given file
+     * Gets a property from a given file.
      * @param configFile The config file name
      * @param propName The property key name
      * @return The property value

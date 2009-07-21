@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: XMLReader.java,v 1.16 2009/06/10 22:50:54 akara Exp $
+ * $Id: XMLReader.java,v 1.17 2009/07/21 22:54:45 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -59,10 +59,20 @@ public class XMLReader {
     private boolean updated = false;
     private HashMap<Node, ArrayList<NameValuePair<Integer>>> hostPortsTable;
 
+    /**
+     * Constructor.
+     * @param file
+     */
     public XMLReader(String file) {
         initLocal(file);
     }
 
+    /**
+     * Constructor.
+     * @param file
+     * @param useFabanNS
+     * @param warnDeprecated
+     */
     public XMLReader(String file, boolean useFabanNS, boolean warnDeprecated) {
         if (useFabanNS)
             try {
@@ -100,25 +110,48 @@ public class XMLReader {
         }
     }
 
+    /**
+     * Returns nodelist for the given tag.
+     * @param tagName
+     * @return nodelist
+     */
     public NodeList getNodeListForTagName(String tagName){
         return doc.getElementsByTagName(tagName);
     }
 
+    /**
+     * Returns nodelist for top level elements(Children of root element).
+     * @return nodelist.
+     */
     public NodeList getTopLevelElements() {
         NodeList topLevelElements = doc.getDocumentElement().getChildNodes();
         return topLevelElements;
     }
 
+    /**
+     * Returns the root element.
+     * @return element.
+     */
     public Element getRootNode() {
         return doc.getDocumentElement();
     }
 
-
+    /**
+     * Returns node for the given xpath.
+     * @param xpath
+     * @return node
+     */
     public Node getNode(String xpath) {
         xpath = completeXPath(xpath);
         return getNode(xpath, doc);
     }
 
+    /**
+     * Returns node for the given xpath based on the base node.
+     * @param xpath
+     * @param base
+     * @return node.
+     */
     public Node getNode(String xpath, Node base) {
         Node node = null;
         try {
@@ -131,11 +164,22 @@ public class XMLReader {
         return node;
     }
 
+    /**
+     * Returns the nodelist for a given xpath.
+     * @param xpath
+     * @return nodelist.
+     */
     public NodeList getNodes(String xpath) {
         xpath = completeXPath(xpath);
         return getNodes(xpath, doc);
     }
 
+    /**
+     * Returns the nodelist for a given xpath based on a base node.
+     * @param xpath
+     * @param base
+     * @return nodelist.
+     */
     public NodeList getNodes(String xpath, Node base) {
         NodeList nodes = null;
         try {
@@ -148,12 +192,22 @@ public class XMLReader {
         return nodes;
     }
 
-
+    /**
+     * Returns the value for the given xpath.
+     * @param xpath
+     * @return string.
+     */
     public String getValue(String xpath) {
         xpath = completeXPath(xpath);
         return getValue(xpath, doc);
     }
 
+    /**
+     * Returns the value for the given xpath based on the base node.
+     * @param xpath
+     * @param base
+     * @return string.
+     */
     public String getValue(String xpath, Node base) {
         try {
             return xPath.evaluate(xpath, base);
@@ -163,11 +217,22 @@ public class XMLReader {
         }
     }
 
+    /**
+     * Returns the list of values for a given xpath.
+     * @param xpath
+     * @return List<String>.
+     */
     public List<String> getValues(String xpath) {
         xpath = completeXPath(xpath);
         return getValues(xpath, doc);
     }
 
+    /**
+     * Returns the list of values for a given xpath based on base node.
+     * @param xpath
+     * @param base
+     * @return List<String>.
+     */
     public List<String> getValues(String xpath, Node base) {
         try {
             NodeList nodeList = (NodeList) xPath.evaluate(
@@ -200,11 +265,25 @@ public class XMLReader {
         }
     }
 
+    /**
+     * Returns the list of attribute values for a given xpath and attribute.
+     * @param xpath
+     * @param attribute
+     * @return List<String>.
+     */
     public List<String> getAttributeValues(String xpath, String attribute) {
         xpath = completeXPath(xpath);
         return getAttributeValues(xpath, attribute, doc);
     }
 
+    /**
+     * Returns the list of attribute values for a given xpath and attribute
+     * based on base node.
+     * @param xpath
+     * @param attribute
+     * @param base
+     * @return List<String>.
+     */
     public List<String> getAttributeValues(String xpath, String attribute, Node base) {
         try {
             NodeList nodeList = (NodeList) xPath.evaluate(xpath + "[@" + attribute + "]",
@@ -238,6 +317,11 @@ public class XMLReader {
         }
     }
 
+    /**
+     * Sets the new value for a given xpath.
+     * @param xpath
+     * @param newValue
+     */
     public void setValue(String xpath, String newValue) {
         // If no absolute xpath is not given use //xpath to find the parameter
         xpath = completeXPath(xpath);
@@ -284,6 +368,11 @@ public class XMLReader {
         }
     }
 
+    /**
+     * Sets the new value for the element.
+     * @param element
+     * @param value
+     */
     public void setValue(Element element, String value) {
         NodeList children = element.getChildNodes();
         boolean valueSet = false;
@@ -301,6 +390,14 @@ public class XMLReader {
             element.appendChild(doc.createTextNode(value));
     }
 
+    /**
+     * Adds a node.
+     * @param parent
+     * @param namespaceURI
+     * @param prefix
+     * @param nodeName
+     * @return Element
+     */
     public Element addNode(Element parent, String namespaceURI,
                            String prefix, String nodeName) {
         Element newNode;
@@ -316,6 +413,14 @@ public class XMLReader {
         return newNode;
     }
 
+    /**
+     * Adds a node.
+     * @param baseXPath
+     * @param namespaceURI
+     * @param prefix
+     * @param nodeName
+     * @return Element
+     */
     public Element addNode(String baseXPath, String namespaceURI,
                            String prefix, String nodeName) {
         // If no absolute baseXPath is not given use //baseXPath to find the parameter
@@ -356,7 +461,7 @@ public class XMLReader {
     /**
       * This method saves the XML file if it was modified
       * and if a back up file name is specified the original
-      * file is backed up
+      * file is backed up.
       * @param backupFileName  - the name of the backup file
       */
     public boolean save(String backupFileName) throws Exception {
@@ -533,6 +638,11 @@ public class XMLReader {
         return hostsPorts;
     }
 
+    /**
+     * Returns NodeList for a given xpath string.
+     * @param xPathExpr
+     * @return NodeList
+     */
     public NodeList getNodeList(String xPathExpr) {
         NodeList nodes = null;
         if(xPathExpr.charAt(0) != '/')

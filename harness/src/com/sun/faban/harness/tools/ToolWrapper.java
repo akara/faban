@@ -41,6 +41,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * This class is a wrapper for tool.
  *
  * @author Sheetal Patil
  */
@@ -74,6 +75,12 @@ public class ToolWrapper {
     protected Timer timer;
     ToolContext tc = null;
 
+    /**
+     * Constructor.
+     * @param toolClass
+     * @param ctx
+     * @throws java.lang.Exception
+     */
     public ToolWrapper(Class toolClass, MasterToolContext ctx) throws Exception {
         tool = toolClass.newInstance();
         Method[] methods = toolClass.getMethods();
@@ -209,6 +216,10 @@ public class ToolWrapper {
         }
     }
 
+    /**
+     * This method is responsible for postprocessing.
+     * @throws java.lang.Exception
+     */
     public void postprocess() throws Exception {
         if (postprocessed)
             return;
@@ -232,6 +243,10 @@ public class ToolWrapper {
         }
     }
 
+    /**
+     * This method is responsible for starting a tool.
+     * @throws java.lang.Exception
+     */
     private void start() throws Exception {
         if (startMethod != null){
             try {
@@ -243,6 +258,16 @@ public class ToolWrapper {
         toolStatus = STARTED;
     }
 
+    /**
+     * This method is responsible for configuring a tool.
+     * @param toolName
+     * @param path
+     * @param outDir
+     * @param host
+     * @param cmdAgent
+     * @param latch
+     * @throws java.lang.Exception
+     */
     public void configure(String toolName, String path, String outDir, String host,
                           CmdAgentImpl cmdAgent, CountDownLatch latch) 
                           throws Exception {
@@ -261,6 +286,11 @@ public class ToolWrapper {
         configure();
     }
 
+    /**
+     * This method is responsible for starting a tool with given delay.
+     * @param delay
+     * @return
+     */
     public boolean start(int delay) {
         TimerTask startTask = new TimerTask() {
             public void run() {
@@ -275,6 +305,13 @@ public class ToolWrapper {
         return true;
     }
 
+    /**
+     * This method is responsible for starting a tool with given delay and
+     * duration.
+     * @param delay
+     * @param duration
+     * @return
+     */
     public boolean start(int delay, int duration) {
         if(this.start(delay)) {
             timer.schedule(new StopTask(), (delay + duration) * 1000);
@@ -309,6 +346,7 @@ public class ToolWrapper {
 
     /**
      * This method is responsible for stopping the tool utility.
+     * @throws java.lang.Exception
      */
     public void stop() throws Exception {
         stop(true);
@@ -317,7 +355,7 @@ public class ToolWrapper {
     /**
      * This method is responsible for stopping the tool utility.
      * @param warn Whether to warn if the tool already ended.
-     *
+     * @throws java.lang.Exception
      */
     protected void stop(boolean warn) throws Exception{
         if (toolStatus == STARTED){
@@ -365,6 +403,10 @@ public class ToolWrapper {
         countedDown = true;
     }
 
+    /**
+     * This method is responsible for killing the tool utility.
+     * @throws java.lang.Exception
+     */
     public void kill() throws Exception {
         // For most tools, we try to collect the output no matter what.
         stop(false);

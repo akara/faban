@@ -26,8 +26,10 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+
 /**
- *
+ * Annotation used for starting a service.
+ * 
  * @author Sheetal Patil
  */
 

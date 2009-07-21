@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileService.java,v 1.3 2006/09/15 18:51:28 akara Exp $
+ * $Id: FileService.java,v 1.4 2009/07/21 22:54:46 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -38,27 +38,27 @@ import java.rmi.Remote;
 public interface FileService extends Remote {
 
     /**
-     * This method is responsible for reading a file
+     * This method is responsible for reading a file.
      * @return String read, null if end-of-file
      */
     public byte[] read() throws RemoteException, FileServiceException;
     
     
     /**
-     * This method is responsible for writing to a file
+     * This method is responsible for writing to a file.
      * @param count no. of bytes to read
      */
     public byte[] readBytes(int count) throws RemoteException, FileServiceException;
 
     /**
-     * This method is responsible for writing to a file
+     * This method is responsible for writing to a file.
      * @param buffer to write
      */
     public void write (byte[] buffer) throws RemoteException, FileServiceException;
     
     
     /**
-     * This method is responsible for writing to a file
+     * This method is responsible for writing to a file.
      * @param buffer to write
      * @param begin staring index
      * @param end ending index
@@ -66,7 +66,7 @@ public interface FileService extends Remote {
     public void writeBytes (byte[] buffer, int begin, int end) throws RemoteException, FileServiceException;
 
     /**
-     * Close the current file
+     * Close the current file.
      */
     public void close() throws RemoteException;
 }

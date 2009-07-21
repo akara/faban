@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Tool.java,v 1.3 2008/05/23 05:57:42 akara Exp $
+ * $Id: Tool.java,v 1.4 2009/07/21 22:54:47 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -40,7 +40,7 @@ import java.util.concurrent.CountDownLatch;
 public interface Tool {
 
     /**
-     * This method is called to configure the tool
+     * This method is called to configure the tool.
      * @param toolName name of the tool (Executable)
      * @param args list containing arguments to tool
      * @param path
@@ -54,7 +54,7 @@ public interface Tool {
                           CmdAgentImpl cmdAgent, CountDownLatch latch);
 
     /**
-     * Abort any running tools and exit
+     * Abort any running tools and exit.
      */
     public void kill();
 
@@ -69,14 +69,14 @@ public interface Tool {
     public boolean start(int delay, int duration);
 
     /**
-     * This method is responsible for starting the tool 
+     * This method is responsible for starting the tool .
      * @param 	delay - time (sec) to delay before starting
      * @return 	true if tool started successfully
      */
     public boolean start(int delay);
 
     /**
-     * This method is responsible for stopping the tool
+     * This method is responsible for stopping the tool.
      */
     public void stop();
 }

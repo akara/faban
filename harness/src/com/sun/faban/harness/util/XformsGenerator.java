@@ -34,6 +34,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 /**
+ * This class is responsible for generatin the xform form the run.xml file.
  *
  * @author Sheetal Patil
  */
@@ -52,6 +53,12 @@ public class XformsGenerator {
     static FabanNamespaceContext ns = new FabanNamespaceContext();
     static HashMap<String, String> map = new HashMap<String, String>();
 
+    /**
+     * Generates the xform file.
+     * @param infile
+     * @param outfile
+     * @param templateFile
+     */
     public static void generate(File infile, File outfile, File templateFile) {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(true);
@@ -264,6 +271,12 @@ public class XformsGenerator {
         }
         return hasNodes;
     }
+
+    /**
+     * Generates a label from the given string.
+     * @param s
+     * @return String
+     */
     public static String makeLabel(String s) {
         int cnt = 0, j=0;
         ArrayList str = new ArrayList();

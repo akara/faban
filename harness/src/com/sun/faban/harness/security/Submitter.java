@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Submitter.java,v 1.4 2009/07/20 22:52:38 sheetalpatil Exp $
+ * $Id: Submitter.java,v 1.5 2009/07/21 22:54:49 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -45,7 +45,7 @@ public class Submitter {
             new HashMap<String, Entry>();
 
     /**
-     * Checks if a user is submitter
+     * Checks if a user is submitter.
      * @param user
      * @param resource
      * @return boolean
@@ -62,7 +62,7 @@ public class Submitter {
     }
 
     /**
-     * Gets the submitter
+     * Gets the submitter.
      * @param resource
      * @return String
      */

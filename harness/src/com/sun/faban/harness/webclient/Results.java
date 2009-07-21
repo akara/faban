@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Results.java,v 1.7 2009/06/23 21:35:58 sheetalpatil Exp $
+ * $Id: Results.java,v 1.8 2009/07/21 22:54:48 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -40,7 +40,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 /**
- *
+ * Controller handling actions from the result list screen.
  * @author akara
  */
 public class Results {
@@ -49,6 +49,13 @@ public class Results {
     private static SimpleDateFormat formatOrig =
             new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 
+    /**
+     * Obtains the resultlist table.
+     * @param req
+     * @param resp
+     * @return String
+     * @throws java.io.IOException
+     */
     public String list(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
         int col = -1;
@@ -95,6 +102,12 @@ public class Results {
         return "/resultlist.jsp";
     }
 
+    /**
+     * Obtains the feed list.
+     * @param req
+     * @param resp
+     * @throws java.io.IOException
+     */
     public void feed(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
         UserEnv usrEnv = getUserEnv(req);
@@ -124,6 +137,13 @@ public class Results {
         req.setAttribute("feed.updated", updated);
     }
 
+    /**
+     * Obtains the run information.
+     * @param req
+     * @param resp
+     * @return String
+     * @throws java.io.IOException
+     */
     public String getRunInfo(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
         UserEnv usrEnv = getUserEnv(req);
@@ -190,6 +210,12 @@ public class Results {
             return "/runinfo.jsp";
     }
 
+    /**
+     * .
+     * @param req
+     * @param resp
+     * @throws java.io.IOException
+     */
     public void location(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
         String[] restRequest = (String[]) req.getAttribute("rest.request");

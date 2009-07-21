@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentSocketFactory.java,v 1.3 2007/10/12 01:32:10 akara Exp $
+ * $Id: AgentSocketFactory.java,v 1.4 2009/07/21 22:54:46 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -44,7 +44,7 @@ public class AgentSocketFactory extends RMISocketFactory implements RMIClientSoc
     RMISocketFactory rsf = RMISocketFactory.getDefaultSocketFactory();
 
     /**
-     * Constructor
+     * Constructor.
      *
      */
     AgentSocketFactory() {

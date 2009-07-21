@@ -28,7 +28,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- *
+ * Annotation used for validating run configuration in DefaultFabanBechmark2
+ * class.
  * @author Sheetal Patil, Sun Microsystems.
  */
 @Retention(RetentionPolicy.RUNTIME)

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: InterfaceProbe.java,v 1.3 2008/07/26 07:36:09 akara Exp $
+ * $Id: InterfaceProbe.java,v 1.4 2009/07/21 22:54:45 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -93,6 +93,10 @@ public class InterfaceProbe {
         byte[] netAddress;
     }
 
+    /**
+     * .
+     * @throws java.net.SocketException
+     */
     public InterfaceProbe() throws SocketException {
         Enumeration<NetworkInterface> interfaces =
                 NetworkInterface.getNetworkInterfaces();
@@ -101,11 +105,20 @@ public class InterfaceProbe {
         ifAInfoList = listIFAddressInfo(ifList);
     }
 
+    /**
+     * .
+     * @param executor
+     * @throws java.net.SocketException
+     */
     public InterfaceProbe(ExecutorService executor) throws SocketException {
         this();
         threadPool = executor;
     }
 
+    /**
+     * .
+     * @param executor
+     */
     public void setExecutorService(ExecutorService executor) {
         threadPool = executor;
     }
@@ -136,6 +149,12 @@ public class InterfaceProbe {
         return ifAInfos;
     }
 
+    /**
+     * .
+     * @param hosts
+     * @param ifMap
+     * @return
+     */
     public Map<String, String> getIfMap(Collection<String> hosts,
                                         Map<String, String> ifMap) {
 
@@ -156,6 +175,11 @@ public class InterfaceProbe {
         return ifMap;
     }
 
+    /**
+     * .
+     * @param hosts
+     * @return
+     */
     public List<Route> getRoutes(Collection<String> hosts) {
         ArrayList<Route> routes = new ArrayList<Route>();
         if (hosts.size() < PARALLEL_THRESHOLD) {

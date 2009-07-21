@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunQ.java,v 1.27 2009/03/17 00:36:56 sheetalpatil Exp $
+ * $Id: RunQ.java,v 1.28 2009/07/21 22:54:48 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -75,7 +75,7 @@ public class RunQ {
     }
 
     /**
-     * Singleton initializer for runQ and runDaemon
+     * Singleton initializer for runQ and runDaemon.
      * @return runQ
      */
 
@@ -214,7 +214,7 @@ public class RunQ {
     /**
       * Deletes the run with the specified runId from the runq. Does not take
       * any action if such a run is not found or is already being executed
-      * by the runDaemon thread
+      * by the runDaemon thread.
       *
       * @param runId the runId of the run to be deleted
       *
@@ -316,7 +316,7 @@ public class RunQ {
     }
 
     /**
-      * Not sure if this method will be used
+      * Not sure if this method will be used.
       *
       */
     public boolean startRunDaemon()
@@ -325,7 +325,7 @@ public class RunQ {
     }
 
     /**
-      * Not sure if this method will be used
+      * Not sure if this method will be used.
       *
       */
     public boolean stopRunDaemon()
@@ -351,7 +351,7 @@ public class RunQ {
     }
 
     /**
-     * method to stop the current benchamark run
+     * Method to stop the current benchamark run.
      * @param runId The run id to kill - this is for safety
      * @return current run name.
      */

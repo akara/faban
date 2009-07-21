@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AccessController.java,v 1.8 2009/05/21 10:13:27 sheetalpatil Exp $
+ * $Id: AccessController.java,v 1.9 2009/07/21 22:54:49 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -214,7 +214,7 @@ public class AccessController {
     }
 
     /**
-     * Checks whether the user is allowed to add comments on the given run
+     * Checks whether the user is allowed to add comments on the given run.
      * @param user The user in question
      * @param resource The run id of the run
      * @return True, if allowed to add comments to this run, false otherwise

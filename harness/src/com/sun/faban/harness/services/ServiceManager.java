@@ -43,6 +43,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * This class manages all the services.
  *
  * @author Sheetal Patil
  */
@@ -86,7 +87,7 @@ public class ServiceManager {
     }
 
     /**
-     * Constructor
+     * Constructor.
      * @param par
      * @param run
      * @throws java.lang.Exception
@@ -135,7 +136,7 @@ public class ServiceManager {
     }
 
     /**
-     * Creates a hashmap for services and tools
+     * Creates a hashmap for services and tools.
      * @param type
      * @param dir
      */
@@ -435,7 +436,7 @@ public class ServiceManager {
     }
 
     /**
-     * Creates a hashmap for toolsets
+     * Creates a hashmap for toolsets.
      * @param type
      * @param dir
      */
@@ -513,7 +514,7 @@ public class ServiceManager {
     }
 
     /**
-     * Returns a list of MasterToolContext
+     * Returns a list of MasterToolContext.
      * @return List
      */
     public List<MasterToolContext> getTools() {
@@ -521,7 +522,7 @@ public class ServiceManager {
     }
 
     /**
-     * Clears the logs
+     * Clears the logs.
      * @throws java.lang.Exception
      */
     public void clearLogs() throws Exception{
@@ -531,7 +532,7 @@ public class ServiceManager {
     }
 
     /**
-     * Configures the service
+     * Configures the service.
      * @throws java.lang.Exception
      */
     public void configure() throws Exception {
@@ -541,6 +542,7 @@ public class ServiceManager {
     }
 
     /**
+     * Obtains the configuration of a service.
      * @throws java.lang.Exception
      */
     public void getConfig() throws Exception {
@@ -550,7 +552,7 @@ public class ServiceManager {
     }
 
     /**
-     *
+     * Obtains the logs of a service.
      * @throws java.lang.Exception
      */
     public void getLogs() throws Exception {
@@ -560,7 +562,7 @@ public class ServiceManager {
     }
 
     /**
-     *
+     * Starts a service.
      * @throws java.lang.Exception
      */
     public void startup() throws Exception {
@@ -570,7 +572,7 @@ public class ServiceManager {
     }
 
     /**
-     * 
+     * Stops a service.
      * @throws java.lang.Exception
      */
     public void shutdown() throws Exception {

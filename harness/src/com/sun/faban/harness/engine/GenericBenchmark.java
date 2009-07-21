@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.42 2009/06/29 21:29:07 akara Exp $
+ * $Id: GenericBenchmark.java,v 1.43 2009/07/21 22:54:48 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -71,7 +71,7 @@ public class GenericBenchmark {
     private int stdyState = 0;
 
     /**
-     * Constructor
+     * Constructor.
      * @param r run
      */
     public GenericBenchmark(Run r) {
@@ -452,7 +452,7 @@ public class GenericBenchmark {
     }
 
     /**
-     * Responsible for doing the postprocessing 
+     * Responsible for doing the postprocessing.
      * @return true if successful
      */
     private boolean postProcess() {

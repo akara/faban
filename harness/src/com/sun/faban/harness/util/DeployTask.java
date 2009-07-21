@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DeployTask.java,v 1.6 2007/02/23 06:50:46 akara Exp $
+ * $Id: DeployTask.java,v 1.7 2009/07/21 22:54:45 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -49,7 +49,7 @@ public class DeployTask extends Task {
     private String password;
 
     /**
-     * Sets the target URL to the Faban deployment servlet
+     * Sets the target URL to the Faban deployment servlet.
      * @param target The deployment servlet
      */
     public void setUrl(String target) {

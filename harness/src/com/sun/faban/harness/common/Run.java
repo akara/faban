@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Run.java,v 1.7 2009/05/28 00:55:25 akara Exp $
+ * $Id: Run.java,v 1.8 2009/07/21 22:54:50 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -99,14 +99,14 @@ public class Run implements Serializable {
     }
 
     /**
-     * Get name of benchmark
+     * Get name of benchmark.
      */
     public BenchmarkDescription getBenchDesc() {
         return benchDesc;
     }
 
     /**
-     * Get pathname of log for this run
+     * Get pathname of log for this run.
      */
     public String getLog() {
         return(outdir + Config.LOG_FILE);

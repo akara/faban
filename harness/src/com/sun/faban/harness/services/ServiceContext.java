@@ -31,7 +31,8 @@ import java.util.Properties;
 import org.w3c.dom.Element;
 
 /**
- *
+ * This class provides the context for every service. Each service has only one
+ * context.
  * @author Sheetal Patil
  */
 public class ServiceContext implements Serializable {
@@ -46,7 +47,7 @@ public class ServiceContext implements Serializable {
     private Properties properties = new Properties();
 
     /**
-     * Constructor
+     * Constructor.
      * @param desc
      * @param par
      * @param roleElement
@@ -67,7 +68,7 @@ public class ServiceContext implements Serializable {
     }    
 
     /**
-     * Obtains a list of hosts
+     * Obtains a list of hosts.
      * @return string array of hosts
      */
     public String[] getHosts() {
@@ -75,7 +76,7 @@ public class ServiceContext implements Serializable {
     }
 
     /**
-     * Obtains a list of hostports
+     * Obtains a list of hostports.
      * @return List of hostports
      */
     public List<NameValuePair<Integer>> getHostPorts() {
@@ -83,7 +84,7 @@ public class ServiceContext implements Serializable {
     }
 
     /**
-     * Obtains host role
+     * Obtains host role.
      * @return host role
      */
     public String getHostRole() {
@@ -100,7 +101,7 @@ public class ServiceContext implements Serializable {
     }
 
     /**
-     * Obtains the run duration
+     * Obtains the run duration.
      * @return duration of steady state as String
      */
     public String getRunDuration() {

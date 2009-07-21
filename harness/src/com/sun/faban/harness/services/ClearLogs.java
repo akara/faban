@@ -28,7 +28,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- *
+ * Annotation used for clearing logs for a service.
  * @author Sheetal Patil
  */
 

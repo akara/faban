@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DeployUtil.java,v 1.20 2009/06/29 21:29:08 akara Exp $
+ * $Id: DeployUtil.java,v 1.21 2009/07/21 22:54:45 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -120,6 +120,10 @@ public class DeployUtil {
    
     }
 
+    /**
+     * This method is responsible for generation the deployment descriptor.
+     * @param dir
+     */
     public static void generateDD(String dir) {
         String benchDir = Config.BENCHMARK_DIR + dir + File.separator;
         String metaInf = benchDir + "META-INF" + File.separator;
@@ -184,6 +188,12 @@ public class DeployUtil {
             }
     }
 
+    /**
+     * This method is responsible for generating xform.
+     *
+     * @param dir
+     * @throws java.lang.Exception
+     */
     public static void generateXform(String dir) throws Exception {
         String benchDir = Config.BENCHMARK_DIR + dir + File.separator;
         XPath xPath = XPathFactory.newInstance().newXPath();
@@ -220,6 +230,11 @@ public class DeployUtil {
 
     }
 
+    /**
+     * Checks if benchmark can be deployed.
+     * @param benchName
+     * @return boolean
+     */
     public static boolean canDeployBenchmark(String benchName) {
         RunQ runQ = RunQ.getHandle();
 
@@ -234,6 +249,11 @@ public class DeployUtil {
         return true;
     }
 
+    /**
+     * Checks if service can be deployed.
+     * @param serviceName
+     * @return boolean
+     */
     public static boolean canDeployService(String serviceName) {
         Set<String> activeBundles = ServiceManager.getActiveDeployments();
         String serviceBundleName = "services" + File.separator + serviceName;
@@ -242,6 +262,9 @@ public class DeployUtil {
         return true;
     }
 
+    /**
+     * Check for any jar files dropped in here. Deploys if needed.
+     */
     public static void checkDeploy() {
         // Check for any jar files dropped in here, deploy if needed.
         File[] jarFiles = BENCHMARKDIR.listFiles();
@@ -273,6 +296,11 @@ public class DeployUtil {
 
     }
 
+    /**
+     * Checks for service deployment.
+     * @param jarFile
+     * @param serviceName
+     */
     public static void checkDeployService(File jarFile, String serviceName) {
         File serviceDir = new File(SERVICEDIR, serviceName);
         if (serviceDir.isDirectory()) {
@@ -283,6 +311,11 @@ public class DeployUtil {
         }
     }
 
+    /**
+     * Checks for benchmark deployment.
+     * @param jarFile
+     * @param benchName
+     */
     public static void checkDeployBenchmark(File jarFile, String benchName) {
         File benchDir = new File(BENCHMARKDIR, benchName);
         if (benchDir.isDirectory()) {
@@ -293,6 +326,11 @@ public class DeployUtil {
         }
     }
 
+    /**
+     * Deploys a benchmark.
+     * @param jarFile
+     * @param benchName
+     */
     public static void deployBenchmark(File jarFile, String benchName) {
         if (canDeployBenchmark(benchName))
             try {
@@ -305,6 +343,11 @@ public class DeployUtil {
             }
     }
 
+    /**
+     * Deploys a service.
+     * @param jarFile
+     * @param serviceBundleName
+     */
     public static void deployService(File jarFile, String serviceBundleName) {
         if (canDeployService(serviceBundleName))
             try {
@@ -315,6 +358,10 @@ public class DeployUtil {
             }
     }
 
+    /**
+     * Clears benchmark's configuration.
+     * @param benchName
+     */
     public static void clearConfig(String benchName) {
 
         // 1. Figure out the config file name.

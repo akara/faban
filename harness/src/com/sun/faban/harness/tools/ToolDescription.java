@@ -26,7 +26,9 @@ import com.sun.faban.harness.services.ServiceDescription;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.logging.Logger;
+
 /**
+ * This class provides the description of a tool.
  *
  * @author Sheetal Patil
  */
@@ -43,6 +45,14 @@ public class ToolDescription implements Serializable {
     String location;
     ServiceDescription service;
 
+    /**
+     * Constructor.
+     * @param id
+     * @param serviceName
+     * @param toolClass
+     * @param type
+     * @param location
+     */
     public ToolDescription(String id, String serviceName,
                             String toolClass, String type, String location) {
         this.id = id;
@@ -52,6 +62,11 @@ public class ToolDescription implements Serializable {
         this.location = location;
     }
 
+    /**
+     * Checks if the service is mapped.
+     * @param serviceMap
+     * @return boolean
+     */
     public boolean bind(Map<String, ServiceDescription> serviceMap) {
         boolean bound = true;
         if (serviceName != null) {
@@ -89,22 +104,42 @@ public class ToolDescription implements Serializable {
         return hash;
     }
 
+    /**
+     * Returns the location type.
+     * @return "services" or "benchmarks".
+     */
     public String getLocationType() {
         return locationType;
     }
 
+    /**
+     * Returns the path.
+     * @return location.
+     */
     public String getLocation() {
         return location;
     }
 
+    /**
+     * Returns the tool id.
+     * @return tool id as String.
+     */
     public String getId() {
         return id;
     }
 
+    /**
+     * Returns the service name to which the tool is associated.
+     * @return service name as string.
+     */
     public String getServiceName() {
         return serviceName;
     }
 
+    /**
+     * Returns the tool class.
+     * @return toolclass as string.
+     */
     public String getToolClass() {
         return toolClass;
     }

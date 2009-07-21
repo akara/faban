@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Jvmstat.java,v 1.7 2009/06/23 18:34:08 sheetalpatil Exp $
+ * $Id: Jvmstat.java,v 1.8 2009/07/21 22:54:47 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -56,6 +56,11 @@ public class Jvmstat extends CommandLineTool {
         super.config();
     }
 
+    /**
+     * This method is responsible for starting the tool utility.
+     * @throws java.io.IOException
+     * @throws java.lang.InterruptedException
+     */
     @Start public void start() throws IOException, InterruptedException {
         ArrayList<String> jvmCmd = new ArrayList<String>();
         ArrayList<String> argList = new ArrayList<String>();
@@ -100,7 +105,7 @@ public class Jvmstat extends CommandLineTool {
         super.start();
     }
     
-    //  All other methods are inherited from GenericTool
+    //  All other methods are inherited from CommandLineTool
     //  @todo The process.destroy is not killing the jvmstat process.
 
 }

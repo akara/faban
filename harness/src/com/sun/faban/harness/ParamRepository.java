@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ParamRepository.java,v 1.18 2009/07/20 19:00:23 sheetalpatil Exp $
+ * $Id: ParamRepository.java,v 1.19 2009/07/21 22:54:45 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -45,7 +45,7 @@ public class ParamRepository {
     private XMLReader reader;
 
     /**
-     * Constructor: Open specified repository
+     * Constructor: Open specified repository.
      * @param file Name of repository
      * @param warnDeprecated Log warning when config file is deprecated
      */
@@ -406,7 +406,7 @@ public class ParamRepository {
     }
 
     /**
-     * This method reads a value using the XPath and converts it to a boolean
+     * This method reads a value using the XPath and converts it to a boolean.
      * @param xpath XPath expression to the value which is true or false
      * @return true or false
      */
@@ -424,7 +424,7 @@ public class ParamRepository {
     }
 
     /**
-     * This method reads a value using the XPath and converts it to a boolean
+     * This method reads a value using the XPath and converts it to a boolean.
      * @param xpath XPath expression to the value which is true or false
      * @param base element
      * @return true or false
@@ -434,7 +434,7 @@ public class ParamRepository {
     }
 
     /**
-     * This method reads a value using the XPath and converts it to a boolean
+     * This method reads a value using the XPath and converts it to a boolean.
      * @param xpath XPath expression to the value which is true or false
      * @param base element
      * @param defaultValue

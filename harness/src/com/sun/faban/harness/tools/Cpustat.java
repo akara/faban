@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Cpustat.java,v 1.13 2009/06/26 18:30:13 akara Exp $
+ * $Id: Cpustat.java,v 1.14 2009/07/21 22:54:47 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -38,6 +38,9 @@ public class Cpustat extends CommandLineTool{
 
     private long stopTime;
 
+    /**
+     * This method is responsible for configuring the tool utility.
+     */
     @Configure
     public void configure() {
         super.config();
@@ -56,6 +59,9 @@ public class Cpustat extends CommandLineTool{
         stopTime = System.currentTimeMillis();
     }
 
+    /**
+     * This method is responsible for postprocessing.
+     */
     @Postprocess
     public void postprocess() throws IOException, InterruptedException {
         String rawFile = ctx.getOutputFile();

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: XMLInputStream.java,v 1.1 2008/01/15 08:02:53 akara Exp $
+ * $Id: XMLInputStream.java,v 1.2 2009/07/21 22:54:48 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -167,6 +167,10 @@ public class XMLInputStream extends FilterInputStream {
         in = fin;
     }
 
+    /**
+     * Adds the EOF listener.
+     * @param listener
+     */
     public void addEOFListener(EOFListener listener) {
 
         if (listener == null)

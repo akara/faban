@@ -24,7 +24,7 @@ package com.sun.faban.harness.engine;
 import com.sun.faban.harness.Benchmark;
 
 /**
- *
+ * This is an interface based benchmark wrapper class.
  * @author Sheetal Patil, Sun Microsystems.
  */
 public class InterfaceBenchmarkWrapper extends BenchmarkWrapper {

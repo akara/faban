@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgentImpl.java,v 1.27 2009/07/20 20:58:04 sheetalpatil Exp $
+ * $Id: CmdAgentImpl.java,v 1.28 2009/07/21 22:54:46 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -104,7 +104,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
     }
 
     /**
-     * Sets the benchmark name in the command map file
+     * Sets the benchmark name in the command map file.
      * @param benchName
      * @param libPath
      * @throws java.lang.Exception
@@ -130,7 +130,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
 
     /**
      * Only Other Agents should access the command agent using this method.
-     * So the access is limited to package level
+     * So the access is limited to package level.
      * @return this Command Agent
      */
     static CmdAgentImpl getHandle() {
@@ -220,7 +220,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
     }
 
     /**
-     * This method is responsible for starting a java cmd in background
+     * This method is responsible for starting a java cmd in background.
      * @param cmd args and class to start the JVM
      * @param identifier to associate with this command
      * @param env in which to run command
@@ -232,7 +232,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
     }
 
     /**
-     * This method is responsible for starting a java cmd in background
+     * This method is responsible for starting a java cmd in background.
      * @param cmd args and class to start the JVM
      * @param identifier to associate with this command
      * @param env in which to run command
@@ -295,7 +295,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
     }
 
     /**
-     * Registers and starts agent
+     * Registers and starts agent.
      * @param agentClass
      * @param identifier
      * @return
@@ -316,7 +316,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
 
     /**
      * This method is responsible for starting up the specified command
-     * in background
+     * in background.
      * The stderr from command is captured and logged to the errorlog.
      * @param cmd - actual command to execute
      * @param identifier	- String to identify this command later null if you don't want to do wait
@@ -338,7 +338,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
     }
 
     /**
-     * Start command in background and wait for the specified message
+     * Start command in background and wait for the specified message.
      * @param cmd to be started
      * @param ident to identify this command later null if you don't want to do wait
      *              or kill the process when the cmdAgent exits.
@@ -519,7 +519,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
 
     /**
      * This method is responsible for waiting for a command started
-     * earlier in background
+     * earlier in background.
      * @param identifier with which this cmd was started
      * @return true if command completed successfully
      */
@@ -557,7 +557,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
     }
 
     /**
-     * This method kills off the process specified
+     * This method kills off the process specified.
      *
      */
     public void kill(String identifier) {
@@ -574,7 +574,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
 
     /**
      * This method is responsible for aborting a command using the killem
-     * script
+     * script.
      * @param  identifier for the process. null if not started through
      *               command service.
      * @param processString search string to grep the process while killing
@@ -611,7 +611,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
     }
 
     /**
-     * Kill off all processes started
+     * Kill off all processes started.
      */
     public void kill() {
         // Use an array of Idents as the vector gets manipulated by the kill(ident) call
@@ -740,7 +740,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
     }
 
     /**
-     * Obtains the registry
+     * Obtains the registry.
      * @return Registry
      */
     public static Registry getRegistry() {
@@ -748,7 +748,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
     }
 
     /**
-     * Obtains the host
+     * Obtains the hostname.
      * @return hostname
      */
     public static String getHost() {
@@ -756,7 +756,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
     }
 
     /**
-     * Obtains the master host
+     * Obtains the master hostname.
      * @return master hostname
      */
     public static String getMaster() {
@@ -1096,8 +1096,8 @@ public class CmdAgentImpl extends UnicastRemoteObject
         PrintStream out;
 
         /**
-         * Constructor
-         * Open files and start thread
+         * Constructor.
+         * Open files and start thread.
          *
          * @param is InputStream to read from
          * @param logfile String filename to log to

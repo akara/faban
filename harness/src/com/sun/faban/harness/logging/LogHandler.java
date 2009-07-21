@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: LogHandler.java,v 1.3 2007/04/27 21:33:28 akara Exp $
+ * $Id: LogHandler.java,v 1.4 2009/07/21 22:54:49 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -49,7 +49,7 @@ public class LogHandler implements ProtocolHandler {
    }
 
     /**
-     * Sets the selection key for subsequent invocations
+     * Sets the selection key for subsequent invocations.
      * @param key
      */
     public void setKey(SelectionKey key) {
@@ -141,7 +141,7 @@ public class LogHandler implements ProtocolHandler {
     }
 
     /**
-     * Tests the handler whether it needs to further process this request
+     * Tests the handler whether it needs to further process this request.
      * @return True if the handler still needs to proceed, false if it is done
      */
     public boolean requestPending() {

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ToolAgent.java,v 1.7 2009/06/25 23:15:52 sheetalpatil Exp $
+ * $Id: ToolAgent.java,v 1.8 2009/07/21 22:54:46 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -43,7 +43,7 @@ public interface ToolAgent extends Remote {
 
     /**
      * This method configures the tools that must be run on
-     * this machine
+     * this machine.
      * @param toollist - each element in the array is the
      * name of a tool and optional arguments, e.g "sar -u -c"
      * @param osToolSet list of os tools
@@ -55,13 +55,13 @@ public interface ToolAgent extends Remote {
             throws RemoteException, IOException;
 
     /**
-     * This method is responsible for killing all tools
+     * This method is responsible for killing all tools.
      * @throws java.rmi.RemoteException
      */
     void kill() throws RemoteException;
 
     /**
-     * This method is responsible for starting all tools
+     * This method is responsible for starting all tools.
      * @param 	delay - time to delay before starting
      * @return 	true if tool started successfully
      * @throws RemoteException
@@ -69,7 +69,7 @@ public interface ToolAgent extends Remote {
     boolean start(int delay) throws RemoteException;
 	
     /**
-     * This method is responsible for starting all tools
+     * This method is responsible for starting all tools.
      * @return 	true if tool started successfully
      * @param 	delay - time to delay before starting
      * @param duration after which tools must be stopped
@@ -78,7 +78,7 @@ public interface ToolAgent extends Remote {
     boolean start(int delay, int duration) throws RemoteException;
 
     /**
-     * Start only specified tools
+     * Start only specified tools.
      * @param 	delay - time to delay before starting
      * @param 	tools - specific list of tools to start
      * @throws RemoteException
@@ -88,7 +88,7 @@ public interface ToolAgent extends Remote {
 	throws RemoteException;
 
     /**
-     * Start only specified tools for specific duration
+     * Start only specified tools for specific duration.
      * @param delay - time to delay before starting
      * @param tools - specific list of tools to start
      * @param duration after which tools must be stopped
@@ -98,7 +98,7 @@ public interface ToolAgent extends Remote {
 	throws RemoteException;
 
     /**
-     * This method is responsible for stopping the tools
+     * This method is responsible for stopping the tools.
      * @throws RemoteException
      */
     public void stop () throws RemoteException;

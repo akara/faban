@@ -30,7 +30,7 @@ import java.util.List;
 import java.io.IOException;
 
 /**
- *
+ * This class is a subclass of MasterToolContext.
  * @author Sheetal Patil
  */
 public class ToolContext extends MasterToolContext {
@@ -39,16 +39,31 @@ public class ToolContext extends MasterToolContext {
             Config.TMP_DIR + getToolName() + ".out." + this.hashCode();
     ToolWrapper wrapper;
 
+    /**
+     * Constructor.
+     * @param tool
+     * @param ctx
+     * @param desc
+     * @param wrapper
+     */
     public ToolContext(String tool, ServiceContext ctx, ToolDescription desc,
                        ToolWrapper wrapper) {
         super(tool, ctx, desc);
         this.wrapper = wrapper;
     }
 
+    /**
+     * Returns tool name.
+     * @return tool name as String
+     */
     public String getToolName(){
         return super.getToolId();
     }
 
+    /**
+     * Returns list of tool arguments.
+     * @return list of tool args
+     */
     public List<String> getToolArgs(){
         List<String> argsList = null;
         String toolParams = super.getToolParams();
@@ -57,18 +72,35 @@ public class ToolContext extends MasterToolContext {
         return argsList;
     }
 
+    /**
+     * Returns name of output file.
+     * @return output file name
+     */
     public String getOutputFile(){
         return localOutputFile;
     }
-    
+
+    /**
+     * Sets the output file with the given path.
+     * @param path
+     */
     public void setOutputFile(String path) {
         localOutputFile = path;
     }
 
+    /**
+     * Obtains the service property for the given key.
+     * @param key
+     * @return property as string
+     */
     public String getServiceProperty(String key) {
         return serviceCtx.getProperty(key);
     }
 
+    /**
+     * Returns ServiceContext for the tool.
+     * @return ServiceContext
+     */
     public ServiceContext getServiceContext() {
         return serviceCtx;
     }

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: XMLEditor.java,v 1.2 2006/06/29 19:38:43 akara Exp $
+ * $Id: XMLEditor.java,v 1.3 2009/07/21 22:54:45 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -34,7 +34,7 @@ import javax.xml.transform.OutputKeys;
 
 /**
  *
- * XMLEditor class can edit the XML files
+ * XMLEditor class can edit the XML files.
  *
  * @author Ramesh Ramachandran
  */
@@ -58,7 +58,7 @@ public class XMLEditor {
     }
 
     /**
-      * This method opens the XML file
+      * This method opens the XML file.
       * @param xmlFileName  - the full pathname of the file
       */
     public boolean open(String xmlFileName) throws Exception {
@@ -124,7 +124,7 @@ public class XMLEditor {
     /**
       * This recursive method traverses through the XML and
       * finds the 'element' that contains text 'value' and
-      * delete this node from its parent
+      * delete this node from its parent.
       * @param current - the parent element for searching
       * @param elements  - a string in the following format
       *             element[\telement..]\tvalue
@@ -204,7 +204,7 @@ public class XMLEditor {
     /**
       * This method traverses through the XML and
       * finds the 'element' with an attribute name 'tag'
-      * and replaces the value of this to 'value
+      * and replaces the value of this to 'value'.
       * @param current - the parent element for searching
       * @param elements  - a string in the following format
       *             element [element..] Atrribute value
@@ -216,7 +216,7 @@ public class XMLEditor {
     /**
       * This recursive method traverses through the XML and
       * finds the 'element' or an attribute
-      * and replaces the text node or attribute to 'value'
+      * and replaces the text node or attribute to 'value'.
       * @param current - the parent element for searching
       * @param elements  - a string in the following format
       *   \element\[element..]\[Atrribute]\value
@@ -309,7 +309,7 @@ public class XMLEditor {
      * finds the 'element' with an attribute name 'tag'
      * and replaces the value of this to 'value'
      * if another attribute of the element matches its
-     * value (defined in matchRule)
+     * value (defined in matchRule).
      * @param current - the parent element for searching
      * @param elements  - a string in the following format
      *             element [element..] Atrribute value
@@ -334,7 +334,7 @@ public class XMLEditor {
     /**
       * This recursive method traverses through the XML and
       * finds the 'element' with an attribute name 'tag'
-      * and replaces the value of this to 'value
+      * and replaces the value of this to 'value'.
       * @param current - the parent element for searching
       * @param elements  - a string in the following format
       *             element [element..] Atrribute value
@@ -451,7 +451,7 @@ public class XMLEditor {
      * to current node so that the number of elements
      * matches the size of the properties array.
      * Then use properties props[i] to replace
-     * attribute and/or child node text of elements[i]
+     * attribute and/or child node text of elements[i].
      * @param current - the parent element for searching
      * @param path  - a string in the following format
      *             element [\telement..]
@@ -540,7 +540,7 @@ public class XMLEditor {
     /**
       * This method saves the XML file if it was modified
       * and if a back up file name is specified the original
-      * file is backed up
+      * file is backed up.
       * @param backupFileName  - the name of the backup file
       */
     public boolean save(String backupFileName) throws Exception {
@@ -581,7 +581,7 @@ public class XMLEditor {
      * finds the 'element' with an attribute name 'tag'
      * and replaces the value of this to 'value'
      * if another attribute of the element matches its
-     * value (defined in matchRule)
+     * value (defined in matchRule).
      * @param current - the parent element for searching
      * @param elements  - a string in the following format
      *             element [element..] Atrribute value
@@ -610,7 +610,7 @@ public class XMLEditor {
     /**
       * This recursive method traverses through the XML and
       * finds the 'element' with an attribute name 'tag'
-      * and replaces the value of this to 'value
+      * and replaces the value of this to 'value'.
       * @param current - the parent element for searching
       * @param elements  - a string in the following format
       *             element [element..] Atrribute value
@@ -672,7 +672,7 @@ public class XMLEditor {
 
     /**
       * This recursive method traverses through the XML and
-      * finds the 'element' with an attribute name 'tag'
+      * finds the 'element' with an attribute name 'tag'.
       * @param current - the parent element for searching
       * @param elements  - a string in the following format
       *             element [element..] Atrribute value

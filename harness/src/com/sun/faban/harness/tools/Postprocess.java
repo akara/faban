@@ -30,7 +30,7 @@ import java.lang.annotation.Target;
 
 
 /**
- *
+ * Annotation used for postprocessing.
  * @author Sheetal Patil
  */
 

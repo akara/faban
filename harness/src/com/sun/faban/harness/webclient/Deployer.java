@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Deployer.java,v 1.12 2009/06/29 22:04:19 sheetalpatil Exp $
+ * $Id: Deployer.java,v 1.13 2009/07/21 22:54:48 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -44,7 +44,8 @@ import java.util.logging.Logger;
 import java.util.logging.Level;
 
 /**
- * The Deployer servlet is used to deploy a benchmark from a remote system.
+ * The Deployer servlet is used to deploy a benchmark/service from a remote
+ * system.
  *
  * @author Akara Sucharitakul
  */
@@ -79,7 +80,7 @@ public class Deployer extends HttpServlet {
         writer.write("        </td>\n");
         writer.write("    </tr>\n");
         writer.write("    <tr>\n");
-        writer.write("        <td colspan=\"2\">Benchmark JAR File:<br>\n");
+        writer.write("        <td colspan=\"2\">Benchmark/Service JAR File:<br>\n");
         writer.write("    	      <input type=\"file\" name=\"jarfile\" " +
                      "size=\"64\"/>\n");
         writer.write("        </td>\n");
@@ -299,7 +300,7 @@ public class Deployer extends HttpServlet {
         w.write("<html>\n");
         w.write("    <head>\n");
         w.write("        <title>" + Config.HARNESS_NAME +
-                " Benchmark Deployment</title>\n");
+                " Benchmark/Service Deployment</title>\n");
         w.write("<link rel=\"icon\" type=\"image/gif\" href=\"" +
                     request.getContextPath() + "/img/faban.gif\">");
 
@@ -312,7 +313,7 @@ public class Deployer extends HttpServlet {
                 "BGCOLOR=\"#5382A1\"> Sun Microsystems </td>\n");
         w.write("                <td ALIGN=\"CENTER\" WIDTH=\"34%\" " +
                 "BGCOLOR=\"#E76F00\"><b>" + Config.HARNESS_NAME +
-                " Benchmark Deployment</b></td>\n");
+                " Benchmark/Service Deployment</b></td>\n");
         w.write("                <td ALIGN=\"CENTER\" WIDTH=\"33%\" " +
                 "BGCOLOR=\"#B2BC00\"> Version " + Config.HARNESS_VERSION +
                 " </td>\n");

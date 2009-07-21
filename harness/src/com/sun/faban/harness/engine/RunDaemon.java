@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunDaemon.java,v 1.31 2009/07/20 22:31:55 sheetalpatil Exp $
+ * $Id: RunDaemon.java,v 1.32 2009/07/21 22:54:48 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -71,7 +71,7 @@ public class RunDaemon implements Runnable {
     Logger logger;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param runqLock the monitor object used to syncronize on the runq
      *
@@ -446,7 +446,7 @@ public class RunDaemon implements Runnable {
     }
 
     /**
-     * Exits the RunDaemon
+     * Exits the RunDaemon.
      */
     public void exit() {
         logger.info("RunDaemon Exit called");
@@ -456,7 +456,7 @@ public class RunDaemon implements Runnable {
     }
 
     /**
-     * Obtains RunDaemon thread status
+     * Obtains RunDaemon thread status.
      * @return status of RunDaemon thread
      */
     public String getRunDaemonThreadStatus() {
@@ -474,7 +474,7 @@ public class RunDaemon implements Runnable {
     }
 
     /**
-     * Called by RunQ's stopRunDaemon method. Not sure if it will be used yet
+     * Called by RunQ's stopRunDaemon method. Not sure if it will be used yet.
      *
      */
     public boolean suspendRunDaemonThread() {
@@ -489,7 +489,7 @@ public class RunDaemon implements Runnable {
     }
 
     /**
-     * Called by RunQ's resumeRunDaemon method. Not sure if it will be used yet
+     * Called by RunQ's resumeRunDaemon method. Not sure if it will be used yet.
      *
      */
     public boolean resumeRunDaemonThread() {
@@ -515,7 +515,7 @@ public class RunDaemon implements Runnable {
 
     /**
      * Redirect the log to file named log.xml inside the
-     * current run output directory
+     * current run output directory.
      * @param logFile the output directory for the run
      *
      */

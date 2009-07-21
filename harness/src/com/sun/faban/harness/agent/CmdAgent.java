@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgent.java,v 1.7 2008/07/29 23:34:27 akara Exp $
+ * $Id: CmdAgent.java,v 1.8 2009/07/21 22:54:46 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -63,7 +63,7 @@ public interface CmdAgent extends Remote {
     public String getTmpDir() throws RemoteException;
 
      /**
-      * Set the logging level of the Agents
+      * Set the logging level of the Agents.
       */
     public void setLogLevel(String name, Level level) throws RemoteException;
 
@@ -99,7 +99,7 @@ public interface CmdAgent extends Remote {
 
     /**
 	 * This method is responsible for starting the command in foreground
-	 * The caller waits for the command to complete
+	 * The caller waits for the command to complete.
 	 * @param command to start
 	 * @param priority in which to run command
 	 * @return 	true if command started successfully
@@ -109,7 +109,7 @@ public interface CmdAgent extends Remote {
 
     /**
      * This method is responsible for starting the script in foreground
-     * The caller waits for the command to complete
+     * The caller waits for the command to complete.
      * @param command to start
      * @param priority in which to run command
      * @return 	true if command started successfully
@@ -118,7 +118,7 @@ public interface CmdAgent extends Remote {
 	throws RemoteException, Exception;
 
     /**
-     * This method is responsible for starting the command in background
+     * This method is responsible for starting the command in background.
      * @param command to start
      * @param ident to associate with this command
      * @param priority in which to run command
@@ -129,7 +129,7 @@ public interface CmdAgent extends Remote {
 
     /**
      * Start command in background and wait for the 
-     * specified message
+     * specified message.
      * @param cmd command to be started
      * @param ident to identify this command later null if you don't want to do wait 
      *              or kill the process when the cmdAgent exits.
@@ -140,7 +140,7 @@ public interface CmdAgent extends Remote {
     throws Exception;
 
     /**
-     * This method is responsible for starting a java cmd in background
+     * This method is responsible for starting a java cmd in background.
      * @param cmd JVM args and class to start
      * @param ident identifier to associate with this command
      * @param env in which to run command
@@ -163,7 +163,7 @@ public interface CmdAgent extends Remote {
             throws RemoteException, Exception;
     /**
      * This method creates the Agent class and registers it with
-     * the registry using ident@<host> name
+     * the registry using ident@<host> name.
      * @param agentClass Impl class of the Agent to be started
      * @param ident Identifier to be used
      * @return true if the initialization was successful
@@ -194,13 +194,13 @@ public interface CmdAgent extends Remote {
 
 
     /**
-     * This method is responsible for aborting a command
+     * This method is responsible for aborting a command.
      * @param ident identifier associated with command in 'start' call
      */
     public void kill (String ident) throws RemoteException;
     
     /**
-     * This method is responsible for aborting a running command
+     * This method is responsible for aborting a running command.
      */
     public void kill () throws RemoteException;
 

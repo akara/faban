@@ -29,7 +29,7 @@ import java.lang.annotation.Target;
 
 
 /**
- *
+ * Annotation used for obtaining logs of a service.
  * @author Sheetal Patil
  */
 

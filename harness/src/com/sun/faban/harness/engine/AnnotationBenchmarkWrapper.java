@@ -34,6 +34,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * This is an annotation based benchmark wrapper class.
  *
  * @author Sheetal Patil, Sun Microsystems.
  */
@@ -144,7 +145,7 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
     }
 
     /**
-     * Invokes a benchmark's method annotated by @Validate
+     * Invokes a benchmark's method annotated by @Validate.
      * @throws java.lang.Exception
      */
     void validate() throws Exception {
@@ -158,7 +159,7 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
     }
 
     /**
-     * Invokes a benchmark's method annotated by @Configure
+     * Invokes a benchmark's method annotated by @Configure.
      * @throws java.lang.Exception
      */
     void configure() throws Exception {
@@ -172,7 +173,7 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
     }
 
     /**
-     * Invokes a benchmark's method annotated by @StartRun
+     * Invokes a benchmark's method annotated by @StartRun.
      * @throws java.lang.Exception
      */
     void start() throws Exception {
@@ -186,7 +187,7 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
     }
 
     /**
-     * Invokes a benchmark's method annotated by @EndRun
+     * Invokes a benchmark's method annotated by @EndRun.
      * @throws java.lang.Exception
      */
     void end() throws Exception {
@@ -200,7 +201,7 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
     }
 
     /**
-     * Invokes a benchmark's method annotated by @PostRun
+     * Invokes a benchmark's method annotated by @PostRun.
      * @throws java.lang.Exception
      */
     void postRun() throws Exception {
@@ -214,7 +215,7 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
     }
 
     /**
-     * Invokes a benchmark's method annotated by @KillRun
+     * Invokes a benchmark's method annotated by @KillRun.
      * @throws java.lang.Exception
      */
     void kill() throws Exception {

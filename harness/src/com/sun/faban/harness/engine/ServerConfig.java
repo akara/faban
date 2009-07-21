@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ServerConfig.java,v 1.13 2009/05/28 21:03:24 akara Exp $
+ * $Id: ServerConfig.java,v 1.14 2009/07/21 22:54:48 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -166,8 +166,8 @@ class ServerConfig {
     }
 
     /**
-     * Set system configuration
-     * Currently the only thing we set is the number of cpus
+     * Set system configuration.
+     * Currently the only thing we set is the number of cpus.
      * @param cmds object to use
      * @return true/false depending on whether we were successful or not
      */
@@ -307,7 +307,7 @@ class ServerConfig {
     }
 
     /**
-     * Get system logs for benchmark duration
+     * Get system logs for benchmark duration.
      * This method captures the relevant portion of var/adm/messages
      * to the system report file for the benchmark run.
 

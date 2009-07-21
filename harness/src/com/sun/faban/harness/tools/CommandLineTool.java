@@ -32,6 +32,7 @@ import java.util.logging.Logger;
 
 
 /**
+ * This class handles the command line tools. Like, vmstat, mpstat, etc.
  *
  * @author Sheetal Patil
  */

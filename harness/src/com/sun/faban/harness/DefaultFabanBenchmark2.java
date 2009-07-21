@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DefaultFabanBenchmark2.java,v 1.5 2009/07/20 19:00:23 sheetalpatil Exp $
+ * $Id: DefaultFabanBenchmark2.java,v 1.6 2009/07/21 22:54:45 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -33,11 +33,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * The default benchmark class for use with benchmarks implemented with the
- * Faban Driver Framework. This class is designed to be extended if additional
- * features are desired. Do not use the DefaultFabanBenchmark if the actual
- * driver is not implemented using the Faban Driver Framework. Implement the
- * Benchmark interface directly in such cases.
+ * The default benchmark class(based on annotations) for use with benchmarks
+ * implemented with the Faban Driver Framework. This class is designed to be
+ * extended if additional features are desired. Do not use the
+ * DefaultFabanBenchmark2 if the actual driver is not implemented using the
+ * Faban Driver Framework.
  *
  * @author Akara Sucharitakul
  */
@@ -258,7 +258,7 @@ public class DefaultFabanBenchmark2 {
     //}
 
     /**
-     * This method is responsible for starting the benchmark run
+     * This method is responsible for starting the benchmark run.
      *
      * @throws Exception if any error occurred.
      */

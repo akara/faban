@@ -29,7 +29,8 @@ import java.lang.annotation.Target;
 
 
 /**
- *
+ * Annotation used for collecting data of a tool.
+ * 
  * @author Sheetal Patil
  */
 

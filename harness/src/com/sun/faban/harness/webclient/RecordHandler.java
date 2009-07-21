@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RecordHandler.java,v 1.7 2009/05/26 21:06:54 akara Exp $
+ * $Id: RecordHandler.java,v 1.8 2009/07/21 22:54:48 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -41,6 +41,13 @@ class RecordHandler extends LogParseHandler {
     StackFrame frame = new StackFrame();
     ArrayList stackFrames = new ArrayList();
 
+    /**
+     * Handles the records.
+     * @param recordId
+     * @param request
+     * @param out
+     * @param runId
+     */
     public RecordHandler(long recordId, HttpServletRequest request, 
                                 ServletOutputStream out, String runId) {
         super(request, out, runId);
@@ -48,10 +55,17 @@ class RecordHandler extends LogParseHandler {
         end = recordId + 1;
     }
 
+    /**
+     * Processes the record.
+     */
     public void processRecord() {
         // Noop. All work is done in the superclass.
     }
 
+    /**
+     * Process the details.
+     * @param qName
+     */
     public void processDetail(String qName) {
         if ("millis".equals(qName))
             detail.millis = buffer.toString().trim();
@@ -80,6 +94,10 @@ class RecordHandler extends LogParseHandler {
         }
     }
 
+    /**
+     * Prints the details to the screen.
+     * @throws java.io.IOException
+     */
     public void printHtml() throws IOException {
 
         out.println("<html>");

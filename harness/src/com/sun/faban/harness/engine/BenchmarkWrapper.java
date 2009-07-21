@@ -27,7 +27,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
+ * This is a wrapper which checks if the benchmark class is annotation based
+ * or interface based.
  * @author Sheetal Patil, Sun Microsystems.
  */
 public abstract class BenchmarkWrapper {
@@ -124,7 +125,7 @@ public abstract class BenchmarkWrapper {
 
     /**
      * This method aborts the current benchmark run and is
-     * called when a user asks for a run to be killed
+     * called when a user asks for a run to be killed.
      *
      * @throws Exception if any error occurred.
      */

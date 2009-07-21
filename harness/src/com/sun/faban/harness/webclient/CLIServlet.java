@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CLIServlet.java,v 1.7 2009/03/03 21:44:47 akara Exp $
+ * $Id: CLIServlet.java,v 1.8 2009/07/21 22:54:48 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -97,7 +97,7 @@ public class CLIServlet extends HttpServlet {
      * <li>Tail Logs: http://..../logs/${runid}/tail</li>
      * <li>Follow Logs: http://..../logs/${runid}/follow</li>
      * <li>Combination of tail and follow, postfix /tail/follow</li>
-     * </ol>
+     * </ol>.
      * @param request The request object
      * @param response The response object
      * @throws ServletException Error executing servlet
@@ -127,7 +127,7 @@ public class CLIServlet extends HttpServlet {
      * requests.
      * <br><br>
      * Path to call this servlet is http://.../submit/${benchmark}/${profile}
-     * and http://.../kill/${runId}
+     * and http://.../kill/${runId}.
      *
      * @param request The mime multi-part post request
      * @param response The response object

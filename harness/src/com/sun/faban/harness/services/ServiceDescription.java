@@ -25,6 +25,7 @@ import java.io.Serializable;
 import java.util.logging.Logger;
 
 /**
+ * This class provides the description for each service.
  *
  * @author Sheetal Patil
  */
@@ -39,7 +40,7 @@ public class ServiceDescription implements Serializable {
     public String location;
 
     /**
-     * Constructor
+     * Constructor.
      * @param id
      * @param serviceClass
      * @param type

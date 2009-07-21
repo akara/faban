@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileAgentImpl.java,v 1.9 2008/05/14 07:08:31 akara Exp $
+ * $Id: FileAgentImpl.java,v 1.10 2009/07/21 22:54:46 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -38,7 +38,7 @@ import java.util.Properties;
 
 
 /**
- * This is the class that reads/writes files for remote objects
+ * This is the class that reads/writes files for remote objects.
  *
  * @author Ramesh Ramachandran
  * @see com.sun.faban.harness.agent.FileAgent
@@ -50,7 +50,7 @@ public class FileAgentImpl extends UnicastRemoteObject
 
     /**
      *
-     * Constructor
+     * Constructor.
      *
      */
     public FileAgentImpl() throws RemoteException {
@@ -126,7 +126,7 @@ public class FileAgentImpl extends UnicastRemoteObject
 
 
     /**
-     * Gets a property from a given file
+     * Gets a property from a given file.
      * @param configFile The config file name
      * @param propName The property key name
      * @return The property value
@@ -296,7 +296,7 @@ public class FileAgentImpl extends UnicastRemoteObject
     }
 
     /**
-     * Registration for RMI serving - used only for stand-alone testing
+     * Registration for RMI serving - used only for stand-alone testing.
      */
 
     public static void main(String [] argv) {
