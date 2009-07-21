@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MasterImpl.java,v 1.9 2009/07/03 01:52:35 akara Exp $
+ * $Id: MasterImpl.java,v 1.10 2009/07/21 21:21:09 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -250,6 +250,9 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
             if (agentCnt > 0) {
                 for (int i = 0; i < benchDef.drivers.length && !runAborted; i++) {
 					configureAgents(i);
+				}
+                for (int i = 0; i < benchDef.drivers.length && !runAborted; i++) {
+					startThreads(i);
 				}
                 logger.config("Detected " + agentCnt + " Remote Agents.");
             } else {
@@ -526,6 +529,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         agentInfo.agentScale = runInfo.scale;
         agentRefs[driverToRun][0].configure(this, runInfo,
                 driverToRun, timer);
+        agentRefs[driverToRun][0].startThreads();
     }
 
     /**
@@ -580,6 +584,20 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         }
         runInfo.driverConfig = null;
         runInfo.agentInfo = null; // reset it so we don't use it anywhere else
+    }
+
+    /**
+     * Starts all the threads for a driver type.
+     * @param driverType The type id of the driver
+     * @throws Exception An error occurred starting the driver threads
+     */
+    private void startThreads(int driverType) throws Exception {
+        int agentCnt = runInfo.driverConfigs[driverType].numAgents;
+        if (agentCnt > 0) {
+            Agent[] refs = agentRefs[driverType];
+            for (int agentId = 0; agentId < refs.length; agentId++)
+                refs[agentId].startThreads();
+        }
     }
 
     /**
@@ -657,7 +675,6 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
             } catch (InterruptedException ie) {
             	logger.log(Level.FINE, ie.getMessage(), ie);
             }
-            logger.info("Ramp down completed");
 
             // Schedule a forced termination 2 minutes from here where we start
             // the wait.
@@ -666,21 +683,48 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
                         Thread mainThread = Thread.currentThread();
 
 						public void run() {
+                            // Terminate all agents except agent 0 for all
+                            // driver types first.
                             for (int i = 0; i < agentRefs.length; i++) {
 								if (agentRefs[i] != null) {
 									// Ensure we terminate the first agent last
                                     for (int j = agentRefs[i].length - 1;
-                                         j >= 0; j--) {
+                                         j > 0; j--) {
 										try {
                                             agentRefs[i][j].terminate();
                                         } catch (RemoteException e) {
                                             logger.log(Level.SEVERE,
                                                     "Error checking thread " +
-                                                    "starts.", e);
+                                                    "termination.", e);
                                         }
 									}
 								}
 							}
+                            // Then terminate agent 0.
+                            for (int i = 0; i < agentRefs.length; i++) {
+                                if (agentRefs[i] != null &&
+                                        agentRefs[i][0] != null)
+                                    try {
+                                        agentRefs[i][0].terminate();
+                                    } catch (RemoteException e) {
+                                        logger.log(Level.SEVERE,
+                                                "Error checking thread " +
+                                                "termination.", e);
+                                    }
+                            }
+
+                            // Then, call postRun on all agent 0s.
+                            for (int i = 0; i < agentRefs.length; i++) {
+                                if (agentRefs[i] != null &&
+                                        agentRefs[i][0] != null)
+                                    try {
+                                        agentRefs[i][0].postRun();
+                                    } catch (RemoteException e) {
+                                        logger.log(Level.SEVERE,
+                                                "Error calling postRun", e);
+                                    }
+                            }
+
                             if (joining.get()) {
 								mainThread.interrupt();
 							}
@@ -694,6 +738,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         // Now wait for all threads under all agents to terminate.
         joining.set(true);
 
+        // Join all other agents.
         joinLoop:
         for (int driverType = 0; driverType < runInfo.driverConfigs.length;
              driverType++) {
@@ -704,8 +749,8 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 					try {
                         refs[i].join();
                     } catch (RemoteException e) {
-                        logger.warning("Master: RemoteException got " + e);
-                        logger.throwing(className, "executeRun", e);
+                        logger.log(Level.WARNING,
+                                "Master: RemoteException got " + e, e);
 
                         // If the RemoteException is caused by an interrupt,
                         // we break the loop. This is because killAtEnd is in
@@ -717,6 +762,31 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 				}
             }
         }
+
+        // Join agent 0.
+        for (int driverType = 0; driverType < runInfo.driverConfigs.length;
+             driverType++) {
+            if (runInfo.driverConfigs[driverType].numAgents > 0) {
+                Agent refs[] = agentRefs[driverType];
+                if (refs != null && refs[0] != null) {
+					try {
+                        refs[0].join();
+                    } catch (RemoteException e) {
+                        logger.log(Level.WARNING,
+                                "Master: RemoteException got " + e, e);
+
+                        // If the RemoteException is caused by an interrupt,
+                        // we break the loop. This is because killAtEnd is in
+                        // effect.
+                        if (Thread.interrupted()) {
+							break;
+						}
+                    }
+                }
+            }
+        }
+        logger.info("Ramp down completed");
+
         joining.set(false);
 
         // It would be good if we do not have to execute killAtEnd. By now
@@ -725,6 +795,29 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         if (killAtEnd != null) {
 			killAtEnd.cancel();
 		}
+
+        // Call postRun
+        for (int driverType = 0; driverType < runInfo.driverConfigs.length;
+             driverType++) {
+            if (runInfo.driverConfigs[driverType].numAgents > 0) {
+                Agent refs[] = agentRefs[driverType];
+                if (refs != null && refs[0] != null) {
+					try {
+                        refs[0].postRun();
+                    } catch (RemoteException e) {
+                        logger.log(Level.WARNING,
+                                "Master: RemoteException got " + e, e);
+
+                        // If the RemoteException is caused by an interrupt,
+                        // we break the loop. This is because killAtEnd is in
+                        // effect.
+                        if (Thread.interrupted()) {
+							break;
+						}
+                    }
+                }
+            }
+        }
 
         /* Gather stats and print report */
         changeState(MasterState.RESULTS);
@@ -1358,12 +1451,39 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 					}
                     for (int i = 0; i < agentRefs.length; i++) {
 						if (agentRefs[i] != null) {
-							for (int j = 0; j < agentRefs[i].length; j++) {
+							for (int j = agentRefs[i].length - 1; j > 0; j--) {
 								try {
                                     agentRefs[i][j].join();
                                 } catch (RemoteException e) {
                                     logger.log(Level.SEVERE,
                                             "Error calling join on agent.", e);
+                                }
+							}
+						}
+					}
+                    for (int i = 0; i < agentRefs.length; i++) {
+						if (agentRefs[i] != null) {
+							if (agentRefs[i] != null &&
+                                    agentRefs[i][0] != null) {
+								try {
+                                    agentRefs[i][0].join();
+                                } catch (RemoteException e) {
+                                    logger.log(Level.SEVERE,
+                                            "Error calling join on agent.", e);
+                                }
+							}
+						}
+					}
+                    for (int i = 0; i < agentRefs.length; i++) {
+						if (agentRefs[i] != null) {
+							if (agentRefs[i] != null &&
+                                    agentRefs[i][0] != null) {
+								try {
+                                    agentRefs[i][0].postRun();
+                                } catch (RemoteException e) {
+                                    logger.log(Level.SEVERE,
+                                            "Error calling postRun on agent.",
+                                            e);
                                 }
 							}
 						}

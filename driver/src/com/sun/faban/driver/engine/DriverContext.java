@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DriverContext.java,v 1.5 2009/07/03 01:52:34 akara Exp $
+ * $Id: DriverContext.java,v 1.6 2009/07/21 21:21:09 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -259,6 +259,15 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
         agentThread.metrics.metricAttachments.put(name, metrics);
     }
 
+    /**
+     * Attaches a custom table metrics object to the primary metrics,
+     * given a name or description. The name/description must be unique.
+     * This should be done by the driver at initialization time.
+     * Only one custom metrics can be attached. Subsequent calls
+     * to this method replaces the previously attached metrics.
+     * @param name    The name or description of this metrics
+     * @param metrics The custom metrics to be replaced
+     */
     @Override
     public void attachMetrics(String name, CustomTableMetrics metrics) {
         if (agentThread.metrics.tableAttachments == null)

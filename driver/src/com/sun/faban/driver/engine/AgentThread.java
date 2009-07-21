@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentThread.java,v 1.3 2009/07/03 01:52:34 akara Exp $
+ * $Id: AgentThread.java,v 1.4 2009/07/21 21:21:08 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -349,16 +349,30 @@ public abstract class AgentThread extends Thread {
                 // we don't really care to redo this.
             }
             agent.preRunLatch.countDown();
+            try {
+                agent.startLatch.await();
+            } catch (InterruptedException e) {
+                logger.log(Level.WARNING, name +
+                        ": Start latch await interrupted!");
+            }
+            agent.startLatch = null;
+            logger.finest(name + ": Thread 0 got startLatch, now executing.");
         }
         setThreadState(RunState.RUNNING);
     }
 
     /**
-     * Executes the method market with @OnceAfter in thread 0.
+     * Executes the method marked with @OnceAfter in thread 0.
      */
     void postRun() {
         if (id == 0 && driverConfig.postRun != null &&
                 compareAndSetThreadState(RunState.RUNNING, RunState.POST_RUN)) {
+            // Tell the world we're finished.
+            agent.finishLatch.countDown();
+            logger.finest(name +
+                    ": Thread 0 finished, awaiting postRunLatch");
+
+            // Then wait for a signal (everybody else finished) to run postrun.
             while (agent.postRunLatch.getCount() > 0l) {
 				try {
                     agent.postRunLatch.await();
@@ -378,6 +392,7 @@ public abstract class AgentThread extends Thread {
                     interrupted = true;
                 }
             } while (interrupted);
+            logger.finest(name + ": Thread 0 finished postRun.");
         }
         setThreadState(RunState.ENDED);
     }

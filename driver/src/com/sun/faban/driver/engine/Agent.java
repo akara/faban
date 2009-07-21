@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Agent.java,v 1.5 2009/07/03 01:52:34 akara Exp $
+ * $Id: Agent.java,v 1.6 2009/07/21 21:21:08 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -39,8 +39,7 @@ import java.rmi.RemoteException;
 public interface Agent extends Remote {
 
     /**
-     * Configures each agents with the properties passed
-     * The threads are created at this point
+     * Configures each agents with the properties passed.
      * @param master the remote interface to the Master
      * @param runInfo run information passed by Master
      * @param driverType
@@ -56,7 +55,13 @@ public interface Agent extends Remote {
      * @throws RemoteException A network error occurred
      */
     public int getId() throws RemoteException;
-    
+
+    /**
+     * Start all the driver threads.
+     * @throws RemoteException A network error occurred
+     */
+    public void startThreads() throws RemoteException;
+
     /**
      * Wait until all threads are started.
      * @throws RemoteException A network error occurred
@@ -100,4 +105,11 @@ public interface Agent extends Remote {
      * @throws RemoteException A network error occurred
      */
     public void terminate() throws RemoteException;
+
+    /**
+     * Invokes the post run method on thread 0 of each driver agent 0, if
+     * the annotation @onceAfter is used.
+     * @throws RemoteException A network error occurred
+     */
+    public void postRun() throws RemoteException;
 }

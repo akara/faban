@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TimeThread.java,v 1.2 2009/01/13 01:02:43 akara Exp $
+ * $Id: TimeThread.java,v 1.3 2009/07/21 21:21:09 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -169,12 +169,22 @@ public class TimeThread extends AgentThread {
 
                 // Invoke the operation
                 try {
+                    if (id == 0)
+                        logger.finest("Invoking " + op.name + " at " + System.nanoTime());
                     op.m.invoke(driver);
+                    if (id == 0)
+                        logger.finest("Returned from " + op.name + " (OK) at " + System.nanoTime());
                     validateTimeCompletion(op);
+                    if (id == 0) {
+                        DriverContext.TimingInfo t = driverContext.timingInfo;
+                        logger.finest("Invoke: " + t.invokeTime + ", Respond: " + t.respondTime + ", Pause: " + t.pauseTime);
+                    }
                     checkRamp();
                     metrics.recordTx();
                     metrics.recordDelayTime();
                 } catch (InvocationTargetException e) {
+                    if (id == 0)
+                        logger.finest("Returned from " + op.name + " (Err) at " + System.nanoTime());
                     // An invocation target exception is caused by another
                     // exception thrown by the operation directly.
                     Throwable cause = e.getCause();
