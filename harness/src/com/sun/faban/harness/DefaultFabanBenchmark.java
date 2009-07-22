@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DefaultFabanBenchmark.java,v 1.19 2009/07/21 22:54:45 sheetalpatil Exp $
+ * $Id: DefaultFabanBenchmark.java,v 1.20 2009/07/22 19:29:43 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -40,8 +40,10 @@ import java.util.logging.Logger;
  * Benchmark interface directly in such cases.
  *
  * @author Akara Sucharitakul
+ * @deprecated Replaced by DefaultFabanBenchmark2, this class is provided for
+ *             backward compatibility and is to be removed in the future.
  */
-public class DefaultFabanBenchmark implements Benchmark {
+@Deprecated public class DefaultFabanBenchmark implements Benchmark {
 
     private Logger logger = Logger.getLogger(getClass().getName());;
     protected ParamRepository params;
