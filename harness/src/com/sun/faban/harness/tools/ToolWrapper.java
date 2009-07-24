@@ -288,8 +288,8 @@ public class ToolWrapper {
 
     /**
      * This method is responsible for starting a tool with given delay.
-     * @param delay
-     * @return
+     * @param delay The lapse time after which the tool will start
+     * @return always return true
      */
     public boolean start(int delay) {
         TimerTask startTask = new TimerTask() {
@@ -308,9 +308,9 @@ public class ToolWrapper {
     /**
      * This method is responsible for starting a tool with given delay and
      * duration.
-     * @param delay
-     * @param duration
-     * @return
+     * @param delay The lapse time after which the tool will start
+     * @param duration The duration the tool is to run
+     * @return always return true
      */
     public boolean start(int delay, int duration) {
         if(this.start(delay)) {

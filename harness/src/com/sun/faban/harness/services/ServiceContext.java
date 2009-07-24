@@ -94,7 +94,7 @@ public class ServiceContext implements Serializable {
     /**
      * Obtains the property for a given key.
      * @param key
-     * @return
+     * @return the property value
      */
     public String getProperty(String key) {
         return properties.getProperty(key);

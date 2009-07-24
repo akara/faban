@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FlexBuffer.java,v 1.4 2009/07/21 22:54:49 sheetalpatil Exp $
+ * $Id: FlexBuffer.java,v 1.5 2009/07/24 22:48:23 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -355,9 +355,9 @@ public class FlexBuffer {
 
     /**
      * Trims the string based on the position and the length.
-     * @param pos
-     * @param length
-     * @return
+     * @param pos The starting position
+     * @param length The length
+     * @return the resulting substring
      */
     public String getTrimmedString(int pos, int length) {
 
@@ -480,8 +480,8 @@ public class FlexBuffer {
 
     /**
      * Checks if the string ends with provided string.
-     * @param s
-     * @return
+     * @param s The string to check the buffer against
+     * @return true if the buffer ends with the provided string, false otherwise
      */
     public boolean endsWith(String s) {
         byte[] sample = s.getBytes();

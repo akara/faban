@@ -5,20 +5,8 @@ BINDIR=`dirname $0`
 if [ -n "$BINDIR" ] ; then
     FABAN_HOME=`cd $BINDIR/.. > /dev/null 2>&1 && pwd`
     FENXI_HOME=`cd $FABAN_HOME/master/webapps/fenxi > /dev/null 2>&1 && pwd`
-    FENXI_SCRIPTS=$FENXI_HOME/scripts
-    export FABAN_HOME FENXI_HOME FENXI_SCRIPTS
+    export FABAN_HOME FENXI_HOME
 fi
-
-
-FENXI_HOST=localhost
-export FENXI_HOST
-
-# LOG_FILE=/net/romulus.sfbay/export/home/fenxi2/usage-log/log
-
-# if [ -w $LOG_FILE ] ; then
-#    who am i | awk '{print $3, $4, $5, $1};' >> $LOG_FILE
-#    uname -a | awk '{print $2, $3, $5};' >> $LOG_FILE
-# fi
 
 if [ -n "$JAVA_HOME" ] ; then
     PATH=$JAVA_HOME/bin:$PATH
@@ -53,75 +41,10 @@ if [ $1 = "import" ] ; then
     done
 fi
 
-# perl -w $FENXI_SCRIPTS/fenxi.pl $*
-# ksh -x $FENXI_SCRIPTS/process $*
+chmod a+rx ${FENXI_HOME}/txt2db/*
+chmod a+rx ${FENXI_HOME}/scripts/*
 
-#DIR=${0%/*}
-#PROG=${0##*/}
-
-#PROG=$FENXI_SCRIPTS/process
-
-chmod a+rx $FENXI_HOME/txt2db/*
-
-usage() {
-        echo "usage: $0 process rawdir htmldir runID" 2>&1
-        echo "       $0 compare rundir1 rundir2 ... outdir" 2>&1
-        exit 2
-}
-
-if [ $# -lt 4 ]; then
-    usage
-fi
-
-if [ $# -gt 4 -a "$1" = "process" ] ; then
-    usage
-fi
-
-#FENXI_HOME=${FENXI_HOME:-$DIR/..}
-
-PERL5LIB=$FENXI_HOME/txt2db
-
-CLASSPATH=\
-$FENXI_HOME/WEB-INF/lib/spark.jar:\
-$FENXI_HOME/WEB-INF/classes:\
-$FENXI_HOME/WEB-INF/lib/derby.jar:\
-$FENXI_HOME/WEB-INF/lib/jfreechart.jar:\
-$FENXI_HOME/WEB-INF/lib/jcommon.jar:\
-$FENXI_HOME/WEB-INF/lib/jruby.jar
-
-export PERL5LIB CLASSPATH
-
-rm -rf txt
-mkdir txt
-
-JAVA_ARGS="\
--Xmx756m \
--Dderby.storage.pageReservedSpace=0 \
--Dderby.language.logQueryPlan=true \
--Dderby.storage.rowLocking=false \
--Dfenxi.basedir=$FENXI_HOME \
--Djava.awt.headless=true \
--Dsun.java2d.pmoffscreen=false \
--Dfenxi.profile=default_profile \
-"
-case $1 in
-'process' )
-    shift
-    # Now do the "process"
-    java $JAVA_ARGS \
-        org.fenxi.cmd.process.ProcessRun "$@"
-    ;;
-
-'compare' )
-    shift
-    # Now do the "compare"
-    exec java $JAVA_ARGS \
-        org.fenxi.cmd.compare.CompareDBinMemory "$@"
-    # NOTREACHED
-    ;;
-* )
-    ;;
-esac
+${FENXI_HOME}/scripts/fenxi $@
 
 
 # TODO: This is a hack put in for FenXi for the time being.

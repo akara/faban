@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunAnalyzer.java,v 1.8 2008/09/03 05:16:29 akara Exp $
+ * $Id: RunAnalyzer.java,v 1.9 2009/07/24 22:48:25 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -163,8 +163,22 @@ public class RunAnalyzer {
         ArrayList<String> cmd = new ArrayList<String>();
         cmd.add(Config.BIN_DIR.trim() + "fenxi");
         cmd.add(type.toString());
-        for (String runId : runIdStrings)
-            cmd.add(Config.OUT_DIR + runId);
+        for (String runId : runIdStrings) {
+            String inputDir = Config.OUT_DIR + runId;
+            if (new File(inputDir, "xanaDB").isDirectory()) {
+                cmd.add(inputDir);
+                continue;
+            }
+            inputDir += File.separator + Config.POST_DIR;
+            if (new File(inputDir, "xanaDB").isDirectory()) {
+                cmd.add(inputDir);
+                continue;
+            }
+            // If we're here, no xanaDB is found.
+            throw new IOException("RunId " + runId +
+                    " has not been post-processed and cannot be analyzed. " +
+                    "Please run fenxi process on the run result first.");
+        }
 
         cmd.add(Config.ANALYSIS_DIR + output);
 

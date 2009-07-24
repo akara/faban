@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: statsnavigator.jsp,v 1.18 2009/06/12 02:20:29 akara Exp $
+ * $Id: statsnavigator.jsp,v 1.19 2009/07/24 22:48:25 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -43,6 +43,7 @@
     File outDir = new File(Config.OUT_DIR + runId);
     // Tool output file pattern is <tool>.log.<host>[suffix]
     String[] suffixes = { ".html", ".htm", "" }; // The empty string always last
+    String[] htmlSuffixes = { ".html", ".htm" };
     TreeSet<String> allHosts = new TreeSet<String>();
     TreeSet<String> allTools = new TreeSet<String>();
     
@@ -240,6 +241,21 @@
                                     if (fileName.endsWith(".html") || fileName.endsWith(".htm")) {
                                         iter.remove();
                                         htmlFiles.add(fileName);
+                                    }
+                                }
+
+                                // For each of the raw files, there might be an html file in the
+                                // post directory. Check that.
+                                toolFileLoop:
+                                for (String fileName : toolHostFiles) {
+                                    String htmlFileName = Config.POST_DIR + fileName;
+                                    for (String suffix : htmlSuffixes) {
+                                        String tryFileName = htmlFileName + suffix;
+                                        File htmlFile = new File(outDir, tryFileName);
+                                        if (htmlFile.exists()) {
+                                            htmlFiles.add(tryFileName);
+                                            continue toolFileLoop;
+                                        }
                                     }
                                 }
 

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: InterfaceProbe.java,v 1.4 2009/07/21 22:54:45 sheetalpatil Exp $
+ * $Id: InterfaceProbe.java,v 1.5 2009/07/24 22:48:24 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -150,10 +150,11 @@ public class InterfaceProbe {
     }
 
     /**
-     * .
-     * @param hosts
-     * @param ifMap
-     * @return
+     * Fills the interface maps identifying which interface is to be used
+     * to communicate to a particular host.
+     * @param hosts The host list
+     * @param ifMap The host to interface map to fill
+     * @return The host to interface map provided, filled in
      */
     public Map<String, String> getIfMap(Collection<String> hosts,
                                         Map<String, String> ifMap) {
@@ -176,9 +177,9 @@ public class InterfaceProbe {
     }
 
     /**
-     * .
-     * @param hosts
-     * @return
+     * Obtains the route list for a list of hosts.
+     * @param hosts The list of hosts
+     * @return the corresponding list of routes
      */
     public List<Route> getRoutes(Collection<String> hosts) {
         ArrayList<Route> routes = new ArrayList<Route>();

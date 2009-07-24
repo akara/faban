@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RemoteLogFormatter.java,v 1.3 2009/07/21 22:54:46 sheetalpatil Exp $
+ * $Id: RemoteLogFormatter.java,v 1.4 2009/07/24 22:48:22 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -46,9 +46,9 @@ public class RemoteLogFormatter extends XMLFormatter {
     }
 
     /**
-     *
-     * @param record.
-     * @return return with the host added to the log record.
+     * Formats the log record to the remote log format.
+     * @param record The log record
+     * @return The log record with the host added to the log record.
      */
     public String format(LogRecord record) {
         String log = super.format(record);

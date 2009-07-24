@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.43 2009/07/21 22:54:48 sheetalpatil Exp $
+ * $Id: GenericBenchmark.java,v 1.44 2009/07/24 22:48:23 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -26,7 +26,6 @@ package com.sun.faban.harness.engine;
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
 import com.sun.faban.common.Utilities;
-import com.sun.faban.harness.Benchmark;
 import com.sun.faban.harness.ParamRepository;
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
@@ -377,40 +376,6 @@ public class GenericBenchmark {
         }
     }
 
-    private Benchmark newInstance(BenchmarkDescription desc) {
-        Benchmark benchmark = null;
-        DeployImageClassLoader loader = DeployImageClassLoader.getInstance(
-                "benchmarks" ,desc.shortName, this.getClass().getClassLoader());
-        if (loader != null)
-            try {
-                benchmark = (Benchmark) Class.forName(desc.benchmarkClass,
-                        true, loader).asSubclass(Benchmark.class).newInstance();
-            } catch (ClassNotFoundException e) {
-                logger.warning("Cannot find class " + desc.benchmarkClass +
-                        " within the Faban Harness.");
-            } catch (Exception e) {
-                logger.log(Level.SEVERE, "Error instantiating " +
-                        desc.benchmarkClass + '.', e);
-            }
-
-        // In some cases, the benchmark class is in the Faban package itself.
-        if (benchmark == null) {
-            logger.info("Trying reading class " + desc.benchmarkClass +
-                        " from Faban Harness.");
-            try {
-                benchmark = (Benchmark) Class.forName(desc.benchmarkClass).
-                            asSubclass(Benchmark.class).newInstance();
-            } catch (ClassNotFoundException e) {
-                logger.severe("Cannot find class " + desc.benchmarkClass +
-                              " within the Faban Harness.");
-            } catch (Exception e) {
-                logger.log(Level.SEVERE, "Error instantiating " +
-                           desc.benchmarkClass + '.', e);
-            }
-        }
-        return benchmark;
-    }
-
     /**
      * Method : kill
      * This method is called externally to abort or terminate
@@ -459,12 +424,12 @@ public class GenericBenchmark {
         // Create the dir for storing Xanadu XMLs
         String outDir = run.getOutDir();
 
-        String fenxiDir = outDir + File.separator + Config.XML_STATS_DIR;
-        if(!(new File(fenxiDir)).mkdirs())
+        String postDir = outDir + File.separator + Config.POST_DIR;
+        if(!(new File(postDir)).mkdirs())
             return false;
 
 		// Process the text using FenXi.
-		Command fenxi = new Command ("fenxi", "process", outDir, outDir,
+		Command fenxi = new Command ("fenxi", "process", outDir, postDir,
                                                             run.getRunId());
         fenxi.setWorkingDirectory(Config.FABAN_HOME + "logs");
 

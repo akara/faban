@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgentImpl.java,v 1.28 2009/07/21 22:54:46 sheetalpatil Exp $
+ * $Id: CmdAgentImpl.java,v 1.29 2009/07/24 22:48:22 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -296,10 +296,10 @@ public class CmdAgentImpl extends UnicastRemoteObject
 
     /**
      * Registers and starts agent.
-     * @param agentClass
-     * @param identifier
-     * @return
-     * @throws java.lang.Exception
+     * @param agentClass The agent class
+     * @param identifier The agent id
+     * @return always returns true
+     * @throws java.lang.Exception If an error occurs in registering the class
      */
     public boolean startAgent(Class agentClass, String identifier) throws Exception {
         try {

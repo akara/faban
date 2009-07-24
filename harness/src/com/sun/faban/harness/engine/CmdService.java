@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.52 2009/07/21 22:54:48 sheetalpatil Exp $
+ * $Id: CmdService.java,v 1.53 2009/07/24 22:48:23 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -1597,8 +1597,8 @@ final public class CmdService { 	// The final keyword prevents clones
     /**
      * Obtains the temporary dircteroy for the given machine.
      *
-     * @param machine
-     * @return
+     * @param machine The machine name
+     * @return The temporary directory to use on the machine
      */
     public String getTmpDir(String machine) {
         try {
@@ -1637,9 +1637,9 @@ final public class CmdService { 	// The final keyword prevents clones
     /**
      * Deletes the file from the machine.
      *
-     * @param srcmachine
-     * @param srcfile
-     * @return
+     * @param srcmachine The machine name
+     * @param srcfile The file name
+     * @return true if the file has been deleted, false otherwise
      */
     public synchronized boolean delete(String srcmachine, String srcfile) {
         try {
@@ -1655,10 +1655,10 @@ final public class CmdService { 	// The final keyword prevents clones
     /**
      * Deletes the file from the machine based on the filter provided.
      *
-     * @param srcmachine
-     * @param dir
-     * @param filter
-     * @return
+     * @param srcmachine The machine name
+     * @param dir The directory name
+     * @param filter The file filter to use
+     * @return true if akk files selected by the filter has been removed
      */
     public synchronized boolean delete(String srcmachine, String dir,
             com.sun.faban.harness.FileFilter filter) {

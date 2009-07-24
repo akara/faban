@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.32 2009/05/21 10:13:29 sheetalpatil Exp $
+ * $Id: Config.java,v 1.33 2009/07/24 22:48:23 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -142,7 +142,7 @@ public class Config {
     public static final int DEFAULT_PRIORITY = 1;
     public static final int HIGHER_PRIORITY = 2;
 
-    public static final String XML_STATS_DIR = "xmlstats";
+    public static final String POST_DIR = "post/";
 
     public static String ARCH_DIR;
     public static String OS_DIR;
