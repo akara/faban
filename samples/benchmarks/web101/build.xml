@@ -16,7 +16,7 @@
 
     <path id="classpath" location="${faban.libs}" >
         <pathelement location="${classes.dir}"/>
-        <fileset dir="${lib.dir}" includes="*.jar"/>
+        <fileset dir="${lib.dir}" includes="*.jar" erroronmissingdir="false"/>
         <fileset dir="${faban.libs}" includes="*.jar"/>
         <pathelement location="${faban.classes}"/>
     </path>

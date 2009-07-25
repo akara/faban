@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: WebDriver.java,v 1.1 2009/06/01 17:01:31 sheetalpatil Exp $
+ * $Id: WebDriver.java,v 1.2 2009/07/25 02:35:32 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -63,7 +63,9 @@ public class WebDriver {
 
     public WebDriver() throws XPathExpressionException {
         ctx = DriverContext.getContext();
-        http = new HttpTransport();
+        // HttpTransport.setProvider(
+        //        "com.sun.faban.driver.transport.hc3.ApacheHC3Transport");
+        http = HttpTransport.newInstance();
         logger = ctx.getLogger();
         random = ctx.getRandom();
         String host = ctx.getXPathValue("/webBenchmark/serverConfig/host");
@@ -79,7 +81,8 @@ public class WebDriver {
         ctx.attachMetrics(contentStats);
     }
 
-    @OnceBefore public void testPreRun() {
+    @OnceBefore
+    public void testPreRun() {
         try {
             Thread.sleep(5000);
         } catch (InterruptedException e) {
@@ -87,7 +90,8 @@ public class WebDriver {
         logger.info("Tested pre-run (sleep 5) done");
     }
 
-    @OnceAfter public void testPostRun() {
+    @OnceAfter
+    public void testPostRun() {
         try {
             Thread.sleep(5000);
         } catch (InterruptedException e) {

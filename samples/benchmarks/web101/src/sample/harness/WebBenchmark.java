@@ -17,13 +17,16 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: WebBenchmark.java,v 1.1 2009/06/01 17:01:30 sheetalpatil Exp $
+ * $Id: WebBenchmark.java,v 1.2 2009/07/25 02:35:32 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package sample.harness;
 
-import com.sun.faban.harness.DefaultFabanBenchmark;
+import com.sun.faban.harness.Configure;
+import com.sun.faban.harness.DefaultFabanBenchmark2;
+
+import java.util.logging.Logger;
 
 /**
  * Harness hook for the sample web benchmark. This class is not needed
@@ -34,7 +37,9 @@ import com.sun.faban.harness.DefaultFabanBenchmark;
  *
  * @author Akara Sucharitakul
  */
-public class WebBenchmark extends DefaultFabanBenchmark {
+public class WebBenchmark extends DefaultFabanBenchmark2 {
+
+    static Logger logger = Logger.getLogger(WebBenchmark.class.getName());
 
     /**
      * This method is called to configure the specific benchmark run
@@ -43,27 +48,9 @@ public class WebBenchmark extends DefaultFabanBenchmark {
      *
      * @throws Exception If configuration was not successful
      */
-    public void configure() throws Exception {
-        // Add additional configuration needs such as restarting/reconfiguring
-        // servers here.
-        super.configure();
+    @Configure public void configure() throws Exception {
     }
 
-    /**
-     * This method is responsible for starting the benchmark run
-     */
-    public void start() throws Exception {
-        // Any changes in start policy are added here.
-        super.start();
-    }
-
-    /**
-     * This method aborts the current benchmark run and is
-     * called when a user asks for a run to be killed
-     */
-    public void kill() throws Exception {
-        // Unlikely, but just in case, you'll want to customize the kill.
-        super.kill();
-    }
-
+    // Equivalently, you can also override the @Validate, @StartRun, @EndRun,
+    // @PostRun, and @Kill signatures.
 }
