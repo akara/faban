@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: SpecWeb2005Benchmark.java,v 1.1 2009/06/01 17:01:32 sheetalpatil Exp $
+ * $Id: SpecWeb2005Benchmark.java,v 1.2 2009/07/25 02:33:49 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -26,9 +26,7 @@ package com.sun.specweb2005;
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
 import com.sun.faban.common.NameValuePair;
-import com.sun.faban.harness.Benchmark;
-import com.sun.faban.harness.ParamRepository;
-import com.sun.faban.harness.RemoteCallable;
+import com.sun.faban.harness.*;
 
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
@@ -50,7 +48,7 @@ import static com.sun.faban.harness.util.FileHelper.copyFile;
  *
  * @author Sreekanth Setty
  */
-public class SpecWeb2005Benchmark implements Benchmark {
+public class SpecWeb2005Benchmark {
 
     static Logger logger = Logger.getLogger(
                                         SpecWeb2005Benchmark.class.getName());
@@ -72,7 +70,7 @@ public class SpecWeb2005Benchmark implements Benchmark {
      * @throws Exception if any error occurred.
      * @see com.sun.faban.harness.RunContext#exec(com.sun.faban.common.Command)
      */
-    public void validate() throws Exception {
+    @Validate public void validate() throws Exception {
 
         // add runControl parameters due to faban requirement
         par = getParamRepository();
@@ -128,17 +126,6 @@ public class SpecWeb2005Benchmark implements Benchmark {
                             newTransformer(stylesheet);
         t.setParameter("outputDir", runDir);
         t.transform(src, result);
-    }
-
-    /**
-     * This method is called to configure the specific benchmark run
-     * Tasks done in this method include reading user parameters,
-     * logging them and initializing various local variables.
-     */
-    public void configure() throws Exception {
-        // Add additional configuration needs such as restarting/reconfiguring
-        // servers here.
-
     }
 
     /**
@@ -234,7 +221,7 @@ public class SpecWeb2005Benchmark implements Benchmark {
      * This method is responsible for starting the benchmark run
      * @throws java.lang.Exception 
      */
-    public void start() throws Exception {
+    @StartRun public void start() throws Exception {
         // The run's output dir is always run 1 under the assigned output dir.
         // We just need to move the files down after the run (or do we need to?)
 
@@ -282,7 +269,7 @@ public class SpecWeb2005Benchmark implements Benchmark {
      *
      * @throws Exception if any error occurred.
      */
-    public void end() throws Exception {
+    @EndRun public void end() throws Exception {
 
         // 4. Wait for run finish.
         handle.waitFor();
@@ -324,12 +311,5 @@ public class SpecWeb2005Benchmark implements Benchmark {
         parser.convert(reader, writer);
         writer.close();
         reader.close();
-    }
-
-    /**
-     * This method aborts the current benchmark run and is
-     * called when a user asks for a run to be killed
-     */
-    public void kill() {
     }
 }
