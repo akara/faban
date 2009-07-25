@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: statsnavigator.jsp,v 1.19 2009/07/24 22:48:25 akara Exp $
+ * $Id: statsnavigator.jsp,v 1.20 2009/07/25 02:23:35 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -236,25 +236,23 @@
                                 <td class="tablecell" style="text-align: center;">
                      <%
                                 // Separate html files out from the raw files in toolHostFiles.
+                                toolFileLoop:
                                 for (Iterator<String> iter = toolHostFiles.iterator(); iter.hasNext();) {
                                     String fileName = iter.next();
                                     if (fileName.endsWith(".html") || fileName.endsWith(".htm")) {
                                         iter.remove();
                                         htmlFiles.add(fileName);
-                                    }
-                                }
-
-                                // For each of the raw files, there might be an html file in the
-                                // post directory. Check that.
-                                toolFileLoop:
-                                for (String fileName : toolHostFiles) {
-                                    String htmlFileName = Config.POST_DIR + fileName;
-                                    for (String suffix : htmlSuffixes) {
-                                        String tryFileName = htmlFileName + suffix;
-                                        File htmlFile = new File(outDir, tryFileName);
-                                        if (htmlFile.exists()) {
-                                            htmlFiles.add(tryFileName);
-                                            continue toolFileLoop;
+                                    } else {
+                                        // For each of the raw files, there might be an
+                                        // html file in the post directory. Check that.
+                                        String htmlFileName = Config.POST_DIR + fileName;
+                                        for (String suffix : htmlSuffixes) {
+                                            String tryFileName = htmlFileName + suffix;
+                                            File htmlFile = new File(outDir, tryFileName);
+                                            if (htmlFile.exists()) {
+                                                htmlFiles.add(tryFileName);
+                                                continue toolFileLoop;
+                                            }
                                         }
                                     }
                                 }
