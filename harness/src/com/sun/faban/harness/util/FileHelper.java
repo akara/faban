@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileHelper.java,v 1.22 2009/07/21 22:54:45 sheetalpatil Exp $
+ * $Id: FileHelper.java,v 1.23 2009/07/28 22:54:17 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -41,16 +41,22 @@ import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * File utilities. A collection of static methods to deal with file operations.
+ */
 public class FileHelper {
     
     private static Logger logger = Logger.getLogger(FileHelper.class.getName());
+
     /**
-      * This method copies a file.
-      * @param srcFile  - the full pathname of the source file
-      * @param destFile  - the full pathname of the destination file
-      * @param append - should destination file be appended with source file
-      */    
-    public static boolean copyFile(String srcFile, String destFile, boolean append) {
+     * Copies a file.
+     * @param srcFile  - the full pathname of the source file
+     * @param destFile  - the full pathname of the destination file
+     * @param append - should destination file be appended with source file
+     * @return Whether the copy succeeded
+     */
+    public static boolean copyFile(String srcFile, String destFile,
+                                   boolean append) {
         try {
             FileChannel src = (new FileInputStream(srcFile)).getChannel();
             FileChannel dest = (new FileOutputStream(destFile)).getChannel();
@@ -68,15 +74,17 @@ public class FileHelper {
     }
 
     /**
-      * This method opens, traverses through the file and 
-      * finds the properties and replaces the values 
-      * This updates only the first occurrence of the prop
-      * in the file to eliminate cases where it changes
-      * props defined like PROP=$PROP:MYPROP
-      * We expect only one prop per line in the file.
-      * @param fileName  - the full pathname of the file
-      * @param prop - property names and their new values
-      */    
+     * This method opens, traverses through the file and
+     * finds the properties and replaces the values
+     * This updates only the first occurrence of the prop
+     * in the file to eliminate cases where it changes
+     * props defined like PROP=$PROP:MYPROP
+     * We expect only one prop per line in the file.
+     * @param fileName The full pathname of the file
+     * @param prop Property names and their new values
+     * @param backupFileName The file to save a copy before edit, if any
+     * @return Whether the edit succeeded
+     */
     public static boolean editPropFile(String fileName, Properties prop, String backupFileName) {
 
         String tmpFile = Config.TMP_DIR + ".FileHelper";
@@ -133,16 +141,17 @@ public class FileHelper {
     }       
     
     /**
-      * This method opens, traverses through the file and
-      * finds the token and replaces it with new value
-      * This method updates only the first occurrence of
-      * the token in the file to eliminate cases where it
-      * changes props defined like PROP=$PROP:MYPROP.
-      * @param fileName  - the full pathname of the file
-      * @param token - to find
-      * @param replacement - the replacement string
-      * @param backupFileName - if needed pass a backup file name
-      */
+     * This method opens, traverses through the file and
+     * finds the token and replaces it with new value
+     * This method updates only the first occurrence of
+     * the token in the file to eliminate cases where it
+     * changes props defined like PROP=$PROP:MYPROP.
+     * @param fileName The full pathname of the file
+     * @param token Token to find
+     * @param replacement The replacement string
+     * @param backupFileName If needed pass a backup file name
+     * @return Whether there is at least one replacement
+     */
     public static boolean tokenReplace(String fileName, String token, String replacement, String backupFileName) {
 
         String tmpFile = System.getProperty("java.io.tmpdir") + File.separator + ".FileHelper";
@@ -209,11 +218,12 @@ public class FileHelper {
     }
 
     /**
-      * This method opens, traverses through the file and
-      * finds the token, it will avoid comments when searching.
-      * @param fileName  - the full pathname of the file
-      * @param token - token to serch for
-      */
+     * This method opens, traverses through the file and
+     * finds the token, it will avoid comments when searching.
+     * @param fileName The full pathname of the file
+     * @param token Token to serch for
+     * @return true if found, false otherwise
+     */
     public static boolean isInFile(String fileName, String token) {
         boolean found = false;
 
@@ -243,6 +253,7 @@ public class FileHelper {
      * recursively delete files and subdirectories within it.
      *
      * @param file The file or directory to delete
+     * @return Whether the delete succeeded
      */
     public static boolean recursiveDelete(File file) {
         // Does a post-order traversal of the directory hierarchy and deletes
@@ -306,9 +317,9 @@ public class FileHelper {
      * This method is used to delete a directory and
      * recursively delete files and subdirectories within it.
      *
-     * @param parentDir : the file object corresponding to the parent directory
-     * @param name : name of the directory to be deleted
-     *
+     * @param parentDir The file object corresponding to the parent directory
+     * @param name Name of the directory to be deleted
+     * @return Whether the delete succeeded
      */
     public static boolean recursiveDelete(File parentDir, String name) {
         return recursiveDelete(new File(parentDir, name));
@@ -604,8 +615,10 @@ public class FileHelper {
         return content;
     }
 
-
-    // Unit test the functionality
+    /**
+     * Unit test the functionality.
+     * @param args The command line arguments
+     */
     public static void main(String[] args) {
         if (args.length < 3) {
 //            System.out.println("Usage: java FileHelper File Key Value");

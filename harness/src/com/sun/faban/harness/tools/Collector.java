@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Collector.java,v 1.6 2009/07/21 22:54:47 sheetalpatil Exp $
+ * $Id: Collector.java,v 1.7 2009/07/28 22:54:16 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -60,15 +60,17 @@ public class Collector extends CommandLineTool{
     
 
     /**
-     * This method is responsible for configuring the tool utility.
+     * This method is responsible for configuring the collector.
      */
     public void configure() {
         super.config();
     }
 
     /**
-     * This method is responsible for starting the tool utility.
-     */
+     * This method is responsible for starting the collector.
+     * @throws IOException Error starting the collector
+     * @throws InterruptedException Interrupted waiting for commands
+     */ 
     public void start() throws IOException, InterruptedException {
         // Locate the process with collector, starting with user processes.
         cmd = new Command("/usr/bin/ps", "-u", System.getProperty("user.name"));
@@ -122,7 +124,9 @@ public class Collector extends CommandLineTool{
     }
 
     /**
-     * This method is responsible for stopping the tool utility.
+     * This method is responsible for stopping the collector.
+     * @throws InterruptedException Interrupted waiting for commands
+     * @throws IOException Error stopping the collector
      */
     public void stop() throws InterruptedException, IOException {
         // We use the same command to start and stop the collection

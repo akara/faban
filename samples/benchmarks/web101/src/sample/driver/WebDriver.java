@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: WebDriver.java,v 1.2 2009/07/25 02:35:32 akara Exp $
+ * $Id: WebDriver.java,v 1.3 2009/07/28 22:58:17 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -31,6 +31,9 @@ import javax.xml.xpath.XPathExpressionException;
 import java.io.IOException;
 import java.util.logging.Logger;
 
+/**
+ * Simple web driver example.
+ */
 @BenchmarkDefinition (
     name    = "Sample Web Workload 101",
     version = "0.2"
@@ -53,7 +56,7 @@ import java.util.logging.Logger;
 )
 public class WebDriver {
 
-    /** The driver context for this instance */
+    /** The driver context for this instance. */
     private DriverContext ctx;
     private HttpTransport http;
     private String url1, url2, url3;
@@ -61,6 +64,10 @@ public class WebDriver {
     Random random;
     ContentSizeStats contentStats = null;
 
+    /**
+     * Constructs the web driver.
+     * @throws XPathExpressionException An XPath error occurred
+     */
     public WebDriver() throws XPathExpressionException {
         ctx = DriverContext.getContext();
         // HttpTransport.setProvider(
@@ -81,6 +88,9 @@ public class WebDriver {
         ctx.attachMetrics(contentStats);
     }
 
+    /**
+     * Tests the pre-run.
+     */
     @OnceBefore
     public void testPreRun() {
         try {
@@ -90,6 +100,9 @@ public class WebDriver {
         logger.info("Tested pre-run (sleep 5) done");
     }
 
+    /**
+     * Tests the post-run.
+     */
     @OnceAfter
     public void testPostRun() {
         try {
@@ -99,6 +112,10 @@ public class WebDriver {
         logger.info("Tested post-run (sleep 5) done");
     }
 
+    /**
+     * First operation.
+     * @throws IOException An I/O or network error occurred.
+     */
     @BenchmarkOperation (
         name    = "MyOperation1",
         max90th = 2,
@@ -112,6 +129,10 @@ public class WebDriver {
                                                         http.getContentSize();
     }
 
+    /**
+     * Second operation.
+     * @throws IOException An I/O or network error occurred.
+     */
     @BenchmarkOperation (
         name    = "MyOperation2",
         max90th = 2,
@@ -125,6 +146,10 @@ public class WebDriver {
                                                         http.getContentSize();
     }
 
+    /**
+     * Third operation.
+     * @throws IOException An I/O or network error occurred.
+     */
     @BenchmarkOperation (
         name    = "MyOperation3",
         max90th = 2,

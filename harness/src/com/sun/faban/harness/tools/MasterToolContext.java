@@ -31,7 +31,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.xml.sax.SAXException;
 
 /**
- * This class provides a context for every tool. Each tool has only one context.
+ * The master tool context is the master view of the tool context which exists
+ * for every single tool.
  *
  * @author Sheetal Patil
  */
@@ -45,10 +46,10 @@ public class MasterToolContext implements Serializable {
     String params = null;
 
     /**
-     * Constructor.
-     * @param tool
-     * @param ctx
-     * @param desc
+     * Constructs the master tool context.
+     * @param tool The tool name
+     * @param ctx The service context for this tool, if any
+     * @param desc The tool description
      */
     public MasterToolContext(String tool, ServiceContext ctx, ToolDescription desc) {
         StringTokenizer tt = new StringTokenizer(tool);

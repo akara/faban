@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: LogServer.java,v 1.6 2009/07/21 22:54:49 sheetalpatil Exp $
+ * $Id: LogServer.java,v 1.7 2009/07/28 22:54:15 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -40,6 +40,7 @@ import java.util.logging.Logger;
  */
 public class LogServer extends Thread {
 
+    /** The log configuration. */
     public LogConfig config;
 
     private Logger logger;

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TableHandler.java,v 1.12 2009/07/21 22:54:48 sheetalpatil Exp $
+ * $Id: TableHandler.java,v 1.13 2009/07/28 22:54:17 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -87,7 +87,7 @@ class TableHandler extends LogParseHandler {
 
     /**
      * Processes the details.
-     * @param qName
+     * @param qName The element name
      */
     public void processDetail(String qName) {
         if ("exception".equals(qName))

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DefaultFabanBenchmark2.java,v 1.6 2009/07/21 22:54:45 sheetalpatil Exp $
+ * $Id: DefaultFabanBenchmark2.java,v 1.7 2009/07/28 22:54:18 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -43,14 +43,26 @@ import java.util.logging.Logger;
  */
 public class DefaultFabanBenchmark2 {
 
-    private Logger logger = Logger.getLogger(getClass().getName());;
-    protected ParamRepository params;
-    protected List<String> agents;
-    protected String[] agentHosts;
-    protected Map<String, List<String>> hostAgents;
-    protected Map<String, List<String>> agentEnv;
-    protected CommandHandle masterHandle;
+    private Logger logger = Logger.getLogger(getClass().getName());
 
+    /** The param repository. */
+    protected ParamRepository params;
+
+    /** The agent list. */
+    protected List<String> agents;
+
+    /** The agent hosts. */
+    protected String[] agentHosts;
+
+    /** The map from host to agents. */
+    protected Map<String, List<String>> hostAgents;
+
+    /** Environment to pass to agents when starting. */
+    protected Map<String, List<String>> agentEnv;
+
+    /** Command handle to the master. */
+    protected CommandHandle masterHandle;
+    
     /**
      * Allows benchmark to validate the configuration file. Note that no
      * execution facility is available during validation.

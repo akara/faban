@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: NameValuePair.java,v 1.3 2009/07/02 20:26:40 akara Exp $
+ * $Id: NameValuePair.java,v 1.4 2009/07/28 22:51:57 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -34,10 +34,10 @@ public class NameValuePair<V> implements Serializable {
 
     private static final long serialVersionUID = 20070523L;
 
-    /** The name part */
+    /** The name part. */
     public String name;
 
-    /** The value part */
+    /** The value part. */
     public V value;
 
     /**

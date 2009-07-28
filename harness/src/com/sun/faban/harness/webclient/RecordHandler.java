@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RecordHandler.java,v 1.8 2009/07/21 22:54:48 sheetalpatil Exp $
+ * $Id: RecordHandler.java,v 1.9 2009/07/28 22:54:17 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -43,10 +43,10 @@ class RecordHandler extends LogParseHandler {
 
     /**
      * Handles the records.
-     * @param recordId
-     * @param request
-     * @param out
-     * @param runId
+     * @param recordId The record id
+     * @param request The request object
+     * @param out The output stream
+     * @param runId The run id
      */
     public RecordHandler(long recordId, HttpServletRequest request, 
                                 ServletOutputStream out, String runId) {
@@ -64,7 +64,7 @@ class RecordHandler extends LogParseHandler {
 
     /**
      * Process the details.
-     * @param qName
+     * @param qName The element name
      */
     public void processDetail(String qName) {
         if ("millis".equals(qName))

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RequestProxy.java,v 1.2 2006/06/29 19:38:42 akara Exp $
+ * $Id: RequestProxy.java,v 1.3 2009/07/28 22:54:15 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -33,7 +33,7 @@ import java.util.logging.Logger;
 
 /**
  * The request proxy represents the request for both the selector end
- * and the service thread end. The selector will set the proxy to to
+ * and the service thread end. The selector will set the proxy to
  * ready state and if the request is not already processed by a service
  * thread, it will also schedule the request to be processed by the thread
  * pool. Otherwise it will use the request proxy to notify the processing
@@ -79,6 +79,11 @@ public class RequestProxy implements Runnable {
      */
     private static final int PENDING_NOTIFY = 1;
 
+    /**
+     * Constructs a request proxy.
+     * @param config The log configuration
+     * @param key The nio selection key identifying the socket channel
+     */
     public RequestProxy(LogConfig config, SelectionKey key) {
         this.config = config;
         this.key = key;

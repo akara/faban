@@ -24,7 +24,8 @@ package com.sun.faban.harness.engine;
 import com.sun.faban.harness.Benchmark;
 
 /**
- * This is an interface based benchmark wrapper class.
+ * Wrapper class for benchmarks implemented using the now deprecated
+ * Benchmark interface.
  * @author Sheetal Patil, Sun Microsystems.
  */
 public class InterfaceBenchmarkWrapper extends BenchmarkWrapper {
@@ -38,8 +39,8 @@ public class InterfaceBenchmarkWrapper extends BenchmarkWrapper {
     }
 
     /**
-     *
-     * @throws java.lang.Exception
+     * Invokes validate on the benchmark class.
+     * @throws Exception Indicating an error thrown by the benchmark class
      */
     @Override
     void validate() throws Exception {
@@ -47,8 +48,8 @@ public class InterfaceBenchmarkWrapper extends BenchmarkWrapper {
     }
 
     /**
-     *
-     * @throws java.lang.Exception
+     * Invokes configure on the benchmark class.
+     * @throws Exception Indicating an error thrown by the benchmark class
      */
     @Override
     void configure() throws Exception {
@@ -56,8 +57,8 @@ public class InterfaceBenchmarkWrapper extends BenchmarkWrapper {
     }
 
     /**
-     *
-     * @throws java.lang.Exception
+     * Invokes start on the benchmark class.
+     * @throws Exception Indicating an error thrown by the benchmark class
      */
     @Override
     void start() throws Exception {
@@ -65,8 +66,8 @@ public class InterfaceBenchmarkWrapper extends BenchmarkWrapper {
     }
 
     /**
-     *
-     * @throws java.lang.Exception
+     * Invokes end on the benchmark class.
+     * @throws Exception Indicating an error thrown by the benchmark class
      */
     @Override
     void end() throws Exception {
@@ -74,17 +75,17 @@ public class InterfaceBenchmarkWrapper extends BenchmarkWrapper {
     }
 
     /**
-     *
-     * @throws java.lang.Exception
+     * Noop. The benchmark interface does not have a postRun method.
+     * To support postRun, switch to the annotation-based benchmark class. 
      */
     @Override
-    void postRun() throws Exception {
+    void postRun() {
         // Noop.
     }
 
     /**
-     *
-     * @throws java.lang.Exception
+     * Invokes kill on the benchmark class.
+     * @throws Exception Indicating an error thrown by the benchmark class
      */
     @Override
     void kill() throws Exception {

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.53 2009/07/24 22:48:23 akara Exp $
+ * $Id: CmdService.java,v 1.54 2009/07/28 22:54:14 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -79,8 +79,11 @@ import java.util.logging.Logger;
  */
 final public class CmdService { 	// The final keyword prevents clones
 
-    public static final int SEQUENTIAL = 1;	/* Sequential flag in FG mode*/
-    public static final int PARALLEL = 2;	/* parallel flag in FG mode*/
+    /** Sequential flag in FG mode. */
+    public static final int SEQUENTIAL = 1;
+
+    /** Parallel flag in FG mode. */
+    public static final int PARALLEL = 2;
 
     private static Logger logger = Logger.getLogger(CmdService.class.getName());
     private static CmdService cmds;
@@ -88,7 +91,7 @@ final public class CmdService { 	// The final keyword prevents clones
     private ArrayList<CmdAgent> cmdp = new ArrayList<CmdAgent>();
     private ArrayList<FileAgent> filep = new ArrayList<FileAgent>();
 
-    /** List of all machines */
+    /** List of all machines. */
     private ArrayList<String> machinesList = new ArrayList<String>();
     private Properties hostInterfaces = new Properties();
     private Registry registry;
@@ -130,8 +133,8 @@ final public class CmdService { 	// The final keyword prevents clones
     }
 
     /**
-     *
-     * @return master machine name.
+     * Obtains the name of the master machine.
+     * @return The master machine name
      */
     public String getMaster() {
         return master;
@@ -173,9 +176,12 @@ final public class CmdService { 	// The final keyword prevents clones
      * on the specified set of machines.
      * This method can be called multiple times to initialize multiple
      * classes of machines.
+     * @param benchName The name of the benchmark
      * @param hosts String[][] of machines
+     * @param home JAVA_HOME
+     * @param options Driver JVM options
+     * @param clockSync Whether to synchronize the clocks between systems
      * @return true if successful, false if setup failed
-     *
      */
     public boolean setup(String benchName, String[][] hosts,
             String home, String options, boolean clockSync) {
@@ -901,10 +907,12 @@ final public class CmdService { 	// The final keyword prevents clones
     }
 
     /**
-     * Returns the hostname of this machine as known to this machine
+     * Returns the hostname of this machine as known to the machine
      * itself. This method is included in order to solve a Naming problem
      * related to the names of the tpcw result files to be transferred to the
      * the master machine.
+     * @param machineName The target machine to check the host name
+     * @return The host name of the remote machine
      */
     public String getHostName(String machineName) {
 
@@ -1020,12 +1028,26 @@ final public class CmdService { 	// The final keyword prevents clones
         return result;
     }
 
+    /**
+     * Executes a job in a remote command agent.
+     * @param machine The host to execute the command
+     * @param callable The job
+     * @return The return value of the job
+     * @throws Exception An error occured executing the remote job
+     */
     public <V extends Serializable> V
             execute(String machine, RemoteCallable<V> callable)
             throws Exception {
         return findCmdAgent(machine).exec(callable);
     }
 
+    /**
+     * Executes a job on remote command agents on a list of systems.
+     * @param machines The host names to execute the job
+     * @param callable The job
+     * @return The return values of the job, in sequence
+     * @throws Exception An error occurred executing the job
+     */
     public <V extends Serializable> List<V>
             execute(String[] machines, RemoteCallable<V> callable)
             throws Exception {
@@ -1047,6 +1069,7 @@ final public class CmdService { 	// The final keyword prevents clones
      * @param seq flag to indicate if commands should be sequential or parallel
      * @param priority (default or higher priority) for command
      * @return true if all commands completed successfully, else false
+     * @throws Exception An error occurred starting the commands
      * @see #copy (String, String, String, String, boolean)
      */
     public boolean start(String machines[], String cmd, int seq,
@@ -1078,6 +1101,12 @@ final public class CmdService { 	// The final keyword prevents clones
 
     /**
      * Start a command on a single machine.
+     * @param machine name of the machine on which to start the command
+     * @param command to start
+     * @param seq flag to indicate if commands should be sequential or parallel
+     * @param priority in which to run command
+     * @return Whether the command service started successfully
+     * @throws Exception An error occurred starting the command
      */
     public boolean start(String machine, String command, int seq,
             int priority) throws Exception {
@@ -1090,11 +1119,11 @@ final public class CmdService { 	// The final keyword prevents clones
 
     /**
      * Start commands in background.
-     *
      * @param machines on which command should be started
      * @param cmd command to be started
      * @param ident to identify this command later
-     * @param priority (default or higher priority) for command
+     * @param priority (default or higher priority) for commands
+     * @throws Exception An error occurred starting the commands
      */
     public void start(String machines[], String cmd, String ident,
             int priority) throws Exception {
@@ -1114,6 +1143,7 @@ final public class CmdService { 	// The final keyword prevents clones
      *              or kill the process when the cmdAgent exits.
      * @param msg message message to which wait for
      * @param priority (default or higher priority) for command
+     * @throws Exception An error occurred starting the command
      */
     public void start(String machines[], String cmd, String ident, String msg,
             int priority) throws Exception {
@@ -1134,6 +1164,11 @@ final public class CmdService { 	// The final keyword prevents clones
 
     /**
      * Start a command in background on a single machine.
+     * @param machine name of the machine on which to start the command
+     * @param command to start
+     * @param ident identifier to associate with this command
+     * @param priority in which to run command
+     * @throws Exception An error occurred starting the command
      */
     public void start(String machine, String command, String ident,
             int priority) throws Exception {
@@ -1144,12 +1179,12 @@ final public class CmdService { 	// The final keyword prevents clones
 
     /**
      * Start a  command in background and returning the first line of output.
-     *
      * @param machine name of the machine on which to start the command
      * @param command to start
      * @param ident identifier to associate with this command
      * @param priority in which to run command
      * @return String the first line of output from the command
+     * @throws Exception An error occurred starting the command
      */
     public String startAndGetOneOutputLine(String machine, String command,
             String ident, int priority)
@@ -1168,6 +1203,7 @@ final public class CmdService { 	// The final keyword prevents clones
      * @param command to start
      * @param priority in which to run command
      * @return String the standard output from the command
+     * @throws Exception An error occurred starting the command
      */
     public String startAndGetStdOut(String machine, String command, int priority)
             throws Exception {
@@ -1201,6 +1237,11 @@ final public class CmdService { 	// The final keyword prevents clones
 
     /**
      * Start the agent on a single machine.
+     * @param machine on which command should be started
+     * @param agentClass Impl Class of the agent to be started
+     * @param identifier to identify this agent later
+     * @return true if the command completed successfully, else false
+     * @throws Exception An error occurred starting the command
      */
     public boolean startAgent(String machine, Class agentClass, String identifier) throws Exception {
 
@@ -1216,6 +1257,8 @@ final public class CmdService { 	// The final keyword prevents clones
      * @param machines on which command should be started
      * @param agentClass Impl Class of the agent to be started
      * @param identifier to identify this agent later
+     * @return true if all commands completed successfully, else false
+     * @throws Exception An error occurred starting the commands
      */
     public boolean startAgent(String machines[], Class agentClass, String identifier) throws Exception {
         boolean result = true;
@@ -1239,6 +1282,7 @@ final public class CmdService { 	// The final keyword prevents clones
      * @param machine on which to wait
      * @param ident used to identify command in 'start' call
      * @return true if command finished succesfully
+     * @throws Exception An error occurred starting the command
      */
     public boolean wait(String machine, String ident) throws Exception {
         boolean exitcode = true;
@@ -1257,6 +1301,7 @@ final public class CmdService { 	// The final keyword prevents clones
      * @param machines on which to wait
      * @param ident used to identify command in 'start' call
      * @return true if command finished succesfully on all machines
+     * @throws Exception An error occurred starting the command
      */
     public boolean wait(String machines[], String ident) throws Exception {
         boolean exitcode = true;
@@ -1560,14 +1605,14 @@ final public class CmdService { 	// The final keyword prevents clones
     }
 
     /**
-     *
-     * @param srcmachine
-     * @param destmachine
-     * @param srcfile
-     * @param destfile
-     * @param append
+     * Moves a file between systems.
+     * @param srcmachine The source system
+     * @param destmachine The destination system
+     * @param srcfile The source file name
+     * @param destfile The destination file name
+     * @param append Whether to append, if destination already exists
      * @return Whether the move succeeded
-     * @deprecated
+     * @deprecated This method is not used and to be replaced.
      */
     @Deprecated public synchronized boolean move(String srcmachine, String destmachine,
             String srcfile, String destfile,
@@ -1801,6 +1846,10 @@ final public class CmdService { 	// The final keyword prevents clones
         }
     }
 
+    /**
+     * Obtains the registry.
+     * @return The registry
+     */
     public Registry getRegistry() {
         return registry;
     }

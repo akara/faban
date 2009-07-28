@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MySQLService.java,v 1.1 2009/06/23 19:01:58 sheetalpatil Exp $
+ * $Id: MySQLService.java,v 1.2 2009/07/28 22:55:24 akara Exp $
  *
  * Copyright 2008 Sun Microsystems Inc. All Rights Reserved
  */
@@ -56,11 +56,15 @@ import java.util.logging.Logger;
  */
 public class MySQLService {
 
-    @Context public ServiceContext ctx;    
+    /** Injected service context. */
+    @Context public ServiceContext ctx;
     Logger logger = Logger.getLogger(MySQLService.class.getName());
     String dbHome,  myServers[];
     String mysqlCmd,  dataDir;
-    
+
+    /**
+     * Configures the MySQL service.
+     */
     @Configure public void configure() {
         myServers = new String[ctx.getHosts().length];
         logger.fine("Configuring mysql Started");
@@ -73,7 +77,9 @@ public class MySQLService {
         logger.info("MysqlService Configure complete.");
     }
 
-    
+    /**
+     * Starts up the MySQL instances.
+     */
     @Startup public void startup() {
         for (int i = 0; i < myServers.length; i++) {
             String pidFile = dataDir + myServers[i] + ".pid";
@@ -130,6 +136,11 @@ public class MySQLService {
     }
 
    
+    /**
+     * Shuts down the MySQL instances.
+     * @throws IOException Error executing the shutdown
+     * @throws InterruptedException Interrupted waiting for the shutdown
+     */
     @Shutdown public void shutdown() throws IOException, InterruptedException {
         for (int i = 0; i < myServers.length; i++) {
             String pidFile = dataDir + myServers[i] + ".pid";
@@ -164,11 +175,9 @@ public class MySQLService {
     }
 
     /**
-     * transfer log files
+     * Transfer log files.
      * This method copies over the error_log to the run output directory
-     * and keeps only the portion of the log relevant for this run
-     * @param totalRunTime - the time in seconds for this run
-     *
+     * and keeps only the portion of the log relevant for this run.
      * TODO: Modify code for mysql date/time format
      */
     @GetLogs public void getLogs() {
@@ -213,6 +222,12 @@ public class MySQLService {
 
     }
 
+    /**
+     * Obtains the gregorian calendar representing the current time.
+     * @param hostName The host name to get the calendar from
+     * @return The calendar
+     * @throws Exception Error obtaining calendar
+     */
     private static GregorianCalendar getGregorianCalendar(String hostName)
             throws Exception {
         return RunContext.exec(hostName, new RemoteCallable<GregorianCalendar>() {

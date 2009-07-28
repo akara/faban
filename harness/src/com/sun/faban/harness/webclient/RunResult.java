@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunResult.java,v 1.7 2009/07/21 22:54:48 sheetalpatil Exp $
+ * $Id: RunResult.java,v 1.8 2009/07/28 22:54:17 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -72,19 +72,47 @@ public class RunResult {
                                     "MM/dd/yy EEE'&#160;'HH:mm:ss'&#160;'z");
 
     private long modTime = 0;
+
+    /** The run id. */
     public RunId runId;
+
+    /** The run description. */
     public String description;
+
+    /** The result. */
     public String result;
+
+    /** The link for the result to link to. */
     public String resultLink;
+
+    /** The name of the scale. */
     private String scaleName;
+
+    /** The scale value. */
     public String scale;
+
+    /** The unit of the scale. */
     private String scaleUnit;
+
+    /** The metric. */
     public ResultField<Double> metric = new ResultField<Double>();
+
+    /** The unit of the metric. */
     private String metricUnit;
+
+    /** The status of the run. */
     public String status;
+
+    /** The link to the run logs. */
     public String logLink;
+
+    /** The timestamp of the run. */
     public Date dateTime;
+
+    /** The run submitter. */
     public String submitter;
+
+    /** Tags applicable to this run. */
     public String[] tags;
 
     /**
@@ -648,11 +676,15 @@ public class RunResult {
             }
         }
 
-        SortDirection enumValForDirection = table.getSortDirection().valueOf(sortDirection);
+        SortDirection enumValForDirection = SortDirection.valueOf(sortDirection);
         table.sort(column, enumValForDirection);
         return table;
     }
 
+    /**
+     * A result field representing the real value of the field used for
+     * sorting, and the text representation of the value.
+     */
     public static class ResultField<T extends Comparable>
             implements Comparable {
 
@@ -670,13 +702,30 @@ public class RunResult {
         }
     }
 
+    /**
+     * The feed record for the run results.
+     */
     public static class FeedRecord {
+
+        /** The feed title. */
         public String title;
+
+        /** The feed summary. */
         public String summary;
+
+        /** The feed id. */
         public String id;
+
+        /** Timestamp. */
         long date;
-        public String updated; // Formatted string value of updated.
+
+        /** The formatted timestamp. */
+        public String updated;
+
+        /** Resource URL. */
         public String link;
+
+        /** List of tags on the resource. */
         public String[] tags;
 
         FeedRecord(RunId runId, RunResult result) {

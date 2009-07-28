@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Utilities.java,v 1.13 2009/07/02 20:26:40 akara Exp $
+ * $Id: Utilities.java,v 1.14 2009/07/28 22:51:57 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -231,7 +231,7 @@ public class Utilities {
         return bucket;
     }
 
-    /*
+    /**
      * Formats the message to be XML compatible, with the XML escaping.
      *
      * @param message The raw message
@@ -243,7 +243,7 @@ public class Utilities {
         return msgBuffer.toString();
     }
 
-    /*
+    /**
      * Formats the message to be XML compatible, with the XML escaping.
      *
      * @param message The raw message

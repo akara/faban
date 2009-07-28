@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: LogConfig.java,v 1.6 2007/04/19 05:32:58 akara Exp $
+ * $Id: LogConfig.java,v 1.7 2009/07/28 22:54:15 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -43,16 +43,40 @@ import java.util.logging.Logger;
  * @author Akara Sucharitakul
  */
 public class LogConfig {
+
+    /** The logging port. */
     public int port = Config.LOGGING_PORT;
+
+    /** The number of listener threads. */
     public int listenerThreads = 1;
+
+    /** The listen queue size. Defaults to OS setting. */
     public int listenQSize = -1;
+
+    /** Base number of service threads. */
     public int coreServiceThreads = 2;
+
+    /** Maximum number of service threads. */
     public int maxServiceThreads = 10;
+
+    /**
+     * The service thread timeout.
+     * The idle time for a thread before it gets terminated.
+     */
     public int serviceThreadTimeout = 300; // timeout after 5 minutes.
+
+    /** The primary listener. */
     public PrimaryListener primaryListener = null;
+
+    /** The thread pool. */
     public ExecutorService threadPool = Config.THREADPOOL;
+
+    /** The read buffer size. */
     public int readBufferSize = 2048;
 
+    /**
+     * Constructs the log server configuration.
+     */
     public LogConfig() {
         Logger logger = Logger.getLogger(getClass().getName());
         File harnessXml = new File(Config.CONFIG_FILE);

@@ -34,17 +34,25 @@ public class ServiceDescription implements Serializable {
     private static final long serialVersionUID = 20090504L;
     static final Logger logger = Logger.getLogger(
             ServiceDescription.class.getName());
+
+    /** The service identifier. */
     public String id;
+
+    /** The service class name. */
     public String serviceClass;
+
+    /** The type of the deploy location, service or benchmark. */
     public String locationType;
+
+    /** The deploy location. The name of the deploy jar. */
     public String location;
 
     /**
-     * Constructor.
-     * @param id
-     * @param serviceClass
-     * @param type
-     * @param location
+     * Constructs a service description.
+     * @param id The service identifier
+     * @param serviceClass The service class name
+     * @param type The type of the location, service od benchmark
+     * @param location The deploy location or name part of the deploy jar
      */
     ServiceDescription(String id, String serviceClass, String type, String location) {
         this.id = id;

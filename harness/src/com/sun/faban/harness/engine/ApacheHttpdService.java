@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ApacheHttpdService.java,v 1.7 2009/05/30 04:48:49 akara Exp $
+ * $Id: ApacheHttpdService.java,v 1.8 2009/07/28 22:54:14 akara Exp $
  *
  * Copyright 2007 Sun Microsystems Inc. All Rights Reserved
  */
@@ -103,7 +103,7 @@ import java.util.logging.Logger;
     }
 
     /**
-     * Start all apache servers on configured hosts
+     * Start all apache servers on configured hosts.
      * @return boolean true if start succeeded on all machines, else false
      */
     public boolean startServers() {
@@ -213,7 +213,7 @@ import java.util.logging.Logger;
     }
 
     /**
-     * stop Servers
+     * Stop servers.
      * @return true if stop succeeded on all machines, else false
      */
     public boolean stopServers() {
@@ -302,8 +302,8 @@ import java.util.logging.Logger;
     }
 
     /**
-     * clear apache logs and session files
-	 * It assumes that session files are in /tmp/sess*
+     * Clear apache logs and session files.
+	 * It assumes that session files are in /tmp/sess*.
      * @return true if operation succeeded, else fail
      */
     public boolean clearLogs() {
@@ -352,7 +352,7 @@ import java.util.logging.Logger;
     }
 
     /**
-     * transfer log files
+     * Transfer the log files.
 	 * This method copies over the error_log to the run output directory
 	 * and keeps only the portion of the log relevant for this run
 	 * @param totalRunTime - the time in seconds for this run
@@ -403,21 +403,28 @@ import java.util.logging.Logger;
 
     }
 
+    /**
+     * Obtains the gregorian calendar representing the current time.
+     * @param hostName The host name to get the calendar from
+     * @return The calendar
+     * @throws Exception Error obtaining calendar
+     */
     public static GregorianCalendar getGregorianCalendar(
             String hostName)
             throws Exception {
-        return RunContext.exec(hostName, new RemoteCallable<GregorianCalendar>() {
+        return RunContext.exec(hostName,
+                new RemoteCallable<GregorianCalendar>() {
 
-            public GregorianCalendar call() {
-                return new GregorianCalendar();
-            }
-        });
+                    public GregorianCalendar call() {
+                        return new GregorianCalendar();
+                    }
+                });
     }
 
     /**
      *
-     * Kill all ApacheHttpd servers
-     * We simply stop them instead of doing a hard kill
+     * Kill all ApacheHttpd servers.
+     * We simply stop them instead of doing a hard kill.
      */
     public void kill() {
         stopServers();

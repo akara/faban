@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DeployImageClassLoader.java,v 1.2 2009/06/29 21:29:07 akara Exp $
+ * $Id: DeployImageClassLoader.java,v 1.3 2009/07/28 22:54:14 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -48,7 +48,7 @@ public class DeployImageClassLoader extends URLClassLoader {
     // synchronization is provided.
     private static final HashMap DEPLOY_LOADERS = new HashMap();
 
-    public long timestamp;
+    long timestamp;
 
     /**
      * Obtains an instance of the classloader for a certain deploy image

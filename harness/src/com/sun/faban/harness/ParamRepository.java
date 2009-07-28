@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ParamRepository.java,v 1.19 2009/07/21 22:54:45 sheetalpatil Exp $
+ * $Id: ParamRepository.java,v 1.20 2009/07/28 22:54:18 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -331,11 +331,11 @@ public class ParamRepository {
     }
 
     /**
-     *
+     * Obtains xpath values matching an xpath, broken into tokens.
      * @param xpath XPath expression to get  ',' and SPACE seperated 
      * values from a single parameter. For Example sutConfig/instances
      * The values are seperated by ',' and then by SPACE
-     * @return List of arrays of hostnames.
+     * @return List of arrays of hostnames
      */
     public List<String[]> getTokenizedList(String xpath) {
         // Each value should be passed as , and SPACE seperated strings
@@ -363,10 +363,20 @@ public class ParamRepository {
         return reader.getHostPorts(xPathExpr);
     }
 
+    /**
+     * Obtains the host:port pairs at this element.
+     * @param base The base element
+     * @return The list of host:port pairs
+     */
     public List<NameValuePair<Integer>> getHostPorts(Element base) {
         return reader.getHostPorts(base);
     }
 
+    /**
+     * Obtains the host/role mappings.
+     * @return The host/role mappings
+     * @throws ConfigurationException Invalid host/role mapping
+     */
     public List<NameValuePair<String>> getHostRoles()
             throws ConfigurationException {
 
@@ -414,6 +424,13 @@ public class ParamRepository {
         return  Boolean.valueOf(reader.getValue(xpath)).booleanValue();
     }
 
+    /**
+     * Obtains the boolean value at the given xpath, providing a default
+     * value if it does not exist or is not a boolean.
+     * @param xpath The given xpath
+     * @param defaultValue The default value
+     * @return The boolean at the xpath, or the given default
+     */
     public boolean getBooleanValue(String xpath, boolean defaultValue) {
         String s = reader.getValue(xpath);
         if (s == null || s.length() == 0)

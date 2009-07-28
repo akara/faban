@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MemcachedService.java,v 1.4 2009/05/30 04:48:49 akara Exp $
+ * $Id: MemcachedService.java,v 1.5 2009/07/28 22:54:15 akara Exp $
  *
  * Copyright 2007 Sun Microsystems Inc. All Rights Reserved
  */
@@ -111,7 +111,7 @@ import java.util.logging.Logger;
     }
 
     /**
-     * Start all memcached servers on configured hosts
+     * Start all memcached servers on configured hosts.
      * @return boolean true if start succeeded on all machines, else false
      */
     public boolean startServers() {
@@ -161,7 +161,7 @@ import java.util.logging.Logger;
     }
 
     /**
-     * stop Servers
+     * stop Servers.
      * @return true if stop succeeded on all machines, else false
      */
     public boolean stopServers() {

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CLIServlet.java,v 1.8 2009/07/21 22:54:48 sheetalpatil Exp $
+ * $Id: CLIServlet.java,v 1.9 2009/07/28 22:54:17 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -35,7 +35,6 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -652,14 +651,8 @@ public class CLIServlet extends HttpServlet {
 
         /**
          * Prints the html result of the parsing to the servlet output.
-         *
-         * @param request The servlet request
-         * @param out     The servlet output stream
-         * @param runId   The run id
-         * @throws java.io.IOException Error writing to the servlet output stream
          */
-        public void printHtml()
-                throws IOException {
+        public void printHtml() {
             // We never print in html. So this is a noop here.
         }
 
@@ -693,18 +686,18 @@ public class CLIServlet extends HttpServlet {
         }
     }
 
-    public static class CircularBuffer<E> {
+    static class CircularBuffer<E> {
 
         private int head = 0;
         private boolean wrapped = false;
         private int size = 0;
         private Object[] buffer;
 
-        public CircularBuffer(int capacity) {
+        CircularBuffer(int capacity) {
             buffer = new Object[capacity];
         }
 
-        public void add(E object) {
+        void add(E object) {
             buffer[head] = object;
             moveHead();
             if (size < buffer.length)
@@ -719,7 +712,7 @@ public class CLIServlet extends HttpServlet {
             }
         }
 
-        public E get(int idx) {
+        E get(int idx) {
             if (wrapped)
                 idx += head;
             if (idx >= buffer.length)
@@ -727,7 +720,7 @@ public class CLIServlet extends HttpServlet {
             return (E) buffer[idx];
         }
 
-        public int size() {
+        int size() {
             return size;
         }
     }

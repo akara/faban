@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: LogHandler.java,v 1.4 2009/07/21 22:54:49 sheetalpatil Exp $
+ * $Id: LogHandler.java,v 1.5 2009/07/28 22:54:15 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -31,9 +31,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 
 /**
- * Faban
+ * Protocol handler for log requests.
  * @author Ramesh Ramachandran
- * Date: Nov 30, 2004
  */
 public class LogHandler implements ProtocolHandler {
 
@@ -50,7 +49,7 @@ public class LogHandler implements ProtocolHandler {
 
     /**
      * Sets the selection key for subsequent invocations.
-     * @param key
+     * @param key The nio selection key
      */
     public void setKey(SelectionKey key) {
 

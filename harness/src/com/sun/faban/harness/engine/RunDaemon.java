@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunDaemon.java,v 1.32 2009/07/21 22:54:48 sheetalpatil Exp $
+ * $Id: RunDaemon.java,v 1.33 2009/07/28 22:54:15 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -128,6 +128,10 @@ public class RunDaemon implements Runnable {
      * be executed.
      * @param name The name of the run to fetch
      * @return The run object for the next run
+     * @throws RunEntryException The next run entry is incomplete
+     * @throws IOException There is an error reading the entry
+     * @throws ClassNotFoundException Could not find the benchmark class
+     * for the run.
      */
     public Run fetchNextRun(String name) throws RunEntryException, IOException,
             ClassNotFoundException {
@@ -474,8 +478,8 @@ public class RunDaemon implements Runnable {
     }
 
     /**
-     * Called by RunQ's stopRunDaemon method. Not sure if it will be used yet.
-     *
+     * Called by RunQ's stopRunDaemon method.
+     * @return Whether or not the suspend succeeded
      */
     public boolean suspendRunDaemonThread() {
         if (runDaemonThread != null && !suspended) {
@@ -489,8 +493,8 @@ public class RunDaemon implements Runnable {
     }
 
     /**
-     * Called by RunQ's resumeRunDaemon method. Not sure if it will be used yet.
-     *
+     * Called by RunQ's resumeRunDaemon method.
+     * @return Whether or not the resume succeeded
      */
     public boolean resumeRunDaemonThread() {
 
@@ -517,7 +521,7 @@ public class RunDaemon implements Runnable {
      * Redirect the log to file named log.xml inside the
      * current run output directory.
      * @param logFile the output directory for the run
-     *
+     * @param limit the log file size limit
      */
     private void redirectLog(String logFile, String limit) {
         StringBuilder sb = new StringBuilder();

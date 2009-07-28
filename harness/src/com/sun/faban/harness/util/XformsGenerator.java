@@ -55,9 +55,9 @@ public class XformsGenerator {
 
     /**
      * Generates the xform file.
-     * @param infile
-     * @param outfile
-     * @param templateFile
+     * @param infile The input configuration file
+     * @param outfile The generated output
+     * @param templateFile The template file used for generation
      */
     public static void generate(File infile, File outfile, File templateFile) {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -311,6 +311,10 @@ public class XformsGenerator {
         xformsCasesBuffer = null;
     }
 
+    /**
+     * Tests/runs the XForms generator.
+     * @param args The command line argument
+     */
     public static void main(String[] args){
         File infile = new File(args[0]);
         File outfile = new File(args[1]);

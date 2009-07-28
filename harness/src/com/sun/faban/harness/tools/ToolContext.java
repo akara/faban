@@ -40,11 +40,11 @@ public class ToolContext extends MasterToolContext {
     ToolWrapper wrapper;
 
     /**
-     * Constructor.
-     * @param tool
-     * @param ctx
-     * @param desc
-     * @param wrapper
+     * Constructs the tool context.
+     * @param tool The tool name
+     * @param ctx The service context, if any
+     * @param desc The tool description
+     * @param wrapper The tool wrapper responsible for invoking the tool.
      */
     public ToolContext(String tool, ServiceContext ctx, ToolDescription desc,
                        ToolWrapper wrapper) {
@@ -82,7 +82,7 @@ public class ToolContext extends MasterToolContext {
 
     /**
      * Sets the output file with the given path.
-     * @param path
+     * @param path The output file path.
      */
     public void setOutputFile(String path) {
         localOutputFile = path;
@@ -90,7 +90,7 @@ public class ToolContext extends MasterToolContext {
 
     /**
      * Obtains the service property for the given key.
-     * @param key
+     * @param key The service property name
      * @return property as string
      */
     public String getServiceProperty(String key) {
@@ -99,7 +99,7 @@ public class ToolContext extends MasterToolContext {
 
     /**
      * Returns ServiceContext for the tool.
-     * @return ServiceContext
+     * @return ServiceContext The service context
      */
     public ServiceContext getServiceContext() {
         return serviceCtx;

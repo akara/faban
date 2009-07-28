@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ProtocolHandlerFactory.java,v 1.2 2006/06/29 19:38:42 akara Exp $
+ * $Id: ProtocolHandlerFactory.java,v 1.3 2009/07/28 22:54:15 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -70,6 +70,10 @@ public class ProtocolHandlerFactory {
     private String className;
     private HashMap handlerClasses;
 
+    /**
+     * Constructs the protocol handler factory.
+     * @param config The log configuration
+     */
     public ProtocolHandlerFactory(LogConfig config) {
         this.config = config;
         className = getClass().getName();
@@ -81,6 +85,8 @@ public class ProtocolHandlerFactory {
      * Looks at the buffer and determines the protocol. Returns
      * null if there is no suficient data to determine the protocol.
      *
+     * @param buffer The buffer
+     * @param count The significant size of the buffer to analyze
      * @return  The appropriate protocol handler, or null if there is not
      *          enough data
      * @throws  UnsupportedProtocolException If the protocol cannot be

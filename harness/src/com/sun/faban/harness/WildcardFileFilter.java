@@ -13,7 +13,7 @@ public class WildcardFileFilter implements FileFilter {
     Pattern pattern;
     /**
      * Constructs a wildcard file filter with the given pattern.
-     * @param pattern
+     * @param pattern The file name pattern
      */
     public WildcardFileFilter(String pattern) {
         // Change the pattern to a regex.

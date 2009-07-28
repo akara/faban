@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: OracleService.java,v 1.4 2009/05/30 04:48:49 akara Exp $
+ * $Id: OracleService.java,v 1.5 2009/07/28 22:54:15 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -50,6 +50,8 @@ import java.util.logging.Logger;
     private static final String ORACLE_AGENT = "OracleAgent";
 
     Logger logger;
+
+    /** The master host name. */
     protected String masterMachine;
 
     String oracleHome;
@@ -67,6 +69,10 @@ import java.util.logging.Logger;
         logger = Logger.getLogger(this.getClass().getName());
     }
 
+    /**
+     * Obtains an instance of the OracleService.
+     * @return An instance of the OracleService
+     */
     public static OracleService getHandle () {
         if(oracle == null)
             oracle = new OracleService();
@@ -74,6 +80,15 @@ import java.util.logging.Logger;
         return oracle;
     }
 
+    /**
+     * Sets up the Oracle service.
+     * @param r The run
+     * @param c The command service
+     * @param oracleHome ORACLE_HOME
+     * @param oracleSid ORACLE_SID
+     * @param serverMachines The server systems to have this service
+     * @param allConfigs All the Oracle configuration parameters
+     */
     public void setup(Run r, CmdService c, String oracleHome, String oracleSid, String[] serverMachines, String[] allConfigs) {
 
         run = r;
@@ -114,8 +129,10 @@ import java.util.logging.Logger;
 
 
     /**
-     * get server configuration parameters from the conf files
-     * if null is passed then the operation is applied to all servers
+     * Get server configuration parameters from the configuration files.
+     * If null is passed then the operation is applied to all servers.
+     * @param serverMachine The server to get the configuration files
+     * @return The list of configuration parameters
      */
     public List getConfig(String serverMachine) {
 
@@ -137,8 +154,11 @@ import java.util.logging.Logger;
     }
 
     /**
-     * set server configuration parameters: update the two conf files
-     * if null is passed then the operation is applied to all servers
+     * Set server configuration parameters: update the two conf files.
+     * If null is passed for the server machine, the operation is applied
+     * to all servers.
+     * @param serverMachine The server system
+     * @param oracleParams The Oracle parameters to use
      */
     public void setConfig(String serverMachine, List oracleParams) {
         String[] machines = new String[1];
@@ -164,9 +184,10 @@ import java.util.logging.Logger;
 
 
     /**
-     * start/restart Server 
-     * if null is passed then the operation is applied to all servers
-     *
+     * Start/restart server. If null is passed then the operation is applied
+     * to all servers.
+     * @param serverMachine The server machine
+     * @return Whether the server restart succeeded
      */
     public boolean restartServer(String serverMachine) {
 
@@ -202,8 +223,10 @@ import java.util.logging.Logger;
     }
 
     /**
-     * stop Server
-     * if null is passed then the operation is applied to all servers
+     * Stop server. If null is passed then the operation is applied to all
+     * servers.
+     * @param serverMachine The server machine
+     * @return Whether the server is successfully stopped
      */
     public boolean stopServer(String serverMachine) {
 
@@ -253,17 +276,21 @@ import java.util.logging.Logger;
     }
 
     /**
-     * restart listener
-     * if null is passed then the operation is applied to all servers
-    */
+     * Restart listener.
+     * If null is passed then the operation is applied to all servers.
+     * @param serverMachine The server to restart the listener
+     * @return Whether the listener restarted successfully
+     */
     public boolean restartListener(String serverMachine) {
         return stopListener(serverMachine) && startListener(serverMachine);
     }
 
     /**
-     * start listener
-     * if null is passed then the operation is applied to all servers
-    */
+     * Start listener.
+     * If null is passed then the operation is applied to all servers.
+     * @param serverMachine The server to start the listener
+     * @return Whether the listener started successfully
+     */
     public boolean startListener(String serverMachine) {
 
         boolean ret = true;
@@ -294,9 +321,11 @@ import java.util.logging.Logger;
 
 
     /**
-     * stop listener
-     * if null is passed then the operation is applied to all servers
-    */
+     * Stop the listener.
+     * If null is passed then the operation is applied to all servers.
+     * @param serverMachine The server machine
+     * @return Whether the listener has been successfully stopped
+     */
     public boolean stopListener(String serverMachine) {
 
         boolean ret = true;
@@ -327,7 +356,8 @@ import java.util.logging.Logger;
 
 
     /**
-     * start statisticas collection
+     * Start statistics collection.
+     * @param serverMachine The server to start the stats collection
      */
     public void startStats(String serverMachine) {
 
@@ -342,7 +372,8 @@ import java.util.logging.Logger;
     }
 
     /**
-     * stop statisticas collection
+     * Stop statistics collection.
+     * @param serverMachine The system to stop stats
      */
     public void stopStats(String serverMachine) {
 
@@ -357,7 +388,8 @@ import java.util.logging.Logger;
     }
 
     /**
-     * clear log files
+     * Clear log files.
+     * @param serverMachine The system to call to clear the log file
      */
     public void clearLogs(String serverMachine) {
 
@@ -370,6 +402,9 @@ import java.util.logging.Logger;
         }
     }
 
+    /**
+     * Kills all Oracle instances managed by this service.
+     */
     public void kill () {
         if((serverMachines != null) &&(serverMachines.length > 0)) {
             for (int i = 0; i < serverMachines.length; i++) {
@@ -390,7 +425,7 @@ import java.util.logging.Logger;
     }
 
     /**
-     * execute an SQL command
+     * Execute an SQL command.
      * @param command is a combination of user/passwd\ncommand to execute
      * @param priority in which to run command (not used)
      */

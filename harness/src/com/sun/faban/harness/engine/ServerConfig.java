@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ServerConfig.java,v 1.14 2009/07/21 22:54:48 sheetalpatil Exp $
+ * $Id: ServerConfig.java,v 1.15 2009/07/28 22:54:15 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -70,6 +70,7 @@ class ServerConfig {
      * ParamRepository.
      * It gather /etc/system, prtdiag, psrinfo, uname, ps , vxprint
      * info from the server machines and logs them to the system log.
+     * @return Whether the system configuration was successfully obtained.
      */
     public boolean get() {
         // Generate name of system log file - system.log

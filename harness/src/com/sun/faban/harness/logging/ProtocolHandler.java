@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ProtocolHandler.java,v 1.3 2009/07/21 22:54:49 sheetalpatil Exp $
+ * $Id: ProtocolHandler.java,v 1.4 2009/07/28 22:54:15 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -52,7 +52,7 @@ public interface ProtocolHandler {
 
     /**
      * Sets the selection key for subsequent invocations.
-     * @param key
+     * @param key The nio selection key
      */
     void setKey(SelectionKey key);
 

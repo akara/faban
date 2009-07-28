@@ -41,7 +41,9 @@ public class CommandLineTool {
     private static Logger logger =
             Logger.getLogger(CommandLineTool.class.getName());
 
+    /** The injected tool context. */
     @Context public ToolContext ctx;
+
     Command cmd;
     CommandHandle processRef;
     ArrayList<String> toolCmd;
@@ -68,7 +70,8 @@ public class CommandLineTool {
 
     /**
      * This method is responsible for starting the command line tool.
-     *
+     * @throws IOException Error starting the command
+     * @throws InterruptedException Interrupted waiting for commands
      */
     @Start public void start() throws IOException, InterruptedException {
         processRef = ctx.exec(cmd, true);
@@ -77,7 +80,8 @@ public class CommandLineTool {
 
     /**
      * This method is responsible for stopping the command line tool.
-     *
+     * @throws IOException Error stopping the command
+     * @throws InterruptedException Interrupted waiting for commands
      */
     @Stop public void stop() throws IOException, InterruptedException {
         logger.fine("Stopping tool " + this.toolCmd);

@@ -17,24 +17,26 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileServiceException.java,v 1.3 2009/07/21 22:54:46 sheetalpatil Exp $
+ * $Id: FileServiceException.java,v 1.4 2009/07/28 22:54:13 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.agent;
 
+/**
+ * The FileServiceException indicates an error accessing the file from
+ * the file service.
+ */
 public class FileServiceException extends Exception {
 
   /**
-   * Catches exceptions without a specified string.
-   *
+   * Catches exceptions without a specified message.
    */
   public FileServiceException() {}
 
   /**
    * Constructs the appropriate exception with the specified string.
-   *
-   * @param message           Exception message
+   * @param message Exception message
    */
   public FileServiceException(String message) {
     super(message);

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Tool.java,v 1.4 2009/07/21 22:54:47 sheetalpatil Exp $
+ * $Id: Tool.java,v 1.5 2009/07/28 22:54:16 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -43,7 +43,8 @@ public interface Tool {
      * This method is called to configure the tool.
      * @param toolName name of the tool (Executable)
      * @param args list containing arguments to tool
-     * @param path
+     * @param path The path, if any, to find the tool
+     * @param outDir The output directory
      * @param host name of machine the tool is running on
      * @param masterhost name of master machine
      * @param cmdAgent agent The command agent used for executing tools

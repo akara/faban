@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: HostRoles.java,v 1.3 2009/06/16 00:57:02 akara Exp $
+ * $Id: HostRoles.java,v 1.4 2009/07/28 22:54:14 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -50,6 +50,7 @@ public class HostRoles {
      * Constructs the HostRoles at benchmark run time from the benchmark
      * parameter file and run information.
      * @param par The parameter repository/file
+     * @throws ConfigurationException If there is a configuration error
      */
     public HostRoles(ParamRepository par) throws ConfigurationException {
         CmdService cmds = CmdService.getHandle();

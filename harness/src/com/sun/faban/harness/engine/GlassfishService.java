@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GlassfishService.java,v 1.2 2009/05/30 04:48:49 akara Exp $
+ * $Id: GlassfishService.java,v 1.3 2009/07/28 22:54:14 akara Exp $
  *
  * Copyright 2007 Sun Microsystems Inc. All Rights Reserved
  */
@@ -99,7 +99,7 @@ import java.text.SimpleDateFormat;
     }
 
     /**
-     * Start all glassfish servers on configured hosts
+     * Start all glassfish servers on configured hosts.
      * @return boolean true if start succeeded on all machines, else false
      */
     public boolean startServers() {
@@ -179,7 +179,7 @@ import java.text.SimpleDateFormat;
     }
 
     /**
-     * stop Servers
+     * Stop servers.
      * @return true if stop succeeded on all machines, else false
      */
     public boolean stopServers() {
@@ -241,8 +241,8 @@ import java.text.SimpleDateFormat;
     }
 
     /**
-     * clear glassfish logs and session files
-	 * It assumes that session files are in /tmp/sess*
+     * Clears glassfish logs and session files.
+	 * It assumes that session files are in /tmp/sess*.
      * @return true if operation succeeded, else fail
      */
     public boolean clearLogs() {
@@ -269,9 +269,9 @@ import java.text.SimpleDateFormat;
     }
 
     /**
-     * transfer log files
+     * Transfer log files.
 	 * This method copies over the error_log to the run output directory
-	 * and keeps only the portion of the log relevant for this run
+	 * and keeps only the portion of the log relevant for this run.
 	 * @param totalRunTime - the time in seconds for this run
      */
     public void xferLogs(int totalRunTime) {
@@ -317,15 +317,20 @@ import java.text.SimpleDateFormat;
 
 
     /**
-     *
-     * Kill all glassfish servers
-     * We simply stop them instead of doing a hard kill
+     * Kill all glassfish servers.
+     * We simply stop them instead of doing a hard kill.
      */
     public void kill() {
         stopServers();
         logger.info("Killed all GlassFish servers");
     }
 
+    /**
+     * Obtains the gregorian calendar representing the current time.
+     * @param hostName The host name to get the calendar from
+     * @return The calendar
+     * @throws Exception Error obtaining calendar
+     */
     public static GregorianCalendar getGregorianCalendar(
             String hostName)
             throws Exception {

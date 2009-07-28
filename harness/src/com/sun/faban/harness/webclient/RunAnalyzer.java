@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunAnalyzer.java,v 1.9 2009/07/24 22:48:25 akara Exp $
+ * $Id: RunAnalyzer.java,v 1.10 2009/07/28 22:54:17 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -43,13 +43,13 @@ import java.util.ArrayList;
  */
 public class RunAnalyzer {
 
-    /** Analyze types. */
+    /** Analysis types. */
     public enum Type {
 
-        /** Comparison */
+        /** Comparison. */
         COMPARE,
 
-        /** Averaging */
+        /** Averaging. */
         AVERAGE;
 
         /**
@@ -75,6 +75,8 @@ public class RunAnalyzer {
      * <li>Same benchmark: type-bench_<host.>seq1_<host>.seq2...</li>
      * <li>Same host, same benchmark: type-bench-host_seq1_seq2...</li>
      * </ol>
+     * @param type Whether it is a compare or an average
+     * @param runIdStrings The run ids to include in the analysis
      * @return The suggested analysis name
      */
     public static String suggestName(Type type, String[] runIdStrings) {
@@ -137,6 +139,10 @@ public class RunAnalyzer {
         }
     }
 
+    /**
+     * Removes the analysis results.
+     * @param name The name of the result to remove
+     */
     public static void clear(String name) {
         File analysisDir = new File(Config.ANALYSIS_DIR + name);
         if (analysisDir.isDirectory()) {

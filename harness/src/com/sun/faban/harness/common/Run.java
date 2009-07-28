@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Run.java,v 1.8 2009/07/21 22:54:50 sheetalpatil Exp $
+ * $Id: Run.java,v 1.9 2009/07/28 22:54:14 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -38,12 +38,22 @@ import java.util.Date;
  */
 public class Run implements Serializable {
 
+    /** Run status STARTED. */
     public static final int STARTED = 0;
+
+    /** Run status RECEIVED. */
     public static final int RECEIVED = 1;
+
+    /** Run status COMPLETED. */
     public static final int COMPLETED = 2;
+
+    /** Run status FAILED. */
     public static final int FAILED = 3;
+
+    /** Run status KILLED. */
     public static final int KILLED = 4;
 
+    /** The status messages for each status. */
     public static final String[] STATUS_MESSAGE =
             { "STARTED", "RECEIVED", "COMPLETED", "FAILED", "KILLED" };
 
@@ -58,7 +68,11 @@ public class Run implements Serializable {
     private SimpleDateFormat formatter = new SimpleDateFormat(
                               "EEE MMM dd HH:mm:ss z yyyy");
 
-
+    /**
+     * Construcs a run object.
+     * @param runSeq The sequence number
+     * @param benchDesc The benchmark description
+     */
     public Run(String runSeq, BenchmarkDescription benchDesc) {
         this.benchDesc = benchDesc;
         runId = benchDesc.shortName + "." + runSeq;
@@ -75,16 +89,16 @@ public class Run implements Serializable {
     }
 
     /**
-     * Get the id of the run.
-     *
+     * Get the sequence of the run.
+     * @return The run sequence number
      */
     public String getRunSeq() {
         return runSeq;
     }
 
     /**
-     * Get the name of this run. 
-     *
+     * Get the id of this run.
+     * @return The full run id of this run
      */
     public String getRunId() {
         return runId;
@@ -99,7 +113,8 @@ public class Run implements Serializable {
     }
 
     /**
-     * Get name of benchmark.
+     * Obtains the benchmark description.
+     * @return The benchmark description
      */
     public BenchmarkDescription getBenchDesc() {
         return benchDesc;
@@ -107,6 +122,7 @@ public class Run implements Serializable {
 
     /**
      * Get pathname of log for this run.
+     * @return The log file path name
      */
     public String getLog() {
         return(outdir + Config.LOG_FILE);
@@ -116,6 +132,7 @@ public class Run implements Serializable {
      * Get full pathname of ParamRepository for this run
      * This method checks in the run is in the RunQ or output
      * directories, and returns the appropriate path.
+     * @return The full path to the run config file
      */
     public String getParamFile() {
         if (inRunQ)
@@ -125,7 +142,8 @@ public class Run implements Serializable {
     }
 
     /**
-     * Get output directory pathname
+     * Get output directory pathname.
+     * @return The path name of the run output directory
      */
     public String getOutDir() {
         return outdir;

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ApacheHttpdService.java,v 1.1 2009/06/23 19:02:02 sheetalpatil Exp $
+ * $Id: ApacheHttpdService.java,v 1.2 2009/07/28 22:54:56 akara Exp $
  *
  * Copyright 2008 Sun Microsystems Inc. All Rights Reserved
  */
@@ -41,7 +41,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
  * This class implements the service to start/stop ApacheHttpd instances.
  * It also provides functionality to transfer the portion of the apache
  * error_log for a run to the run output directory.
@@ -51,15 +50,18 @@ import java.util.logging.Logger;
  * @author Sheetal Patil based on work done by Shanti Subramanyam
  * 
  */
-
 public class ApacheHttpdService {
 
-    @Context public ServiceContext ctx;    
+    /** Injected service context. */
+    @Context public ServiceContext ctx;
     private Logger logger = Logger.getLogger(ApacheHttpdService.class.getName());
     private String[] myServers = new String[1];
     private static String apacheCmd,  errlogFile,  acclogFile;
     CommandHandle apacheHandles[];
 
+    /**
+     * Configures the service.
+     */
     @Configure public void configure() {
         myServers = ctx.getHosts();
         apacheCmd = ctx.getProperty("cmdPath");
@@ -77,6 +79,9 @@ public class ApacheHttpdService {
     }
 
     
+    /**
+     * Starts up the Apache web server.
+     */
     @Startup public void startup() {
         String cmd = apacheCmd + "start";
         logger.info("Starting Apache Service with command = "+ cmd);
@@ -95,7 +100,12 @@ public class ApacheHttpdService {
             }
         }
     }
-  
+
+    /**
+     * Shuts down the Apache web server.
+     * @throws IOException Error executing the shutdown
+     * @throws InterruptedException Interrupted waiting for the shutdown
+     */
     @Shutdown public void shutdown() throws IOException, InterruptedException {
         for (int i = 0; i < myServers.length; i++) {
             if (apacheHandles[i] != null) {
@@ -117,7 +127,10 @@ public class ApacheHttpdService {
         }
         apacheHandles = null;
     }
-   
+
+    /**
+     * Clears the Apache web server logs.
+     */
     @ClearLogs public void clearLogs() {
 
         for (int i = 0; i < myServers.length; i++) {

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentBootstrap.java,v 1.22 2009/07/21 22:54:46 sheetalpatil Exp $
+ * $Id: AgentBootstrap.java,v 1.23 2009/07/28 22:54:13 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -46,7 +46,7 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 /**
- * Bootstrap class for the CmdAgent and FileAgent
+ * Bootstrap class for the CmdAgent and FileAgent.
  */
 public class AgentBootstrap {
 
@@ -72,6 +72,10 @@ public class AgentBootstrap {
     static final Set<String> registeredNames =
                     Collections.synchronizedSet(new HashSet<String>());
 
+    /**
+     * Starts the agent bootstrap.
+     * @param args The command line arguments
+     */
     public static void main(String[] args) {
         System.setSecurityManager (new RMISecurityManager());
 
@@ -395,8 +399,8 @@ public class AgentBootstrap {
     }
 
     /**
-     * Unregisters all the registered services
-     * @throws java.rmi.RemoteException
+     * Unregisters all the registered services.
+     * @throws RemoteException A network error occurred
      */
     static void deregisterAgents() throws RemoteException {
         synchronized(registeredNames) {

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: UIDriver.java,v 1.1 2009/06/01 17:01:41 sheetalpatil Exp $
+ * $Id: UIDriver.java,v 1.2 2009/07/28 22:56:02 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
+/** The driver to drive load against the Faban harness. */
 @BenchmarkDefinition (
     name    = "Faban Harness Workload",
     version = "0.1"
@@ -56,7 +57,7 @@ import java.util.logging.Logger;
 )
 public class UIDriver {
 
-    /** The driver context for this instance */
+    /** The driver context for this instance. */
     private DriverContext ctx;
     private HttpTransport http;
     boolean realSubmit;
@@ -71,9 +72,13 @@ public class UIDriver {
     String[] runIds;
     String runId;
 
+    /**
+     * Constructs a UIDriver instance.
+     * @throws XPathExpressionException Invalid XPath
+     */
     public UIDriver() throws XPathExpressionException {
         ctx = DriverContext.getContext();
-        http = new HttpTransport();
+        http = HttpTransport.newInstance();
         logger = ctx.getLogger();
         random = ctx.getRandom();
         String host = ctx.getXPathValue("/fabanLoad/serverConfig/fa:hostConfig/fa:host");
@@ -94,10 +99,18 @@ public class UIDriver {
         deleteRuns = baseURL + "delete-runs.jsp";
     }
 
+    /**
+     * Clears the pending runs.
+     * @throws IOException Error clearing the pending runs.
+     */
     @OnceAfter public void cleanPendingRuns() throws IOException {
         pendingRuns();
     }
 
+    /**
+     * Access the home page.
+     * @throws IOException Error accessing the home page.
+     */
     @BenchmarkOperation (
         name    = "Home Page",
         max90th = 2,
@@ -110,6 +123,10 @@ public class UIDriver {
         }
     }
 
+    /**
+     * Tests listing the results.
+     * @throws IOException Error obtaining the result list.
+     */
     @BenchmarkOperation (
         name    = "List Results",
         max90th = 2,
@@ -133,6 +150,10 @@ public class UIDriver {
         }
     }
 
+    /**
+     * Test viewing a result.
+     * @throws IOException Error viewing the result
+     */
     @BenchmarkOperation (
         name    = "View Result",
         max90th = 2,
@@ -179,6 +200,10 @@ public class UIDriver {
         http.readURL(baseURL + "statsnavigator.jsp?runId=" + runId);        
     }
 
+    /**
+     * Test submitting a run.
+     * @throws IOException Error submitting run
+     */
     @BenchmarkOperation (
         name    = "Submit Run",
         max90th = 2,
@@ -212,6 +237,10 @@ public class UIDriver {
                     "d_input-server-port=9980&t_trigger-ok=Ok");
     }
 
+    /**
+     * Tests viewing pending runs.
+     * @throws IOException Error viewing pending runs
+     */
     @BenchmarkOperation (
         name    = "Pending Runs",
         max90th = 2,

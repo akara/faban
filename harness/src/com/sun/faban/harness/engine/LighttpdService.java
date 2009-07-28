@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: LighttpdService.java,v 1.7 2009/05/30 04:48:49 akara Exp $
+ * $Id: LighttpdService.java,v 1.8 2009/07/28 22:54:15 akara Exp $
  *
  * Copyright 2008 Sun Microsystems Inc. All Rights Reserved
  */
@@ -106,7 +106,7 @@ import java.util.logging.Logger;
     }
 
     /**
-     * Start all apache servers on configured hosts
+     * Start all apache servers on configured hosts.
      * @return boolean true if start succeeded on all machines, else false
      */
     public boolean startServers() {
@@ -192,7 +192,7 @@ import java.util.logging.Logger;
     }
 
     /**
-     * stop Servers
+     * Stop Servers.
      * @return true if stop succeeded on all machines, else false
      */
     public boolean stopServers() {
@@ -293,9 +293,9 @@ import java.util.logging.Logger;
     }
 
     /**
-     * clear server logs and session files
-	 * clears access log, error log, pidfile and session files
-     * It assumes that session files are in /tmp/sess*
+     * Clear server logs and session files.
+	 * Clears access log, error log, pidfile and session files.
+     * It assumes that session files are in /tmp/sess*.
      * @return true if operation succeeded, else fail
      */
     public boolean clearLogs() {
@@ -338,9 +338,9 @@ import java.util.logging.Logger;
     }
 
     /**
-     * transfer log files
+     * Transfer log files to the master.
 	 * This method copies over the error log to the run output directory
-	 * and keeps only the portion of the log relevant for this run
+	 * and keeps only the portion of the log relevant for this run.
 	 * @param totalRunTime - the time in seconds for this run
      */
     public void xferLogs(int totalRunTime) {
@@ -389,6 +389,12 @@ import java.util.logging.Logger;
 
     }
 
+    /**
+     * Obtains the gregorian calendar representing the current time.
+     * @param hostName The host name to get the calendar from
+     * @return The calendar
+     * @throws Exception Error obtaining calendar
+     */
     public static GregorianCalendar getGregorianCalendar(
             String hostName)
             throws Exception {
@@ -402,8 +408,8 @@ import java.util.logging.Logger;
 
     /**
      *
-     * Kill all servers
-     * We simply stop them instead of doing a hard kill
+     * Kill all servers.
+     * We simply stop them instead of doing a hard kill.
      */
     public void kill() {
         stopServers();

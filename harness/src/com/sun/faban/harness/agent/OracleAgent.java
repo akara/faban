@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: OracleAgent.java,v 1.3 2009/05/30 04:48:49 akara Exp $
+ * $Id: OracleAgent.java,v 1.4 2009/07/28 22:54:13 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -31,58 +31,105 @@ import java.io.*;
 import java.util.*;
 
 /**
- *
- *
+ * An agent for controlling the Oracle database.
  * @author Ramesh Ramachandran
- * @deprecated
+ * @deprecated Replaced by the services/tools infrastructure
  */
 @Deprecated public interface OracleAgent extends Remote {
 
-  /**
-   * This method get the configure parameters of the oracle instance.
-   * @param serverID - instance name
-   */
-    public List getConfig(String serverID) throws RemoteException, IOException;
+    /**
+     * This method get the configure parameters of the oracle instance.
+     * @param serverID Instance name
+     * @return The list of configuration parameters
+     * @throws IOException An I/O error occurred
+     */
+    public List getConfig(String serverID) throws IOException;
     
     /**
      * This method set the configure parameters of the oracle instance.
-     * @param serverID - instance name
+     * @param serverID Instance name
+     * @param oracleParams The parameter list
+     * @throws IOException An I/O error occurred
      */
-    public void setConfig(String serverID, List oracleParams) throws RemoteException, IOException;
+    public void setConfig(String serverID, List oracleParams) throws IOException;
   
     /**
-     * start an oracle instance.
+     * Start an Oracle instance.
+     * @param serverID Instance name
+     * @return Whether the server started successfully
+     * @throws Exception An error occurred in the process
      */
-    public boolean start(String serverID) throws RemoteException, Exception;
+    public boolean start(String serverID) throws Exception;
     
     /**
-     * stop Server
+     * Stop an Oracle instance.
+     * @param serverID Instance name
+     * @return Whether the server stopped successfully
+     * @throws Exception An error occurred in the process
      */
-    public boolean stop(String serverID) throws RemoteException, Exception;
-    
-    
-    public boolean startListener() throws RemoteException, Exception;
-
-    public boolean stopListener() throws RemoteException, Exception;
-
-    public boolean checkListenerStatus() throws RemoteException, Exception;
+    public boolean stop(String serverID) throws Exception;
     
     /**
-     * get statistics of a web server instance
+     * Start the Oracle listener.
+     * @return Whether the listener started successfully
+     * @throws Exception An error occurred in the process
      */
-    public void startStats() throws RemoteException, Exception;
-    
-    public void stopStats() throws RemoteException, Exception;
+    public boolean startListener() throws Exception;
 
     /**
-     * clear log files 
+     * Stop an Oracle listener.
+     * @return Whether the listener stopped successfully
+     * @throws Exception An error occurred in the process
      */
-    public void clearLogs() throws RemoteException, Exception;
-    
-    public void configure(Run run, String oracleHome, String oracleSid, String[] allConfigs) throws RemoteException, Exception;
-    
-    public void kill() throws RemoteException, Exception;
+    public boolean stopListener() throws Exception;
 
-    public boolean execSQL(String sql) throws RemoteException, Exception;
+    /**
+     * Checks the listener status.
+     * @return Whether the listener is running
+     * @throws Exception An error occurred in the process
+     */
+    public boolean checkListenerStatus() throws Exception;
+    
+    /**
+     * Start gathering statistics for an instance.
+     * @throws Exception An error occurred in the process
+     */
+    public void startStats() throws Exception;
 
+    /**
+     * Stop gathering statistics fpr an instance.
+     * @throws Exception An error occurred in the process
+     */
+    public void stopStats() throws Exception;
+
+    /**
+     * Clear log files.
+     * @throws Exception An error occurred in the process
+     */
+    public void clearLogs() throws Exception;
+
+    /**
+     * Configures the agent.
+     * @param run The benchmark run
+     * @param oracleHome ORACLE_HOME
+     * @param oracleSid ORACLE_SID
+     * @param allConfigs Pathnames to all config files
+     * @throws Exception An error occurred in the process
+     */
+    public void configure(Run run, String oracleHome, String oracleSid,
+                          String[] allConfigs) throws Exception;
+    
+    /**
+     * Kills the Oracle instance.
+     * @throws Exception An error occurred in the process
+     */
+    public void kill() throws Exception;
+
+    /**
+     * Executes an SQL statement.
+     * @param sql The statement
+     * @return Whether the SQL statement executed successfully
+     * @throws Exception An error occurred in the process
+     */
+    public boolean execSQL(String sql) throws Exception;
 }

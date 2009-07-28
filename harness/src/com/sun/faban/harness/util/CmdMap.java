@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdMap.java,v 1.10 2009/07/21 22:54:45 sheetalpatil Exp $
+ * $Id: CmdMap.java,v 1.11 2009/07/28 22:54:17 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -440,9 +440,10 @@ public class CmdMap {
     }
 
     /**
-     *
-     * @param orig
-     * @param replacement
+     * Replace the first element of the command list with the relacement.
+     * The original list will likely grow.
+     * @param orig The original command list
+     * @param replacement The replacement for the first entry in the list
      */
     public static void replaceFirst(List orig, List replacement) {
         ArrayList tmp = new ArrayList();
@@ -454,6 +455,11 @@ public class CmdMap {
         }
     }
 
+    /**
+     * Main to test the command map.
+     * @param args The command line argument
+     * @throws Exception If the mapping shows any errors
+     */
     public static void main(String[] args) throws Exception {
         ArrayList<CmdDetail> cmdList = new ArrayList<CmdDetail>();
         HashMap<String, List<String>> binMap =

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: BenchmarkDescription.java,v 1.14 2009/07/24 22:48:23 akara Exp $
+ * $Id: BenchmarkDescription.java,v 1.15 2009/07/28 22:54:14 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -64,13 +64,13 @@ public class BenchmarkDescription implements Serializable {
     /** The form used to configure the benchmark. */
     public String configForm = "config.xhtml";
 
-    /** The stylesheet used to format the form, if any */
+    /** The stylesheet used to format the form, if any. */
     public String configStylesheet;
 
     /** The file used for configuring the benchmark. */
     public String configFileName = "run.xml";
 
-    /** The result file path relative to the output directory */
+    /** The result file path relative to the output directory. */
     public String resultFilePath = "summary.xml";
 
     /** The benchmark class name. */

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileService.java,v 1.4 2009/07/21 22:54:46 sheetalpatil Exp $
+ * $Id: FileService.java,v 1.5 2009/07/28 22:54:13 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -39,7 +39,9 @@ public interface FileService extends Remote {
 
     /**
      * This method is responsible for reading a file.
-     * @return String read, null if end-of-file
+     * @return The byte buffer read, null if end-of-file
+     * @throws RemoteException A communications error occurred
+     * @throws FileServiceException Error opening the file
      */
     public byte[] read() throws RemoteException, FileServiceException;
     
@@ -47,14 +49,21 @@ public interface FileService extends Remote {
     /**
      * This method is responsible for writing to a file.
      * @param count no. of bytes to read
+     * @return The byte buffer read, null if end-of-file
+     * @throws RemoteException A communications error occurred
+     * @throws FileServiceException Error opening the file     *
      */
-    public byte[] readBytes(int count) throws RemoteException, FileServiceException;
+    public byte[] readBytes(int count)
+            throws RemoteException, FileServiceException;
 
     /**
      * This method is responsible for writing to a file.
      * @param buffer to write
+     * @throws RemoteException A communications error occurred
+     * @throws FileServiceException Error opening the file
      */
-    public void write (byte[] buffer) throws RemoteException, FileServiceException;
+    public void write (byte[] buffer)
+            throws RemoteException, FileServiceException;
     
     
     /**
@@ -62,11 +71,15 @@ public interface FileService extends Remote {
      * @param buffer to write
      * @param begin staring index
      * @param end ending index
+     * @throws RemoteException A communications error occurred
+     * @throws FileServiceException Error opening the file
      */
-    public void writeBytes (byte[] buffer, int begin, int end) throws RemoteException, FileServiceException;
+    public void writeBytes (byte[] buffer, int begin, int end)
+            throws RemoteException, FileServiceException;
 
     /**
      * Close the current file.
+     * @throws RemoteException A communications error occurred.
      */
     public void close() throws RemoteException;
 }

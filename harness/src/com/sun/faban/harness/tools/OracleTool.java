@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: OracleTool.java,v 1.8 2009/05/30 04:48:50 akara Exp $
+ * $Id: OracleTool.java,v 1.9 2009/07/28 22:54:16 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -74,9 +74,15 @@ import java.util.logging.Logger;
     static Logger logger = Logger.getLogger(OracleTool.class.getName());
 
     /**
-     * This is the method that should get the arguments to
-     * call the tool with.
-     *
+     * Configures the Oracle tool.
+     * @param tool name of the tool (Executable)
+     * @param argList list containing arguments to tool
+     * @param path The path to run the tool
+     * @param outDir The output directory
+     * @param host name of machine the tool is running on
+     * @param masterhost name of master machine
+     * @param cmdAgent agent The command agent used for executing tools
+     * @param latch The latch the tool uses to identify it's completion.
      */
     public void configure(String tool, List<String> argList, String path,
                           String outDir, String host, String masterhost,
@@ -199,11 +205,11 @@ import java.util.logging.Logger;
 
 
     /**
-     * This method is responsible for starting up the tool and stopping it
-     * after the duration specified. It uses a thread to sleep for the
-     * delay + duration and then calls the stop().
+     * This method is responsible for starting up the Oracle tool and
+     * stopping it after the duration specified.
      * @param delay int delay (sec) after which start should be called
      * @param duration int duration for which the tool needs to be run
+     * @return 	\true if tool started successfully
      */
 
     public boolean start(int delay, int duration) {
@@ -221,10 +227,10 @@ import java.util.logging.Logger;
     }
 
     /**
-     * This method is responsible for starting up the tool utility.
+     * This method is responsible for starting up the Oracle tool.
      * @param delay int delay (sec) after which start should be called
+     * @return 	true if tool started successfully
      */
-
     public boolean start(int delay) {
         TimerTask startTask = new TimerTask() {
             public void run() {
@@ -254,7 +260,7 @@ import java.util.logging.Logger;
     }
 
     /**
-     * This method is responsible for stopping the tool
+     * This method is responsible for stopping the tool.
      */
     public void stop() {
         stop(true);
@@ -304,6 +310,11 @@ import java.util.logging.Logger;
         xferFile(logfile, outfile);
     }
 
+    /**
+     * Transfers the tool output file back to the master.
+     * @param srcFile The source file of the tool output
+     * @param destFile The transfer destination
+     */
     protected static void xferFile(String srcFile, String destFile) {
         if (!new File(srcFile).exists()) {
             logger.log(Level.SEVERE,
@@ -324,6 +335,9 @@ import java.util.logging.Logger;
         }
     }
 
+    /**
+     * Finishes up the Oracle tool.
+     */
     protected void finish() {
         if (!countedDown)
             latch.countDown();

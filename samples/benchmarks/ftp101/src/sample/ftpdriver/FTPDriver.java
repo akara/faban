@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FTPDriver.java,v 1.1 2009/06/01 17:01:41 sheetalpatil Exp $
+ * $Id: FTPDriver.java,v 1.2 2009/07/28 22:56:28 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -57,7 +57,7 @@ import java.util.logging.Logger;
 )
 public class FTPDriver {
 
-    /** The driver context for this instance */
+    /** The driver context for this instance. */
     private DriverContext ctx;
     Logger logger;
     Random random;
@@ -73,6 +73,11 @@ public class FTPDriver {
     String password;
     byte[] buffer = new byte[8192];
 
+    /**
+     * Constructs the FTP driver instance.
+     * @throws XPathExpressionException An XPath error occurred
+     * @throws IOException I/O error creating the driver instance
+     */
     public FTPDriver() throws XPathExpressionException, IOException {
         ctx = DriverContext.getContext();
 
@@ -120,6 +125,10 @@ public class FTPDriver {
         download.close();
     }
 
+    /**
+     * Operation to test FTP get.
+     * @throws IOException Error doing the get
+     */
     @BenchmarkOperation (
         name    = "GET",
         max90th = 2,
@@ -140,6 +149,10 @@ public class FTPDriver {
         download.close();
     }
 
+    /**
+     * Operation to test FTP put.
+     * @throws IOException Error doing the put
+     */
     @NegativeExponential (
         cycleType = CycleType.CYCLETIME,
         cycleMean = 4000,
@@ -164,6 +177,10 @@ public class FTPDriver {
         upload.close();
     }
 
+    /**
+     * Operation to test ftp connect to server.
+     * @throws IOException Error connecting to ftp server
+     */
     @BenchmarkOperation (
         name    = "Connect",
         max90th = 2,

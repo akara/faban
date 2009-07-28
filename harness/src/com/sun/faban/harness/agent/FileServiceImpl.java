@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileServiceImpl.java,v 1.6 2009/07/21 22:54:46 sheetalpatil Exp $
+ * $Id: FileServiceImpl.java,v 1.7 2009/07/28 22:54:13 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -55,9 +55,9 @@ class FileServiceImpl extends UnicastRemoteObject
     /**
      * Open a file for reading or writing.
      * @param file to access
-     * @param file open mode - READ or WRITE/APPEND
-     *
-     * @throws FileServiceException, RemoteException
+     * @param mode open mode - READ or WRITE/APPEND
+     * @throws RemoteException A communications error occurred.
+     * @throws FileServiceException Error opening file
      */
     public FileServiceImpl(String file, int mode) throws
             RemoteException, FileServiceException {
@@ -88,8 +88,8 @@ class FileServiceImpl extends UnicastRemoteObject
     /**
      * This method is responsible for reading a whole file or a whole remainder
      * of the file. Up to 2GB are read at a time.
-     *
-     * @throws FileServiceException
+     * @return The byte array represeting the read output
+     * @throws FileServiceException Error reading the file
      */
     public byte[] read() throws FileServiceException {
         long remainder = inSize - offset;
@@ -104,8 +104,9 @@ class FileServiceImpl extends UnicastRemoteObject
 
     /**
      * This method is responsible for reading a whole remainder
-     * of the file.
-     *
+     * of the file up to a given size.
+     * @param readSize The size to read
+     * @return The read result, up to the specified size
      * @throws FileServiceException
      */
     public byte[] readBytes(int readSize) throws FileServiceException {

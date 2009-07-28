@@ -17,7 +17,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: ResultAction.java,v 1.15 2009/07/21 22:54:48 sheetalpatil Exp $
+* $Id: ResultAction.java,v 1.16 2009/07/28 22:54:17 akara Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 */
@@ -57,9 +57,19 @@ public class ResultAction {
             Logger.getLogger(ResultAction.class.getName());
     private SimpleDateFormat dateFormat = new SimpleDateFormat(
                               "EEE MM/dd/yy HH:mm:ss z");
+
+    /**
+     * Checks for actions the user asked to perform and take the appropriate
+     * action.
+     * @param request The request
+     * @param response The response
+     * @return The name of the jsp view to forward this request
+     * @throws IOException If there are problems reading or writing data
+     * @throws ParseException Error parsing input
+     */
     public String takeAction(HttpServletRequest request,
-                           HttpServletResponse response) throws IOException,
-                           FileNotFoundException, ParseException {
+                           HttpServletResponse response)
+            throws IOException, ParseException {
         String process = request.getParameter("process");
         if ("Compare".equals(process))
             return editAnalysis(process, request, response);
@@ -70,10 +80,22 @@ public class ResultAction {
         return null;
     }
 
+    /**
+     * The model object for the EditArchive screen view.
+     * This is according to the MVC pattern.
+     */
     public class EditArchiveModel implements Serializable {
+
+        /** The display header. */
         public String head;
+
+        /** The run id of the runs to archive. */
         public String[] runIds;
+
+        /** The set of duplicate runs. */
         public Set<String> duplicates;
+
+        /** The list of run result objects. */
         public RunResult[] results;
     }
 
@@ -225,11 +247,24 @@ public class ResultAction {
         return existingRuns;
     }
 
+    /**
+     * The model object for the EditAnalysis screen view.
+     * This is according to the MVC pattern.
+     */
     public static class EditAnalysisModel implements Serializable {
+        /** The header, usually the process type. */
         public String head;
+
+        /** The type string in all lowercase. */
         public String type;
+
+        /** The string representation of the list of runs to analyze. */
         public String runList;
+
+        /** The analysis name. */
         public String name;
+
+        /** The run ids to analyze. */
         public String[] runIds;
     }
 
@@ -468,7 +503,7 @@ public class ResultAction {
 
     /**
      * Edit run.xml file.
-     * @param result
+     * @param result The run result object to edit
      */
     public static void editXML(RunResult result){
         try {

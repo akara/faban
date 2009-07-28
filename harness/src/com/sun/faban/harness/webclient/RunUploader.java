@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunUploader.java,v 1.9 2008/12/05 22:08:25 sheetalpatil Exp $
+ * $Id: RunUploader.java,v 1.10 2009/07/28 22:54:17 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -294,6 +294,12 @@ public class RunUploader extends HttpServlet {
     }
 
     // TODO: General upload client for result server.
+
+    /**
+     * Uploads the jar file representing a run.
+     * @param jarFile The jar file
+     * @throws IOException Error uploading
+     */
     public static void uploadRun(File jarFile) throws IOException {
         // 3. Upload the run
 

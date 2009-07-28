@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Cpustat.java,v 1.14 2009/07/21 22:54:47 sheetalpatil Exp $
+ * $Id: Cpustat.java,v 1.15 2009/07/28 22:54:16 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -52,6 +52,8 @@ public class Cpustat extends CommandLineTool{
 
     /**
      * This method is responsible for stopping the tool utility.
+     * @throws IOException Error stopping cpustat
+     * @throws InterruptedException Interrupted waiting for commands
      */
     @Stop
     public void stop() throws IOException, InterruptedException {
@@ -61,6 +63,8 @@ public class Cpustat extends CommandLineTool{
 
     /**
      * This method is responsible for postprocessing.
+     * @throws IOException Error post-processing cpustat
+     * @throws InterruptedException Interrupted waiting for commands
      */
     @Postprocess
     public void postprocess() throws IOException, InterruptedException {

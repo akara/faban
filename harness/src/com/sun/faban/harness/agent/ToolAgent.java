@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ToolAgent.java,v 1.8 2009/07/21 22:54:46 sheetalpatil Exp $
+ * $Id: ToolAgent.java,v 1.9 2009/07/28 22:54:14 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -81,44 +81,45 @@ public interface ToolAgent extends Remote {
      * Start only specified tools.
      * @param 	delay - time to delay before starting
      * @param 	tools - specific list of tools to start
-     * @throws RemoteException
-     *
+     * @return  true if all tools are started successfully, false otherwise
+     * @throws RemoteException A communication error occurred
      */
     boolean start(int delay, String[] tools)
-	throws RemoteException;
+	        throws RemoteException;
 
     /**
      * Start only specified tools for specific duration.
      * @param delay - time to delay before starting
      * @param tools - specific list of tools to start
      * @param duration after which tools must be stopped
-     * @throws RemoteException
+     * @return  true if all tools are started successfully, false otherwise
+     * @throws RemoteException A communication error occurred
      */
     boolean start(int delay, String[] tools, int duration)
-	throws RemoteException;
+	        throws RemoteException;
 
     /**
      * This method is responsible for stopping the tools.
-     * @throws RemoteException
+     * @throws RemoteException A communication error occurred
      */
     public void stop () throws RemoteException;
 
     /**
      * Stopping specific tools.
      * @param tools The tools to stop.
-     * @throws RemoteException
-     */ 
+     * @throws RemoteException A communication error occurred
+     */
     public void stop (String tools[]) throws RemoteException;
 
     /**
      * Waits for all tools to finish up.
-     * @throws RemoteException
+     * @throws RemoteException A communication error occurred
      */
     public void waitFor() throws RemoteException;
 
     /**
      * This method is responsible for post processing tools.
-     * @throws RemoteException
+     * @throws RemoteException A communication error occurred
      */
     public void postprocess() throws RemoteException;
 }

@@ -72,7 +72,10 @@ public class ToolWrapper {
     String toolName;
     String path = null; // The path to the tool.
     CmdAgentImpl cmdAgent;
+
+    /** The timer used for scheduling the tools. */
     protected Timer timer;
+
     ToolContext tc = null;
 
     /**
@@ -93,16 +96,6 @@ public class ToolWrapper {
                     collectDataMethod = method;
                 } else {
                     logger.severe("Error: Multiple @CollectData methods.");
-                }
-            }
-
-            if (method.getAnnotation(Service.class) != null) {
-                if (!conformsToSpec(method))
-                    continue;
-                if (serviceMethod == null) {
-                    serviceMethod = method;
-                } else {
-                    logger.severe("Error: Multiple @Service methods.");
                 }
             }
             
@@ -190,16 +183,6 @@ public class ToolWrapper {
         if (collectDataMethod != null){
             try {
                 collectDataMethod.invoke(tool,new Object[] {});
-            } catch (InvocationTargetException e) {
-                throwSourceException(e);
-            }
-        }
-    }
-
-    private void service() throws Exception {
-        if (serviceMethod != null){
-            try {
-                serviceMethod.invoke(tool,new Object[] {});
             } catch (InvocationTargetException e) {
                 throwSourceException(e);
             }
@@ -369,6 +352,9 @@ public class ToolWrapper {
     }
 
 
+    /**
+     * Transfers the tool output file back to the master.
+     */
     protected void xferLog() {
         String logfile = tc.getOutputFile();
         if (!new File(logfile).exists()) {
@@ -397,6 +383,10 @@ public class ToolWrapper {
         }
     }
 
+    /**
+     * Finishes up the tool and notifies the infrastructure of the tool
+     * finishing up.
+     */
     protected void finish() {
         if (!countedDown)
             latch.countDown();

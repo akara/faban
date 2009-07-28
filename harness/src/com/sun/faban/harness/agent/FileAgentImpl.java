@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileAgentImpl.java,v 1.10 2009/07/21 22:54:46 sheetalpatil Exp $
+ * $Id: FileAgentImpl.java,v 1.11 2009/07/28 22:54:13 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -49,9 +49,8 @@ public class FileAgentImpl extends UnicastRemoteObject
     private Logger logger;
 
     /**
-     *
-     * Constructor.
-     *
+     * Constructs the file agent.
+     * @throws RemoteException A communications error occurred.
      */
     public FileAgentImpl() throws RemoteException {
         super();
@@ -68,11 +67,12 @@ public class FileAgentImpl extends UnicastRemoteObject
      * @param mode - specifies whether the file is opened for reading or
      *                   for writing. The mode is specified by the FileAgent
      *                   interface class variables - READ, WRITE, APPEND.
-     *
      * @return FileService - reference to the FileService interface.
-     *
+     * @throws RemoteException A communications error occurred.
+     * @throws FileServiceException Error opening file
      */
-    public FileService open(String file, int mode) throws RemoteException, FileServiceException {
+    public FileService open(String file, int mode)
+            throws RemoteException, FileServiceException {
         return(new FileServiceImpl(file, mode));
     }
 
@@ -80,14 +80,11 @@ public class FileAgentImpl extends UnicastRemoteObject
      *
      * Read the contents of a file. It maybe called by the benchmark specific 
      * code or the RunQ to copy files.
-     *
-     * @param file - The pathname for the file.
-     * 
-     * @return String - Contents of the file as a String object.
-     *
+     * @param file - The pathname for the file
+     * @return String - Contents of the file as a String object
+     * @throws IOException An I/O error occurred
      */
-    public String readWholeFile(String file)
-            throws RemoteException, IOException, FileNotFoundException {
+    public String readWholeFile(String file) throws IOException {
 
         BufferedReader br;
         char[] buf = new char[65535];
@@ -149,11 +146,9 @@ public class FileAgentImpl extends UnicastRemoteObject
      *
      * @param fileName - The pathname for the file.
      * @param contents - Contents of the file as a String object.
-     *
      * @return boolean - true if successful, false if not.
-     *
      */
-    public boolean writeWholeFile(String fileName, String contents) throws RemoteException {
+    public boolean writeWholeFile(String fileName, String contents) {
 
         PrintWriter pr = null;
         try {
@@ -192,15 +187,13 @@ public class FileAgentImpl extends UnicastRemoteObject
 
     /**
      *
-     * Remove a file.
+     * Removes a file.
      *
      * @param fileName - The pathname for the file.
-     *
-     * @return boolean - true if successful, 
+     * @return boolean - true if successful,
      *                   false if not successful or file does not exist.
-     *
      */
-    public boolean removeFile(String fileName) throws RemoteException {
+    public boolean removeFile(String fileName) {
 
         File file = new File(fileName);
 
@@ -299,6 +292,10 @@ public class FileAgentImpl extends UnicastRemoteObject
      * Registration for RMI serving - used only for stand-alone testing.
      */
 
+    /**
+     * Starts a standalong file agent.
+     * @param argv Command line arguments, not used
+     */
     public static void main(String [] argv) {
 
         //		LocateRegistry.createRegistry();

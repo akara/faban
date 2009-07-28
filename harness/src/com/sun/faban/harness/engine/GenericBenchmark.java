@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.44 2009/07/24 22:48:23 akara Exp $
+ * $Id: GenericBenchmark.java,v 1.45 2009/07/28 22:54:14 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -77,12 +77,11 @@ public class GenericBenchmark {
         this.run = r;
     }
 
-    @SuppressWarnings("static-access")
-
     /**
-     * Responsible for configuring, starting and stopping services and tools
-     * Creats the actual benchmark object and requests it to execute the run.
+     * Responsible for configuring, starting and stopping services and tools.
+     * Creates the actual benchmark object and requests it to execute the run.
      */
+    @SuppressWarnings("static-access")
     public void start() {
         ParamRepository par = null;
         ServerConfig server;

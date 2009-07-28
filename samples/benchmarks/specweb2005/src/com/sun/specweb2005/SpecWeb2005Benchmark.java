@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: SpecWeb2005Benchmark.java,v 1.2 2009/07/25 02:33:49 akara Exp $
+ * $Id: SpecWeb2005Benchmark.java,v 1.3 2009/07/28 22:57:03 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -128,10 +128,6 @@ public class SpecWeb2005Benchmark {
         t.transform(src, result);
     }
 
-    /**
-     * This method is responsible for starting the benchmark run
-     * @throws java.lang.Exception
-     */
     private void start_clients() throws Exception {
         // The run's output dir is always run 1 under the assigned output dir.
         // We just need to move the files down after the run (or do we need to?)
@@ -218,8 +214,8 @@ public class SpecWeb2005Benchmark {
     }
 
     /**
-     * This method is responsible for starting the benchmark run
-     * @throws java.lang.Exception 
+     * This method is responsible for starting the benchmark run.
+     * @throws Exception Error starting the run
      */
     @StartRun public void start() throws Exception {
         // The run's output dir is always run 1 under the assigned output dir.

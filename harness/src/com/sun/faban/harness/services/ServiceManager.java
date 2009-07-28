@@ -136,9 +136,9 @@ public class ServiceManager {
     }
 
     /**
-     * Creates a hashmap for services and tools.
-     * @param type
-     * @param dir
+     * Parses a service/tool bundle.
+     * @param type The location type, services or benchmark
+     * @param dir The deploy jar name, without .jar
      */
     public void parseServicesAndTools(String type, String dir) {
 
@@ -436,9 +436,9 @@ public class ServiceManager {
     }
 
     /**
-     * Creates a hashmap for toolsets.
-     * @param type
-     * @param dir
+     * Parses and creates the appropriate structures for the tool sets.
+     * @param type The location type, services or benchmark
+     * @param dir The deploy jar name, without .jar
      */
     public void parseToolSets(String type, String dir) {
         String metaInf = Config.FABAN_HOME + File.separator + type +

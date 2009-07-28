@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Listener.java,v 1.3 2006/11/13 18:24:55 akara Exp $
+ * $Id: Listener.java,v 1.4 2009/07/28 22:54:15 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -40,7 +40,10 @@ import java.util.logging.Logger;
  */
 public class Listener implements Runnable {
 
+    /** The selector instance used for listening. */
     protected Selector selector;
+
+    /** The log configuration. */
     protected LogConfig config;
 
     Thread listenerThread;
@@ -55,6 +58,8 @@ public class Listener implements Runnable {
      * Constructs a new listener with this selector. The selector is shared
      * between multiple listener threads.
      * @param selector The selector
+     * @param config The log configuration
+     * @param acceptQueue The queue for accepted connections
      */
     public Listener(Selector selector, LogConfig config,
                     Queue<SocketChannel> acceptQueue) {
@@ -161,6 +166,7 @@ public class Listener implements Runnable {
      * back to block on select. All changes to the channels/keys should
      * be called here. The implementation in this class is empty.
      * @param selector The selector
+     * @throws IOException An I/O error occurred
      */
     protected void selectorOps(Selector selector) throws IOException {
     }

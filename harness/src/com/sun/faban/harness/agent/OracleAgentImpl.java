@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: OracleAgentImpl.java,v 1.3 2009/05/30 04:48:49 akara Exp $
+ * $Id: OracleAgentImpl.java,v 1.4 2009/07/28 22:54:13 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */package com.sun.faban.harness.agent;
@@ -39,14 +39,13 @@ import java.util.logging.Logger;
 /**
  *
  * This is the OracleAgent class to perform the OracleService remotely on
- * the server machine(s)
+ * the server machine(s).
  *
  * @author Ramesh Ramachandran
- * @deprecated
+ * @deprecated Replaced by the services/tools infrastructure
  */
 @Deprecated public class OracleAgentImpl extends UnicastRemoteObject
         implements OracleAgent, Unreferenced {
-
 
     static String masterMachine = null;
     static String host;
@@ -69,9 +68,8 @@ import java.util.logging.Logger;
     private static final String ORACLE_SCRIPT = Config.TMP_DIR + "sql.sh";
 
     /**
-     *
-     * Constructor
-     *
+     * Constructs an Oracle agent.
+     * @throws RemoteException A communication error occurred.
      */
     public OracleAgentImpl() throws RemoteException {
 
@@ -91,14 +89,16 @@ import java.util.logging.Logger;
      * @param allConfigs - Pathnames for all config files.
      *
      */
-    public void configure (Run run, String oracleHome, String oracleSid, String[] allConfigs) throws RemoteException, Exception {
+    public void configure (Run run, String oracleHome, String oracleSid,
+                           String[] allConfigs) {
 
         this.oracleHome = oracleHome;
         this.oracleSid = oracleSid;
 
         try {
             cmdAgent = CmdAgentImpl.getHandle();
-            fa = (FileAgent) CmdAgentImpl.getRegistry().getService(Config.FILE_AGENT + "@" + host);
+            fa = (FileAgent) CmdAgentImpl.getRegistry().getService(
+                    Config.FILE_AGENT + "@" + host);
 
             startupConf = allConfigs[0];
             for (int i = 0; i < allConfigs.length; i++) {
@@ -117,15 +117,13 @@ import java.util.logging.Logger;
 
     /**
      * This method gets the configure parameters of the Oracle instance started
-     * on this machine
+     * on this machine.
      * @param serverID - this variable is not used (can be null)
      * @return - list array of parameters
      */
-    public List getConfig(String serverID) throws RemoteException, IOException {
+    public List getConfig(String serverID) {
         List paramList = new ArrayList();
-
         return paramList;
-
     }
 
 
@@ -135,23 +133,17 @@ import java.util.logging.Logger;
      * @param serverID - not used (can be null)
      * @param oracleParams - list of parameters
      */
-
-    public void setConfig(String serverID, List oracleParams) 
-            throws RemoteException, IOException {
-
+    public void setConfig(String serverID, List oracleParams) {
         return;
     }
 
     /**
-     *
-     * To start an instance of Oracle.
-     *
-     * @param serverID - not used.
-     *
-     * @return boolean - true if successful, false if not
-     *
+     * Start an Oracle instance.
+     * @param serverID Instance name
+     * @return Whether the server started successfully
+     * @throws Exception An error occurred in the process
      */
-    public boolean start(String serverID) throws RemoteException, Exception {
+    public boolean start(String serverID) throws Exception {
 
         String oracleStartCmd = null;
         boolean retVal;
@@ -176,14 +168,12 @@ import java.util.logging.Logger;
     }
 
     /**
-     * To stop an Oracle instance (shutdown)
-     *
-     * @param serverID - not used.
-     *
-     * @return boolean - true if successful, false if not.
-     *
+     * Stop an Oracle instance.
+     * @param serverID Instance name
+     * @return Whether the server stopped successfully
+     * @throws Exception An error occurred in the process
      */
-    public boolean stop(String serverID) throws RemoteException, Exception {
+    public boolean stop(String serverID) throws Exception {
 
         String oracleStopCmd = null;
         boolean retVal;
@@ -207,14 +197,12 @@ import java.util.logging.Logger;
     }
 
     /**
-     * To exec SQL commands
-     *
-     * @param sql - its a combination of user/passwd\ncommand
-     *
-     * @return boolean - true if successful, false if not.
-     *
+     * Executes an SQL statement.
+     * @param sql The statement
+     * @return Whether the SQL statement executed successfully
+     * @throws Exception An error occurred in the process
      */
-    public boolean execSQL(String sql) throws RemoteException, Exception {
+    public boolean execSQL(String sql) throws Exception {
 
         StringBuffer buff = new StringBuffer("#!/bin/csh -f\nsetenv ORACLE_SID ");
         buff.append(oracleSid);
@@ -257,13 +245,11 @@ import java.util.logging.Logger;
     }
 
     /**
-     *
-     * Starts the listener on the machine running Oracle.
-     *
-     * @return boolean - true if successful false if not.
-     *
+     * Start the Oracle listener.
+     * @return Whether the listener started successfully
+     * @throws Exception An error occurred in the process
      */
-    public boolean startListener() throws RemoteException, Exception {
+    public boolean startListener() throws Exception {
 
         StringBuffer buff = new StringBuffer("#!/bin/csh -f\nsetenv ORACLE_SID ");
         buff.append(oracleSid);
@@ -307,13 +293,11 @@ import java.util.logging.Logger;
     }
 
     /**
-     *
-     * Stops the listener on the machine running Oracle.
-     *
-     * @return boolean - true if successful false if not.
-     *
+     * Start the Oracle listener.
+     * @return Whether the listener started successfully
+     * @throws Exception An error occurred in the process
      */
-    public boolean stopListener() throws RemoteException, Exception {
+    public boolean stopListener() throws Exception {
 
         StringBuffer buff = new StringBuffer("#!/bin/csh -f\nsetenv ORACLE_SID ");
         buff.append(oracleSid);
@@ -358,13 +342,11 @@ import java.util.logging.Logger;
 
 
     /**
-     *
-     * Check status of the listener on the machine running Oracle.
-     *
-     * @return boolean - true if it is running false if not.
-     *
+     * Checks the listener status.
+     * @return Whether the listener is running
+     * @throws Exception An error occurred in the process
      */
-    public boolean checkListenerStatus() throws RemoteException, Exception {
+    public boolean checkListenerStatus() throws Exception {
 
         String cmd = oracleHome + "/bin/lsnrctl status";
 
@@ -375,42 +357,34 @@ import java.util.logging.Logger;
     }
 
     /**
-     * 
-     * start collection of Oracle stats. This runs a script whose name is
+     * Start collection of Oracle stats. This runs a script whose name is
      * specified by the ServerNames class variable ORACLESTARTSTATS which 
      * does the work for it.
-     * 
      */
-    public void startStats() throws RemoteException, Exception {
+    public void startStats() {
     }
 
 
     /**
-     * 
-     * stop collection of Oracle stats. This runs a script whose name is
+     * Stop collection of Oracle stats. This runs a script whose name is
      * specified by the ServerNames class variable ORACLESTOPSTATS which 
      * does the work for it.
-     * 
-     */ 
-    public void stopStats() throws RemoteException, Exception {
+     */
+    public void stopStats() {
     }
 
     /**
-     * 
      * Clear oracle logs. This runs a script whose name is
      * specified by the ServerNames class variable ORACLECLEARLOGS which 
      * does the work for it.
-     * 
-     */ 	
-    public void clearLogs() throws RemoteException, Exception {
+     */
+    public void clearLogs() {
     }
 
     /**
-     *
      * Kill this oracle instance. This just calls the stop method.
-     *
      */
-    public void kill() throws RemoteException, Exception {
+    public void kill() {
 
         logger.fine("Killed");
         return;
@@ -418,9 +392,7 @@ import java.util.logging.Logger;
 
     /**
      * When this instance is unreferenced the application must exit.
-     *
-     * @see         java.rmi.server.Unreferenced
-     *
+     * @see java.rmi.server.Unreferenced
      */
     public void unreferenced() {
 

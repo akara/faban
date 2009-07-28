@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: SummaryParser.java,v 1.1 2009/06/01 17:01:32 sheetalpatil Exp $
+ * $Id: SummaryParser.java,v 1.2 2009/07/28 22:57:03 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -46,6 +46,13 @@ public class SummaryParser {
     String sessions;
     Logger logger;
 
+    /**
+     * Parses the SPECweb summary report.
+     * @param runId The run id
+     * @param startTime The start time
+     * @param endTime The end time
+     * @param logger The logger
+     */
     public SummaryParser(String runId, Calendar startTime, Calendar endTime, Logger logger) {
         this.runId = runId;
         this.startTime = startTime;
@@ -53,6 +60,12 @@ public class SummaryParser {
         this.logger = logger;
     }
 
+    /**
+     * Generates the Faban summary report for this benchmark.
+     * @param in The result input
+     * @param out The summary report output
+     * @throws IOException Error reading or writing
+     */
     public void convert(BufferedReader in, Writer out) throws IOException {
         String a;
         String status;

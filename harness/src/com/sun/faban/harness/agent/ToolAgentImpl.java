@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ToolAgentImpl.java,v 1.11 2009/07/21 22:54:46 sheetalpatil Exp $
+ * $Id: ToolAgentImpl.java,v 1.12 2009/07/28 22:54:14 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -220,7 +220,8 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
      * Start only specified tools.
      * @param 	delay - time to delay before starting
      * @param 	t - specific list of tools to start
-     * @throws RemoteException
+     * @return  true if all tools are started successfully, false otherwise
+     * @throws RemoteException A communication error occurred
      */
     public boolean start(int delay, String[] t)
             throws RemoteException {
@@ -246,7 +247,8 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
      * @param delay - time to delay before starting
      * @param t - specific list of tools to start
      * @param duration after which tools must be stopped
-     * @throws RemoteException
+     * @return true if all tools are started successfully, false otherwise
+     * @throws RemoteException A communication error occurred
      */
     public boolean start(int delay, String[] t, int duration)
             throws RemoteException {
@@ -285,8 +287,9 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
     }
 
     /**
-     * This method is responsible for stopping specific list of tools.
-     */
+     * Stopping specific tools.
+     * @param t The tools to stop.
+     */ 
     public void stop(String t[]) {
         for (int j = 0; j < t.length; j++) {
             for (int i = 0; i < tools.length; i++) {

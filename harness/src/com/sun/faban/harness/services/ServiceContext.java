@@ -38,6 +38,8 @@ import org.w3c.dom.Element;
 public class ServiceContext implements Serializable {
 
     private static final long serialVersionUID = 20090504L;
+
+    /** The service description describing this context. */
     public ServiceDescription desc;
     String role;
     String[] hosts;

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: XMLInputStream.java,v 1.2 2009/07/21 22:54:48 sheetalpatil Exp $
+ * $Id: XMLInputStream.java,v 1.3 2009/07/28 22:54:18 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -33,16 +33,16 @@ import java.util.ArrayList;
  */
 public class XMLInputStream extends FilterInputStream {
 
-    /** Less-than sign */
+    /** Less-than sign. */
     private static final byte LT = (byte) '<';
 
-    /** Greater-than sign */
+    /** Greater-than sign. */
     private static final byte GT = (byte) '>';
 
-    /** Question mark */
+    /** Question mark. */
     private static final byte Q  = (byte) '?';
 
-    /** Slash sign */
+    /** Slash sign. */
     private static final byte SL = (byte) '/';
 
     private Processor p = new Processor();
@@ -169,7 +169,7 @@ public class XMLInputStream extends FilterInputStream {
 
     /**
      * Adds the EOF listener.
-     * @param listener
+     * @param listener The listener to add
      */
     public void addEOFListener(EOFListener listener) {
 

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: XMLReader.java,v 1.17 2009/07/21 22:54:45 sheetalpatil Exp $
+ * $Id: XMLReader.java,v 1.18 2009/07/28 22:54:17 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -50,6 +50,9 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Provides all XML accesses to the parameter repository and other XML files.
+ */
 public class XMLReader {
 
     private static Logger logger = Logger.getLogger(XMLReader.class.getName());
@@ -60,18 +63,18 @@ public class XMLReader {
     private HashMap<Node, ArrayList<NameValuePair<Integer>>> hostPortsTable;
 
     /**
-     * Constructor.
-     * @param file
+     * Constructs the XML reader.
+     * @param file The XML file
      */
     public XMLReader(String file) {
         initLocal(file);
     }
 
     /**
-     * Constructor.
-     * @param file
-     * @param useFabanNS
-     * @param warnDeprecated
+     * Constructs the XML reader.
+     * @param file The XML file
+     * @param useFabanNS Whether to apply Faban namespaces in this file
+     * @param warnDeprecated Whether to warn for deprecated Faban elements
      */
     public XMLReader(String file, boolean useFabanNS, boolean warnDeprecated) {
         if (useFabanNS)
@@ -319,8 +322,8 @@ public class XMLReader {
 
     /**
      * Sets the new value for a given xpath.
-     * @param xpath
-     * @param newValue
+     * @param xpath The XPath to the element to set the value
+     * @param newValue The new value
      */
     public void setValue(String xpath, String newValue) {
         // If no absolute xpath is not given use //xpath to find the parameter
@@ -370,8 +373,8 @@ public class XMLReader {
 
     /**
      * Sets the new value for the element.
-     * @param element
-     * @param value
+     * @param element The DOM element
+     * @param value The new value
      */
     public void setValue(Element element, String value) {
         NodeList children = element.getChildNodes();
@@ -459,11 +462,13 @@ public class XMLReader {
     }
 
     /**
-      * This method saves the XML file if it was modified
-      * and if a back up file name is specified the original
-      * file is backed up.
-      * @param backupFileName  - the name of the backup file
-      */
+     * This method saves the XML file if it was modified
+     * and if a back up file name is specified the original
+     * file is backed up.
+     * @param backupFileName  - the name of the backup file
+     * @return Whether the save succeeded
+     * @throws Exception Error saving the file
+     */
     public boolean save(String backupFileName) throws Exception {
 
         // Check if a save is needed
@@ -660,6 +665,11 @@ public class XMLReader {
         return nodes;
     }
 
+    /**
+     * Runs some testing of the XML reader.
+     * @param args The command line arguments
+     * @throws Exception If there are errors with the test
+     */
     public static void main(String[] args) throws Exception {
         if(args.length < 3)
             System.out.println("Usage : java XMLReader <XML File> <XPath exp>");

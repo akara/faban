@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgent.java,v 1.8 2009/07/21 22:54:46 sheetalpatil Exp $
+ * $Id: CmdAgent.java,v 1.9 2009/07/28 22:54:13 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -48,22 +48,26 @@ public interface CmdAgent extends Remote {
 
     /**
      * Return the hostname of this machine as known to this machine
-     * itself. This method is included in order to solve a Naming problem 
-     * related to the names of the tpcw result files to be transferred to the
+     * itself. This method is included in order to solve a naming conflict
+     * related to the names of the result files to be transferred to the
      * the master machine.
-     *
+     * @return The host name on this agent
+     * @throws RemoteException A communications error occurred
      */
     public String getHostName() throws RemoteException;
 
     /**
      * Obtains the tmp directory of a remote host.
      * @return The tmp directory.
-     * @throws RemoteException
+     * @throws RemoteException A communications error occurred
      */
     public String getTmpDir() throws RemoteException;
 
      /**
       * Set the logging level of the Agents.
+      * @param name The name of the logger
+      * @param level The log level
+      * @throws RemoteException A communications error occurred
       */
     public void setLogLevel(String name, Level level) throws RemoteException;
 
@@ -103,9 +107,10 @@ public interface CmdAgent extends Remote {
 	 * @param command to start
 	 * @param priority in which to run command
 	 * @return 	true if command started successfully
+     * @throws Exception An error occurred
 	 */
     public boolean start(String command, int priority)
-	throws RemoteException, Exception;
+	throws Exception;
 
     /**
      * This method is responsible for starting the script in foreground
@@ -113,9 +118,10 @@ public interface CmdAgent extends Remote {
      * @param command to start
      * @param priority in which to run command
      * @return 	true if command started successfully
+     * @throws Exception An error occurred
      */
     public boolean runScript(String command, int priority)
-	throws RemoteException, Exception;
+            throws Exception;
 
     /**
      * This method is responsible for starting the command in background.
@@ -123,9 +129,10 @@ public interface CmdAgent extends Remote {
      * @param ident to associate with this command
      * @param priority in which to run command
      * @return 	true if command started successfully
+     * @throws Exception An error occurred
      */
     public boolean start(String command, String ident, int priority)
-	throws RemoteException, Exception;
+            throws Exception;
 
     /**
      * Start command in background and wait for the 
@@ -135,6 +142,8 @@ public interface CmdAgent extends Remote {
      *              or kill the process when the cmdAgent exits.
      * @param msg message message to which wait for
      * @param priority (default or higher priority) for command
+     * @return true if the start succeeded, false otherwise
+     * @throws Exception An error occurred
      */
     public boolean start(String cmd, String ident, String msg, int priority)
     throws Exception;
@@ -145,9 +154,10 @@ public interface CmdAgent extends Remote {
      * @param ident identifier to associate with this command
      * @param env in which to run command
      * @return 	true if command started successfully
+     * @throws Exception An error occurred
      */
 	public boolean startJavaCmd(String cmd, String ident, String env[])
-    throws RemoteException, Exception;
+            throws Exception;
 
     /**
      * This method is responsible for starting a java cmd in background
@@ -157,19 +167,21 @@ public interface CmdAgent extends Remote {
      * @param env in which to run command
      * @param classPath the class path to prepend to the base class path
      * @return 	true if command started successfully
+     * @throws Exception An error occurred
      */
     public boolean startJavaCmd(String cmd, String identifier, String[] env,
                                 String[] classPath)
-            throws RemoteException, Exception;
+            throws Exception;
     /**
      * This method creates the Agent class and registers it with
      * the registry using ident@<host> name.
      * @param agentClass Impl class of the Agent to be started
      * @param ident Identifier to be used
      * @return true if the initialization was successful
+     * @throws Exception An error occurred
      */
     public boolean startAgent(Class agentClass, String ident)
-    throws RemoteException, Exception;
+    throws Exception;
 
     /**
      * This method is responsible for starting the command in background
@@ -178,31 +190,35 @@ public interface CmdAgent extends Remote {
      * @param identifier to associate with this command
      * @param priority in which to run command
      * @return String the first line of output from the command
-     */  
-    public String startAndGetOneOutputLine(String cmd, String identifier, int priority)
-	throws Exception, RemoteException;
+     * @throws Exception An error occurred
+     */
+    public String startAndGetOneOutputLine(String cmd, String identifier,
+                                           int priority) throws Exception;
 
     /**
      * This method starts a command in foreground
      * The stdout from command is captured and returned.
      * @param cmd : command to be started
      * @param priority - class in which cmd should be run
-     * @return StringBuffer
+     * @return The standard output of the command
+     * @throws Exception An error occurred
      */
      public String startAndGetStdOut (String cmd, int priority)
-     throws Exception, RemoteException;
+     throws Exception;
 
 
     /**
      * This method is responsible for aborting a command.
      * @param ident identifier associated with command in 'start' call
+     * @throws RemoteException A communications error occurred
      */
-    public void kill (String ident) throws RemoteException;
+    public void kill(String ident) throws RemoteException;
     
     /**
      * This method is responsible for aborting a running command.
+     * @throws RemoteException A communications error occurred
      */
-    public void kill () throws RemoteException;
+    public void kill() throws RemoteException;
 
     /**
      * This method is responsible for aborting a command using the killem 
@@ -211,28 +227,30 @@ public interface CmdAgent extends Remote {
      * @param processString search string to grep the process while killing 
      *                      (same as in killem)
      * @param sigNum the signal number to be used to kill.
-     *
+     * @throws IOException A I/O error occurred
      */
-    public void killem (String identifier, String processString, int sigNum)
-    throws RemoteException, IOException;
+    public void killem(String identifier, String processString, int sigNum)
+            throws IOException;
 
     /**
      * This method waits for the command started in BG to complete.
      * @param ident identifier associated with command in 'start' call
+     * @return true if command completed successfully
+     * @throws Exception An error occurred
      */
-    public boolean wait (String ident) throws RemoteException, Exception;
+    public boolean wait(String ident) throws Exception;
 
     /**
      * Sets the time on the agent host, in GMT.
      * @param gmtTimeString
-     * @throws RemoteException
+     * @throws IOException A I/O error occurred
      */
     public void setTime(String gmtTimeString) throws IOException;
 
     /**
      * Gets the time on the agent host, in millis.
      * @return The time on the remote system.
-     * @throws RemoteException
+     * @throws RemoteException A communications error occurred
      */
     long getTime() throws RemoteException;
 }

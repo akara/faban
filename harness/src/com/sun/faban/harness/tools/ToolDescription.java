@@ -46,12 +46,12 @@ public class ToolDescription implements Serializable {
     ServiceDescription service;
 
     /**
-     * Constructor.
-     * @param id
-     * @param serviceName
-     * @param toolClass
-     * @param type
-     * @param location
+     * Constructs a tool description.
+     * @param id The tool id
+     * @param serviceName The service name
+     * @param toolClass The tool class name
+     * @param type The location type, services or benchmark
+     * @param location The actual location of the tool, if applicable.
      */
     public ToolDescription(String id, String serviceName,
                             String toolClass, String type, String location) {
@@ -63,9 +63,9 @@ public class ToolDescription implements Serializable {
     }
 
     /**
-     * Checks if the service is mapped.
-     * @param serviceMap
-     * @return boolean
+     * Binds the tool to the service.
+     * @param serviceMap The service map
+     * @return boolean true if the tool is bound to a service
      */
     public boolean bind(Map<String, ServiceDescription> serviceMap) {
         boolean bound = true;

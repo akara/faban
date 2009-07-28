@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgentImpl.java,v 1.29 2009/07/24 22:48:22 akara Exp $
+ * $Id: CmdAgentImpl.java,v 1.30 2009/07/28 22:54:13 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -122,7 +122,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
      * itself. This method is included in order to solve a Naming problem
      * related to the names of the tpcw result files to be transferred to the
      * the master machine.
-     *
+     * @return The hostname
      */
     public String getHostName() {
         return AgentBootstrap.host;
@@ -151,7 +151,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
      * @param name Name of the logger. If "" is passed the root logger level will be set.
      * @param level The Log level to set
      */
-    public void setLogLevel(String name, Level level) throws RemoteException {
+    public void setLogLevel(String name, Level level) {
         LogManager.getLogManager().getLogger(name).setLevel(level);
 
         //Update logging.properties file which is used by faban driver
@@ -225,6 +225,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
      * @param identifier to associate with this command
      * @param env in which to run command
      * @return 	true if command started successfully
+     * @throws Exception An error occurred
      */
     public boolean startJavaCmd(String cmd, String identifier, String[] env)
             throws Exception {
@@ -238,6 +239,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
      * @param env in which to run command
      * @param classPath the class path to prepend to the base class path
      * @return 	true if command started successfully
+     * @throws Exception An error occurred
      */
     public boolean startJavaCmd(String cmd, String identifier, String[] env,
                                 String[] classPath) throws Exception {
@@ -322,6 +324,8 @@ public class CmdAgentImpl extends UnicastRemoteObject
      * @param identifier	- String to identify this command later null if you don't want to do wait
      *              or kill the process when the cmdAgent exits.
      * @param priority to run command in
+     * @return true if the command started successfully, false otherwise
+     * @throws Exception An error occurred
      */
     public boolean start (String cmd, String identifier, int priority)
             throws Exception {
@@ -344,6 +348,8 @@ public class CmdAgentImpl extends UnicastRemoteObject
      *              or kill the process when the cmdAgent exits.
      * @param msg message to which wait for
      * @param priority (default or higher priority) for command
+     * @return true if the command started successfully, false otherwise
+     * @throws Exception An error occurred
      */
     public boolean start(String cmd, String ident, String msg, int priority)
             throws Exception {
@@ -394,10 +400,11 @@ public class CmdAgentImpl extends UnicastRemoteObject
      * @param identifier to associate with this command, null if you don't want to do wait
      *              or kill the process when the cmdAgent exits.
      * @param priority in which to run command
-     * @return String the first line of output from the command
+     * @return The first line of output from the command
+     * @throws Exception An error occurred
      */
-    public String startAndGetOneOutputLine(String cmd, String identifier, int priority)
-            throws Exception {
+    public String startAndGetOneOutputLine(String cmd, String identifier,
+                                           int priority) throws Exception {
 
         String retVal = null;
 
@@ -423,10 +430,10 @@ public class CmdAgentImpl extends UnicastRemoteObject
      * The stderr from command is captured and logged to the errorlog.
      * @param cmd : command to be started
      * @param priority - class in which cmd should be run
-     * @return boolean true if command completed successfully
+     * @return true if command completed successfully
+     * @throws Exception An error occurred
      */
-    public boolean start (String cmd, int priority)
-            throws Exception {
+    public boolean start (String cmd, int priority) throws Exception {
         boolean status = false;
         Process p = createProcess(cmd, priority);
 
@@ -452,58 +459,59 @@ public class CmdAgentImpl extends UnicastRemoteObject
     }
 
     /**
-         * This method starts a command in foreground
-         * The stdout from command is captured and returned.
-         * @param cmd : command to be started
-         * @param priority - class in which cmd should be run
-         * @return StringBuffer
-         */
-        public String startAndGetStdOut (String cmd, int priority)
-                throws Exception {
-            int readSize = 0;
-            int errReadSize = 0;
-            InputStream in,err;
-            byte[] buffer = new byte[8096];
-            StringBuffer std_out = new StringBuffer();
-            StringBuffer std_err = new StringBuffer();
-            Process p = createProcess(cmd, priority);
+     * This method starts a command in foreground
+     * The stdout from command is captured and returned.
+     * @param cmd : command to be started
+     * @param priority - class in which cmd should be run
+     * @return The standard output of the command
+     * @throws Exception An error occurred
+     */
+    public String startAndGetStdOut (String cmd, int priority)
+            throws Exception {
+        int readSize = 0;
+        int errReadSize = 0;
+        InputStream in,err;
+        byte[] buffer = new byte[8096];
+        StringBuffer std_out = new StringBuffer();
+        StringBuffer std_err = new StringBuffer();
+        Process p = createProcess(cmd, priority);
 
-            in = p.getInputStream();
-            err = p.getErrorStream();
+        in = p.getInputStream();
+        err = p.getErrorStream();
 
-            // std_err.append(cmd);
-            // std_err.append("\nstderr:\n");
+        // std_err.append(cmd);
+        // std_err.append("\nstderr:\n");
 
-            boolean outClosed = false;
-            boolean errClosed = false;
-            for (;;) {
-                if (!outClosed && (readSize = in.read(buffer)) > 0)
-                    std_out.append(new String(buffer, 0, readSize));
-                if (!outClosed && readSize < 0)
-                    outClosed = true;
-                if (!errClosed && (errReadSize = err.read(buffer)) > 0)
-                    std_err.append(new String(buffer, 0, errReadSize));
-                if (!errClosed && errReadSize < 0)
-                    errClosed = true;
-                if (outClosed && errClosed)
-                    break;
-            }
-            logger.info(cmd + "\nstdout:\n" + std_out + "\nstderr:\n" + std_err);
-            /* Since this is in foreground, wait for it to complete */
-            try {
-                p.waitFor();
-                int exitValue = p.exitValue();
-                if (exitValue != 0) {
-                    logger.info("Warning: " + "Command exited with exit value - " + exitValue );
-                }
-            } catch (InterruptedException e) {
-                /* If we are interrupted, we were probably sent the kill signal */
-                p.destroy();
-            }
-            in.close();
-            err.close();
-            return(std_out.toString());
+        boolean outClosed = false;
+        boolean errClosed = false;
+        for (;;) {
+            if (!outClosed && (readSize = in.read(buffer)) > 0)
+                std_out.append(new String(buffer, 0, readSize));
+            if (!outClosed && readSize < 0)
+                outClosed = true;
+            if (!errClosed && (errReadSize = err.read(buffer)) > 0)
+                std_err.append(new String(buffer, 0, errReadSize));
+            if (!errClosed && errReadSize < 0)
+                errClosed = true;
+            if (outClosed && errClosed)
+                break;
         }
+        logger.info(cmd + "\nstdout:\n" + std_out + "\nstderr:\n" + std_err);
+        /* Since this is in foreground, wait for it to complete */
+        try {
+            p.waitFor();
+            int exitValue = p.exitValue();
+            if (exitValue != 0) {
+                logger.info("Warning: " + "Command exited with exit value - " + exitValue );
+            }
+        } catch (InterruptedException e) {
+            /* If we are interrupted, we were probably sent the kill signal */
+            p.destroy();
+        }
+        in.close();
+        err.close();
+        return(std_out.toString());
+    }
 
 
     /**
@@ -512,6 +520,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
      * @param cmd to be started
      * @param priority - class in which cmd should be run
      * @return boolean true if command completed successfully
+     * @throws Exception An error occurred
      */
     public boolean runScript (String cmd, int priority) throws Exception {
         return start(cmd, priority);
@@ -521,7 +530,8 @@ public class CmdAgentImpl extends UnicastRemoteObject
      * This method is responsible for waiting for a command started
      * earlier in background.
      * @param identifier with which this cmd was started
-     * @return true if command completed successfully
+     * @return true if the command started successfully, false otherwise
+     * @throws Exception An error occurred
      */
     public boolean wait(String identifier) throws Exception {
         boolean status;
@@ -558,7 +568,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
 
     /**
      * This method kills off the process specified.
-     *
+     * @param identifier The process identifier
      */
     public void kill(String identifier) {
         CmdProcess cproc = (CmdProcess) processMap.remove(identifier);
@@ -580,11 +590,10 @@ public class CmdAgentImpl extends UnicastRemoteObject
      * @param processString search string to grep the process while killing
      *                      (same as in killem)
      * @param sigNum the signal number to be used to kill.
-     *
+     * @throws IOException An I/O error occurred
      */
-    public void killem (String identifier,
-                                     String processString, int sigNum)
-            throws RemoteException, IOException {
+    public void killem (String identifier, String processString, int sigNum)
+            throws IOException {
 
         CmdProcess cproc = (CmdProcess) processMap.remove(identifier);
         Object sync = cproc;
@@ -836,6 +845,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
      * Process and logs them to the errorlog.
      * @param errFile Filename of the stderr log
      * @param cmd command which generated errors
+     * @return true if the transfer was successful, false otherwise
      */
     private boolean xferLogs(String errFile, String cmd) {
         boolean status = true;
@@ -1051,6 +1061,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
      * and must be in GMT time.
      *
      * @param gmtTimeString Time string in format
+     * @throws IOException An I/O error occurred
      */
     public void setTime(String gmtTimeString) throws IOException {
         Command c = new Command("date", "-u", gmtTimeString);
@@ -1101,6 +1112,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
          *
          * @param is InputStream to read from
          * @param logfile String filename to log to
+         * @throws IOException An I/O Error occurred
          */
         public LogWriter(InputStream is, String logfile) throws IOException {
             in = new BufferedReader(new InputStreamReader(is));

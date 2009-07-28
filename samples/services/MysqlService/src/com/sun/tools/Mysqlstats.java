@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Mysqlstats.java,v 1.2 2009/06/23 19:02:13 sheetalpatil Exp $
+ * $Id: Mysqlstats.java,v 1.3 2009/07/28 22:55:24 akara Exp $
  *
  * Copyright 2008 Sun Microsystems Inc. All Rights Reserved
  */
@@ -38,18 +38,26 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
+/**
+ * Mysqlstats implements a tool used for gathering the statistics from a
+ * MySQL instance.
+ */
 public class Mysqlstats {
 
     private static Logger logger =
             Logger.getLogger(Mysqlstats.class.getName());
 
+    /** The injected tool context. */
     @Context public ToolContext ctx;
+
     Command cmd;
     CommandHandle processRef;
     ArrayList<String> toolCmd;
     String toolName;
 
+    /**
+     * Configures the MysSQLStats.
+     */
     @Configure public void config() {
         toolName = ctx.getToolName();
         
@@ -81,22 +89,29 @@ public class Mysqlstats {
 
     }
 
+    /**
+     * Starts the MySQLStats.
+     * @throws IOException Cannot execute the needed command
+     * @throws InterruptedException Interrupted waiting for the stats commmand
+     */
     @Start public void start() throws IOException, InterruptedException {
         processRef = ctx.exec(cmd);
         logger.info(toolName + " Started with Cmd = " + toolCmd);
     }
 
+    /**
+     * Stops the MySQLStats.
+     */
     @Stop public void stop() {
         try {
             logger.info("Stopping tool " + this.toolCmd);
             processRef.destroy();
             processRef.waitFor(10000);
         } catch (InterruptedException ex) {
-            Logger.getLogger(Mysqlstats.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.SEVERE, null, ex);
         } catch (RemoteException ex) {
             logger.log(Level.SEVERE, null, ex);
         }
     }
-
 }
 

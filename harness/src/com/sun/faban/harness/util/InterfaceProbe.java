@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: InterfaceProbe.java,v 1.5 2009/07/24 22:48:24 akara Exp $
+ * $Id: InterfaceProbe.java,v 1.6 2009/07/28 22:54:17 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -38,17 +38,21 @@ public class InterfaceProbe {
 
     Logger logger = Logger.getLogger(this.getClass().getName());
     ExecutorService threadPool = null;
-    public static final int TIMEOUT = 10000;
-    public static final int LOCAL_TIMEOUT = 5000;
+    static final int TIMEOUT = 10000;
+    static final int LOCAL_TIMEOUT = 5000;
 
     // Parallel probing is still buggy, especially for ICMP echo (root ping)
     // mode. So we'll not use it just yet. This seems like a JDK bug.
     // Once we get it working in all instances, we'll change this.
-    public static final int PARALLEL_THRESHOLD = Integer.MAX_VALUE;
+    static final int PARALLEL_THRESHOLD = Integer.MAX_VALUE;
 
     ArrayList<NetworkInterface> ifList;
     List<IFAddressInfo> ifAInfoList;
 
+    /**
+     * Unit tests the interface probe.
+     * @param args The commmand line arguments
+     */
     public static void main(String[] args) {
         try {
             ArrayList<String> hosts = new ArrayList<String>();
@@ -116,8 +120,8 @@ public class InterfaceProbe {
     }
 
     /**
-     * .
-     * @param executor
+     * Sets the thread pool to be used for parallel probing.
+     * @param executor The thread pool
      */
     public void setExecutorService(ExecutorService executor) {
         threadPool = executor;

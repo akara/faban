@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MysqlService.java,v 1.2 2009/05/30 04:48:49 akara Exp $
+ * $Id: MysqlService.java,v 1.3 2009/07/28 22:54:15 akara Exp $
  *
  * Copyright 2008 Sun Microsystems Inc. All Rights Reserved
  */
@@ -100,7 +100,7 @@ import java.util.logging.Logger;
     }
 
     /**
-     * Start the mysql server on the configured host
+     * Start the mysql server on the configured host.
      * @return boolean true if start succeeded, else false
      */
     public boolean startServer() {
@@ -180,7 +180,7 @@ import java.util.logging.Logger;
     }
 
     /**
-     * stop Server
+     * Stop server.
      * @return true if stop succeeded, else false
      */
     public boolean stopServer() {
@@ -215,9 +215,9 @@ import java.util.logging.Logger;
     }
 
     /**
-     * transfer log files
+     * Transfer log files to the master.
      * This method copies over the error_log to the run output directory
-     * and keeps only the portion of the log relevant for this run
+     * and keeps only the portion of the log relevant for this run.
      * @param totalRunTime - the time in seconds for this run
      * 
      * TODO: Modify code for mysql date/time format
@@ -265,6 +265,12 @@ import java.util.logging.Logger;
 
     }
 
+    /**
+     * Obtains the gregorian calendar representing the current time.
+     * @param hostName The host name to get the calendar from
+     * @return The calendar
+     * @throws Exception Error obtaining calendar
+     */
     public static GregorianCalendar getGregorianCalendar(
             String hostName)
             throws Exception {
@@ -278,8 +284,8 @@ import java.util.logging.Logger;
 
     /**
      *
-     * Kill Mysql server
-     * Same as stopServer
+     * Kill the MySQL server.
+     * Same as stopServer.
      */
     public void kill() {
         stopServer();

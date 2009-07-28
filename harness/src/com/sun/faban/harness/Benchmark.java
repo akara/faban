@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Benchmark.java,v 1.4 2009/07/20 18:48:07 sheetalpatil Exp $
+ * $Id: Benchmark.java,v 1.5 2009/07/28 22:54:18 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -70,7 +70,7 @@ package com.sun.faban.harness;
 
     /**
      * This method aborts the current benchmark run and is
-     * called when a user asks for a run to be killed
+     * called when a user asks for a run to be killed.
      *
      * @throws Exception if any error occurred.
      */

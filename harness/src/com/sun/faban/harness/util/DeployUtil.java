@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DeployUtil.java,v 1.21 2009/07/21 22:54:45 sheetalpatil Exp $
+ * $Id: DeployUtil.java,v 1.22 2009/07/28 22:54:17 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -53,7 +53,10 @@ import java.util.logging.Logger;
  */
 public class DeployUtil {
 
+    /** The benchmark directory. */
     public static final File BENCHMARKDIR;
+
+    /** The service directory. */
     public static final File SERVICEDIR;
 
     private static Logger logger;
@@ -76,10 +79,11 @@ public class DeployUtil {
 
     /**
      * Unjars the content a benchmark jar file into the benchmark directory.
+     * @param jarFile The benchmark jar file
      * @param benchName The name of the benchmark
+     * @throws Exception Error unjaring the jar file.
      */
-    public static void unjar(File jarFile, String benchName)
-            throws IOException, Exception {
+    public static void unjar(File jarFile, String benchName) throws Exception {
                 
         logger.info("Redeploying " + benchName);
 
@@ -122,7 +126,7 @@ public class DeployUtil {
 
     /**
      * This method is responsible for generation the deployment descriptor.
-     * @param dir
+     * @param dir The deployment directory
      */
     public static void generateDD(String dir) {
         String benchDir = Config.BENCHMARK_DIR + dir + File.separator;
@@ -298,8 +302,8 @@ public class DeployUtil {
 
     /**
      * Checks for service deployment.
-     * @param jarFile
-     * @param serviceName
+     * @param jarFile The service jar file
+     * @param serviceName The service name
      */
     public static void checkDeployService(File jarFile, String serviceName) {
         File serviceDir = new File(SERVICEDIR, serviceName);
@@ -313,8 +317,8 @@ public class DeployUtil {
 
     /**
      * Checks for benchmark deployment.
-     * @param jarFile
-     * @param benchName
+     * @param jarFile The benchmark jar file
+     * @param benchName The benchmark name
      */
     public static void checkDeployBenchmark(File jarFile, String benchName) {
         File benchDir = new File(BENCHMARKDIR, benchName);
@@ -328,8 +332,8 @@ public class DeployUtil {
 
     /**
      * Deploys a benchmark.
-     * @param jarFile
-     * @param benchName
+     * @param jarFile The benchmark jar file
+     * @param benchName The benchmark name
      */
     public static void deployBenchmark(File jarFile, String benchName) {
         if (canDeployBenchmark(benchName))
@@ -345,8 +349,8 @@ public class DeployUtil {
 
     /**
      * Deploys a service.
-     * @param jarFile
-     * @param serviceBundleName
+     * @param jarFile The service jar file
+     * @param serviceBundleName The service bundle name
      */
     public static void deployService(File jarFile, String serviceBundleName) {
         if (canDeployService(serviceBundleName))
@@ -360,7 +364,7 @@ public class DeployUtil {
 
     /**
      * Clears benchmark's configuration.
-     * @param benchName
+     * @param benchName The banchmark name
      */
     public static void clearConfig(String benchName) {
 
