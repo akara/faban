@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: PlotServer.java,v 1.2 2006/06/29 19:38:39 akara Exp $
+ * $Id: PlotServer.java,v 1.3 2009/07/28 22:53:32 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -40,7 +40,7 @@ import java.util.List;
  * This software is the proprietary information of Sun Microsystems, Inc.
  * Use is subject to license terms.
  *
- * $Id: PlotServer.java,v 1.2 2006/06/29 19:38:39 akara Exp $
+ * $Id: PlotServer.java,v 1.3 2009/07/28 22:53:32 akara Exp $
  *
  */
 
@@ -82,6 +82,7 @@ public class PlotServer {
     /**
      * Sends a number of y values to the graph to plot.
      * @param values The y values to plot
+     * @exception IOException if the data cannot be written
      */
     public void plot(double[] values) throws IOException {
         if (values.length != numSeries)
@@ -95,6 +96,7 @@ public class PlotServer {
     /**
      * Sends a single y value to the graph to plot.
      * @param value The y value to plot
+     * @exception IOException if the data cannot be written
      */
     public void plot(double value) throws IOException {
         if (numSeries != 1)

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: NullContext.java,v 1.2 2009/05/17 20:02:02 akara Exp $
+ * $Id: NullContext.java,v 1.3 2009/07/28 22:53:31 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -47,6 +47,8 @@ public class NullContext extends DriverContext {
 
 
     /**
+     * Obtains the scale of this run. This implementation always return 0.
+     * @return Always 0
      * @see com.sun.faban.driver.DriverContext#getScale()
      */
 	public int getScale() {
@@ -55,7 +57,6 @@ public class NullContext extends DriverContext {
 
     /**
      * Obtains the number of client threads in this agent.
-     *
      * @return the number of client threads
      */
     public int getClientsInAgent() {
@@ -64,7 +65,6 @@ public class NullContext extends DriverContext {
 
     /**
      * Obtains the total number of clients threads for this driver.
-     *
      * @return the number of client threads for this driver
      */
     public int getClientsInDriver() {
@@ -72,6 +72,8 @@ public class NullContext extends DriverContext {
     }
 
     /**
+     * Obtains the current thread id. This implementation always returns 0.
+     * @return Always 0
      * @see com.sun.faban.driver.DriverContext#getThreadId()
      */
 	public int getThreadId() {
@@ -80,6 +82,8 @@ public class NullContext extends DriverContext {
 
 
     /**
+     * Obtains the agent id. This implementation always returns 0.
+     * @return Always returns 0
      * @see com.sun.faban.driver.DriverContext#getAgentId()
      */
 	public int getAgentId() {
@@ -88,6 +92,9 @@ public class NullContext extends DriverContext {
 
 
     /**
+     * Returns the driver name. In this case a dummy driver name
+     * "DriverTestNullContext".
+     * @return The dummy driver name.
      * @see com.sun.faban.driver.DriverContext#getDriverName()
      */
 	public String getDriverName() {
@@ -95,6 +102,9 @@ public class NullContext extends DriverContext {
     }
 
     /**
+     * Obtains the logger for this driver thread. The logger name
+     * is always "faban.test."
+     * @return The logger for this thread.
      * @see com.sun.faban.driver.DriverContext#getLogger()
      */
 	public Logger getLogger() {
@@ -105,6 +115,9 @@ public class NullContext extends DriverContext {
     }
 
     /**
+     * Attaches a custom metrics as the miscellaneous stats.
+     * This implementation does nothing.
+     * @param metrics The metrics to attach
      * @see com.sun.faban.driver.DriverContext#attachMetrics(com.sun.faban.driver.CustomMetrics)
      */
 	public void attachMetrics(CustomMetrics metrics) {
@@ -141,6 +154,9 @@ public class NullContext extends DriverContext {
     }
 
     /**
+     * Returns the current operation. For the null context, it is a dummy
+     * name "DriverTestNullContext."
+     * @return The dummy name of the current operation.
      * @see com.sun.faban.driver.DriverContext#getCurrentOperation()
      */
 	public String getCurrentOperation() {
@@ -148,6 +164,9 @@ public class NullContext extends DriverContext {
     }
 
     /**
+     * Obtains the operation id of the current operation. This implementation
+     * always returns 0.
+     * @return Always 0
      * @see com.sun.faban.driver.DriverContext#getOperationId()
      */
 	public int getOperationId() {
@@ -156,6 +175,8 @@ public class NullContext extends DriverContext {
 
 
     /**
+     * Gets the current count of the operations done by this thread.
+     * @return Always 1 for this implementation
      * @see com.sun.faban.driver.DriverContext#getOperationCount()
      */
 	public int getOperationCount() {
@@ -163,6 +184,8 @@ public class NullContext extends DriverContext {
     }
 
     /**
+     * Obtains the random value generator for this thread.
+     * @return Always the same random value generator
      * @see com.sun.faban.driver.DriverContext#getRandom()
      */
 	public Random getRandom() {
@@ -173,6 +196,8 @@ public class NullContext extends DriverContext {
     }
 
     /**
+     * Records the start and end of time measurement. This implemenation does
+     * nothing.
      * @see com.sun.faban.driver.DriverContext#recordTime()
      */
 	public void recordTime() {
@@ -180,6 +205,7 @@ public class NullContext extends DriverContext {
     }
 
     /**
+     * Pauses the time measurement. This implementation does nothing.
      * @see com.sun.faban.driver.DriverContext#pauseTime()
      */
 	public void pauseTime() {
@@ -187,6 +213,8 @@ public class NullContext extends DriverContext {
     }
 
     /**
+     * Obtains the relative current time.
+     * @return The current relative time
      * @see com.sun.faban.driver.DriverContext#getTime()
      */
 	public int getTime() {
@@ -194,6 +222,10 @@ public class NullContext extends DriverContext {
     }
 
     /**
+     * Obtains the relative time steady state starts. This implementation
+     * always returns the relative time, 5 seconds from the current time
+     * which is in the future.
+     * @return The steady state start time
      * @see com.sun.faban.driver.DriverContext#getSteadyStateStart()
      */
 	public int getSteadyStateStart() {
@@ -201,6 +233,8 @@ public class NullContext extends DriverContext {
     }
 
     /**
+     * Obtain the current nano time offset from the base time.
+     * @return The current nano time
      * @see com.sun.faban.driver.DriverContext#getNanoTime()
      */
     public long getNanoTime() {
@@ -208,6 +242,8 @@ public class NullContext extends DriverContext {
     }
 
     /**
+     * Obtain the nano time offset where steady state starts.
+     * @return A dummy time 5 seconds after the base time
      * @see com.sun.faban.driver.DriverContext#getSteadyStateStartNanos()
      */
     public long getSteadyStateStartNanos() {
@@ -215,6 +251,8 @@ public class NullContext extends DriverContext {
     }
 
     /**
+     * Obtains the rampup time. This implementation always returns 0.
+     * @return The rampup time which is 0
      * @see com.sun.faban.driver.DriverContext#getRampUp()
      */
 	public int getRampUp() {
@@ -222,6 +260,9 @@ public class NullContext extends DriverContext {
     }
 
     /**
+     * Obtains the steady state time. This implementation returns a very large
+     * dummy number of Integer.MAX_VALUE / 2.
+     * @return A dummy steady state time
      * @see com.sun.faban.driver.DriverContext#getSteadyState()
      */
 	public int getSteadyState() {
@@ -230,6 +271,8 @@ public class NullContext extends DriverContext {
     }
 
     /**
+     * Obtains the ramp down time. This implementation returns 0.
+     * @return A dummy ramp down time of 0.
      * @see com.sun.faban.driver.DriverContext#getRampDown()
      */
 	public int getRampDown() {
@@ -237,6 +280,8 @@ public class NullContext extends DriverContext {
     }
 
     /**
+     * Resets the mix. We don't use mixes with the null context so
+     * this implementation does nothing.
      * @see com.sun.faban.driver.DriverContext#resetMix()
      */
 	public void resetMix() {
@@ -244,12 +289,19 @@ public class NullContext extends DriverContext {
     }
 
     /**
+     * Checks whether we're in the steady state. This implementation
+     * always return true.
+     * @return Always true
      * @see com.sun.faban.driver.DriverContext#isTxSteadyState()
      */
 	public boolean isTxSteadyState() {
         return true;
     }
     /**
+     * Gets the driver property. This implementation gets the property from
+     * the java properties.
+     * @param name The name of the property
+     * @return The property value, or null if it does not exist
      * @see com.sun.faban.driver.DriverContext#getProperty(java.lang.String)
      */
 	public String getProperty(String name) {
@@ -257,13 +309,27 @@ public class NullContext extends DriverContext {
     }
 
     /**
+     * Gets the driver properties by name. This implementation gets the
+     * property from the java properties and returns an array of size 1 at
+     * most. If the property is not set, returns null.
+     * @param name The name of the property
+     * @return An array of size 1 containing the value, or null if not exist
      * @see com.sun.faban.driver.DriverContext#getPropertyValues(java.lang.String)
      */
 	public String[] getPropertyValues(String name) {
-        return new String[0];
+        String[] ret = null;
+        String v = System.getProperty(name);
+        if (v != null) {
+            ret = new String[1];
+            ret[0] = v;
+        }
+        return ret;
     }
 
     /**
+     * Gets the properties node from the dom tree. NullContext does not
+     * use a run configuration so this will always return null.
+     * @return Always null.
      * @see com.sun.faban.driver.DriverContext#getPropertiesNode()
      */
 	public Element getPropertiesNode() {
@@ -272,10 +338,15 @@ public class NullContext extends DriverContext {
 
     
     /**
+     * Returns a value matching the given xpath in the configuration file.
+     * NullContext does not use a run configuration so this will always return
+     * null.
+     * @param xPath The xpath
+     * @return Always null
      * @see com.sun.faban.driver.DriverContext#getXPathValue(java.lang.String)
      */
     @SuppressWarnings("unused")
-	public String getXPathValue(String xPath) throws XPathExpressionException {
+	public String getXPathValue(String xPath) {
         return null;
     }
 

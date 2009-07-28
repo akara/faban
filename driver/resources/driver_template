@@ -62,9 +62,11 @@ public void @operationName@() throws Exception{
 
 	try{
             String url = @url@;
+	    @doTiming@
             int bytesRead = httpTransport.readURL(url@postRequest@);
             //System.out.println("url:"+url);
 
+	    @doTiming@
             if (ctx.isTxSteadyState())
                 contentStats.sumContentSize[ctx.getOperationId()] += bytesRead;
 	}catch(Exception ex){

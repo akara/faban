@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TimedSocketFactory.java,v 1.5 2009/06/30 06:34:50 akara Exp $
+ * $Id: TimedSocketFactory.java,v 1.6 2009/07/28 22:53:31 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */

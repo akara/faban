@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: URLStreamHandlerFactory.java,v 1.3 2009/07/03 01:52:36 akara Exp $
+ * $Id: URLStreamHandlerFactory.java,v 1.4 2009/07/28 22:53:31 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -47,16 +47,14 @@ import sun.net.www.http.HttpClient;
  */
 class KeepAliveCache extends sun.net.www.http.KeepAliveCache {
 
-    /**
-	 * SerialVersionUID
-	 */
 	private static final long serialVersionUID = 1L;
 
     private static Logger logger =
             Logger.getLogger(KeepAliveCache.class.getName());
     
-	/** The thread local cache */
-    static ThreadLocal<Map<KeepAliveKey, List<HttpClient>>> localHash = new ThreadLocal<Map<KeepAliveKey, List<HttpClient>>>() {
+	/** The thread local cache. */
+    static ThreadLocal<Map<KeepAliveKey, List<HttpClient>>> localHash =
+            new ThreadLocal<Map<KeepAliveKey, List<HttpClient>>>() {
         @Override
 		protected Map<KeepAliveKey, List<HttpClient>> initialValue() {
             return new HashMap<KeepAliveKey, List<HttpClient>>();
@@ -139,9 +137,9 @@ class KeepAliveCache extends sun.net.www.http.KeepAliveCache {
         private int		port = 0;
 
         /**
-         * Construct a {@link KeepAliveKey}
+         * Construct a {@link KeepAliveKey}.
          * 
-         * @param url
+         * @param url The url to keepalive
          */
         public KeepAliveKey(URL url) {
             protocol = url.getProtocol();
@@ -150,6 +148,9 @@ class KeepAliveCache extends sun.net.www.http.KeepAliveCache {
         }
 
         /**
+         * Compare the keys.
+         * @param obj The other key to compare
+         * @return true if the keys are the same, false otherwise
          * @see java.lang.Object#equals(java.lang.Object)
          */
         @Override
@@ -163,6 +164,8 @@ class KeepAliveCache extends sun.net.www.http.KeepAliveCache {
         }
 
         /**
+         * Obtains the hash code of this key.
+         * @return The hash code
          * @see java.lang.Object#hashCode()
          */
         @Override

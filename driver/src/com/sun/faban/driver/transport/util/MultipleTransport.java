@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MultipleTransport.java,v 1.5 2009/06/30 06:34:49 akara Exp $
+ * $Id: MultipleTransport.java,v 1.6 2009/07/28 22:53:31 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -71,21 +71,11 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class MultipleTransport implements Runnable {
 
-	private enum Status {
-    /**
-     * FAILED
-     */
-    FAILED,
-    /**
-     * SUCCEEDED
-     */
-    SUCCEEDED,
-    /**
-     * PENDING
-     */
-    PENDING
-
-	}
+    private enum Status {
+        FAILED,
+        SUCCEEDED,
+        PENDING
+    }
     
     private static int myGlobalId = 0;
     private int myId;
@@ -137,6 +127,7 @@ public class MultipleTransport implements Runnable {
     }
 
     /**
+     * Runs the parallel threads fetching the other URLs.
      * @see java.lang.Runnable#run()
      */
     public void run() {
@@ -297,6 +288,8 @@ public class MultipleTransport implements Runnable {
     }
 
     /**
+     * Provides a string representation of this transport.
+     * @return The string representation
      * @see java.lang.Object#toString()
      */
     @Override

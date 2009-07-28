@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: HttpURLConnection.java,v 1.1 2009/06/30 06:33:27 akara Exp $
+ * $Id: HttpURLConnection.java,v 1.2 2009/07/28 22:53:31 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -44,6 +44,12 @@ public class HttpURLConnection
     private static SocketFactory defaultSocketFactory;
     private SocketFactory socketFactory;
 
+    /**
+     * Creates a connection.
+     * @param url The target URL
+     * @param proxy Proxy, if any
+     * @param handler The protocol handler
+     */
     protected HttpURLConnection(URL url, Proxy proxy, Handler handler) {
         super(url, proxy, handler);
     }
@@ -54,6 +60,7 @@ public class HttpURLConnection
      * @param url       the URL being accessed
      * @param useCache  whether the cached connection should be used
      *        if present
+     * @throws IOException Communication error
      */
     @Override
 	protected void setNewClient (URL url, boolean useCache)
@@ -63,6 +70,14 @@ public class HttpURLConnection
 	    http.setReadTimeout(getReadTimeout());
     }
 
+    /**
+     * Connects via proxy.
+     * @param url The URL to connect
+     * @param proxyHost The proxy host
+     * @param proxyPort The proxy port
+     * @param useCache Whether to use cached connections
+     * @throws IOException Communication error
+     */
     @Override
 	protected void proxiedConnect(URL url,
 					   String proxyHost, int proxyPort,

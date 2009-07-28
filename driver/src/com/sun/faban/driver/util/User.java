@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: User.java,v 1.2 2006/06/29 19:38:39 akara Exp $
+ * $Id: User.java,v 1.3 2009/07/28 22:53:32 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -26,7 +26,7 @@ package com.sun.faban.driver.util;
 import java.util.HashSet;
 
 /**
- * Description of new class
+ * Username generator. This is still experimental.
  *
  * @author Akara Sucharitakul
  */
@@ -149,6 +149,11 @@ public class User {
             selector[i] = selector[i - 1] + length_percent[i];
     }
 
+    /**
+     * Creates a unique user name from an id.
+     * @param id The id
+     * @return A unique user name
+     */
     public static String getUserName(long id) {
 
         // Since id starts with 1, we have to shift it to start with 0 for
@@ -214,6 +219,10 @@ public class User {
         return new String(name);
     }
 
+    /**
+     * Test code for the user name.
+     * @param args The test command line arguments
+     */
     public static void main(String[] args) {
         long limit = Long.parseLong(args[0]);
         int[] nameLength = new int[8];

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RuntimeMetrics.java,v 1.2 2009/05/04 19:19:16 akara Exp $
+ * $Id: RuntimeMetrics.java,v 1.3 2009/07/28 22:53:31 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -40,17 +40,35 @@ public class RuntimeMetrics implements Serializable,
 
     private static final long serialVersionUID = 33009l;
 
+    /** Index for current thruput label. */
     public static final int C_THRUPUT = 0;
+
+    /** Index for overall thruput label. */
     public static final int O_THRUPUT = 1;
+
+    /** Index for current error rate label. */
     public static final int C_ERRORS = 2;
+
+    /** Index for current response time label. */
     public static final int C_RESP = 3;
+
+    /** Index for overall response time label. */
     public static final int O_RESP = 4;
+
+    /** Index for current standard deviation label. */
     public static final int C_SD = 5;
+
+    /** Index for overall standard deviation label. */
     public static final int O_SD = 6;
+
+    /** Index for current 90th% response time label. */
     public static final int C_RESP90 = 7;
+
+    /** Index for overall 90th% response time label. */
     public static final int O_RESP90 = 8;
 
-    public static final String[] LABELS = { "CThru", "OThru", "CErr", 
+    /** The output labels for the runtime metrics. */
+    public static final String[] LABELS = { "CThru", "OThru", "CErr",
                                             "CResp", "OResp", "CSD",
                                             "OSD", "C90%Resp", "O90%Resp"};
 
@@ -67,10 +85,17 @@ public class RuntimeMetrics implements Serializable,
 
     int txTypes; // The tx types for the current metrics.
 
+    /** Size of the fine response time buckets. */
     protected long fineRespBucketSize;  // Size of the fine and coarse
+
+    /** Size of the coarse response time buckets. */
     protected long coarseRespBucketSize; // response time buckets, in ns.
-    protected long fineRespHistMax; // Max fine response time
-    protected long coarseRespHistMax; // Max coarse response time
+
+    /** Max fine response time. */
+    protected long fineRespHistMax;
+
+    /** Max coarse response time. */
+    protected long coarseRespHistMax;
 
 	/**
      * Number of successful transactions during steady state.

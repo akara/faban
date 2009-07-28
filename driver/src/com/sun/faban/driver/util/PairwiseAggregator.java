@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: PairwiseAggregator.java,v 1.1 2009/05/04 19:19:17 akara Exp $
+ * $Id: PairwiseAggregator.java,v 1.2 2009/07/28 22:53:32 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -43,6 +43,11 @@ public class PairwiseAggregator<T extends PairwiseAggregator.Aggregable<T>> {
     int[] extraPairIdxs;
     T[] levelStore;
 
+    /**
+     * Creates a PairwiseAggregator.
+     * @param nodeCount The number of objects to aggregate
+     * @param provider The object provider for aggregation
+     */
     public PairwiseAggregator(int nodeCount, Provider<T> provider) {
         this.provider = provider;
         this.nodeCount = nodeCount;
@@ -152,19 +157,49 @@ public class PairwiseAggregator<T extends PairwiseAggregator.Aggregable<T>> {
         return levelStore[levelStore.length - 1];
     }
 
+    /**
+     * Provider interface to provide objects to aggregate.
+     */
     public static interface Provider<T extends Aggregable<T>> {
 
+        /**
+         * Fetches an object that can be used as the aggregation origin.
+         * @param idx The object index
+         * @return The mutable object
+         */
         public T getMutableMetrics(int idx);
 
+        /**
+         * Adds to a mutable instance.
+         * @param instance The mutable instance
+         * @param idx The object index to add
+         */
         public void add(T instance, int idx);
 
+        /**
+         * Obtains the type of the component this provider provides.
+         * @return The class object representing the type.
+         */
         public Class<T> getComponentClass();
 
+        /**
+         * Recycles an object after use. The implementation my pool recycled
+         * objects for reuse or do nothing, just let the garbage collector
+         * handle it.
+         * @param metrics The object to recycle
+         */
         public void recycle(T metrics);
     }
 
+    /**
+     * Interface to an aggregable object.
+     */
     public static interface Aggregable<T> {
 
+        /**
+         * The add method for aggregation, adding the metrics to this object.
+         * @param metrics The metrics to add
+         */
         public void add(T metrics);
     }
 }

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentImpl.java,v 1.9 2009/07/21 21:21:08 akara Exp $
+ * $Id: AgentImpl.java,v 1.10 2009/07/28 22:53:30 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -276,6 +276,7 @@ public class AgentImpl extends UnicastRemoteObject
     }
 
     /**
+     * Starts the driver threads for this agent, possibly in it's own thread.
      * @see java.lang.Runnable#run()
      */
     public void run() {
@@ -617,7 +618,7 @@ public class AgentImpl extends UnicastRemoteObject
     }
 
     /**
-     * AgentImpl's main method
+     * AgentImpl's main method.
      * @param argv the arguments passed to the java command
      */
     public static void main(String [] argv) {

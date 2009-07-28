@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TimedOutputStream.java,v 1.6 2009/07/03 01:52:36 akara Exp $
+ * $Id: TimedOutputStream.java,v 1.7 2009/07/28 22:53:31 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -64,7 +64,7 @@ public class TimedOutputStream extends FilterOutputStream {
      * Implements the abstract <tt>write</tt> method of <tt>OutputStream</tt>.
      *
      * @param b the <code>byte</code>.
-     * @throws {{@link IOException} if an I/O error occurs.
+     * @throws IOException {@link IOException} if an I/O error occurs.
      */
     @Override
 	public void write(int b) throws IOException {
@@ -86,7 +86,7 @@ public class TimedOutputStream extends FilterOutputStream {
      * argument <code>b</code>.
      *
      * @param b the data to be written.
-     * @throws {{@link IOException} if an I/O error occurs.
+     * @throws IOException {{@link IOException} if an I/O error occurs.
      * @see java.io.FilterOutputStream#write(byte[], int, int)
      */
     @Override
@@ -104,6 +104,10 @@ public class TimedOutputStream extends FilterOutputStream {
      * As suggested by the FilterOutputStream superclass, this method
      * implements as more efficient task by calling the underlying output
      * stream directly.
+     * @param b The bytes to write
+     * @param off The offset into the byte array
+     * @param len The length to write
+     * @throws IOException If there is an error writing
      */
     @Override
 	public void write(byte b[], int off, int len) throws IOException {

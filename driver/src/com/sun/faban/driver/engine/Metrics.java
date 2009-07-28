@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.9 2009/07/03 01:52:35 akara Exp $
+ * $Id: Metrics.java,v 1.10 2009/07/28 22:53:30 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -171,8 +171,10 @@ public class Metrics implements Serializable, Cloneable,
      */
     protected double[] hiRespSumStdy;
 
+    /** Sum of squares of the deviation during steady state. */
     protected double[] sumSquaresStdy;
 
+    /** Overall sum of squares of the deviation. */
     protected double[] sumSquaresTotal;
 
     /** Max. response time. */
@@ -205,13 +207,13 @@ public class Metrics implements Serializable, Cloneable,
     /** Histogram of selected delay times. */
     protected int[][] targetedDelayHist;
 
-    /** Start time as absolute time, in ms */
+    /** Start time as absolute time, in ms. */
     protected long startTime;
 
-    /** End time as ms offset from start time */
+    /** End time as ms offset from start time. */
     protected long endTime;
 
-    /** End time as nanosec time */
+    /** End time as nanosec time. */
     protected transient long endTimeNanos;
 
     /**
@@ -228,10 +230,10 @@ public class Metrics implements Serializable, Cloneable,
      */
     protected long[][] respGraph;
 
-    /** The attached custom metrics */
+    /** The attached custom metrics. */
     protected LinkedHashMap<String, CustomMetrics> metricAttachments = null;
 
-    /** The attached custom table metrics */
+    /** The attached custom table metrics. */
     protected LinkedHashMap<String, CustomTableMetrics> tableAttachments = null;
 
     /**
@@ -241,13 +243,27 @@ public class Metrics implements Serializable, Cloneable,
     protected double metric;
 
     /* Convenience variables */
+
+    /** Originating host name. */
     protected String host;
+
+    /** Type id of the driver. */
     protected int driverType;
+
+    /** Name of the driver. */
     protected String driverName;
+
+    /** Number of operations in the driver. */
     protected int txTypes;
+
+    /** List of operation names. */
     protected String[] txNames;
+
+    /** Run steady state, in milliseconds. */
     protected int stdyState;
-    protected transient AgentThread thread;    
+
+    /** Reference to the thread associated with this metrics. */
+    protected transient AgentThread thread;
     
     /**
      * Constructs a Metrics object for this agent thread.
@@ -1471,7 +1487,8 @@ public class Metrics implements Serializable, Cloneable,
     }
 
     /**
-     * @param b
+     * Prints the detail results into the given buffer.
+     * @param b The buffer
      */
     public void printDetail(StringBuilder b)  {
         RunInfo runInfo = RunInfo.getInstance();

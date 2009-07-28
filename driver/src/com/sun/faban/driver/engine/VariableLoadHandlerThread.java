@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: VariableLoadHandlerThread.java,v 1.2 2009/06/30 19:32:59 akara Exp $
+ * $Id: VariableLoadHandlerThread.java,v 1.3 2009/07/28 22:53:31 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -33,9 +33,10 @@ import java.util.logging.Logger;
  * @author Hubert Wong
  */
 public class VariableLoadHandlerThread extends Thread {
-	
-	public AgentImpl agent;
-	public Logger logger;
+
+	AgentImpl agent;
+
+	private Logger logger;
 	
 	VariableLoadHandlerThread(AgentImpl agent) {
 		this.agent = agent;

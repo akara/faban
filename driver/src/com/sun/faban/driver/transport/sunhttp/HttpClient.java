@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: HttpClient.java,v 1.1 2009/06/30 06:33:27 akara Exp $
+ * $Id: HttpClient.java,v 1.2 2009/07/28 22:53:31 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -108,8 +108,15 @@ public class HttpClient extends sun.net.www.http.HttpClient {
         return ret;
     }
 
-    protected HttpClient(URL url, Proxy proxy, int i) throws IOException {
-        super(url, proxy, i);
+    /**
+     * Subclass constructor for the client.
+     * @param url The URL
+     * @param proxy Proxies, if any
+     * @param to The connect timeout
+     * @throws IOException If an error occurs
+     */
+    protected HttpClient(URL url, Proxy proxy, int to) throws IOException {
+        super(url, proxy, to);
     }
 
     @Override
@@ -127,6 +134,11 @@ public class HttpClient extends sun.net.www.http.HttpClient {
      * appropriate options pre-established. This method
      * overrides NetworClient.doConnect() to use the provided
      * SocketFactory for socket creation.
+     * @param server The server to connect to
+     * @param port The port to connect to
+     * @return The socket connecting the the server
+     * @throws IOException Communication error
+     * @throws UnknownHostException The host cannot be found
      */
     @Override
 	protected Socket doConnect (String server, int port)
@@ -167,6 +179,10 @@ public class HttpClient extends sun.net.www.http.HttpClient {
         return s;
     }
 
+    /**
+     * Sets the socket factory for creating sockets used by this client.
+     * @param sf The socket factory
+     */
     protected static void setSocketFactory(SocketFactory sf) {
         socketFactory = sf;
     }

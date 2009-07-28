@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Random.java,v 1.2 2006/06/29 19:38:39 akara Exp $
+ * $Id: Random.java,v 1.3 2009/07/28 22:53:32 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -48,18 +48,16 @@ public class Random {
         {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
          'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
 
-    /*
-     * Constructor
-     * Initialize random number generators
+    /**
+     * Constructs the random value generator.
      */
     public Random() {
         r = new java.util.Random();
     }
 
-    /*
-     * Constructor
-     * Initialize random number generators
-     * @param seed The seed for the random number generator
+    /**
+     * Constructs the random value generators with a seed.
+     * @param seed The seed for the random value generator
      */
     public Random(long seed) {
         r = new java.util.Random(seed);

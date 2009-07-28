@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: VariableLoadHandler.java,v 1.2 2009/06/30 19:32:59 akara Exp $
+ * $Id: VariableLoadHandler.java,v 1.3 2009/07/28 22:53:31 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -38,19 +38,33 @@ public class VariableLoadHandler implements Iterator {
 	
 	private ArrayList<VariableLoad> load = new ArrayList<VariableLoad>();
 	private int index = 0;
-	
+
+    /**
+     * The load variation bucket.
+     */
 	public static class VariableLoad {
-		
+
+        /** The run time of the this load. */
 		public int runTime;
+
+        /** The thread count at this load. */
 		public int threadCount;
-		
+
+        /**
+         * Constructs the variable load bucket, initializing the variables.
+         * @param runTime The run time
+         * @param threadCount The thread count
+         */
 		VariableLoad(int runTime, int threadCount) {
 			this.runTime = runTime;
 			this.threadCount = threadCount;
 		}
-		
 	}
-	
+
+    /**
+     * Checks whether there is another load bucket.
+     * @return Whether there is another load bucket
+     */
 	public boolean hasNext() {
 		if(index < load.size()) {
 			return true;
@@ -58,11 +72,18 @@ public class VariableLoadHandler implements Iterator {
 			return false;
 		}
 	}
-	
+
+    /**
+     * Obtains the next load bucket.
+     * @return The next load bucket
+     */
 	public VariableLoad next() {
 		return load.get(index++);
 	}
 	
+    /**
+     * Removes the load bucket. This is not supported.
+     */
 	public void remove() {
 		throw new UnsupportedOperationException();
 	}
@@ -82,7 +103,11 @@ public class VariableLoadHandler implements Iterator {
 		}
 		loadScanner.close();
 	}
-	
+
+    /**
+     * Test code for the load variation handler.
+     * @param args Command line arguments
+     */
 	public static void main(String args[]) {
 		try {
 			VariableLoadHandler x = new VariableLoadHandler(args[0]);

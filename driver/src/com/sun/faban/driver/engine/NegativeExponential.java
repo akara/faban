@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: NegativeExponential.java,v 1.3 2009/06/11 07:09:26 akara Exp $
+ * $Id: NegativeExponential.java,v 1.4 2009/07/28 22:53:30 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -36,10 +36,8 @@ import java.lang.annotation.Annotation;
  */
 public class NegativeExponential extends Cycle {
 
-    /**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
+
     long cycleMin;
 	long cycleMean;
     long cycleMax;

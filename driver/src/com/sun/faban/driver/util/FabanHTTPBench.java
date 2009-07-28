@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FabanHTTPBench.java,v 1.7 2008/09/10 18:25:57 akara Exp $
+ * $Id: FabanHTTPBench.java,v 1.8 2009/07/28 22:53:32 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -106,6 +106,11 @@ public class FabanHTTPBench {
         return outDir;
     }
 
+    /**
+     * Runs the fhb.
+     * @param args The fhb arguments
+     * @throws Exception An error occurred running the fhb
+     */
     public static void main(String[] args) throws Exception {
 
         parseArgs(args);

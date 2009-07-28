@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CookieHandler.java,v 1.2 2009/07/03 01:52:36 akara Exp $
+ * $Id: CookieHandler.java,v 1.3 2009/07/28 22:53:31 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -42,7 +42,7 @@ public class CookieHandler extends java.net.CookieHandler {
      * are added, and before the request is sent.
      *
      * @param uri a <code>URI</code> to send cookies to in a request
-     * @param requestHeaders - a Map from request header
+     * @param map - a Map from request header
      *            field names to lists of field values representing
      *            the current request headers
      * @return an immutable map from state management headers, with
