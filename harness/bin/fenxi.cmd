@@ -38,7 +38,7 @@ set PERL5LIB=%FENXI_HOME%\txt2db
 
 set JAVA_ARGS=-mx756 -Dderby.storage.pageReservedSpace=0 -Dderby.language.logQueryPlan=true -Dderby.storage.rowLocking=false -Dfenxi.basedir=%FENXI_HOME% -Djava.awt.headless=true -Dsun.java2d.pmoffscreen=false -Dfenxi.profile=default_profile
 
-deltree txt
+rmdir /s /q txt
 mkdir txt
 
 set PROCESS=%1

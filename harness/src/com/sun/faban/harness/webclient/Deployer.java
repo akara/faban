@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Deployer.java,v 1.13 2009/07/21 22:54:48 sheetalpatil Exp $
+ * $Id: Deployer.java,v 1.14 2009/07/29 02:06:49 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -193,7 +193,7 @@ public class Deployer extends HttpServlet {
 
                 String benchName = fileName.substring(0, fileName.length() - 4);
 
-                if (benchName.indexOf('.') >= 0) {
+                if (benchName.indexOf('.') > -1) {
                     invalidNames.add(benchName);
                     continue;
                 }

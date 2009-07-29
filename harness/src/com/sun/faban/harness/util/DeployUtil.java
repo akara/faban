@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DeployUtil.java,v 1.22 2009/07/28 22:54:17 akara Exp $
+ * $Id: DeployUtil.java,v 1.23 2009/07/29 02:06:49 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -281,10 +281,15 @@ public class DeployUtil {
                 continue;
             String benchName = jarName.substring(0,
                              jarName.length() - suffix.length());
+            if (benchName.indexOf('.') > -1) {
+                logger.warning("Benchmark jar files must not have dots in " +
+                        "the name except for \".jar\". Ignoring " + jarName +
+                        ".");
+                continue;
+            }
             checkDeployBenchmark(jarFiles[i], benchName);
         }
 
-        // TODO: Check for any jar files dropped in Service dir, deploy if needed.
         File[] jarFiles1 = SERVICEDIR.listFiles();
         for (int i = 0; i < jarFiles1.length; i++) {
             if (jarFiles1[i].isDirectory())
@@ -293,9 +298,16 @@ public class DeployUtil {
             String jarName = jarFiles1[i].getName();
             if (!jarName.endsWith(suffix))
                 continue;
-            String benchName = jarName.substring(0,
+            String serviceName = jarName.substring(0,
                              jarName.length() - suffix.length());
-            checkDeployService(jarFiles1[i], benchName);
+            if (serviceName.indexOf('.') > -1) {
+                logger.warning("Service jar files must not have dots in " +
+                        "the name except for \".jar\". Ignoring " + jarName +
+                        ".");
+                continue;
+            }
+
+            checkDeployService(jarFiles1[i], serviceName);
         }
 
     }
