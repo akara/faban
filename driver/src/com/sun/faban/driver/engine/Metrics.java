@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.10 2009/07/28 22:53:30 akara Exp $
+ * $Id: Metrics.java,v 1.11 2009/07/30 01:14:11 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -137,11 +137,6 @@ public class Metrics implements Serializable, Cloneable,
      * This is used for in-flight reporting only.
      */
     protected int[] errCntTotal;
-
-    /**
-     * The mix ratio of the operation during steady state.
-     */
-    protected double[] mixRatio;
 
     /**
      * Number of transactions the delay time
@@ -907,7 +902,6 @@ public class Metrics implements Serializable, Cloneable,
         int metricTxCnt = 0;
         int sumTxCnt = 0;
         int sumFgTxCnt = 0;
-        mixRatio = new double[txTypes];
         boolean success = true;
         double avg, tavg;
         long resp90, resp99;
@@ -915,6 +909,8 @@ public class Metrics implements Serializable, Cloneable,
         RunInfo runInfo = RunInfo.getInstance();
         Formatter formatter = new Formatter(buffer);
         double[] ckSD = null;
+
+        Result result = Result.init(this);
 
         Logger logger = Logger.getLogger(Metrics.class.getName());
         Level crosscheck = Level.FINE;
@@ -949,12 +945,12 @@ public class Metrics implements Serializable, Cloneable,
         metric = metricTxCnt / (double) runInfo.stdyState;
         if (sumFgTxCnt > 0) {
             for (int i = 0; i < fgTxTypes; i++) {
-				mixRatio[i] = txCntStdy[i] / (double) sumFgTxCnt;
+				result.mixRatio[i] = txCntStdy[i] / (double) sumFgTxCnt;
 			}
         }
         if (sumBgTxCnt > 0) {
             for (int i = fgTxTypes; i < txTypes; i++) {
-				mixRatio[i] = txCntStdy[i] / (double) sumBgTxCnt;
+				result.mixRatio[i] = txCntStdy[i] / (double) sumBgTxCnt;
 			}
         }
         space(8, buffer);
@@ -1010,12 +1006,12 @@ public class Metrics implements Serializable, Cloneable,
             space(16, buffer).append("<failures>").append(errCntStdy[i]).
                     append("</failures>\n");
             space(16, buffer);
-            formatter.format("<mix>%.04f</mix>\n", mixRatio[i]);
+            formatter.format("<mix>%.04f</mix>\n", result.mixRatio[i]);
             space(16, buffer);
             
             formatter.format("<requiredMix>%.04f</requiredMix>\n", targetMix);
             boolean passed = true;
-            double deviation = 100d * Math.abs(mixRatio[i] - targetMix);
+            double deviation = 100d * Math.abs(result.mixRatio[i] - targetMix);
             if (deviation > targetDev) {
                 passed = false;
                 success = false;
@@ -1051,16 +1047,18 @@ public class Metrics implements Serializable, Cloneable,
             if (txCntStdy[i] > 0) {
                 boolean pass90 = true;
                 space(16, buffer);
-                avg = (respSumStdy[i]/txCntStdy[i]) / precision;
-                formatter.format("<avg>%5.3f</avg>\n", avg);
+                result.avgResp[i] = (respSumStdy[i]/txCntStdy[i]) / precision;
+                formatter.format("<avg>%5.3f</avg>\n", result.avgResp[i]);
                 space(16, buffer);
-                formatter.format("<max>%5.3f</max>\n", respMax[i] / precision);
+                result.maxResp[i] = respMax[i] / precision;
+                formatter.format("<max>%5.3f</max>\n", result.maxResp[i]);
                 space(16, buffer);
-                formatter.format("<sd>%5.3f</sd>\n",
-                        Math.sqrt(sumSquaresStdy[i]/txCntStdy[i]) / precision);
+                result.respSD[i] = Math.sqrt(sumSquaresStdy[i]/txCntStdy[i]) /
+                                   precision;
+                formatter.format("<sd>%5.3f</sd>\n", result.respSD[i]);
 
                 if (logger.isLoggable(crosscheck)) {
-                    ckSD[i] = estimateStdev(i, avg, precision);
+                    ckSD[i] = estimateStdev(i, result.avgResp[i], precision);
                 }
 
                 sumtx = 0;
@@ -1084,12 +1082,15 @@ public class Metrics implements Serializable, Cloneable,
                     resp90 = 2 * coarseRespBucketSize + coarseRespHistMax;
 
                 space(16, buffer);
-                if (resp90 > coarseRespHistMax + coarseRespBucketSize)
+                if (resp90 > coarseRespHistMax + coarseRespBucketSize) {
+                    result.p90Resp[i] = coarseRespHistMax / precision;
                     formatter.format("<p90th>&gt; %5.3f</p90th>\n",
-                                     coarseRespHistMax / precision);
-                else
+                                     result.p90Resp[i]);
+                } else {
+                    result.p90Resp[i] = resp90 / precision;
                     formatter.format("<p90th>%5.3f</p90th>\n",
-                                     resp90 / precision);
+                                     result.p90Resp[i]);
+                }
                 if (resp90 > max90nanos) {
                     pass90 = false;
                     success = false;
@@ -1208,10 +1209,7 @@ public class Metrics implements Serializable, Cloneable,
         }
         space(8, buffer).append("</delayTimes>\n");
 
-        boolean resultInited = false;
         if (metricAttachments != null) {
-            Result.init(this); // Creates the result for the attachments to use.
-            resultInited = true;
             Set<Map.Entry<String, CustomMetrics>> entries =
                     metricAttachments.entrySet();
             for (Map.Entry<String, CustomMetrics> entry : entries) {
@@ -1277,10 +1275,6 @@ public class Metrics implements Serializable, Cloneable,
         }
 
         if (tableAttachments != null) {
-            if (!resultInited) {
-                Result.init(this); // Creates the result for the attachments.
-                resultInited = true;
-            }
             Set<Map.Entry<String, CustomTableMetrics>> entries =
                     tableAttachments.entrySet();
             for (Map.Entry<String, CustomTableMetrics> entry : entries) {
