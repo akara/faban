@@ -17,25 +17,28 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ServerConfig.java,v 1.15 2009/07/28 22:54:15 akara Exp $
+ * $Id: ServerConfig.java,v 1.16 2009/08/05 23:50:10 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.engine;
 
-import com.sun.faban.harness.common.Config;
-import com.sun.faban.harness.common.Run;
-import com.sun.faban.harness.ParamRepository;
-import com.sun.faban.harness.ConfigurationException;
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
+import com.sun.faban.harness.ConfigurationException;
+import com.sun.faban.harness.ParamRepository;
+import com.sun.faban.harness.common.Config;
+import com.sun.faban.harness.common.Run;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.rmi.RemoteException;
 import java.text.DateFormat;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.rmi.RemoteException;
 
 /**
  * Class: ServerConfig.java
@@ -234,28 +237,28 @@ class ServerConfig {
                 try {
                     // We first turn on all cpus, then turn off enough of them
                     // to get the required number
-                    String buf = Config.BIN_DIR + "fastsu /usr/sbin/psradm -a -n";
+                    Command cmd = new Command(Config.BIN_DIR + "fastsu", "/usr/sbin/psradm", "-a", "-n");
                     logger.config("Turning on all cpus on " + machines[j]);
-                    cmds.start(machines[j], buf, CmdService.SEQUENTIAL,
-                                                    Config.DEFAULT_PRIORITY);
+                    cmds.execute(machines[j], cmd);
 
-                    String tmpFile = Config.TMP_DIR + "sys.out";
-                    buf = "/usr/sbin/psrinfo > " + tmpFile;
+                    cmd = new Command("/usr/sbin/psrinfo");
+                    cmd.setStreamHandling(Command.STDOUT, Command.CAPTURE);
                     logger.fine("Getting cpus");
-                    cmds.start(machines[j], buf, CmdService.SEQUENTIAL,
-                                                    Config.DEFAULT_PRIORITY);
+                    CommandHandle handle = cmds.execute(machines[j], cmd);
+                    byte[] buffer = handle.fetchOutput(Command.STDOUT);
 
-                    if (cmds.get(machines[j], tmpFile, tmpFile)) {
-                        BufferedReader in =
-                                new BufferedReader(new FileReader(tmpFile));
+                    if (buffer != null) {
+                        StringTokenizer t =
+                                new StringTokenizer(new String(buffer), "\n");
 
                         ArrayList<Integer> cpuList = new ArrayList<Integer>();
                         boolean isMultiCore = false;
 
-                        while ((buf = in.readLine()) != null) {
+                        while (t.hasMoreTokens()) {
+                            String line = t.nextToken();
                             // build list of cpus
                             Integer cpuId = Integer.valueOf((
-                                    new StringTokenizer(buf)).nextToken().
+                                    new StringTokenizer(line)).nextToken().
                                     trim());
                             if((isMultiCore == false) &&
                                     (cpuId.intValue() > 511))
@@ -281,17 +284,20 @@ class ServerConfig {
                                 cpuList.size()/(isMultiCore ? 2 : 1));
 
                         // The remaining CPUs in the list have to be turned off.
-                        if (cpuList.size() > 0) {
-                            StringBuffer offline = new StringBuffer(" ");
-                            for(int k = 0; k < cpuList.size(); k++)
-                                offline.append(cpuList.get(k).toString()).
-                                        append(" ");
 
-                            logger.info("Off-lining CPUs " + offline);
-                            String cmd = Config.BIN_DIR +
-                                    "fastsu /usr/sbin/psradm -f " + offline;
-                            cmds.start(machines[j], cmd, CmdService.SEQUENTIAL,
-                                                        Config.HIGHER_PRIORITY);
+                        if (cpuList.size() > 0) {
+                            ArrayList<String> offlineCmd = new ArrayList<String>();
+                            offlineCmd.add(Config.BIN_DIR + "fastsu");
+                            offlineCmd.add("/usr/sbin/psradm");
+                            offlineCmd.add("-f");
+
+                            for(int k = 0; k < cpuList.size(); k++)
+                                offlineCmd.add(cpuList.get(k).toString());
+
+                            logger.info("Off-lining CPUs with command: " +
+                                    offlineCmd);
+                            cmd = new Command(offlineCmd);
+                            cmds.execute(machines[j], cmd);
                         }
                     }
                     else {

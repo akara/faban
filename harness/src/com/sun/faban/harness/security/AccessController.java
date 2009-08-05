@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AccessController.java,v 1.9 2009/07/21 22:54:49 sheetalpatil Exp $
+ * $Id: AccessController.java,v 1.10 2009/08/05 23:50:11 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -40,8 +40,6 @@ import java.util.logging.Logger;
  * control and therefore we implement our own simplified version.
  */
 public class AccessController {
-
-    static Logger logger = Logger.getLogger(AccessController.class.getName());
 
     /**
      * Checks whether the user can submit runs in at least one of the deployed

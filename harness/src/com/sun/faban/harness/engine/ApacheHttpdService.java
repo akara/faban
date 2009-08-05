@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ApacheHttpdService.java,v 1.8 2009/07/28 22:54:14 akara Exp $
+ * $Id: ApacheHttpdService.java,v 1.9 2009/08/05 23:50:10 akara Exp $
  *
  * Copyright 2007 Sun Microsystems Inc. All Rights Reserved
  */
@@ -26,6 +26,7 @@ package com.sun.faban.harness.engine;
 import com.sun.faban.common.Command;
 
 import com.sun.faban.common.CommandHandle;
+import com.sun.faban.common.Utilities;
 import com.sun.faban.harness.RemoteCallable;
 import com.sun.faban.harness.RunContext;
 import com.sun.faban.harness.WildcardFileFilter;
@@ -153,8 +154,11 @@ import java.util.logging.Logger;
                 Integer retVal = 0;
                 String msg = "resuming normal operations";
 
-                FileInputStream is = new FileInputStream(err);
-                BufferedReader bufR = new BufferedReader(new InputStreamReader(is));
+                // Ensure filenames are not impacted by path differences.
+                FileInputStream is = new FileInputStream(
+                        Utilities.convertPath(err));
+                BufferedReader bufR = new BufferedReader(
+                        new InputStreamReader(is));
 
                 // Just to make sure we don't wait for ever.
                 // We try to read the msg 120 times before we give up
@@ -266,8 +270,12 @@ import java.util.logging.Logger;
                 Integer retVal = 0;
                 // Read the log file to make sure the server has shutdown
                 String msg = "shutting down";
-                FileInputStream is = new FileInputStream(err);
-                BufferedReader bufR = new BufferedReader(new InputStreamReader(is));
+
+                // Ensure filenames are not impacted by path differences.
+                FileInputStream is = new FileInputStream(
+                        Utilities.convertPath(err));
+                BufferedReader bufR = new BufferedReader(
+                        new InputStreamReader(is));
 
                 // Just to make sure we don't wait for ever.
                 // We try to read the msg 60 times before we give up

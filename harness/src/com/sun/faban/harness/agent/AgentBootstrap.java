@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentBootstrap.java,v 1.23 2009/07/28 22:54:13 akara Exp $
+ * $Id: AgentBootstrap.java,v 1.24 2009/08/05 23:50:10 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -57,7 +57,6 @@ public class AgentBootstrap {
     static AgentSocketFactory socketFactory;
     static String progName;
     static boolean daemon = false;
-    static boolean agentsAreUp = false;
     static String host;
     static String ident;
     static String master;
@@ -120,20 +119,34 @@ public class AgentBootstrap {
          */
         try {
             ServerSocket serverSocket = new ServerSocket(daemonPort);
-            byte[] buffer = new byte[8192];
             for (;;) {
                 Socket socket = serverSocket.accept();
-                InputStream in = socket.getInputStream();
+                ObjectInputStream in =
+                        new ObjectInputStream(socket.getInputStream());
                 OutputStream out = socket.getOutputStream();
-                int length = in.read(buffer);
+                ArrayList<String> argList = null;
+                try {
+                    argList = (ArrayList<String>) in.readObject();
+                } catch (ClassNotFoundException e) {
+                    System.err.println("WARNING: Object class not found.");
+                    e.printStackTrace();
+                    continue;
+                }
+                int length = argList.size();
                 if (length > 0) {
-                    String argLine = new String(buffer, 0, length);
-                    System.out.println("Agent(Daemon) starting agent with options: " +
-                                                                    argLine);
-                    String[] args = argLine.split(" ");
-                    if (args.length < 4) {
+                    System.out.println("Agent(Daemon) starting agent with " +
+                            "options: " + argList);
+                    Utilities.masterPathSeparator = argList.remove(--length);
+                    Utilities.masterFileSeparator = argList.remove(--length);
+
+                    if (length < 4) {
                        out.write("400 ERROR: Inadequate params.".getBytes());
+                       continue;
                     }
+
+                    String[] args = new String[length];
+                    args = argList.toArray(args);
+
                     try {
                         startAgents(args);
                         out.write("200 OK".getBytes());
@@ -224,13 +237,13 @@ public class AgentBootstrap {
                 } else if (isClassPath) {
                     String[] cp = pathSplit(args[i]);
                     for (String cpElement : cp)
-                        extClassPath.add(cpElement);
+                        extClassPath.add(Utilities.convertPath(cpElement));
                     isClassPath = false;
                 } else if (args[i].startsWith(libPrefix)) {
                     String[] lp = pathSplit(
                             args[i].substring(libPrefix.length()));
                     for (String lpElement : lp)
-                        libPath.add(lpElement);
+                        libPath.add(Utilities.convertPath(lpElement));
                 } else {
                     jvmOptions.add(args[i]);
                 }

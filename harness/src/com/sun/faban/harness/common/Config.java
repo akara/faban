@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.34 2009/07/28 22:54:14 akara Exp $
+ * $Id: Config.java,v 1.35 2009/08/05 23:50:10 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -191,9 +191,6 @@ public class Config {
     /** The directory containing analysis output. */
     public static String ANALYSIS_DIR;
 
-    /** The directory containing the tag data. */
-    public static String TAGDB_DIR;
-
     /** The name of the sequence file. */
     public static String SEQUENCE_FILE;
 
@@ -206,9 +203,6 @@ public class Config {
 
     /** The directory containing user profiles. */
     public static String PROFILES_DIR;
-
-    /** The URL to the context, initialized only on master process. */
-    public static String CONTEXT_URL;
 
     // space before and after string are required in next line
     // Constant used by engine.CmdService
@@ -385,7 +379,6 @@ public class Config {
         LIB_DIR = FABAN_HOME + "lib" + File.separator;
         OUT_DIR = FABAN_HOME + "output" + File.separator;
         ANALYSIS_DIR = FABAN_HOME + "analysis" + File.separator;
-        TAGDB_DIR = FABAN_HOME + "tags" + File.separator;
         CONFIG_DIR = FABAN_HOME + "config" + File.separator;
         RUNQ_DIR = CONFIG_DIR  + "runq" + File.separator;
         SEQUENCE_FILE = CONFIG_DIR  + "sequence";

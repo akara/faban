@@ -43,7 +43,6 @@ public class XformsGenerator {
 
     static Document doc;
     static int idCount = 0;
-    static boolean hasMoreElements = false;
     static ArrayList idStack = new ArrayList();
     static ArrayList labelsStack = new ArrayList();
     static StringBuilder xformsBindBuffer;

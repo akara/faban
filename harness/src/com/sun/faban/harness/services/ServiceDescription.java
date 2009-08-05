@@ -32,8 +32,6 @@ import java.util.logging.Logger;
 public class ServiceDescription implements Serializable {
 
     private static final long serialVersionUID = 20090504L;
-    static final Logger logger = Logger.getLogger(
-            ServiceDescription.class.getName());
 
     /** The service identifier. */
     public String id;

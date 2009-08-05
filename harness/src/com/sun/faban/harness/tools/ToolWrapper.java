@@ -51,8 +51,6 @@ public class ToolWrapper {
             Logger.getLogger(ToolWrapper.class.getName());
 
     Object tool;
-    Method collectDataMethod;
-    Method serviceMethod;
     Method startMethod;
     Method stopMethod;
     Method configureMethod;
@@ -89,16 +87,6 @@ public class ToolWrapper {
         Method[] methods = toolClass.getMethods();
         for (Method method : methods) {
             // Check annotation.
-            if (method.getAnnotation(CollectData.class) != null) {
-                if (!conformsToSpec(method))
-                    continue;
-                if (collectDataMethod == null) {
-                    collectDataMethod = method;
-                } else {
-                    logger.severe("Error: Multiple @CollectData methods.");
-                }
-            }
-            
             if (method.getAnnotation(Start.class) != null) {
                 if (!conformsToSpec(method))
                     continue;
@@ -177,16 +165,6 @@ public class ToolWrapper {
             } else {
                 throw e;
             }
-    }
-
-    private void collectData() throws Exception {
-        if (collectDataMethod != null){
-            try {
-                collectDataMethod.invoke(tool,new Object[] {});
-            } catch (InvocationTargetException e) {
-                throwSourceException(e);
-            }
-        }
     }
 
     private void configure() throws Exception {

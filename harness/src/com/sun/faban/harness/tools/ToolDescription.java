@@ -35,8 +35,6 @@ import java.util.logging.Logger;
 public class ToolDescription implements Serializable {
 
     private static final long serialVersionUID = 20090504L;
-    static final Logger logger =
-            Logger.getLogger(ToolDescription.class.getName());
 
     String id;
     String toolClass;

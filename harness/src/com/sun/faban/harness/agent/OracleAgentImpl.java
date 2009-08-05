@@ -17,22 +17,23 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: OracleAgentImpl.java,v 1.4 2009/07/28 22:54:13 akara Exp $
+ * $Id: OracleAgentImpl.java,v 1.5 2009/08/05 23:50:10 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */package com.sun.faban.harness.agent;
 
+import com.sun.faban.common.Command;
+import com.sun.faban.common.CommandHandle;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.Run;
 
 import java.io.File;
-import java.io.IOException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.rmi.server.Unreferenced;
-import java.util.Properties;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -225,21 +226,31 @@ import java.util.logging.Logger;
         catch (RemoteException re) {
         }
         try {
-            cmdAgent.start("/bin/chmod a+x " + ORACLE_SCRIPT, Config.DEFAULT_PRIORITY);
+            Command c = new Command("/bin/chmod", "a+x", ORACLE_SCRIPT);
+            CommandHandle h = cmdAgent.execute(c);
+            int exitValue = h.exitValue();
+            if (exitValue != 0) {
+                logger.severe("Could not change mode for "+ ORACLE_SCRIPT +
+                        ". Exit value for chmod is " + exitValue);
+            }
         }
         catch (Exception e) {
-            logger.severe("Could not change mode of " + ORACLE_SCRIPT  + " : " + e.toString());
+            logger.severe("Could not change mode of " + ORACLE_SCRIPT  + " : " +
+                    e.toString());
         }
 
         logger.fine("Executing command " + sqlCmd);
 
-        boolean retVal = cmdAgent.start(ORACLE_SCRIPT, Config.DEFAULT_PRIORITY);
-
-        if (retVal) {
+        Command c = new Command(ORACLE_SCRIPT);
+        CommandHandle h = cmdAgent.execute(c);
+        int exitValue = h.exitValue();
+        boolean retVal;
+        if (exitValue == 0) {
             logger.fine("Command executed successfully");
-        }
-        else {
+            retVal = true;
+        } else {
             logger.warning("Could not execute command " + sqlCmd);
+            retVal = false;
         }
         return retVal;
     }
@@ -273,7 +284,13 @@ import java.util.logging.Logger;
         }
 
         try {
-            cmdAgent.start("/bin/chmod a+x " + ORACLE_SCRIPT, Config.DEFAULT_PRIORITY);
+            Command c = new Command("/bin/chmod", "a+x", ORACLE_SCRIPT);
+            CommandHandle h = cmdAgent.execute(c);
+            int exitValue = h.exitValue();
+            if (exitValue != 0) {
+                logger.severe("Could not change mode for "+ ORACLE_SCRIPT +
+                        ". Exit value for chmod is " + exitValue);
+            }
         }
         catch (Exception e) {
             logger.severe("Could not change mode of " + ORACLE_SCRIPT + " : " + e);
@@ -282,12 +299,16 @@ import java.util.logging.Logger;
 
         logger.fine("Executing command " + cmd);
 
-        boolean retVal = cmdAgent.start(ORACLE_SCRIPT, Config.DEFAULT_PRIORITY);
-        if (retVal) {
+        Command c = new Command(ORACLE_SCRIPT);
+        CommandHandle h = cmdAgent.execute(c);
+        int exitValue = h.exitValue();
+        boolean retVal;
+        if (exitValue == 0) {
             logger.info("Listener started.");
-        }
-        else {
+            retVal = true;
+        } else {
             logger.warning("Could not start the Listener");
+            retVal = false;
         }
         return retVal;
     }
@@ -320,7 +341,13 @@ import java.util.logging.Logger;
             logger.log(Level.FINE, "Exception", re);
         }
         try {
-            cmdAgent.start("/bin/chmod a+x " + ORACLE_SCRIPT, Config.DEFAULT_PRIORITY);
+            Command c = new Command("/bin/chmod", "a+x", ORACLE_SCRIPT);
+            CommandHandle h = cmdAgent.execute(c);
+            int exitValue = h.exitValue();
+            if (exitValue != 0) {
+                logger.severe("Could not change mode for "+ ORACLE_SCRIPT +
+                        ". Exit value for chmod is " + exitValue);
+            }
         }
         catch (Exception e) {
             logger.severe("Could not change mode of " + ORACLE_SCRIPT + " : " + e);
@@ -329,13 +356,16 @@ import java.util.logging.Logger;
 
         logger.fine("Executing command " + cmd);
 
-        boolean retVal = cmdAgent.start(ORACLE_SCRIPT, Config.DEFAULT_PRIORITY);
-        listenerRunning = false;
-        if (retVal) {
+        Command c = new Command(ORACLE_SCRIPT);
+        CommandHandle h = cmdAgent.execute(c);
+        int exitValue = h.exitValue();
+        boolean retVal;
+        if (exitValue == 0) {
             logger.info("Listener stopped");
-        }
-        else {
+            retVal = true;
+        } else {
             logger.warning("Could not stop the Listener");
+            retVal = false;
         }
         return retVal;
     }
@@ -348,9 +378,9 @@ import java.util.logging.Logger;
      */
     public boolean checkListenerStatus() throws Exception {
 
-        String cmd = oracleHome + "/bin/lsnrctl status";
+        Command cmd = new Command(oracleHome + "/bin/lsnrctl",  "status");
 
-        cmdAgent.start(cmd, Config.DEFAULT_PRIORITY);
+        cmdAgent.execute(cmd);
 
         return true;
 

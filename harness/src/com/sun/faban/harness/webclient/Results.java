@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Results.java,v 1.8 2009/07/21 22:54:48 sheetalpatil Exp $
+ * $Id: Results.java,v 1.9 2009/08/05 23:50:12 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -44,8 +44,6 @@ import javax.servlet.http.HttpSession;
  * @author akara
  */
 public class Results {
-    private static Logger logger =
-        Logger.getLogger(Results.class.getName());
     private static SimpleDateFormat formatOrig =
             new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 

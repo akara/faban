@@ -17,7 +17,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: ResultAction.java,v 1.16 2009/07/28 22:54:17 akara Exp $
+* $Id: ResultAction.java,v 1.17 2009/08/05 23:50:12 akara Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 */
@@ -28,25 +28,25 @@ import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.RunId;
 import com.sun.faban.harness.util.FileHelper;
-import static com.sun.faban.harness.util.FileHelper.*;
-import java.text.ParseException;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.multipart.FilePart;
+import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
+import org.apache.commons.httpclient.methods.multipart.Part;
+import org.apache.commons.httpclient.methods.multipart.StringPart;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.Set;
-import java.util.HashSet;
-import java.net.URL;
-import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.StringTokenizer;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.methods.MultipartPostMethod;
-import org.apache.commons.httpclient.methods.PostMethod;
+
+import static com.sun.faban.harness.util.FileHelper.*;
 
 /**
  * Controller handling actions from the result list screen.
@@ -178,8 +178,8 @@ public class ResultAction {
         return existingRuns;
     }*/
 
-    private String editResultInfo(String runID) throws FileNotFoundException,
-                                                IOException, ParseException {
+    private String editResultInfo(String runID)
+            throws FileNotFoundException, IOException {
         RunId runId = new RunId(runID);
         String ts = null;
         String[] status = new String[2];
@@ -215,7 +215,7 @@ public class ResultAction {
     }
 
     private Set<String> checkArchivedRuns(String[] runIds) throws
-                            FileNotFoundException, IOException, ParseException {
+                            FileNotFoundException, IOException {
         HashSet<String> existingRuns = new HashSet<String>();
         String[] runIdTimeStamps = new  String[runIds.length];
         for (int r=0; r< runIds.length ; r++){
@@ -233,7 +233,8 @@ public class ResultAction {
                 post.addParameter("ts",ts);
             }
             HttpClient client = new HttpClient();
-            client.setConnectionTimeout(5000);
+            client.getHttpConnectionManager().getParams().
+                    setConnectionTimeout(5000);
             int status = client.executeMethod(post);
             if (status != HttpStatus.SC_OK)
                 logger.info("SC_OK not ok");
@@ -545,38 +546,50 @@ public class ResultAction {
      * @throws java.io.IOException
      */
     public static HashSet<String> uploadRuns(HashSet<File> uploadSet,
-                               HashSet<String> replaceSet) throws IOException {
+                                             HashSet<String> replaceSet)
+            throws IOException {
         // 3. Upload the run
         HashSet<String> duplicates = new HashSet<String>();
-        for (URL repository : Config.repositoryURLs) {
-           URL repos = new URL(repository, "/controller/uploader/upload_runs");
-           MultipartPostMethod post = new MultipartPostMethod(repos.toString());
-           post.addParameter("host",Config.FABAN_HOST);
-           for (String replaceId : replaceSet){
-                post.addParameter("replace", replaceId);
-           }
-           for (File jarFile : uploadSet) {
-                post.addParameter("jarfile", jarFile);
-           }
-           HttpClient client = new HttpClient();
-           client.setConnectionTimeout(5000);
-           int status = client.executeMethod(post);
 
-           if (status == HttpStatus.SC_FORBIDDEN)
+        // Prepare the parts for the request.
+        ArrayList<Part> params = new ArrayList<Part>();
+        params.add(new StringPart("host", Config.FABAN_HOST));
+        for (String replaceId : replaceSet) {
+            params.add(new StringPart("replace", replaceId));
+        }
+        for (File jarFile : uploadSet) {
+            params.add(new FilePart("jarfile", jarFile));
+        }
+        Part[] parts = new Part[params.size()];
+        parts = params.toArray(parts);
+
+        // Send the request for each reposotory.
+        for (URL repository : Config.repositoryURLs) {
+            URL repos = new URL(repository, "/controller/uploader/upload_runs");
+            PostMethod post = new PostMethod(repos.toString());
+            post.setRequestEntity(
+                    new MultipartRequestEntity(parts, post.getParams()));
+
+            HttpClient client = new HttpClient();
+            client.getHttpConnectionManager().getParams().
+                    setConnectionTimeout(5000);
+            int status = client.executeMethod(post);
+
+            if (status == HttpStatus.SC_FORBIDDEN)
                 logger.severe("Server denied permission to upload run !");
-           else if (status == HttpStatus.SC_NOT_ACCEPTABLE)
+            else if (status == HttpStatus.SC_NOT_ACCEPTABLE)
                 logger.severe("Run origin error!");
-           else if (status != HttpStatus.SC_CREATED)
+            else if (status != HttpStatus.SC_CREATED)
                 logger.severe("Server responded with status code " +
                         status + ". Status code 201 (SC_CREATED) expected.");
-           for (File jarFile : uploadSet) {
+            for (File jarFile : uploadSet) {
                 jarFile.delete();
-           }
-           String response = post.getResponseBodyAsString();
-           StringTokenizer t = new StringTokenizer(response.trim(),"\n");
-           while (t.hasMoreTokens()) {
+            }
+            String response = post.getResponseBodyAsString();
+            StringTokenizer t = new StringTokenizer(response.trim(),"\n");
+            while (t.hasMoreTokens()) {
                 duplicates.add(t.nextToken().trim());
-           }
+            }
         }
         return duplicates;
     }

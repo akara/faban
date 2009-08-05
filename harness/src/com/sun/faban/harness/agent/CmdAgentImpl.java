@@ -17,16 +17,13 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgentImpl.java,v 1.30 2009/07/28 22:54:13 akara Exp $
+ * $Id: CmdAgentImpl.java,v 1.31 2009/08/05 23:50:10 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.agent;
 
-import com.sun.faban.common.Command;
-import com.sun.faban.common.CommandChecker;
-import com.sun.faban.common.CommandHandle;
-import com.sun.faban.common.Registry;
+import com.sun.faban.common.*;
 import com.sun.faban.harness.RemoteCallable;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.util.CmdMap;
@@ -67,10 +64,6 @@ public class CmdAgentImpl extends UnicastRemoteObject
 
     private static Logger logger =
             Logger.getLogger(CmdAgentImpl.class.getName());
-
-    // This is actually deprecated. The field is responsible for old style
-    // ident based executions.
-    private final Map processMap = Collections.synchronizedMap(new HashMap());
 
     private final List<CommandHandle> handleList = Collections.synchronizedList(
                                                 new ArrayList<CommandHandle>());
@@ -220,83 +213,6 @@ public class CmdAgentImpl extends UnicastRemoteObject
     }
 
     /**
-     * This method is responsible for starting a java cmd in background.
-     * @param cmd args and class to start the JVM
-     * @param identifier to associate with this command
-     * @param env in which to run command
-     * @return 	true if command started successfully
-     * @throws Exception An error occurred
-     */
-    public boolean startJavaCmd(String cmd, String identifier, String[] env)
-            throws Exception {
-        return startJavaCmd(cmd, identifier, env, null);
-    }
-
-    /**
-     * This method is responsible for starting a java cmd in background.
-     * @param cmd args and class to start the JVM
-     * @param identifier to associate with this command
-     * @param env in which to run command
-     * @param classPath the class path to prepend to the base class path
-     * @return 	true if command started successfully
-     * @throws Exception An error occurred
-     */
-    public boolean startJavaCmd(String cmd, String identifier, String[] env,
-                                String[] classPath) throws Exception {
-
-        Process p;
-        ArrayList<String> cmds = new ArrayList<String>();
-        cmds.add(AgentBootstrap.javaHome + File.separator + "bin" +
-                                            File.separator + "java");
-        cmds.addAll(AgentBootstrap.jvmOptions);
-
-        cmds.add("-cp");
-
-        StringBuilder buf = new StringBuilder();
-        boolean falseEnding = false;
-        if (classPath != null)
-            for (int i = 0; i < classPath.length; i++) {
-                buf.append(classPath[i]);
-                buf.append(File.pathSeparator);
-                falseEnding = true;
-            }
-        for (int i = 0; i < baseClassPath.length; i++) {
-            buf.append(baseClassPath[i]);
-            buf.append(File.pathSeparator);
-            falseEnding = true;
-        }
-        if (falseEnding)
-            buf.setLength(buf.length() - File.pathSeparator.length());
-
-        cmds.add(buf.toString());
-
-        if (libPath != null)
-            cmds.add(libPath);
-
-        cmds.addAll(Command.parseArgs(cmd));
-
-        try {
-            logger.fine("Starting Java " + cmd);
-            ProcessBuilder b = new ProcessBuilder(cmds);
-            p = b.start();
-        }
-        catch (IOException e) {
-            p = null;
-            logger.log(Level.WARNING, "Command " + cmd + " failed.", e);
-            throw e;
-        }
-        processLogs(p);
-        if (p != null) {
-            processMap.put(identifier,
-                    new CmdProcess(identifier, p, processLogs(p)));
-
-            return true;
-        }
-        else
-            return false;
-    }
-
-    /**
      * Registers and starts agent.
      * @param agentClass The agent class
      * @param identifier The agent id
@@ -317,322 +233,9 @@ public class CmdAgentImpl extends UnicastRemoteObject
     }
 
     /**
-     * This method is responsible for starting up the specified command
-     * in background.
-     * The stderr from command is captured and logged to the errorlog.
-     * @param cmd - actual command to execute
-     * @param identifier	- String to identify this command later null if you don't want to do wait
-     *              or kill the process when the cmdAgent exits.
-     * @param priority to run command in
-     * @return true if the command started successfully, false otherwise
-     * @throws Exception An error occurred
-     */
-    public boolean start (String cmd, String identifier, int priority)
-            throws Exception {
-
-        Process p = createProcess(cmd, priority);
-        if (p != null) {
-            if(identifier != null)
-                processMap.put(identifier,
-                        new CmdProcess(identifier, p, processLogs(p)));
-            return(true);
-        }
-        else
-            return false;
-    }
-
-    /**
-     * Start command in background and wait for the specified message.
-     * @param cmd to be started
-     * @param ident to identify this command later null if you don't want to do wait
-     *              or kill the process when the cmdAgent exits.
-     * @param msg message to which wait for
-     * @param priority (default or higher priority) for command
-     * @return true if the command started successfully, false otherwise
-     * @throws Exception An error occurred
-     */
-    public boolean start(String cmd, String ident, String msg, int priority)
-            throws Exception {
-
-        boolean ret = false;
-
-        Process p = createProcess(cmd, priority);
-        if (p != null) {
-            try {
-                InputStream is = p.getInputStream();
-                BufferedReader bufR = new BufferedReader(new InputStreamReader(is));
-
-                // Just to make sure we don't wait for ever.
-                // We try for 1000 times to read before we give up
-                int attempts = 1000;
-                while(attempts-- > 0) {
-                    // make sure we don't block
-                    if(is.available() > 0) {
-                        String s = bufR.readLine();
-                        if((s !=  null) && (s.indexOf(msg) != -1)) {
-                            ret = true;
-                            break;
-                        }
-                    }
-                    else {
-                        try {
-                            Thread.sleep(100);
-                        } catch(Exception e){
-                            break;
-                        }
-                    }
-                }
-                bufR.close();
-            }
-            catch (Exception e){}
-
-            if(ident != null) {
-                processMap.put(ident,
-                        new CmdProcess(ident, p, processLogs(p)));
-            } // else we don't want to wait or kill this process later.
-        }
-        return(ret);
-    }
-    /**
-     * This method is responsible for starting the command in background
-     * and returning the first line of output.
-     * @param cmd command to start
-     * @param identifier to associate with this command, null if you don't want to do wait
-     *              or kill the process when the cmdAgent exits.
-     * @param priority in which to run command
-     * @return The first line of output from the command
-     * @throws Exception An error occurred
-     */
-    public String startAndGetOneOutputLine(String cmd, String identifier,
-                                           int priority) throws Exception {
-
-        String retVal = null;
-
-        Process p = createProcess(cmd, priority);
-        if (p != null) {
-            try {
-                BufferedReader bufR = new BufferedReader(
-                        new InputStreamReader(p.getInputStream()));
-                retVal = bufR.readLine();
-            }
-            catch (Exception e){}
-
-            if(identifier != null) {
-                processMap.put(identifier,
-                        new CmdProcess(identifier, p, processLogs(p)));
-            }
-        }
-        return(retVal);
-    }
-
-    /**
-     * This method starts a command in foreground
-     * The stderr from command is captured and logged to the errorlog.
-     * @param cmd : command to be started
-     * @param priority - class in which cmd should be run
-     * @return true if command completed successfully
-     * @throws Exception An error occurred
-     */
-    public boolean start (String cmd, int priority) throws Exception {
-        boolean status = false;
-        Process p = createProcess(cmd, priority);
-
-        String errfile = processLogs(p);
-
-        /* Since this is in foreground, wait for it to complete */
-        try {
-            p.waitFor();
-        }
-        catch (InterruptedException ie) {
-            /* If we are interrupted, we were probably sent the kill signal */
-            p.destroy();
-        }
-
-        /* Now xfer logs (if any) */
-        xferLogs(errfile, cmd);
-
-        // Look at the exit value
-        if(p.exitValue() == 0)
-            status = true;
-
-        return(status);
-    }
-
-    /**
-     * This method starts a command in foreground
-     * The stdout from command is captured and returned.
-     * @param cmd : command to be started
-     * @param priority - class in which cmd should be run
-     * @return The standard output of the command
-     * @throws Exception An error occurred
-     */
-    public String startAndGetStdOut (String cmd, int priority)
-            throws Exception {
-        int readSize = 0;
-        int errReadSize = 0;
-        InputStream in,err;
-        byte[] buffer = new byte[8096];
-        StringBuffer std_out = new StringBuffer();
-        StringBuffer std_err = new StringBuffer();
-        Process p = createProcess(cmd, priority);
-
-        in = p.getInputStream();
-        err = p.getErrorStream();
-
-        // std_err.append(cmd);
-        // std_err.append("\nstderr:\n");
-
-        boolean outClosed = false;
-        boolean errClosed = false;
-        for (;;) {
-            if (!outClosed && (readSize = in.read(buffer)) > 0)
-                std_out.append(new String(buffer, 0, readSize));
-            if (!outClosed && readSize < 0)
-                outClosed = true;
-            if (!errClosed && (errReadSize = err.read(buffer)) > 0)
-                std_err.append(new String(buffer, 0, errReadSize));
-            if (!errClosed && errReadSize < 0)
-                errClosed = true;
-            if (outClosed && errClosed)
-                break;
-        }
-        logger.info(cmd + "\nstdout:\n" + std_out + "\nstderr:\n" + std_err);
-        /* Since this is in foreground, wait for it to complete */
-        try {
-            p.waitFor();
-            int exitValue = p.exitValue();
-            if (exitValue != 0) {
-                logger.info("Warning: " + "Command exited with exit value - " + exitValue );
-            }
-        } catch (InterruptedException e) {
-            /* If we are interrupted, we were probably sent the kill signal */
-            p.destroy();
-        }
-        in.close();
-        err.close();
-        return(std_out.toString());
-    }
-
-
-    /**
-     * This method runs a script in foreground
-     * The stderr from command is captured and logged to the errorlog.
-     * @param cmd to be started
-     * @param priority - class in which cmd should be run
-     * @return boolean true if command completed successfully
-     * @throws Exception An error occurred
-     */
-    public boolean runScript (String cmd, int priority) throws Exception {
-        return start(cmd, priority);
-    }
-
-    /**
-     * This method is responsible for waiting for a command started
-     * earlier in background.
-     * @param identifier with which this cmd was started
-     * @return true if the command started successfully, false otherwise
-     * @throws Exception An error occurred
-     */
-    public boolean wait(String identifier) throws Exception {
-        boolean status;
-        CmdProcess cproc = (CmdProcess) processMap.get(identifier);
-        if (cproc == null) {
-            Exception e = new Exception(AgentBootstrap.ident + " wait " + identifier + " : No such identifier");
-            logger.throwing(AgentBootstrap.ident, "wait", e);
-            throw e;
-        }
-        logger.fine("Waiting for Command Identifier " + identifier);
-
-        // Make sure nobody else is waiting for it.
-        synchronized (cproc) {
-            try {
-                cproc.process.waitFor();
-            }
-            catch (InterruptedException ie) {
-                cproc.process.destroy();
-            }
-            /* Now xfer logs (if any)*/
-            xferLogs(cproc.logs, cproc.ident);
-
-            if(cproc.process.exitValue() == 0)
-                status = true;
-            else
-                status = false;
-        }
-
-        /* Remove this command from our cache */
-        processMap.remove(cproc.ident);
-
-        return(status);
-    }
-
-    /**
-     * This method kills off the process specified.
-     * @param identifier The process identifier
-     */
-    public void kill(String identifier) {
-        CmdProcess cproc = (CmdProcess) processMap.remove(identifier);
-        if (cproc == null)
-            // Such process no longer exists.
-            return;
-
-        cproc.process.destroy();
-
-        /* Now xfer logs (if any) to status and error logs*/
-        xferLogs(cproc.logs, cproc.ident);
-    }
-
-    /**
-     * This method is responsible for aborting a command using the killem
-     * script.
-     * @param  identifier for the process. null if not started through
-     *               command service.
-     * @param processString search string to grep the process while killing
-     *                      (same as in killem)
-     * @param sigNum the signal number to be used to kill.
-     * @throws IOException An I/O error occurred
-     */
-    public void killem (String identifier, String processString, int sigNum)
-            throws IOException {
-
-        CmdProcess cproc = (CmdProcess) processMap.remove(identifier);
-        Object sync = cproc;
-        if (cproc == null)
-            sync = this;
-
-        // use exec to avoid creating another process
-        String s = "exec " + Config.BIN_DIR + "perfkillem " +
-                processString + " -y -" + sigNum;
-
-        synchronized (sync) {
-            logger.warning("Killing process with command " + s);
-
-            try {
-                Process p = createProcess(s, Config.DEFAULT_PRIORITY);
-                p.waitFor();
-            }
-            catch (InterruptedException ie){
-            }
-            catch (Exception e) {
-                logger.log(Level.WARNING, "Killem failed.", e);
-            }
-        }
-    }
-
-    /**
      * Kill off all processes started.
      */
     public void kill() {
-        // Use an array of Idents as the vector gets manipulated by the kill(ident) call
-        synchronized (processMap) {
-            String[] keys = new String[processMap.size()];
-            keys = (String[]) processMap.keySet().toArray(keys);
-            for (int i = 0; i < keys.length; i++) {
-                if (keys[i] != null)
-                    kill(keys[i]);
-            }
-        }
-
         // Now iterate the handle list and kill'em all.
         synchronized (handleList) {
             for (CommandHandle handle : handleList) {
@@ -772,141 +375,15 @@ public class CmdAgentImpl extends UnicastRemoteObject
         return AgentBootstrap.master;
     }
 
-    private Process createProcess(String cmd, int priority) throws Exception {
-        Process p;
-        List<String> cmds = Command.parseArgs(cmd);
-
-        cmds = checkCommand(cmds);
-
-        ArrayList<String> args = new ArrayList<String>();
-        args.add("priocntl");
-        args.add("-e");
-        args.add("-c");
-        args.add(priority == Config.DEFAULT_PRIORITY ? "TS" : "RT");
-        args.add("sh");
-        args.add("-c");
-        args.addAll(cmds);
-
-        try {
-            logger.fine("Starting Command : " + cmd );
-            ProcessBuilder b = new ProcessBuilder(args);
-            p = b.start();
-        } catch (IOException ie) {
-            p = null;
-            logger.log(Level.WARNING, "Command " + cmd + " failed.", ie);
-            throw ie;
+    // Convert command and arguments to use OS-specific paths, if applicable.
+    private static void convertCommand(List<String> cmd) {
+        int size = cmd.size();
+        for (int i = 0; i < size; i++) {
+            String arg = cmd.get(i);
+            String converted = Utilities.convertPath(arg);
+            if (converted != arg) // Conversion is actually done.
+                cmd.set(i, converted);
         }
-        return p;
-    }
-
-    /**
-     * Method that handles errors from commands
-     * This method captures any messages on stderr and
-     * stdout of the given Process and logs them.
-     * @param proc Process whose stderr needs to be logged
-     * @return filename in which errors are logged
-     */
-    private String processLogs(Process proc)
-    {
-        InputStream err = proc.getErrorStream();
-        InputStream log = proc.getInputStream();
-        // Create a unique temporary log file in tmp dir
-        String errFile =
-                Config.TMP_DIR + "cmd" + proc.hashCode();
-        String logFile = errFile + "-out";
-
-        // Create Log writer for errors
-        try {
-            new LogWriter(err, errFile);
-        }
-        catch (IOException ie) {
-            logger.warning("Could not write to " + errFile);
-            return(null);
-        }
-
-        // Create Log writer for stdout
-        try {
-            new LogWriter(log, logFile);
-        }
-        catch (IOException ie) {
-            try {
-                logger.warning("Could not write to " + logFile);
-            }
-            catch (Exception e){}
-        }
-
-        logger.fine("Created Error File " + errFile);
-        logger.fine("Created Log File " + logFile);
-        return errFile;
-    }
-
-    /**
-     * This method saves messages on stderr of the given
-     * Process and logs them to the errorlog.
-     * @param errFile Filename of the stderr log
-     * @param cmd command which generated errors
-     * @return true if the transfer was successful, false otherwise
-     */
-    private boolean xferLogs(String errFile, String cmd) {
-        boolean status = true;
-        // First check if file has any  error messages
-        File f = new File(errFile);
-        if (f.exists() && f.canRead()) {
-            try {
-                StringBuffer buf = new StringBuffer();
-                BufferedReader in = new BufferedReader(new FileReader(f));
-                String line = in.readLine();
-                if (line != null) {
-                    // Create entry in log identifying source of errors
-                    buf.append(cmd);
-                    buf.append("\nstderr:\n");
-
-                    // Loop, logging messages
-                    while (line != null) {
-                        buf.append("\n          " + line);
-                        line = in.readLine();
-                    }
-                    logger.warning(buf.toString());
-                    status = false;
-                }
-                in.close();
-                f.delete();
-            }
-            // We don't bother with exceptions as none of these should occur
-            catch (SecurityException se){}
-            catch (FileNotFoundException fe){}
-            catch (IOException ie){}
-        }
-
-        // Copy std out
-        // First check if file has any message
-        f = new File(errFile + "-out");
-        if (f.exists() && f.canRead()) {
-            try {
-                StringBuffer buf = new StringBuffer();
-                BufferedReader in = new BufferedReader(new FileReader(f));
-                String line = in.readLine();
-                if (line != null) {
-                    // Create entry in ststus log identifying source of messages
-                    buf.append(cmd);
-                    buf.append("\nstdout:\n");
-
-                    // Loop, logging messages
-                    while (line != null) {
-                        buf.append("\n          " + line);
-                        line = in.readLine();
-                    }
-                    logger.info(buf.toString());
-                }
-                in.close();
-                f.delete();
-            }
-                    // We don't bother with exceptions as none of these should occur
-            catch (SecurityException se){}
-            catch (FileNotFoundException fe){}
-            catch (IOException ie){}
-        }
-        return status;
     }
 
     /**
@@ -915,6 +392,9 @@ public class CmdAgentImpl extends UnicastRemoteObject
      * @return The checked command
      */
     public List<String> checkCommand(List<String> cmd) {
+
+        convertCommand(cmd);
+
         String bin = cmd.get(0);
         if (bin.indexOf(File.separator) == -1) { // not an absolute path
             List<String> mods = binMap.get(bin);
@@ -952,6 +432,8 @@ public class CmdAgentImpl extends UnicastRemoteObject
      * @return The completed java command
      */
     public List<String> checkJavaCommand(List<String> cmd) {
+
+        convertCommand(cmd);
 
         if (javaCmd == null) { // Initialize javaCmd if needed.
             javaCmd = new ArrayList<String>();

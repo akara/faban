@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CLI.java,v 1.3 2008/01/15 08:02:52 akara Exp $
+ * $Id: CLI.java,v 1.4 2009/08/05 23:50:12 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -27,8 +27,11 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.MultipartPostMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.multipart.FilePart;
+import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
+import org.apache.commons.httpclient.methods.multipart.Part;
+import org.apache.commons.httpclient.methods.multipart.StringPart;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -215,23 +218,29 @@ public class CLI {
                        ArrayList<String> argList) throws IOException {
         String url = master + argList.get(0) + '/' + argList.get(1) + '/' +
                      argList.get(2);
-        MultipartPostMethod post = new MultipartPostMethod(url);
+        ArrayList<Part> params = new ArrayList<Part>();
         if (user != null)
-            post.addParameter("sun", user);
+            params.add(new StringPart("sun", user));
         if (password != null)
-            post.addParameter("sp", password);
+            params.add(new StringPart("sp", password));
         int submitCount = 0;
         for (int i = 3; i < argList.size(); i++) {
-            try {
-                post.addParameter("configfile", new File(argList.get(i)));
+            File configFile = new File(argList.get(i));
+            if (configFile.isFile()) {
+                params.add(new FilePart("configfile", configFile));
                 ++submitCount;
-            } catch (FileNotFoundException e) {
+            } else {
                 System.err.println("File " + argList.get(i) + " not found.");
             }
         }
         if (submitCount == 0) {
             throw new IOException("No run submitted!");
         }
+        Part[] parts = new Part[params.size()];
+        parts = params.toArray(parts);
+        PostMethod post = new PostMethod(url);
+        post.setRequestEntity(
+                new MultipartRequestEntity(parts, post.getParams()));        
         makeRequest(post);
     }
 
@@ -250,7 +259,8 @@ public class CLI {
 
     private void makeRequest(HttpMethodBase method) throws IOException {
         HttpClient client = new HttpClient();
-        client.setConnectionTimeout(5000);
+        client.getHttpConnectionManager().getParams().
+                setConnectionTimeout(5000);
         int status = client.executeMethod(method);
         String enc = method.getResponseCharSet();
 
@@ -274,7 +284,8 @@ public class CLI {
 
     private String makeStringRequest(HttpMethodBase method) throws IOException {
         HttpClient client = new HttpClient();
-        client.setConnectionTimeout(5000);
+        client.getHttpConnectionManager().getParams().
+                setConnectionTimeout(5000);
         int status = client.executeMethod(method);
         String enc = method.getResponseCharSet();
 

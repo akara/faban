@@ -17,13 +17,11 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunUploader.java,v 1.10 2009/07/28 22:54:17 akara Exp $
+ * $Id: RunUploader.java,v 1.11 2009/08/05 23:50:12 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.webclient;
-
-import static com.sun.faban.harness.util.FileHelper.*;
 
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.RunId;
@@ -32,7 +30,11 @@ import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.methods.MultipartPostMethod;
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.multipart.FilePart;
+import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
+import org.apache.commons.httpclient.methods.multipart.Part;
+import org.apache.commons.httpclient.methods.multipart.StringPart;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -41,9 +43,12 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
+
+import static com.sun.faban.harness.util.FileHelper.*;
 
 /**
  * The RunUploader represents the upload servlet as well as an upload client
@@ -272,15 +277,22 @@ public class RunUploader extends HttpServlet {
         jar(Config.OUT_DIR + runId, files, jarFile.getAbsolutePath());
 
         // 3. Upload the run
-        MultipartPostMethod post = new MultipartPostMethod(target.toString());
-        post.addParameter("host", Config.FABAN_HOST);
-        post.addParameter("key", key);
-        post.addParameter("origin", "true");
-        post.addParameter("jarfile", jarFile);
+        ArrayList<Part> params = new ArrayList<Part>();
+        //MultipartPostMethod post = new MultipartPostMethod(target.toString());
+        params.add(new StringPart("host", Config.FABAN_HOST));
+        params.add(new StringPart("key", key));
+        params.add(new StringPart("origin", "true"));
+        params.add(new FilePart("jarfile", jarFile));
+        Part[] parts = new Part[params.size()];
+        parts = params.toArray(parts);
+        PostMethod post = new PostMethod(target.toString());
+        post.setRequestEntity(
+                new MultipartRequestEntity(parts, post.getParams()));
         HttpClient client = new HttpClient();
         if (proxyHost != null)
             client.getHostConfiguration().setProxy(proxyHost, proxyPort);
-        client.setConnectionTimeout(5000);
+        client.getHttpConnectionManager().getParams().
+                setConnectionTimeout(5000);
         int status = client.executeMethod(post);
         if (status == HttpStatus.SC_FORBIDDEN)
             logger.severe("Server " + host + " denied permission to upload run "
@@ -291,35 +303,5 @@ public class RunUploader extends HttpServlet {
             logger.severe("Server responded with status code " +
                     status + ". Status code 201 (SC_CREATED) expected.");
         jarFile.delete();
-    }
-
-    // TODO: General upload client for result server.
-
-    /**
-     * Uploads the jar file representing a run.
-     * @param jarFile The jar file
-     * @throws IOException Error uploading
-     */
-    public static void uploadRun(File jarFile) throws IOException {
-        // 3. Upload the run
-
-        for (URL repository : Config.repositoryURLs) {
-            URL repos = new URL(repository, "upload");
-            MultipartPostMethod post = new MultipartPostMethod(repos.toString());          
-            post.addParameter("host",Config.FABAN_HOST);
-            post.addParameter("jarfile", jarFile);
-            HttpClient client = new HttpClient();
-            client.setConnectionTimeout(5000);
-            int status = client.executeMethod(post);
-
-            if (status == HttpStatus.SC_FORBIDDEN)
-                logger.severe("Server denied permission to upload run !");
-            else if (status == HttpStatus.SC_NOT_ACCEPTABLE)
-                logger.severe("Run origin error!");
-            else if (status != HttpStatus.SC_CREATED)
-                logger.severe("Server responded with status code " +
-                        status + ". Status code 201 (SC_CREATED) expected.");
-            jarFile.delete();
-        }
     }
 }

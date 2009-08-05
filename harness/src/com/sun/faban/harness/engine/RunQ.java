@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunQ.java,v 1.29 2009/07/28 22:54:15 akara Exp $
+ * $Id: RunQ.java,v 1.30 2009/08/05 23:50:10 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -47,7 +47,6 @@ import java.util.logging.Logger;
 
 public class RunQ {
 
-    String runqDir;
     RunDaemon runDaemon = null;
     RunQLock runqLock;
     static Logger logger = Logger.getLogger(RunQ.class.getName());
@@ -390,72 +389,6 @@ public class RunQ {
      */
     public void exit() {
         runDaemon.exit();
-    }
-
-    /**
-     * This method returns a previous run with a parameter repository
-     * from the run queue or the output directory. It is called when
-     * loading parameters from some previous run and to create
-     * paramchanges file too.
-     * @param benchName The name of the benchmark run
-     * @return The run id, or null if there is no previous run
-     */
-    public String getValidPrevRun(String benchName) {
-        File seqFile = new File(Config.SEQUENCE_FILE);
-        if (seqFile.exists()) {
-            BufferedReader bufIn = null;
-            try {
-                bufIn = new BufferedReader(new FileReader(seqFile));
-            }
-            catch (FileNotFoundException fe) {
-                logger.severe("RunQ getValidPrevRun: the sequence file does not exist");
-                logger.log(Level.FINE, "Exception", fe);
-            }
-            String runSeqIntChar = null;
-            try {
-                runSeqIntChar = bufIn.readLine();
-                bufIn.close();
-            }
-            catch (IOException ie) {
-                logger.log(Level.SEVERE, "RunQ getValidPrevRun: " +
-                        "could not read/close the sequence file", ie);
-            }
-            int colonPos = -1;
-            if((runSeqIntChar != null) && ((colonPos = runSeqIntChar.indexOf(":")) != -1)) {
-                String runSeqChar = runSeqIntChar.substring(colonPos + 1);
-                int runSeqInt =
-                    Integer.parseInt(runSeqIntChar.substring(0, colonPos));
-            
-                if ((runSeqChar.charAt(0) == 'A') && (runSeqInt == 1))
-                    return null;
-                    
-                char runSeqCharZero = runSeqChar.charAt(0);
-                if (runSeqCharZero == 'A') {
-                    runSeqInt--;
-                    runSeqChar = String.valueOf('z');
-                }
-                else {
-                    if (runSeqCharZero == 'a') {
-                        runSeqChar = String.valueOf('Z');
-                    }
-                    else {
-                        runSeqChar = String.valueOf((char)((int) runSeqCharZero - 1));
-                    }   
-                }
-                String runId = benchName + "." + String.valueOf(runSeqInt) + runSeqChar;
-                BenchmarkDescription desc = BenchmarkDescription.getDescription(benchName);
-                File checkIfExists =
-                     new File(Config.RUNQ_DIR + runId + File.separator + desc.configFileName);
-                if (checkIfExists.exists())
-                    return runId;
-                
-                checkIfExists = new File(Config.OUT_DIR +
-                    runId + File.separator + desc.configFileName);
-                if (checkIfExists.exists())
-                    return runId;
-            }
-        }
-        return null;
     }
 
     /**

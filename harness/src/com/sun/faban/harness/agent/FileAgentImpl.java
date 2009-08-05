@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileAgentImpl.java,v 1.11 2009/07/28 22:54:13 akara Exp $
+ * $Id: FileAgentImpl.java,v 1.12 2009/08/05 23:50:10 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -26,6 +26,7 @@ package com.sun.faban.harness.agent;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.util.FileHelper;
 import com.sun.faban.common.FileTransfer;
+import com.sun.faban.common.Utilities;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -73,7 +74,7 @@ public class FileAgentImpl extends UnicastRemoteObject
      */
     public FileService open(String file, int mode)
             throws RemoteException, FileServiceException {
-        return(new FileServiceImpl(file, mode));
+        return(new FileServiceImpl(Utilities.convertPath(file), mode));
     }
 
     /**
@@ -194,7 +195,7 @@ public class FileAgentImpl extends UnicastRemoteObject
      *                   false if not successful or file does not exist.
      */
     public boolean removeFile(String fileName) {
-
+        fileName = Utilities.convertPath(fileName);
         File file = new File(fileName);
 
         if (file.exists()) {
@@ -211,6 +212,7 @@ public class FileAgentImpl extends UnicastRemoteObject
      */
     public boolean removeFiles(String dirName, 
                                com.sun.faban.harness.FileFilter filter) {
+        dirName = Utilities.convertPath(dirName);
         return FileHelper.delete(new File(dirName), filter);
     }
 
@@ -221,6 +223,7 @@ public class FileAgentImpl extends UnicastRemoteObject
      * @return true if exists, false otherwise.
      */
     public boolean doesFileExist(String fileName) {
+        fileName = Utilities.convertPath(fileName);
         File file = new File(fileName);
         return file.exists();
     }
@@ -232,6 +235,7 @@ public class FileAgentImpl extends UnicastRemoteObject
      * @return true if file is a normal file, false otherwise.
      */
     public boolean isFile(String fileName) {
+        fileName = Utilities.convertPath(fileName);
         File file = new File(fileName);
         return file.isFile();
     }
@@ -243,6 +247,7 @@ public class FileAgentImpl extends UnicastRemoteObject
      * @return true if file is a directory, false otherwise.
      */
     public boolean isDirectory(String fileName) {
+        fileName = Utilities.convertPath(fileName);
         File file = new File(fileName);
         return file.isDirectory();
     }
@@ -282,15 +287,14 @@ public class FileAgentImpl extends UnicastRemoteObject
         // Copying happens in FileTransfer.writeObject and
         // FileTransfer.readObject. This is the most memory-efficient way
         // to transfer large files over RMI.
+        srcFile = Utilities.convertPath(srcFile);
         FileTransfer t = new FileTransfer(srcFile, destFile);
         logger.fine("Transferring " + t.getSource() + "->" + t.getDest() +
                     " size " + t.getTransferSize() + " bytes.");
         return t;
     }
 
-    /**
-     * Registration for RMI serving - used only for stand-alone testing.
-     */
+    // Registration for RMI serving - used only for stand-alone testing.
 
     /**
      * Starts a standalong file agent.

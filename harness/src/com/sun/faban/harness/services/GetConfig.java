@@ -28,7 +28,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation used to get service configuration.
+ * Annotation hook to obtain/collect the service configuration files.
  * @author Sheetal Patil
  */
 

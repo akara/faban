@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdMap.java,v 1.11 2009/07/28 22:54:17 akara Exp $
+ * $Id: CmdMap.java,v 1.12 2009/08/05 23:50:12 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -164,6 +164,12 @@ public class CmdMap {
      */
     public static String[] getPathExt() {
         String pathExt = System.getProperty("faban.pathext");
+
+        // Check the environment on a Windows system, in case
+        // the faban.pathext property is not set.
+        if (pathExt == null && File.separatorChar == '\\')
+            pathExt = System.getenv("PATHEXT");
+
         if (pathExt == null)
             return null;
         pathExt = pathExt.trim();

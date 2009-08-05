@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgent.java,v 1.9 2009/07/28 22:54:13 akara Exp $
+ * $Id: CmdAgent.java,v 1.10 2009/08/05 23:50:10 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -102,77 +102,6 @@ public interface CmdAgent extends Remote {
             throws Exception;
 
     /**
-	 * This method is responsible for starting the command in foreground
-	 * The caller waits for the command to complete.
-	 * @param command to start
-	 * @param priority in which to run command
-	 * @return 	true if command started successfully
-     * @throws Exception An error occurred
-	 */
-    public boolean start(String command, int priority)
-	throws Exception;
-
-    /**
-     * This method is responsible for starting the script in foreground
-     * The caller waits for the command to complete.
-     * @param command to start
-     * @param priority in which to run command
-     * @return 	true if command started successfully
-     * @throws Exception An error occurred
-     */
-    public boolean runScript(String command, int priority)
-            throws Exception;
-
-    /**
-     * This method is responsible for starting the command in background.
-     * @param command to start
-     * @param ident to associate with this command
-     * @param priority in which to run command
-     * @return 	true if command started successfully
-     * @throws Exception An error occurred
-     */
-    public boolean start(String command, String ident, int priority)
-            throws Exception;
-
-    /**
-     * Start command in background and wait for the 
-     * specified message.
-     * @param cmd command to be started
-     * @param ident to identify this command later null if you don't want to do wait 
-     *              or kill the process when the cmdAgent exits.
-     * @param msg message message to which wait for
-     * @param priority (default or higher priority) for command
-     * @return true if the start succeeded, false otherwise
-     * @throws Exception An error occurred
-     */
-    public boolean start(String cmd, String ident, String msg, int priority)
-    throws Exception;
-
-    /**
-     * This method is responsible for starting a java cmd in background.
-     * @param cmd JVM args and class to start
-     * @param ident identifier to associate with this command
-     * @param env in which to run command
-     * @return 	true if command started successfully
-     * @throws Exception An error occurred
-     */
-	public boolean startJavaCmd(String cmd, String ident, String env[])
-            throws Exception;
-
-    /**
-     * This method is responsible for starting a java cmd in background
-     * with some additional classpaths.
-     * @param cmd args and class to start the JVM
-     * @param identifier to associate with this command
-     * @param env in which to run command
-     * @param classPath the class path to prepend to the base class path
-     * @return 	true if command started successfully
-     * @throws Exception An error occurred
-     */
-    public boolean startJavaCmd(String cmd, String identifier, String[] env,
-                                String[] classPath)
-            throws Exception;
-    /**
      * This method creates the Agent class and registers it with
      * the registry using ident@<host> name.
      * @param agentClass Impl class of the Agent to be started
@@ -184,61 +113,10 @@ public interface CmdAgent extends Remote {
     throws Exception;
 
     /**
-     * This method is responsible for starting the command in background
-     * and returning the first line of output.
-     * @param cmd command to start
-     * @param identifier to associate with this command
-     * @param priority in which to run command
-     * @return String the first line of output from the command
-     * @throws Exception An error occurred
-     */
-    public String startAndGetOneOutputLine(String cmd, String identifier,
-                                           int priority) throws Exception;
-
-    /**
-     * This method starts a command in foreground
-     * The stdout from command is captured and returned.
-     * @param cmd : command to be started
-     * @param priority - class in which cmd should be run
-     * @return The standard output of the command
-     * @throws Exception An error occurred
-     */
-     public String startAndGetStdOut (String cmd, int priority)
-     throws Exception;
-
-
-    /**
-     * This method is responsible for aborting a command.
-     * @param ident identifier associated with command in 'start' call
-     * @throws RemoteException A communications error occurred
-     */
-    public void kill(String ident) throws RemoteException;
-    
-    /**
      * This method is responsible for aborting a running command.
      * @throws RemoteException A communications error occurred
      */
     public void kill() throws RemoteException;
-
-    /**
-     * This method is responsible for aborting a command using the killem 
-     * script.
-     * @param identifier associated with command in 'start' call.
-     * @param processString search string to grep the process while killing 
-     *                      (same as in killem)
-     * @param sigNum the signal number to be used to kill.
-     * @throws IOException A I/O error occurred
-     */
-    public void killem(String identifier, String processString, int sigNum)
-            throws IOException;
-
-    /**
-     * This method waits for the command started in BG to complete.
-     * @param ident identifier associated with command in 'start' call
-     * @return true if command completed successfully
-     * @throws Exception An error occurred
-     */
-    public boolean wait(String ident) throws Exception;
 
     /**
      * Sets the time on the agent host, in GMT.
