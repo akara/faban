@@ -1,0 +1,31 @@
+#!/bin/sh
+#########################################################################
+# The sysinfo script reads many files and calls many platform-dependent
+# tools to determine the system configuration. The output is a html
+# snippet recording the files and tools output.
+#########################################################################
+
+PATH=$PATH:/bin
+export PATH
+
+HOSTNAME=`uname -n`
+
+echo "        <h3>HW info for server ${HOSTNAME}</h3>"
+echo "        <pre>"
+system_profiler SPHardwareDataType
+echo "        <pre>"
+
+echo "        <h3>Memory usage info for server ${HOSTNAME}</h3>"
+echo "        <pre>"
+vm_stat
+echo "        <pre>"
+
+echo "        <h3>Kernel on server ${HOSTNAME}</h3>"
+echo "        <pre>"
+uname -srvm
+echo "        </pre>"
+
+echo "        <h3>MacOS version on server ${HOSTNAME}</h3>"
+echo "        <pre>"
+sw_vers
+echo "        </pre>"
