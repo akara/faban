@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunInfo.java,v 1.4 2009/07/28 22:53:31 akara Exp $
+ * $Id: RunInfo.java,v 1.5 2009/08/05 23:36:20 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -300,8 +300,6 @@ public class RunInfo implements Serializable {
         /** Number of threads. */
         public int numThreads = -1; // Overrides the threadPerScale
 
-        int maxRunTime;
-
         int graphInterval;
 
         /** Target for runtime stats, currently unused. */
@@ -362,9 +360,7 @@ public class RunInfo implements Serializable {
      */
     static class ConfigurationReader {
 
-        RunInfo runInfo;
         String configFileName;
-        Exception parseException = null;
         String definingClassName = null;
         Element rootElement;
         Object runConfigNode;
@@ -466,7 +462,8 @@ public class RunInfo implements Serializable {
         // Used to create the operation-specific information for various
         // types of requests
         private static abstract class RunInfoDefinition {
-            protected boolean isFile, doSubst, isBinary;
+            protected boolean doSubst;
+            protected boolean isBinary;
             protected String url;
             protected String data;
 
@@ -478,9 +475,8 @@ public class RunInfo implements Serializable {
             
             abstract String getStatics(int opNum) throws Exception;
 
-            public void init(boolean isFile, boolean doSubst, boolean isBinary,
+            public void init(boolean doSubst, boolean isBinary,
                              String url, String data) {
-                this.isFile = isFile;
                 this.doSubst = doSubst;
                 this.isBinary = isBinary;
                 this.url = url;
@@ -828,7 +824,7 @@ public class RunInfo implements Serializable {
                 } else {
 					rid = new RunInfoGetDefinition();
 				}
-                rid.init(isFile, doSubst, isBinary, url, requestString);
+                rid.init(doSubst, isBinary, url, requestString);
 
                 //Create the benchmark Operation annotation
                 StringBuilder bmop = new StringBuilder(

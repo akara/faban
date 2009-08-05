@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ApacheHC3Transport.java,v 1.3 2009/07/03 01:52:35 akara Exp $
+ * $Id: ApacheHC3Transport.java,v 1.4 2009/08/05 23:36:20 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -938,5 +938,15 @@ public class ApacheHC3Transport extends HttpTransport {
      */
     public int getResponseCode() {
         return responseCode;
+    }
+
+    /**
+     * Close all connections currently not in use. If the only way of using
+     * the Apache HttpClient is through this transport, connections will always
+     * be released after a request. The close will close all connections in
+     * this case.
+     */
+    public void closeConnections() {
+        hc.getHttpConnectionManager().closeIdleConnections(0);
     }
 }

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentImpl.java,v 1.10 2009/07/28 22:53:30 akara Exp $
+ * $Id: AgentImpl.java,v 1.11 2009/08/05 23:36:20 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -61,7 +61,6 @@ public class AgentImpl extends UnicastRemoteObject
     Timer timer;
     AgentThread[] agentThreads;
     String agentType;
-    Metrics results[] = null;
     int numThreads;
     String driverBase;
     String host;
@@ -178,7 +177,6 @@ public class AgentImpl extends UnicastRemoteObject
         }
 
         runInfo.agentInfo.agentType = agentType;
-        results = null;		// so that we don't use old results
         doPreRun();
     }
 
@@ -422,7 +420,6 @@ public class AgentImpl extends UnicastRemoteObject
         // cleanup
         if (statsCollector != null)
             statsCollector.cancel();
-        results = null;
     }
 
     /**

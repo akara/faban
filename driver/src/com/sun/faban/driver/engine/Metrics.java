@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Metrics.java,v 1.11 2009/07/30 01:14:11 akara Exp $
+ * $Id: Metrics.java,v 1.12 2009/08/05 23:36:20 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -190,9 +190,6 @@ public class Metrics implements Serializable, Cloneable,
     /** Sum of cycle time (not think time) for little's law verification. */
     protected long cycleSum = 0;
 
-    /** Sum of elapsed times. */
-    protected double[] elapse;
-
     /** Response time histogram. */
     protected int[][] respHist;
 
@@ -301,7 +298,6 @@ public class Metrics implements Serializable, Cloneable,
 			delayMin[i] = Integer.MAX_VALUE; // init to the largest number
 		}
         targetedDelaySum = new long[txTypes];
-        elapse = new double[txTypes];
         respHist = new int[txTypes][RESPBUCKETS];
         delayHist = new int[txTypes][DELAYBUCKETS];
         targetedDelayHist = new int[txTypes][DELAYBUCKETS];
