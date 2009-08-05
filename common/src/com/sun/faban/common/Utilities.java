@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Utilities.java,v 1.14 2009/07/28 22:51:57 akara Exp $
+ * $Id: Utilities.java,v 1.15 2009/08/05 22:45:33 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -34,7 +34,32 @@ import java.util.regex.Matcher;
  */
 public class Utilities {
 
+    /** The file separator on the master. */
+    public static String masterFileSeparator;
+
+    /** The path separator on the master. */
+    public static String masterPathSeparator;
+
     private static HashSet<String> xmlEscapes;
+
+    /**
+     * Attempts to convert a path from Windows to Unix. This is needed
+     * as '/' separated paths are well accepted by the JVM on windows, but
+     * '\' in the path is rejected on all Unix-based JVMs.
+     * @param path The path to convert
+     * @return The converted path
+     */
+    public static String convertPath(String path) {
+        if (masterFileSeparator != null &&      // Daemon mode
+            File.separatorChar != '\\' &&       // Current system not windows
+            masterFileSeparator.equals("\\")) { // Master is windows
+            String oldPath = path;
+            path = path.replace(masterFileSeparator, File.separator);
+            path = path.replace(masterPathSeparator, File.pathSeparator);
+            System.err.println("Converted: " + oldPath + " -> " + path);
+        }
+        return path;
+    }
 
     /**
      * Parses a string escaped with \n, \t, \020, etc. Returns the
