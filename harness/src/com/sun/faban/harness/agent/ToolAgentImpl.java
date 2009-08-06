@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ToolAgentImpl.java,v 1.12 2009/07/28 22:54:14 akara Exp $
+ * $Id: ToolAgentImpl.java,v 1.13 2009/08/06 20:15:01 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -161,19 +161,25 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
                     tools[i].configure(toolNames[i], path, outDir, host, CmdAgentImpl.getHandle(), latch);
                 } catch (ClassNotFoundException ce) {
                     logger.log(Level.WARNING, "Class " + toolClass + " not found");
+                    latch.countDown();
                 } catch (Exception ie) {
                     logger.log(Level.WARNING, "Error in creating tool object " +
                                toolClass, ie);
                     latch.countDown(); // Tool did not get started.
                 }
-            }else{
+            } else if (!"default".equals(ctx.getToolId()) || 
+                       (ctx.getToolParams() != null &&
+                        ctx.getToolParams().trim().length() > 0)) {
                 try {
                     tools[i] = new ToolWrapper(CommandLineTool.class, ctx);
                     tools[i].configure(toolNames[i], path, outDir, host, CmdAgentImpl.getHandle(), latch);
                     logger.fine("Trying to run tool " + tools[i] + " using CommandLineTool.");
                 } catch (Exception ex) {
                     logger.log(Level.WARNING, "Cannot start CommandLineTool!", ex);
+                    latch.countDown();
                 }
+            } else {
+                latch.countDown();
             }
         }
     }
