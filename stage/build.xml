@@ -19,7 +19,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: build.xml,v 1.26 2009/05/21 10:15:01 sheetalpatil Exp $
+* $Id: build.xml,v 1.27 2009/08/06 20:31:44 akara Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 -->
@@ -28,7 +28,7 @@
     <property file="build.properties"/>
     <property name="jar.output" value="build/lib"/>
     <property name="lib.dir" value="lib"/>
-    <property name="docs.dir" value="${public.dir}/${faban.version}/docs"/>
+    <property name="docs.dir" value="${tmp.dir}/fabandocs"/>
     <tstamp>
         <format property="build.date" pattern="MMddyy"/>
     </tstamp>
@@ -348,6 +348,7 @@
             <fileset dir="${workspace.dir}/harness/lib" includes="*.jar"/>
             <fileset dir="master/common/lib" includes="*.jar"/>
         </path>
+        <mkdir dir="${docs.dir}/api"/> 
         <javadoc packagenames="com.sun.faban.**"
             destdir="${docs.dir}/api"
             classpathref="class.path"
