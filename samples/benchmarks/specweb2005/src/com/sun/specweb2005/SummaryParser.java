@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: SummaryParser.java,v 1.2 2009/07/28 22:57:03 akara Exp $
+ * $Id: SummaryParser.java,v 1.3 2009/08/06 20:26:26 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -43,7 +43,6 @@ public class SummaryParser {
     String runId;
     Calendar startTime;
     Calendar endTime;
-    String sessions;
     Logger logger;
 
     /**

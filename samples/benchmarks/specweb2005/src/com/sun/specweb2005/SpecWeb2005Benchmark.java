@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: SpecWeb2005Benchmark.java,v 1.3 2009/07/28 22:57:03 akara Exp $
+ * $Id: SpecWeb2005Benchmark.java,v 1.4 2009/08/06 20:26:26 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -58,7 +58,6 @@ public class SpecWeb2005Benchmark {
     String runID;
     ParamRepository par;
     CommandHandle handle;
-    String dbServer;
     private Calendar startTime;
     List<NameValuePair<Integer>> hostsPorts;
 
