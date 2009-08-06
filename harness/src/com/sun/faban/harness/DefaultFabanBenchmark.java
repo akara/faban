@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DefaultFabanBenchmark.java,v 1.20 2009/07/22 19:29:43 akara Exp $
+ * $Id: DefaultFabanBenchmark.java,v 1.21 2009/08/06 20:54:45 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -46,11 +46,23 @@ import java.util.logging.Logger;
 @Deprecated public class DefaultFabanBenchmark implements Benchmark {
 
     private Logger logger = Logger.getLogger(getClass().getName());;
+
+    /** The param repository. */
     protected ParamRepository params;
+
+    /** The agent list. */
     protected List<String> agents;
+
+    /** The agent hosts. */
     protected String[] agentHosts;
+
+    /** The map from host to agents. */
     protected Map<String, List<String>> hostAgents;
+
+    /** Environment to pass to agents when starting. */
     protected Map<String, List<String>> agentEnv;
+
+    /** Command handle to the master. */
     protected CommandHandle masterHandle;
 
     /**
@@ -368,7 +380,7 @@ import java.util.logging.Logger;
 
     /**
      * This method aborts the current benchmark run and is
-     * called when a user asks for a run to be killed
+     * called when a user asks for a run to be killed.
      *
      * @throws Exception if any error occurred.
      */
