@@ -16,7 +16,7 @@ cd logs
 
 set JAVA=%4%\bin\java.exe
 rem If no Java where it was specified to be, search PATH
-if not exist %JAVA% for %%j in ( %PATH% ) do if exist %%j\java.exe set JAVA=%%j\java.exe
+if not exist %JAVA% ( for %%j in ("java.exe") do (set JAVA=%%~$PATH:j))
 rem Could not find it, so exit with an error
 if not exist %JAVA% (
        echo "JAVA_HOME was not specified correctly, reschedule a Faban run with the correct path!"
