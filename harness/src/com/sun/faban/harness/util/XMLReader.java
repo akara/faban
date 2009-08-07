@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: XMLReader.java,v 1.18 2009/07/28 22:54:17 akara Exp $
+ * $Id: XMLReader.java,v 1.19 2009/08/07 20:34:13 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -394,6 +394,25 @@ public class XMLReader {
     }
 
     /**
+     * Replaces the new value for the element text.
+     * @param element
+     * @param value
+     */
+    public void replaceValue(Element element, String value) {
+        NodeList children = element.getChildNodes();
+        int childCount = children.getLength();
+        for (int i = 0; i < childCount; i++) {
+            Node child = children.item(i);
+            short nodeType = child.getNodeType();
+            if (nodeType == Node.TEXT_NODE) {
+                child.setTextContent(value);
+                this.updated = true;
+                break;
+            }
+        }
+    }
+
+    /**
      * Adds a node.
      * @param parent
      * @param namespaceURI
@@ -414,6 +433,17 @@ public class XMLReader {
         parent.appendChild(newNode);
         this.updated = true;
         return newNode;
+    }
+
+    /**
+     * Deletes a node.
+     * @param deleteNode
+     * @param parent    
+     * @return Element
+     */
+    public void deleteNode(Node deleteNode, Node parent) {
+        parent.removeChild(deleteNode);
+        this.updated = true;
     }
 
     /**

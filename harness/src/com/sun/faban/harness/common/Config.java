@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.35 2009/08/05 23:50:10 akara Exp $
+ * $Id: Config.java,v 1.36 2009/08/07 20:34:14 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -269,6 +269,7 @@ public class Config {
 
     /** URLs for Faban repositories, if enabled. */
     public static URL[] repositoryURLs = null;
+    public static boolean targetting = false;
 
     static {
         deriveConfig();
@@ -562,6 +563,14 @@ public class Config {
                     }
                     repositoryURLs = new URL[serverList.size()];
                     repositoryURLs = serverList.toArray(repositoryURLs);
+                }
+
+                // Reading targetting config
+                Node t = (Node) xPath.evaluate(
+                        "repository/targetting[@enabled='true']", root,
+                        XPathConstants.NODE);
+                if (t != null) {
+                   targetting = true;
                 }
 
                 // Note: The logServer config is read by LogConfig, not here.

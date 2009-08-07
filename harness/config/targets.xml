@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<targets>
+    <target>
+        <name>mysql</name>
+        <owner>Sheetal</owner>
+        <metric>400</metric>
+        <tags>mysql</tags>
+    </target>
+    <target>
+        <name>olio</name>
+        <owner>sp208304</owner>
+        <metric>1400</metric>
+        <tags>olio</tags>
+    </target>
+    <target>
+        <name>web101</name>
+        <owner>Sheetal</owner>
+        <metric>1</metric>
+        <tags>web</tags>
+    </target>
+    <target>
+        <name>web</name>
+        <owner>Sheet</owner>
+        <metric>1</metric>
+        <tags>web2</tags>
+    </target>
+</targets>

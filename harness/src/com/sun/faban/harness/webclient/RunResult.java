@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunResult.java,v 1.8 2009/07/28 22:54:17 akara Exp $
+ * $Id: RunResult.java,v 1.9 2009/08/07 20:34:14 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -38,12 +38,17 @@ import javax.security.auth.Subject;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  * Result class scans through the output directory and compiles a list of run
@@ -114,6 +119,7 @@ public class RunResult {
 
     /** Tags applicable to this run. */
     public String[] tags;
+    static LinkedHashMap<String, Target> targetMap = new LinkedHashMap<String, Target>();
 
     /**
      * This getInstance0 assumes you've checked the run id is found. It will
@@ -681,6 +687,208 @@ public class RunResult {
         return table;
     }
 
+    private static String getRunsForTarget(String tags)
+            throws IOException {
+        TagEngine tagEngine;
+        try {
+            tagEngine = TagEngine.getInstance();
+        } catch (ClassNotFoundException ex) {
+            logger.log(Level.SEVERE, "Cannot find tag engine class", ex);
+            throw new IOException("Cannot find tag engine class", ex);
+        }
+        Set<String> runIds = tagEngine.search(tags);
+        StringBuilder runs = new StringBuilder();
+        for (String runid : runIds) {
+            runs.append(" <a href=/resultframe.jsp?runId=" + runid + "&result=summary.xml>" + runid + "</a>");
+        }
+        return runs.toString();
+    }
+
+    private static String getAchievedMetricForTarget(String tags)
+            throws IOException {
+        TagEngine tagEngine;
+        try {
+            tagEngine = TagEngine.getInstance();
+        } catch (ClassNotFoundException ex) {
+            logger.log(Level.SEVERE, "Cannot find tag engine class", ex);
+            throw new IOException("Cannot find tag engine class", ex);
+        }
+        Set<String> runIds = tagEngine.search(tags);
+        Double achievedMetric = 0.0;
+        for (String runid : runIds) {
+            try {
+                RunId runId = new RunId(runid);
+                RunResult res = getInstance(runId);
+                if (res != null && achievedMetric < res.metric.value){
+                    achievedMetric = res.metric.value;
+                }
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Cannot read result dir " + runid, e);
+            }           
+        }
+        return achievedMetric.toString();
+    }
+
+
+    /**
+     * Returns the target list with target search.
+     * @param target
+     * @return ArrayList
+     * @throws java.io.IOException
+     */
+    public static ArrayList<Target> getTargetListForTarget(String target)
+            throws IOException {        
+        ArrayList<Target> targetList = getTargetList();
+        if(target != null ){
+            targetList = new ArrayList<Target>();
+            Object[] keyset = targetMap.keySet().toArray();
+            for (int i = 0; i < keyset.length; i++) {
+                    if (keyset[i].toString().contains(target) && targetMap.containsKey(keyset[i])) {
+                        targetList.add(targetMap.get(keyset[i]));
+                    }
+            }              
+        }
+        return targetList;
+    }
+
+    public static ArrayList<Target> getTargetListForUserWithTg(String target, String user)
+            throws IOException {
+        ArrayList<Target> list = new ArrayList<Target>();
+        if(target != null && user != null){
+            ArrayList<Target> targetList = getTargetListForTarget(target);
+            for (int i = 0; i < targetList.size(); i++) {
+                String owner = targetList.get(i).owner.toString();
+                if (owner.equals(user)) {
+                    list.add(targetList.get(i));
+                }
+            }
+        }
+        return list;
+    }
+
+    public static ArrayList<Target> getTargetListForUser(String user)
+            throws IOException {
+        ArrayList<Target> list = new ArrayList<Target>();
+        if(user != null){
+            ArrayList<Target> targetList = getTargetList();
+            for (int i = 0; i < targetList.size(); i++) {
+                String owner = targetList.get(i).owner.toString();
+                if (owner.equals(user)) {
+                    list.add(targetList.get(i));
+                }
+            }
+        }
+        return list;
+    }
+
+    
+    static SortableTableModel generateTargetTable(List<Target> targets, int column,
+            String sortDirection) {
+
+        // 1. Generate table header
+        SortableTableModel table = new SortableTableModel(6);
+        
+        String sort = "<img src=/img/sort_asc.gif></img>";
+        if(sortDirection.equals("DESCENDING")){
+             sort = "<img src=\"/img/sort_asc.gif\" border=\"0\"></img>";
+        }else if(sortDirection.equals("ASCENDING")){
+             sort = "<img src=\"/img/sort_desc.gif\" border=\"0\"></img>";
+        }
+        if(column == 0)
+            table.setHeader(0, "Targets " + sort);
+        else
+            table.setHeader(0, "Targets");
+
+        if(column == 1)
+            table.setHeader(1, "Owner " + sort);
+        else
+            table.setHeader(1, "Owner");
+
+        if(column == 2)
+            table.setHeader(2, "Status " + sort);
+        else
+            table.setHeader(2, "Status");
+
+        if(column == 3)
+            table.setHeader(3, "Achieved Metric " + sort);
+        else
+            table.setHeader(3, "Achieved Metric");
+
+        if(column == 4)
+            table.setHeader(4, "Metric " + sort);
+        else
+            table.setHeader(4, "Metric");
+
+        if(column == 5)
+            table.setHeader(5, "Tags " + sort);
+        else
+            table.setHeader(5, "Tags");
+
+        // 2. Generate table rows.
+        for (Target target : targets) {
+            //int idx = table.newRow();
+            Comparable[] row = table.newRow();
+            row[0] = target.name;
+            row[1] = target.owner;
+            row[2] = target.status;
+            row[3] = target.achievedMetric;
+            row[4] = target.metric;
+            row[5] = target.tags;
+        }
+
+        SortDirection enumValForDirection = table.getSortDirection().valueOf(sortDirection);
+        table.sort(column, enumValForDirection);
+        return table;
+    }
+
+    public static ArrayList<Target> getTargetList() throws IOException{
+        ArrayList<Target> targetList = new ArrayList<Target>();
+        File targetFile = new File(Config.CONFIG_DIR, "targets.xml");
+        if (targetFile.exists() && targetFile.length() > 0) {
+            //Use the XMLReader and locate the <passed> elements
+            XMLReader reader = new XMLReader(targetFile.
+                    getAbsolutePath());
+            if (reader != null) {
+                    NodeList targets = reader.getNodeListForTagName("target");
+                    for (int i = 0; i < targets.getLength(); i++) {
+                        Target tg = new Target();
+                        Node targetNode = targets.item(i);
+                        if (targetNode.getNodeType() != Node.ELEMENT_NODE) {
+                            continue;
+                        }
+                        Element se = (Element) targetNode;
+                        NodeList targetNodeChildNodes = targetNode.getChildNodes();
+                        int len = targetNodeChildNodes.getLength();                      
+                        for (int k = 0; k < len; k++) {
+                            if (targetNodeChildNodes.item(k).getNodeType() ==
+                                    Node.ELEMENT_NODE) {
+                                
+                                 if (targetNodeChildNodes.item(k).getNodeName().equals("name")){
+                                     tg.name = reader.getValue("name", se);
+                                 }
+                                 if (targetNodeChildNodes.item(k).getNodeName().equals("owner")){
+                                     tg.owner = reader.getValue("owner", se);
+                                 }
+                                 if (targetNodeChildNodes.item(k).getNodeName().equals("tags")){
+                                     tg.tags = reader.getValue("tags", se);
+                                 }
+                                 if (targetNodeChildNodes.item(k).getNodeName().equals("metric")){
+                                     tg.metric = reader.getValue("metric", se);
+                                 }
+
+                            }
+                        }
+                        tg.achievedMetric = getAchievedMetricForTarget(tg.tags);
+                        Double status = ((Double.parseDouble(tg.achievedMetric)/Double.parseDouble(tg.metric)) * 100);
+                        tg.status = status.toString();
+                        targetList.add(tg);
+                        targetMap.put(tg.name.toString(), tg);
+                    }
+            }
+        }
+        return targetList;
+    }
+
     /**
      * A result field representing the real value of the field used for
      * sorting, and the text representation of the value.
@@ -845,5 +1053,15 @@ public class RunResult {
         if (feedList.size() > FEED_LIMIT)
             return feedList.subList(0, FEED_LIMIT);
         return feedList;
+    }
+
+    public static class Target implements Serializable {
+        public String name;
+        public String owner;
+        public String tags;
+        public String runs;
+        public String status;
+        public String metric;
+        public String achievedMetric;
     }
 }
