@@ -19,7 +19,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: build.xml,v 1.28 2009/08/19 20:28:47 sheetalpatil Exp $
+* $Id$
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 -->
@@ -202,7 +202,7 @@
             includeEmptyDirs="true" verbose="true">
             <fileset dir="${workspace.dir}/harness/lib" includes="dom3-*, xalan.jar"/>
         </copy>
-
+        
         <mkdir dir="master/temp"/>
         <mkdir dir="master/logs"/>
 
@@ -374,7 +374,7 @@
             longfile="warn" compression="gzip">
             <tarfileset dir="." prefix="${package.name}" mode="755" dirmode="755">
                 <patternset refid="agent.bin"/>
-                <exclude name="bin/makeagent*"/>
+                <exclude name="bin/makeagent*"/>                
             </tarfileset>
             <tarfileset dir="." prefix="${package.name}">
                 <patternset refid="agent.excludes"/>
@@ -388,7 +388,7 @@
             <fileset dir="${workspace.dir}/harness/lib" includes="*.jar"/>
             <fileset dir="master/common/lib" includes="*.jar"/>
         </path>
-        <mkdir dir="${docs.dir}/api"/>
+        <mkdir dir="${docs.dir}/api"/> 
         <javadoc packagenames="com.sun.faban.**"
             destdir="${docs.dir}/api"
             classpathref="class.path"
@@ -458,12 +458,12 @@
             </fileset>
         </delete>
     </target>
-
+    
     <target name="clean-copies" depends="clean-master" unless="faban.bundled"
         description="Clean staging area from all files copied over from the components">
         <delete includeemptydirs="true">
             <fileset dir=".">
-                <include name="*.zip"/>
+                <include name="*.zip"/>                
                 <include name="ant/**"/>
                 <include name="bin/**"/>
                 <include name="config/**"/>
@@ -478,7 +478,7 @@
             </fileset>
         </delete>
     </target>
-
+    
     <target name="clean-modules" depends="clean-copies" unless="faban.bundled"
         description="Clean all modules">
         <ant dir="${workspace.dir}/common" target="clean"/>
