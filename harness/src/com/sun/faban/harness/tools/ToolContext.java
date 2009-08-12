@@ -26,8 +26,8 @@ import com.sun.faban.common.CommandHandle;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.services.ServiceContext;
 
-import java.io.IOException;
 import java.util.List;
+import java.io.IOException;
 
 /**
  * This class is a subclass of MasterToolContext.
@@ -38,7 +38,6 @@ public class ToolContext extends MasterToolContext {
     String localOutputFile =
             Config.TMP_DIR + getToolName() + ".out." + this.hashCode();
     ToolWrapper wrapper;
-    String toolPath = null;
 
     /**
      * Constructs the tool context.
@@ -51,8 +50,6 @@ public class ToolContext extends MasterToolContext {
                        ToolWrapper wrapper) {
         super(tool, ctx, desc);
         this.wrapper = wrapper;
-        if (ctx != null && "services".equals(ctx.desc.locationType))
-            toolPath = ctx.desc.location;
     }
 
     /**
@@ -117,9 +114,20 @@ public class ToolContext extends MasterToolContext {
     }
 
     /**
+     * Executes a command. The tool always executes the command locally.
+     * @param cmd The command to execute
+     * @return The command handle to this command
+     * @throws IOException The command failed to execute
+     * @throws InterruptedException Interrupted waiting for the command
+     */
+    public CommandHandle exec(Command cmd)
+            throws IOException, InterruptedException {
+        return wrapper.cmdAgent.execute(cmd);
+    }
+
+    /**
      * Executes a command, optionally use the stdout from this command as the
-     * tool output. This is a convenience method for automatically setting
-     * the output. It otherwise has the same functionality as RunContext.exec().
+     * tool output.
      * @param cmd The command to execute
      * @param useOutput Whether to use the output from this command
      * @return The command handle to this command
@@ -133,9 +141,7 @@ public class ToolContext extends MasterToolContext {
 
     /**
      * Executes a command, optionally use the stdout or stderr from this
-     * command as the tool output. This is a convenience method for
-     * automatically setting the output. It otherwise has the same
-     * functionality as RunContext.exec().
+     * command as the tool output.
      * @param cmd The command to execute
      * @param useOutput Whether to use the output from this command
      * @param stream The stream to use as the output, STDOUT or STDERR
@@ -148,51 +154,11 @@ public class ToolContext extends MasterToolContext {
         if (useOutput) {
             cmd.setStreamHandling(stream, Command.CAPTURE);
             cmd.setOutputFile(stream, localOutputFile);
-            wrapper.outputHandle = wrapper.cmdAgent.execute(cmd, toolPath);
+            wrapper.outputHandle = wrapper.cmdAgent.execute(cmd);
             wrapper.outputStream = stream;
             return wrapper.outputHandle;
         } else {
-            return wrapper.cmdAgent.execute(cmd, toolPath);
-        }
-    }
-
-    /**
-     * Executes a command, optionally use the stdout from this command as the
-     * tool output. This is a convenience method for automatically setting
-     * the output. It otherwise has the same functionality as RunContext.exec().
-     * @param cmd The command to execute
-     * @param useOutput Whether to use the output from this command
-     * @return The command handle to this command
-     * @throws IOException The command failed to execute
-     * @throws InterruptedException Interrupted waiting for the command
-     */
-    public CommandHandle java(Command cmd, boolean useOutput)
-            throws IOException, InterruptedException {
-        return java(cmd, useOutput, Command.STDOUT);
-    }
-
-    /**
-     * Executes a command, optionally use the stdout or stderr from this
-     * command as the tool output. This is a convenience method for
-     * automatically setting the output. It otherwise has the same
-     * functionality as RunContext.exec().
-     * @param cmd The command to execute
-     * @param useOutput Whether to use the output from this command
-     * @param stream The stream to use as the output, STDOUT or STDERR
-     * @return The command handle to this command
-     * @throws IOException The command failed to execute
-     * @throws InterruptedException Interrupted waiting for the command
-     */
-    public CommandHandle java(Command cmd, boolean useOutput, int stream)
-            throws IOException, InterruptedException {
-        if (useOutput) {
-            cmd.setStreamHandling(stream, Command.CAPTURE);
-            cmd.setOutputFile(stream, localOutputFile);
-            wrapper.outputHandle = wrapper.cmdAgent.java(cmd, toolPath);
-            wrapper.outputStream = stream;
-            return wrapper.outputHandle;
-        } else {
-            return wrapper.cmdAgent.java(cmd, toolPath);
+            return wrapper.cmdAgent.execute(cmd);
         }
     }
 
