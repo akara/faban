@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: SortableTableModel.java,v 1.1 2009/05/17 19:56:20 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -107,6 +107,11 @@ public class SortableTableModel extends TableModel {
                 if (descMap == null)
                     descMap = new TreeMap<Comparable, ArrayList<Comparable[]>>(
                             new Comparator<Comparable>() {
+
+                                // We intentionally deal with Comparable and not
+                                // Comparable<T> to allow maximum type
+                                // flexibility.
+                                @SuppressWarnings("unchecked")
                                 public int compare(Comparable c, Comparable d) {
                                     return d.compareTo(c);
                                 }
