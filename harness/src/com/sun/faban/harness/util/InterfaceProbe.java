@@ -17,12 +17,13 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: InterfaceProbe.java,v 1.6 2009/07/28 22:54:17 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.util;
 
+import com.sun.faban.harness.ConfigurationException;
 import java.util.concurrent.*;
 import java.util.*;
 import java.util.logging.Logger;
@@ -142,10 +143,16 @@ public class InterfaceProbe {
                 ifAInfo.nifAddress = ifAddress;
                 InetAddress ia = ifAddress.getAddress();
                 ifAInfo.prefixLength = ifAddress.getNetworkPrefixLength();
-                ifAInfo.netAddress = getNetworkAddress(ia,
-                                                        ifAInfo.prefixLength);
-                if (ifAInfo.netAddress == null) // In some cases we cannot
-                    continue; // figure out the network. Ignore such networks.
+                try {
+                    ifAInfo.netAddress =
+                            getNetworkAddress(ia, ifAInfo.prefixLength);
+                } catch (ConfigurationException e) {
+                    StringBuilder buffer = new StringBuilder();
+                    buffer.append(e.getMessage()).append('\n');
+                    buffer = printIfInfo(ifAInfo, buffer);
+                    logger.log(Level.WARNING, buffer.toString(), e);
+                    continue;
+                }
                 ifAInfos.add(ifAInfo);
                 printIfInfo(ifAInfo);
             }
@@ -185,7 +192,7 @@ public class InterfaceProbe {
      * @param hosts The list of hosts
      * @return the corresponding list of routes
      */
-    public List<Route> getRoutes(Collection<String> hosts) {
+    List<Route> getRoutes(Collection<String> hosts) {
         ArrayList<Route> routes = new ArrayList<Route>();
         if (hosts.size() < PARALLEL_THRESHOLD) {
             for (String host : hosts) {
@@ -324,8 +331,17 @@ public class InterfaceProbe {
         for (IFAddressInfo ifAInfo : ifAInfoList) {
             if (ifAInfo.netAddress.length != route.target.getAddress().length)
                 continue;
-            byte[] targetNet = getNetworkAddress(route.target,
-                    ifAInfo.prefixLength);
+            byte[] targetNet;
+            try {
+                targetNet = getNetworkAddress(route.target,
+                                              ifAInfo.prefixLength);
+            } catch (ConfigurationException e) {
+                StringBuilder buffer = new StringBuilder();
+                buffer.append(e.getMessage()).append('\n');
+                buffer = printIfInfo(ifAInfo, buffer);
+                logger.log(Level.WARNING, buffer.toString(), e);
+                continue;
+            }
             if (Arrays.equals(ifAInfo.netAddress, targetNet)) {
                 route.nif = ifAInfo.nif;
                 route.nifAddress = ifAInfo.nifAddress.getAddress().
@@ -346,27 +362,40 @@ public class InterfaceProbe {
     }
 
     void printIfInfo(IFAddressInfo ifAInfo) {
+        if (logger.isLoggable(Level.FINE)) {
+            logger.fine(printIfInfo(ifAInfo, new StringBuilder()).toString());
+        }
+    }
+
+    StringBuilder printIfInfo(IFAddressInfo ifAInfo, StringBuilder buffer) {
         InetAddress ia = ifAInfo.nifAddress.getAddress();
         String ifName = ifAInfo.nif.getDisplayName();
-        StringBuilder buffer = new StringBuilder();
         Formatter fmt = new Formatter(buffer);
         buffer.append(ifName);
         if (ia instanceof Inet4Address) {
             buffer.append("\tv4: " + ia.getHostAddress());
             buffer.append("\n\t\tNetwork " + ifAInfo.prefixLength + " bits\n");
-            int[] netAddressI = new int[ifAInfo.netAddress.length];
-            for (int i = 0; i < netAddressI.length; i++)
-                if (ifAInfo.netAddress[i] < 0)
-                    netAddressI[i] = 256 + ifAInfo.netAddress[i];
-                else
-                    netAddressI[i] = ifAInfo.netAddress[i];
-            fmt.format("\t\tNet address: %d", netAddressI[0]);
-            for (int i = 1; i < ifAInfo.netAddress.length; i++)
-                fmt.format(".%d", netAddressI[i]);
-            buffer.append('\n');
+            if (ifAInfo.netAddress != null) {
+                int[] netAddressI = new int[ifAInfo.netAddress.length];
+                for (int i = 0; i < netAddressI.length; i++) {
+                    if (ifAInfo.netAddress[i] < 0) {
+                        netAddressI[i] = 256 + ifAInfo.netAddress[i];
+                    } else {
+                        netAddressI[i] = ifAInfo.netAddress[i];
+                    }
+                }
+                fmt.format("\t\tNet address: %d", netAddressI[0]);
+                for (int i = 1; i < ifAInfo.netAddress.length; i++) {
+                    fmt.format(".%d", netAddressI[i]);
+                }
+                buffer.append('\n');
+            } else {
+                buffer.append("\t\tNet address: null\n");
+            }
         } else if (ia instanceof Inet6Address) {
             buffer.append("\tv6: " + ia.getHostAddress());
             buffer.append("\n\t\tNetwork " + ifAInfo.prefixLength + " bits\n");
+            if (ifAInfo.netAddress != null) {
             int[] netAddressI = new int[ifAInfo.netAddress.length / 2];
             for (int i = 0; i < netAddressI.length; i++) {
                 int au = ifAInfo.netAddress[2 * i];
@@ -383,19 +412,23 @@ public class InterfaceProbe {
             for (int i = 1; i < netAddressI.length; i++)
                 fmt.format(":%x", netAddressI[i]);
             buffer.append('\n');
+            } else {
+                buffer.append("\t\tNet address: null\n");
+            }
         }
-        logger.fine(buffer.toString());
+        return buffer;
     }
 
-    private byte[] getNetworkAddress(InetAddress ia, short prefixLen) {
+    private byte[] getNetworkAddress(InetAddress ia, short prefixLen)
+            throws ConfigurationException {
         byte[] byteAddress = ia.getAddress();
         short networkBytes = (short) (prefixLen / 8);
         if (networkBytes > byteAddress.length) {
-            logger.severe("Netmask too long. Network address " + ia + " has " +
+            throw new ConfigurationException(
+            "Netmask too long. Network address " + ia + " has " +
                     prefixLen + "bit netmask while having " +
                     byteAddress.length + "bytes in the address. " +
                     "The address is a " + ia.getClass().getName());
-            return null;
         }
         byte[] netAddress = new byte[byteAddress.length];
         int bytePos = 0;
