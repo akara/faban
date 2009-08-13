@@ -50,6 +50,7 @@ HOSTNAME=`uname -n`
 
 # Use the client JVM. It is much lighter weight, less threads, less memory
 # and we do not need much performance for the agent.
+# -Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5006 \
 $JAVA -client -classpath $CLASSPATH \
 -Djava.rmi.server.RMIClassLoaderSpi=com.sun.faban.harness.agent.RMIClassLoaderProvider \
 -Dfaban.cli.command=$0 -Dfaban.home=$FABAN_HOME \
