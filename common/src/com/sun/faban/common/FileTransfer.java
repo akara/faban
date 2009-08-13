@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileTransfer.java,v 1.5 2009/08/05 22:45:33 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -39,6 +39,8 @@ import java.util.logging.Level;
  * @author Akara Sucharitakul
  */
 public class FileTransfer implements Externalizable {
+
+    private static final long serialVersionUID = 20090812L;    
 
     private static final int MAX_BUFFER_SIZE = 8192;
     private static final Logger logger =
