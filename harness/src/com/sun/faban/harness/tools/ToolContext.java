@@ -122,7 +122,7 @@ public class ToolContext extends MasterToolContext {
      */
     public CommandHandle exec(Command cmd)
             throws IOException, InterruptedException {
-        return wrapper.cmdAgent.execute(cmd);
+        return wrapper.cmdAgent.execute(cmd, wrapper.serviceBinMap.get(super.getToolDescription().serviceName));
     }
 
     /**
@@ -154,7 +154,7 @@ public class ToolContext extends MasterToolContext {
         if (useOutput) {
             cmd.setStreamHandling(stream, Command.CAPTURE);
             cmd.setOutputFile(stream, localOutputFile);
-            wrapper.outputHandle = wrapper.cmdAgent.execute(cmd);
+            wrapper.outputHandle = wrapper.cmdAgent.execute(cmd, wrapper.serviceBinMap.get(super.getToolDescription().serviceName));
             wrapper.outputStream = stream;
             return wrapper.outputHandle;
         } else {

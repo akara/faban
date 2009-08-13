@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Command.java,v 1.15 2009/07/02 20:26:40 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -196,9 +196,10 @@ public class Command implements Serializable {
      * @throws IOException Error dealing with the stdin, stdout, or stderr
      * @throws InterruptedException The execute thread got interrupted.
      */
-    public CommandHandle execute(CommandChecker checker)
+    public CommandHandle execute(CommandChecker checker,
+                                 Map<String, List<String>> extMap)
             throws IOException, InterruptedException {
-        command = checker.checkCommand(command);
+        command = checker.checkCommand(command, extMap);
         remote = true;
         return execute();
     }

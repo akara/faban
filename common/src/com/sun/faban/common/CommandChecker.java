@@ -17,13 +17,14 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CommandChecker.java,v 1.4 2008/03/15 07:26:38 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.common;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * An interface impolemented by the command agent allowing it to check the
@@ -37,9 +38,10 @@ public interface CommandChecker {
     /**
      * Checks and completes the command, if possible.
      * @param cmd The original command
+     * @param extMap The external map, if any
      * @return The completed command
      */
-    public List<String> checkCommand(List<String> cmd);
+    public List<String> checkCommand(List<String> cmd, Map<String, List<String>> extMap);
 
     /**
      * Checks and completes the java command, if possible.
