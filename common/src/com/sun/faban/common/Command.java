@@ -192,6 +192,7 @@ public class Command implements Serializable {
      * Called from the command agent allowing the agent to ensure the command
      * will work in the agent environment.
      * @param checker The command checker
+     * @param extMap The extended command map for the service/tool, if any
      * @return A handle to the executing command
      * @throws IOException Error dealing with the stdin, stdout, or stderr
      * @throws InterruptedException The execute thread got interrupted.

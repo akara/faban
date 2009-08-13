@@ -155,9 +155,9 @@ public class CmdAgentImpl extends UnicastRemoteObject
      * Executes a command from the remote command agent.
      *
      * @param c The command to be executed
-`    * @return A handle to the command
-     * @throws IOException Error communicating with resulting process
-     * @throws InterruptedException Thread got interrupted waiting
+     * @return A handle to the command
+     * @throws IOException
+     * @throws InterruptedException
      */
     public CommandHandle execute(Command c)
                  throws IOException, InterruptedException {

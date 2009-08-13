@@ -17,6 +17,8 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
+ * $Id$
+ *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 
@@ -224,13 +226,14 @@ public class ToolWrapper {
 
     /**
      * This method is responsible for configuring a tool.
-     * @param toolName
-     * @param path
-     * @param outDir
-     * @param host
-     * @param cmdAgent
-     * @param latch
-     * @throws java.lang.Exception
+     * @param toolName The name of the tool.
+     * @param path The path to start the command
+     * @param outDir The tool output directory
+     * @param host The host the tool should run
+     * @param cmdAgent The local command agent
+     * @param latch The latch used for identifying tool completion
+     * @param serviceBinMap Command-path map obtained from CmdMap.getServiceBinMap
+     * @throws java.lang.Exception If there is any error
      */
     public void configure(String toolName, String path, String outDir, String host,
                           CmdAgentImpl cmdAgent, CountDownLatch latch,
