@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunResult.java,v 1.9 2009/08/07 20:34:14 sheetalpatil Exp $
+ * $Id: RunResult.java,v 1.10 2009/08/18 17:42:30 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -704,8 +704,9 @@ public class RunResult {
         return runs.toString();
     }
 
-    private static String getAchievedMetricForTarget(String tags)
+    private static HashMap<String, String> getAchievedMetricForTarget(String tags)
             throws IOException {
+        HashMap<String, String> achievedMetricMap = new HashMap<String, String>();
         TagEngine tagEngine;
         try {
             tagEngine = TagEngine.getInstance();
@@ -715,18 +716,22 @@ public class RunResult {
         }
         Set<String> runIds = tagEngine.search(tags);
         Double achievedMetric = 0.0;
+        String achievedMetricUnit = " ";
         for (String runid : runIds) {
             try {
                 RunId runId = new RunId(runid);
                 RunResult res = getInstance(runId);
                 if (res != null && achievedMetric < res.metric.value){
                     achievedMetric = res.metric.value;
+                    achievedMetricUnit = res.metricUnit;
                 }
             } catch (Exception e) {
                 logger.log(Level.WARNING, "Cannot read result dir " + runid, e);
             }           
         }
-        return achievedMetric.toString();
+        achievedMetricMap.put("metric", achievedMetric.toString());
+        achievedMetricMap.put("metricunit", achievedMetricUnit);
+        return achievedMetricMap;
     }
 
 
@@ -786,7 +791,7 @@ public class RunResult {
             String sortDirection) {
 
         // 1. Generate table header
-        SortableTableModel table = new SortableTableModel(6);
+        SortableTableModel table = new SortableTableModel(9);
         
         String sort = "<img src=/img/sort_asc.gif></img>";
         if(sortDirection.equals("DESCENDING")){
@@ -831,9 +836,12 @@ public class RunResult {
             row[0] = target.name;
             row[1] = target.owner;
             row[2] = target.status;
-            row[3] = target.achievedMetric;
-            row[4] = target.metric;
+            row[3] = target.achievedMetric+ " " + target.achievedMetricunit;
+            row[4] = target.metric + " " + target.metricunit;
             row[5] = target.tags;
+            row[6] = target.red;
+            row[7] = target.orange;
+            row[8] = target.yellow;
         }
 
         SortDirection enumValForDirection = table.getSortDirection().valueOf(sortDirection);
@@ -875,10 +883,24 @@ public class RunResult {
                                  if (targetNodeChildNodes.item(k).getNodeName().equals("metric")){
                                      tg.metric = reader.getValue("metric", se);
                                  }
+                                 if (targetNodeChildNodes.item(k).getNodeName().equals("metricunit")){
+                                     tg.metricunit = reader.getValue("metricunit", se);
+                                 }
+                                 if (targetNodeChildNodes.item(k).getNodeName().equals("red")){
+                                     tg.red = reader.getValue("red", se);
+                                 }
+                                 if (targetNodeChildNodes.item(k).getNodeName().equals("orange")){
+                                     tg.orange = reader.getValue("orange", se);
+                                 }
+                                 if (targetNodeChildNodes.item(k).getNodeName().equals("yellow")){
+                                     tg.yellow = reader.getValue("yellow", se);
+                                 }
 
                             }
                         }
-                        tg.achievedMetric = getAchievedMetricForTarget(tg.tags);
+                        HashMap<String, String> achievedMetricMap = getAchievedMetricForTarget(tg.tags);
+                        tg.achievedMetric = achievedMetricMap.get("metric");
+                        tg.achievedMetricunit = achievedMetricMap.get("metricunit");
                         Double status = ((Double.parseDouble(tg.achievedMetric)/Double.parseDouble(tg.metric)) * 100);
                         tg.status = status.toString();
                         targetList.add(tg);
@@ -1062,6 +1084,12 @@ public class RunResult {
         public String runs;
         public String status;
         public String metric;
+        public String metricunit;
         public String achievedMetric;
+        public String achievedMetricunit;
+        public String red;
+        public String orange;
+        public String yellow;
+
     }
 }

@@ -36,6 +36,10 @@
     String targetowner = usrEnv.getUser();
     String targettags = request.getParameter("targettags");
     String targetmetric = request.getParameter("targetmetric");
+    String targetmetricunit = request.getParameter("targetmetricunit");
+    String targetcolorred = request.getParameter("targetcolorred");
+    String targetcolororange = request.getParameter("targetcolororange");
+    String targetcoloryellow = request.getParameter("targetcoloryellow");
 %>
 <html>
     <head>
@@ -52,11 +56,11 @@
                 <input type="hidden" name="flag" title="flag" value="add">
                 <input type="hidden" name="viewAll" title="viewAll" value="true">
                 <input type="hidden" name="viewMy" title="viewMy" value="true"> 
-                <table BORDER=0 CELLPADDING=4 CELLSPACING=3 width="90%" align="center" style="padding:2px; border: 2px solid #cccccc;">
+                <table BORDER=0 CELLPADDING=4 CELLSPACING=3 width="50%" align="left" style="padding:2px; border: 2px solid #cccccc;">
               <tbody>
                 <tr class="even">
                         <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell">Name</td>
-                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><input type="text" id="targetname" name="targetname" title="target name" size="25"></td>
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><input type="text" id="targetname" name="targetname" title="target name" size="25">(ex: foo)</td>
                 </tr>
                 <tr class="odd">
                         <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell">Owner</td>
@@ -64,15 +68,35 @@
                 </tr>
                 <tr class="even">
                         <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell">Metric</td>
-                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><input type="text" id="targetmetric" name="targetmetric" title="target metric" size="25"></td>
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><input type="text" id="targetmetric" name="targetmetric" title="target metric" size="25">(ex: 10)</td>
                 </tr>
                 <tr class="odd">
-                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell">Tags</td>
-                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><input type="text" id="targettags" name="targettags" title="target tags" size="25"></td>
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell">Metric unit</td>
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><input type="text" id="targetmetricunit" name="targetmetricunit" title="target metric unit" size="25">(ex: ops/sec)</td>
                 </tr>
                 <tr class="even">
-                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><input type="submit" value="Add">&nbsp;&nbsp;<input type="reset" value="Reset"></td>
-                         <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell">&nbsp;</td>
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell">Tags</td>
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><input type="text" id="targettags" name="targettags" title="target tags" size="25">(ex: foo)</td>
+                </tr>
+                <tr class="odd">
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell">Red %</td>
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><input style="background-color:red" type="text" id="targetcolorred" name="targetcolorred" title="target color red" size="25" value="60">(ex: 70)</td>
+                </tr>
+                <tr class="even">
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell">Orange %</td>
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><input style="background-color:orange" type="text" id="targetcolororange" name="targetcolororange" title="target color orange" size="25" value="80">(ex: 80)</td>
+                </tr>
+                <tr class="odd">
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell">Yellow %</td>
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><input style="background-color:yellow" type="text" id="targetcoloryellow" name="targetcoloryellow" title="target color yellow" size="25" value="100">(ex: 100)</td>
+                </tr>
+                <tr class="even">
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" >* Anything beyond percentage value for yellow is considered as <span style="color:#00cc00">green</span>.</td>
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell">&nbsp;</td>
+                </tr>
+                <tr class="odd">
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" ><input type="submit" value="Add">&nbsp;&nbsp;<input type="reset" value="Reset"></td>
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell">&nbsp;</td>
                 </tr>
                 </tbody>
                 </table>
@@ -85,11 +109,11 @@
                 <input type="hidden" name="flag" title="flag" value="edit">
                 <input type="hidden" name="viewAll" title="viewAll" value="true">
                 <input type="hidden" name="viewMy" title="viewMy" value="true">
-                 <table BORDER=0 CELLPADDING=4 CELLSPACING=3 width="90%" align="center" style="padding:2px; border: 2px solid #cccccc;">
+                 <table BORDER=0 CELLPADDING=4 CELLSPACING=3 width="50%" align="left" style="padding:2px; border: 2px solid #cccccc;">
               <tbody>
                 <tr class="even">
                         <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell">Name</td>
-                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><input type="text" id="targetname" name="targetname" title="target name" size="25" value=<%=targetname%>></td>
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><input type="text" id="targetname" name="targetname" title="target name" size="25" value=<%=targetname%>>(ex: foo)</td>
                 </tr>
                 <tr class="odd">
                         <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell">Owner</td>
@@ -97,14 +121,34 @@
                 </tr>                
                 <tr class="even">
                         <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell">Metric</td>
-                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><input type="text" id="targetmetric" name="targetmetric" title="target metric" size="25" value=<%=targetmetric%>></td>
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><input type="text" id="targetmetric" name="targetmetric" title="target metric" size="25" value=<%=targetmetric%>>(ex: 10)</td>
                 </tr>
                 <tr class="odd">
-                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell">Tags</td>
-                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><input type="text" id="targettags" name="targettags" title="target tags" size="25" value=<%=targettags%>></td>
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell">Metric unit</td>
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><input type="text" id="targetmetricunit" name="targetmetricunit" title="target metric unit" size="25" value=<%=targetmetricunit%>>(ex: ops/sec)</td>
                 </tr>
                 <tr class="even">
-                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><input type="submit" value="Edit">&nbsp;&nbsp;<input type="reset" value="Reset"></td>
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell">Tags</td>
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><input type="text" id="targettags" name="targettags" title="target tags" size="25" value=<%=targettags%>>(ex: foo)</td>
+                </tr>
+                <tr class="odd">
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell">Red %</td>
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><input style="background-color:red" type="text" id="targetcolorred" name="targetcolorred" title="target color red" size="25" value=<%=targetcolorred%>>(ex: 70)</td>
+                </tr>
+                <tr class="even">
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell">Orange %</td>
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><input style="background-color:orange" type="text" id="targetcolororange" name="targetcolororange" title="target color orange" size="25" value=<%=targetcolororange%>>(ex: 80)</td>
+                </tr>
+                <tr class="odd">
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell">Yellow %</td>
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><input style="background-color:yellow" type="text" id="targetcoloryellow" name="targetcoloryellow" title="target color yellow" size="25" value=<%=targetcoloryellow%>>(ex: 100)</td>
+                </tr>
+                <tr class="even">
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" >* Anything beyond percentage value for yellow is considered as <span style="color:#00cc00">green</span>.</td>
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell">&nbsp;</td>
+                </tr>
+                <tr class="odd">
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" ><input type="submit" value="Add">&nbsp;&nbsp;<input type="reset" value="Reset"></td>
                         <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell">&nbsp;</td>
                 </tr>
                 </tbody>

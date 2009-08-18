@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Results.java,v 1.10 2009/08/07 20:34:14 sheetalpatil Exp $
+ * $Id: Results.java,v 1.11 2009/08/18 17:42:30 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -69,13 +69,21 @@ public class Results {
         String targetname = req.getParameter("targetname");
         String targetowner = req.getParameter("targetowner");
         String targetmetric = req.getParameter("targetmetric");
+        String targetmetricunit = req.getParameter("targetmetricunit");
+        String targetcolorred = req.getParameter("targetcolorred");
+        String targetcolororange = req.getParameter("targetcolororange");
+        String targetcoloryellow = req.getParameter("targetcoloryellow");
         String targettags = req.getParameter("targettags");
         String flag = req.getParameter("flag");
         String add = "<target>\n" +
                             "<name>" + targetname +"</name>\n" +
                             "<owner>" + targetowner +"</owner>\n" +
                             "<metric>" + targetmetric +"</metric>\n" +
+                            "<metricunit>" + targetmetricunit +"</metricunit>\n" +
                             "<tags>" + targettags +"</tags>\n" +
+                            "<red>" + targetcolorred +"</red>\n" +
+                            "<orange>" + targetcolororange +"</orange>\n" +
+                            "<yellow>" + targetcoloryellow +"</yellow>\n" +
                     "</target>\n</targets>";
 
         File targetFile = new File(Config.CONFIG_DIR, "targets.xml");
@@ -90,32 +98,49 @@ public class Results {
         if (targetFile.exists() && targetFile.length() > 0) {
             if (flag.equals("add")) {                
                 if(found == false){
-                    FileHelper.tokenReplace(targetFile.getAbsolutePath(),"</targets>", add, null);
-                    req.setAttribute("answer", "Target " + targetname + " added Successfully!!" );
+                    FileHelper.tokenReplace(targetFile.getAbsolutePath(),
+                            "</targets>", add, null);
+                    req.setAttribute("answer", "Target " + targetname +
+                            " added Successfully!!" );
                 }else{
-                    req.setAttribute("answer", "Sorry, target " + targetname + " already exists, please try different name." );
+                    req.setAttribute("answer", "Sorry, target " + targetname +
+                            " already exists, please try different name." );
                 }
             }else if (flag.equals("edit") || flag.equals("delete")) {
                 if (found == true) {
                     NodeList targetnodes = reader.getTopLevelElements();
                     for(int i = 0; i < targetnodes.getLength(); i++){
                         Node e = targetnodes.item(i);
-                        if(targetnodes.item(i).getNodeType() == Node.ELEMENT_NODE ) {
-                            NodeList targetchildnodes = targetnodes.item(i).getChildNodes();
+                        if(targetnodes.item(i).getNodeType() ==
+                                Node.ELEMENT_NODE ) {
+                            NodeList targetchildnodes =
+                                    targetnodes.item(i).getChildNodes();
                             for(int j = 0; j < targetchildnodes.getLength(); j++){
-                                if(targetchildnodes.item(j).getNodeType() == Node.ELEMENT_NODE) {
+                                if(targetchildnodes.item(j).getNodeType() ==
+                                        Node.ELEMENT_NODE) {
                                     //Node e = targetnodes.item(i);
-                                    String nodename = targetchildnodes.item(j).getNodeName();
+                                    String nodename =
+                                            targetchildnodes.item(j).getNodeName();
                                     String nodeval = reader.getValue("name", e);
-                                    if(nodename == null || !nodename.equals("name") || nodeval == null || !nodeval.equals(targetname)){
+                                    if(nodename == null || !nodename.equals("name")
+                                       || nodeval == null || !nodeval.equals(targetname)){
                                         continue;
-                                    }else if (nodename != null && nodename.equals("name") && nodeval != null && nodeval.equals(targetname)) {
+                                    }else if (nodename != null &&
+                                            nodename.equals("name") &&
+                                            nodeval != null &&
+                                            nodeval.equals(targetname)) {
                                         if(flag.equals("edit")){
-                                            editTargetNode(e, reader, targetowner, targetmetric, targettags);
-                                            req.setAttribute("answer", "Target " + targetname + " edited Successfully!!" );
+                                            editTargetNode(e, reader, targetowner,
+                                                    targetmetric, targetmetricunit, targettags,
+                                                    targetcolorred, targetcolororange,
+                                                    targetcoloryellow);
+                                            req.setAttribute("answer", "Target " +
+                                                    targetname + " edited Successfully!!" );
                                         }else if(flag.equals("delete")){
-                                            deleteTargetNode(e, e.getParentNode(), reader);
-                                            req.setAttribute("answer", "Target " + targetname + " deleted Successfully!!" );
+                                            deleteTargetNode(e, e.getParentNode(),
+                                                    reader);
+                                            req.setAttribute("answer", "Target " +
+                                                    targetname + " deleted Successfully!!" );
                                         }
                                         break;
                                     }
@@ -124,7 +149,8 @@ public class Results {
                         }
                     }                   
                 }else{
-                    req.setAttribute("answer", "Sorry, could not find target " + targetname + " for editing." );
+                    req.setAttribute("answer", "Sorry, could not find target " +
+                            targetname + " for editing." );
                 }
             }
         }        
@@ -132,7 +158,9 @@ public class Results {
     }
 
     private void editTargetNode(Node target, XMLReader reader,
-            String targetowner, String targetmetric, String targettags ) throws Exception {
+            String targetowner, String targetmetric, String targetmetricunit, 
+            String targettags, String targetcolorred, String targetcolororange,
+            String targetcoloryellow ) throws Exception {
         //String paramFileName = Config.CONFIG_DIR + "targets.xml";
         //ParamRepository param = new ParamRepository(paramFileName, false);
 
@@ -144,8 +172,16 @@ public class Results {
                     reader.replaceValue(e, targetowner);
                 }else if (e.getNodeName().equals("metric")){
                     reader.replaceValue(e, targetmetric);
+                }else if (e.getNodeName().equals("metricunit")){
+                    reader.replaceValue(e, targetmetricunit);
                 }else if (e.getNodeName().equals("tags")){
                     reader.replaceValue(e, targettags);
+                }else if (e.getNodeName().equals("red")){
+                    reader.replaceValue(e, targetcolorred);
+                }else if (e.getNodeName().equals("orange")){
+                    reader.replaceValue(e, targetcolororange);
+                }else if (e.getNodeName().equals("yellow")){
+                    reader.replaceValue(e, targetcoloryellow);
                 }
 
             }

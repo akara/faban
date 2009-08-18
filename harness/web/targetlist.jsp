@@ -97,7 +97,7 @@
               <table BORDER=0 CELLPADDING=4 CELLSPACING=3 width="90%" align="center" style="padding:2px; border: 2px solid #cccccc;">
               <tbody>
               <tr>
-    <%      for (int i = 0; i < targetTable.columns(); i++) {
+    <%      for (int i = 0; i < (targetTable.columns()-3); i++) {
                   if(targetTable.getSortDirection() == SortDirection.DESCENDING){
                       sortDirection = "ASCENDING";
                   }else if(targetTable.getSortDirection() == SortDirection.ASCENDING){
@@ -121,12 +121,32 @@
                     String tagsInSearch = row[5].toString();
                     sortLink = "/controller/results/list?inputtag="+ tagsInSearch.trim() +"&sortColumn=" + 4 + "&sortDirection=" + SortDirection.DESCENDING;
                 }
-                for (int j = 0; j < row.length; j++) {
+                for (int j = 0; j < (row.length-3); j++) {
+                    int red, orange, yellow;
+                    if(row[6] != null){
+                        red = Integer.parseInt(row[6].toString());
+                    }else{
+                        row[6] = "60";
+                        red = Integer.parseInt(row[6].toString());
+                    }
+                    if(row[7] != null){
+                        orange = Integer.parseInt(row[7].toString());
+                    }else{
+                        row[7] = "70";
+                        orange = Integer.parseInt(row[7].toString());
+                    }
+                    if(row[8] != null){
+                        yellow = Integer.parseInt(row[8].toString());
+                    }else{
+                        row[8] = "100";
+                        yellow = Integer.parseInt(row[8].toString());
+                    }
                     if(row[j] == null)
                        row[j] = " ";
                     String val = row[j].toString();
                     if(j == 0) {
-                        String addTargetLink = "/addtarget.jsp?targetname=" + row[0].toString() + "&targetowner=" + row[1].toString() + "&targetmetric=" + row[4].toString() + "&targettags=" + row[5].toString();
+                        String unit = row[4].toString().substring(row[4].toString().lastIndexOf(" "),row[4].toString().length());
+                        String addTargetLink = "/addtarget.jsp?targetname=" + row[0].toString() + "&targetowner=" + row[1].toString() + "&targetmetric=" + row[4].toString() + "&targetmetricunit=" + unit + "&targettags=" + row[5].toString() + "&targetcolorred=" + row[6].toString() + "&targetcolororange=" + row[7].toString() + "&targetcoloryellow=" + row[8].toString();
                         String deleteTargetLink = "/controller/results/add_edit_target?viewMy=" + viewMy + "&viewAll="+ viewAll+ "&flag=delete&targetname=" + row[0].toString()+ "&targetowner=" + row[1].toString() + "&targetmetric=" + row[4].toString() + "&targettags=" + row[5].toString();
         %>
         <% if(row[1].toString().equalsIgnoreCase(usrEnv.getUser())){ %>
@@ -138,13 +158,13 @@
                 <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><%=val%></td>
         <%      } %>
     <%              }else if(j == 2){ %>
-                        <% if (Double.parseDouble(val) < 60) {%>
+                        <% if (Double.parseDouble(val) < red) {%>
                             <td bgcolor="red" style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><%out.print(new DecimalFormat("#").format(Double.parseDouble(val)) + "%"); %></td>
-                        <% } else if (Double.parseDouble(val) > 60 && Double.parseDouble(val) < 80) { %>
+                        <% } else if (Double.parseDouble(val) > red && Double.parseDouble(val) < orange) { %>
                             <td bgcolor="orange" style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><%out.print(new DecimalFormat("#").format(Double.parseDouble(val)) + "%"); %></td>
-                        <% } else if (Double.parseDouble(val) > 80 && Double.parseDouble(val) < 100) { %>
+                        <% } else if (Double.parseDouble(val) > orange && Double.parseDouble(val) < yellow) { %>
                             <td bgcolor="yellow" style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><%out.print(new DecimalFormat("#").format(Double.parseDouble(val)) + "%"); %></td>
-                        <% } else if (Double.parseDouble(val) >= 100) {%>
+                        <% } else if (Double.parseDouble(val) >= yellow) {%>
                             <td bgcolor="#00cc00" style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><%out.print(new DecimalFormat("#").format(Double.parseDouble(val)) + "%"); %></td>
                         <% } %>
     <%              } else if(j == 3){
