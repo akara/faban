@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileHelper.java,v 1.23 2009/07/28 22:54:17 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -278,7 +278,7 @@ public class FileHelper {
                     }
             }
             if (!file.delete()) {
-                logger.severe("Delete failed for file " + file.getPath());
+                logger.warning("Delete failed for file " + file.getPath());
                 success = false;
             }
         } catch(Exception e) {
