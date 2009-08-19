@@ -19,7 +19,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: build.xml,v 1.27 2009/08/06 20:31:44 akara Exp $
+* $Id: build.xml,v 1.28 2009/08/19 20:28:47 sheetalpatil Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 -->
@@ -56,7 +56,12 @@
         <ant dir="samples/benchmarks/ftp101"/>
         <ant dir="samples/benchmarks/fabanload"/>
         <ant dir="samples/benchmarks/specweb2005"/>
+        <ant dir="samples/services/ApacheHttpdService"/>
+        <ant dir="samples/services/GlassfishService"/>
+        <ant dir="samples/services/LighttpdService"/>
+        <ant dir="samples/services/MemcachedService"/>
         <ant dir="samples/services/MysqlService"/>
+        <ant dir="samples/services/OracleService"/>
     </target>
 
     <target name="copy" unless="faban.bundled"
@@ -157,12 +162,47 @@
             <fileset dir="${workspace.dir}/samples/services/MysqlService"/>
         </copy>
 
+        <mkdir dir="samples/services/ApacheHttpdService/lib"/>
+        <copy todir="samples/services/ApacheHttpdService"
+            overwrite="true" preservelastmodified="true"
+            includeEmptyDirs="true" verbose="true">
+            <fileset dir="${workspace.dir}/samples/services/ApacheHttpdService"/>
+        </copy>
+
+        <mkdir dir="samples/services/GlassfishService/lib"/>
+        <copy todir="samples/services/GlassfishService"
+            overwrite="true" preservelastmodified="true"
+            includeEmptyDirs="true" verbose="true">
+            <fileset dir="${workspace.dir}/samples/services/GlassfishService"/>
+        </copy>
+
+        <mkdir dir="samples/services/LighttpdService/lib"/>
+        <copy todir="samples/services/LighttpdService"
+            overwrite="true" preservelastmodified="true"
+            includeEmptyDirs="true" verbose="true">
+            <fileset dir="${workspace.dir}/samples/services/LighttpdService"/>
+        </copy>
+
+        <mkdir dir="samples/services/MemcachedService/lib"/>
+        <copy todir="samples/services/MemcachedService"
+            overwrite="true" preservelastmodified="true"
+            includeEmptyDirs="true" verbose="true">
+            <fileset dir="${workspace.dir}/samples/services/MemcachedService"/>
+        </copy>
+
+        <mkdir dir="samples/services/OracleService/lib"/>
+        <copy todir="samples/services/OracleService"
+            overwrite="true" preservelastmodified="true"
+            includeEmptyDirs="true" verbose="true">
+            <fileset dir="${workspace.dir}/samples/services/OracleService"/>
+        </copy>
+
         <copy todir="master/common/endorsed"
             overwrite="true" preservelastmodified="true"
             includeEmptyDirs="true" verbose="true">
             <fileset dir="${workspace.dir}/harness/lib" includes="dom3-*, xalan.jar"/>
         </copy>
-        
+
         <mkdir dir="master/temp"/>
         <mkdir dir="master/logs"/>
 
@@ -334,7 +374,7 @@
             longfile="warn" compression="gzip">
             <tarfileset dir="." prefix="${package.name}" mode="755" dirmode="755">
                 <patternset refid="agent.bin"/>
-                <exclude name="bin/makeagent*"/>                
+                <exclude name="bin/makeagent*"/>
             </tarfileset>
             <tarfileset dir="." prefix="${package.name}">
                 <patternset refid="agent.excludes"/>
@@ -348,7 +388,7 @@
             <fileset dir="${workspace.dir}/harness/lib" includes="*.jar"/>
             <fileset dir="master/common/lib" includes="*.jar"/>
         </path>
-        <mkdir dir="${docs.dir}/api"/> 
+        <mkdir dir="${docs.dir}/api"/>
         <javadoc packagenames="com.sun.faban.**"
             destdir="${docs.dir}/api"
             classpathref="class.path"
@@ -418,12 +458,12 @@
             </fileset>
         </delete>
     </target>
-    
+
     <target name="clean-copies" depends="clean-master" unless="faban.bundled"
         description="Clean staging area from all files copied over from the components">
         <delete includeemptydirs="true">
             <fileset dir=".">
-                <include name="*.zip"/>                
+                <include name="*.zip"/>
                 <include name="ant/**"/>
                 <include name="bin/**"/>
                 <include name="config/**"/>
@@ -438,7 +478,7 @@
             </fileset>
         </delete>
     </target>
-    
+
     <target name="clean-modules" depends="clean-copies" unless="faban.bundled"
         description="Clean all modules">
         <ant dir="${workspace.dir}/common" target="clean"/>
