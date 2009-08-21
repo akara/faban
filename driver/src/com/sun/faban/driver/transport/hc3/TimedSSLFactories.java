@@ -41,8 +41,14 @@ import java.util.logging.Level;
  */
 public enum TimedSSLFactories {
 
+    /**
+     * Attach timing above the SSL layer.
+     */
     ABOVE (AboveTimedSSLSocketFactory.class),
 
+    /**
+     * Attach timing below the SSL layer.
+     */
     BELOW (BelowTimedSSLSocketFactory.class);
 
 
