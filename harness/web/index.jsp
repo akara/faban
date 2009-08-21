@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: index.jsp,v 1.6 2009/06/25 23:13:39 sheetalpatil Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -33,21 +33,11 @@
     </head>
     <%
         String bannerPage = BenchmarkDescription.getBannerPage();
-        boolean defaultBanner = bannerPage.equals("banner.jsp");
-
-        if (defaultBanner || !Config.SECURITY_ENABLED) {
     %>
-    <frameset rows="80,*">
-        <frame name="loginstat" src="<%=bannerPage%>"
-               scrolling="no" noresize="noresize" frameborder="0"/>
-    <% } else { %>
-    <frameset rows="120,*">
-        <frameset rows="80,*">
-            <frame name="banner" src="<%=bannerPage%>" scrolling="no" noresize="noresize" frameborder="0"/>
-            <frame name="loginstat" src="loginstat.jsp" scrolling="no" noresize="noresize" frameborder="0"/>
-        </frameset>
-    <% } %>
-
+    <frameset rows="140,*">
+        <frame name="banner" src="<%=bannerPage%>" scrolling="no"  noresize="noresize" frameborder="0" />
+        <frameset rows="40,*">
+            <frame name="loginstat" src="loginstat.jsp" scrolling="no"  noresize="noresize" frameborder="0" />
         <frameset cols="15%,*">
             <frame name="menu" src="menu.jsp" frameborder="0"/>
             <frame name="main" src="welcome.jsp" frameborder="0"/>
@@ -55,6 +45,6 @@
         <noframes>
             <p>This page requires frames, but your browser does not support them.</p>
         </noframes>
-    </frameset>
-    </frameset>
+   </frameset>
+   </frameset>
 </html>

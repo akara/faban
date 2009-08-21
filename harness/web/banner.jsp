@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: banner.jsp,v 1.4 2009/02/28 18:03:50 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -27,35 +27,24 @@
 <%@ page language="java" import="com.sun.faban.harness.common.BenchmarkDescription,
                                  com.sun.faban.harness.common.Config"%>
 <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
+<%
+String title = BenchmarkDescription.getBannerName().toUpperCase();
+if(title.equals("FABAN"))
+    title = " ";
+%>
 <html>
     <head>
         <title>Faban Banner [<%= Config.FABAN_HOST %>]</title>
         <link rel="icon" type="image/gif" href="img/faban.gif">
     </head>
     <body>
-        <table BORDER="0" CELLSPACING="5" CELLPADDING="10" WIDTH="100%" BGCOLOR="#FFFFFF" >
+        <table BORDER="0" CELLSPACING="0" CELLPADDING="10" WIDTH="100%" BGCOLOR="#FFFFFF" >
             <tr>
-                <td ALIGN="CENTER" VALIGN="TOP" WIDTH="33%" BGCOLOR="#5382A1"> Sun Microsystems </td>
-                <td ALIGN="CENTER" VALIGN="TOP" WIDTH="34%" BGCOLOR="#E76F00"><b><%=BenchmarkDescription.getBannerName()%> Administration</b></td>
-                <td ALIGN="CENTER" VALIGN="TOP" WIDTH="33%" BGCOLOR="#B2BC00"> Version <%=BenchmarkDescription.getBannerVersion()%>
-<% if (Config.SECURITY_ENABLED) {
-
-        String user = usrEnv.getUser();
-        if (user == null) {
-%>
-        <p style="text-align: right; font-size: small"><a href="login.jsp" target="main">Login</a></p>
-<%
-        } else {
-%>
-        <p style="text-align: right; font-size: small">Logged in: <%= user %> |
-        <a href="login.jsp?logout" target="main">Logout</a></p>
-<%
-
-        }
-    }
-%>
-                </td>
-            </tr>  
-        </table>  
+                <td ALIGN="left" width=33% BGCOLOR="#395d73" style="color:white; font-size:10px"><img src="img/faban_header.gif" /></td><br>
+                VERSION <%=BenchmarkDescription.getBannerVersion()%>
+                <td ALIGN="Center" width=33% BGCOLOR="#395d73" style="color:white"><%=title%></td>
+                <td ALIGN="right" width=33% BGCOLOR="#395d73" style="color:white">VERSION <%=BenchmarkDescription.getBannerVersion()%></td>
+            </tr>
+        </table>
     </body>
 </html>
