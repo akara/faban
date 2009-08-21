@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FabanShell.java,v 1.3 2009/07/02 20:26:40 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -95,7 +95,7 @@ public class FabanShell extends Thread {
         if ("true".equalsIgnoreCase(needJDK)) {
             boolean isJDK = false;
             File toolsJar = new File(javaLibs, "tools.jar");
-            if (!toolsJar.isFile()) { // Normally tools.jar has the compiler.
+            if (toolsJar.isFile()) { // Normally tools.jar has the compiler.
                 isJDK = true;
                 classPath.append(toolsJar.getAbsolutePath());
             } else {  // On some platforms like the mac, there is no tools.jar
