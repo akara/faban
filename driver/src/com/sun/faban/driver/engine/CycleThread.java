@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CycleThread.java,v 1.1 2008/09/10 18:25:53 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -139,6 +139,16 @@ public class CycleThread extends AgentThread {
                 // In case of exception, invokeTime or even respondTime may
                 // still be -1.
                 DriverContext.TimingInfo timingInfo = driverContext.timingInfo;
+
+                // The lastRespondTime may be set, though. if so, propagate
+                // it back to respondTime.
+                if (timingInfo.respondTime == TIME_NOT_SET &&
+                    timingInfo.lastRespondTime != TIME_NOT_SET) {
+                    logger.fine("Potential open request in operation " +
+                            op.m.getName() + ".");
+                    timingInfo.respondTime = timingInfo.lastRespondTime;
+                }
+
                 // If it never waited, we'll see whether we can just use the
                 // previous start and end times.
                 if (timingInfo.invokeTime == TIME_NOT_SET) {

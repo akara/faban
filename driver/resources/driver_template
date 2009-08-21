@@ -1,6 +1,7 @@
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.StringTokenizer;
+import java.util.logging.Logger; // debug only
 
 import com.sun.faban.driver.*;
 import com.sun.faban.driver.util.ContentSizeStats;
@@ -23,7 +24,8 @@ private Random random;
 private ContentSizeStats contentStats = null;
 
 public @DriverClassName@(){
-	 httpTransport = new HttpTransport();
+     HttpTransport.setProvider("@ProviderClass@");
+	 httpTransport = HttpTransport.newInstance();
 	 ctx = DriverContext.getContext();
      random = ctx.getRandom();
      contentStats = new ContentSizeStats(ctx.getOperationCount());

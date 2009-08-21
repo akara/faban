@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FabanHTTPBench.java,v 1.8 2009/07/28 22:53:32 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -375,7 +375,7 @@ public class FabanHTTPBench {
             System.out.println("max time: " + getValue(doc, "max"));
             String p90th = getValue(doc, "p90th");
             System.out.println("90th %: " + p90th);
-            if (Double.parseDouble(p90th) > ninetyPct)
+            if (p90th.startsWith(">") || Double.parseDouble(p90th) > ninetyPct)
                 System.out.println("ERROR: Missed target 90% of " + ninetyPct);
         } else {
             TextTable table = new TextTable(txCount, 5);

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ApacheHC3Transport.java,v 1.4 2009/08/05 23:36:20 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,6 +25,7 @@ package com.sun.faban.driver.transport.hc3;
 
 import com.sun.faban.driver.HttpTransport;
 import org.apache.commons.httpclient.*;
+import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.params.HttpMethodParams;
@@ -71,10 +72,13 @@ public class ApacheHC3Transport extends HttpTransport {
         final Protocol http =
                 new Protocol("http", new ProtocolTimedSocketFactory(), 80);
         Protocol.registerProtocol("http", http);
-        final Protocol https =
-                new Protocol("https", (ProtocolSocketFactory)
-                new SecureProtocolTimedSocketFactory(), 443);
+
+        final Protocol https = new Protocol("https", (ProtocolSocketFactory)
+                TimedSSLFactories.getFactory().getInstance(), 443);
         Protocol.registerProtocol("https", https);
+
+        CookiePolicy.registerCookieSpec(CookiePolicy.DEFAULT,
+                                        FabanCookieSpec.class);
     }
 
     private HttpClient hc = new HttpClient();

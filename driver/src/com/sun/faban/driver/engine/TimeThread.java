@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TimeThread.java,v 1.3 2009/07/21 21:21:09 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -197,6 +197,16 @@ public class TimeThread extends AgentThread {
                     // still be TIME_NOT_SET.
                     DriverContext.TimingInfo timingInfo =
                             driverContext.timingInfo;
+
+                    // The lastRespondTime may be set, though. if so, propagate
+                    // it back to respondTime.
+                    if (timingInfo.respondTime == TIME_NOT_SET &&
+                        timingInfo.lastRespondTime != TIME_NOT_SET) {
+                        logger.fine("Potential open request in operation " +
+                                op.m.getName() + ".");
+                        timingInfo.respondTime = timingInfo.lastRespondTime;
+                    }
+
                     // If it never waited, we'll see whether we can just use the
                     // previous start and end times.
                     if (timingInfo.invokeTime == TIME_NOT_SET) {
@@ -262,14 +272,21 @@ public class TimeThread extends AgentThread {
      * @return True if the last operation is in steady state, false otherwise.
      */
 	boolean isSteadyState() {
-        if (driverContext.timingInfo.respondTime == TIME_NOT_SET) {
-			throw new FatalException("isTxSteadyState called before response " +
-                    "time capture. Cannot determine tx in steady state or " +
-                    "not. This is a bug in the driver code.");
+        // The lastRespondTime may be set, though. if so, propagate
+        // it back to respondTime.
+        long respondTime = driverContext.timingInfo.respondTime;
+        if (respondTime == TIME_NOT_SET) {
+            if (driverContext.timingInfo.lastRespondTime != TIME_NOT_SET) {
+                logger.fine("Potential pending open request.");
+                respondTime = driverContext.timingInfo.lastRespondTime;
+            } else {
+			    throw new FatalException("isTxSteadyState called before " +
+                      "response time capture. Cannot determine tx in steady" +
+                      " state or not. This is a bug in the driver code.");
+            }
 		}
 
-        return isSteadyState(driverContext.timingInfo.invokeTime,
-                                driverContext.timingInfo.respondTime);
+        return isSteadyState(driverContext.timingInfo.invokeTime, respondTime);
     }
 
     /**

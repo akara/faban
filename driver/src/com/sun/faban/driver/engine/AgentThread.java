@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentThread.java,v 1.4 2009/07/21 21:21:08 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -499,7 +499,8 @@ public abstract class AgentThread extends Thread {
             logger.severe(msg);
             agent.abortRun();
             throw new FatalException(msg);
-        } else if (timingInfo.respondTime == TIME_NOT_SET) {
+        } else if (timingInfo.respondTime == TIME_NOT_SET &&
+                   timingInfo.lastRespondTime == TIME_NOT_SET) {
             String msg = null;
             if (driverConfig.operations[
                     currentOperation].timing == Timing.AUTO) {
@@ -517,6 +518,10 @@ public abstract class AgentThread extends Thread {
             logger.severe(msg);
             agent.abortRun();
             throw new FatalException(msg);
+        } else if (timingInfo.respondTime == TIME_NOT_SET) {
+            timingInfo.respondTime = timingInfo.lastRespondTime;
+            logger.fine("Potential open request in operation " +
+                    op.m.getName() + ".");
         }
     }
 

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunInfo.java,v 1.5 2009/08/05 23:36:20 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -459,17 +459,48 @@ public class RunInfo implements Serializable {
            
         }
 
+        private static enum TransportProvider {
+
+            // We can add more providers here.
+            SUN ("com.sun.faban.driver.transport.sunhttp.SunHttpTransport"),
+
+            APACHE3 ("com.sun.faban.driver.transport.hc3.ApacheHC3Transport");
+
+
+            final String providerClass;
+
+            TransportProvider(String providerClass) {
+                this.providerClass = providerClass;
+            }
+
+            static TransportProvider getProvider() {
+                String providerStr = System.getProperty(
+                        "fhb.http.provider", "apache3").toUpperCase();
+                for (TransportProvider provider : TransportProvider.values()) {
+                    if (provider.name().equals(providerStr))
+                        return provider;
+                }
+                // Default is APACHE3
+                return APACHE3;
+            }
+        }
+
         // Used to create the operation-specific information for various
         // types of requests
         private static abstract class RunInfoDefinition {
-            protected boolean doSubst;
-            protected boolean isBinary;
-            protected String url;
-            protected String data;
+            boolean doSubst;
+            boolean isBinary;
+            String url;
+            String data;
 
             abstract String getURL(int opNum);
-            
-            abstract String doTiming(int opNum);
+
+            String doTiming(int opNum, TransportProvider provider) {
+                if (provider == TransportProvider.SUN &&
+                        url.startsWith("https"))
+                    return "ctx.recordTime();";
+                return "";
+            }
             
             abstract String getPostRequest(int opNum) throws Exception;
             
@@ -577,12 +608,6 @@ public class RunInfo implements Serializable {
                         append("\"").toString();
             }
 
-            String doTiming(int i) {
-                if (url.startsWith("https"))
-                    return "ctx.recordTime();";
-                return "";
-            }
-
 			String getPostRequest(int opNum) throws Exception {
                 if (isBinary) {
                     return new StringBuilder(", post_data_").append(opNum).
@@ -658,12 +683,6 @@ public class RunInfo implements Serializable {
                 return new StringBuilder("get_string_").append(opNum).toString();
             }
 
-			String doTiming(int i) {
-				if (url.startsWith("https"))
-					return "ctx.recordTime();";
-				return "";
-			}
-
 			String getPostRequest(int opNum) {
                 return "";
             }
@@ -715,6 +734,9 @@ public class RunInfo implements Serializable {
             String template = sb.toString();
 
             is.close();
+
+            // Obtain the provider.
+            TransportProvider provider = TransportProvider.getProvider();
 
             /**Get the operation token out of the template.
              * Use this to create multiple operations/functions that will 
@@ -831,7 +853,8 @@ public class RunInfo implements Serializable {
                         "@BenchmarkOperation(name = \"").append(operationName);
                 bmop.append("\", max90th=").append(max90th).append(
                         ", ");
-				if (url.startsWith("https"))
+				if (provider == TransportProvider.SUN &&
+                        url.startsWith("https"))
 					bmop.append("timing = com.sun.faban.driver.Timing.MANUAL");
 				else
                     bmop.append("timing = com.sun.faban.driver.Timing.AUTO");
@@ -852,7 +875,7 @@ public class RunInfo implements Serializable {
                 opTemplateClone = opTemplateClone.replaceAll(
                         "@Statics@", rid.getStatics(i));
 				opTemplateClone = opTemplateClone.replaceAll(
-						"@doTiming@", rid.doTiming(i));
+						"@doTiming@", rid.doTiming(i, provider));
                 
                 operations.append(opTemplateClone);
                 
@@ -870,6 +893,8 @@ public class RunInfo implements Serializable {
                     benchmarkDef);
             template = template.replaceAll("@DriverClassName@",
                     definingClassName);
+            template = template.replaceFirst("@ProviderClass@",
+                                             provider.providerClass);
             template = template.replaceFirst("@BenchmarkDriverName@",
                     definingClassName);
             

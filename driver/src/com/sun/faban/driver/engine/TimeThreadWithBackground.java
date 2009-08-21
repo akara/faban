@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TimeThreadWithBackground.java,v 1.2 2009/01/13 01:02:42 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -218,6 +218,15 @@ public class TimeThreadWithBackground extends TimeThread {
                     // still be TIME_NOT_SET.
                     DriverContext.TimingInfo timingInfo =
                             driverContext.timingInfo;
+
+                    // The lastRespondTime may be set, though. if so, propagate
+                    // it back to respondTime.
+                    if (timingInfo.respondTime == TIME_NOT_SET &&
+                        timingInfo.lastRespondTime != TIME_NOT_SET) {
+                        logger.fine("Potential open request in operation " +
+                                op[mixId].m.getName() + ".");
+                        timingInfo.respondTime = timingInfo.lastRespondTime;
+                    }
                     // If it never waited, we'll see whether we can just use
                     // the previous start and end times.
                     if (timingInfo.invokeTime == TIME_NOT_SET) {

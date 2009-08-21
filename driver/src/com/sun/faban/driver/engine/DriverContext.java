@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DriverContext.java,v 1.6 2009/07/21 21:21:09 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -75,9 +75,6 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      * support auto timing should set this flag to false. The default is true.
      */
     boolean pauseSupported = true;
-
-    /** The start time of the last pause, TIME_NOT_SET if no pause. */
-    long pauseStart = TIME_NOT_SET;
 
     /** Context-specific logger. */
     Logger logger;
@@ -439,10 +436,11 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
                 timer.wakeupAt(timingInfo.intendedInvokeTime);
                 // But since sleep may not be exact, we get the time again here.
                 timingInfo.invokeTime = System.nanoTime();
-            } else if (pauseStart != TIME_NOT_SET) {
+            } else if (timingInfo.lastRespondTime != TIME_NOT_SET) {
                 // The critical section was paused.
-                timingInfo.pauseTime += System.nanoTime() - pauseStart;
-                pauseStart = TIME_NOT_SET;
+                timingInfo.pauseTime +=
+                        System.nanoTime() - timingInfo.lastRespondTime;
+                timingInfo.lastRespondTime = TIME_NOT_SET;
             } else {
                 timingInfo.respondTime = System.nanoTime();
             }
@@ -470,8 +468,8 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
             logger.throwing(className, "recordTime", e);
             throw e;
         }
-        if (pauseStart == TIME_NOT_SET) {
-			pauseStart = System.nanoTime();
+        if (timingInfo.lastRespondTime == TIME_NOT_SET) {
+            timingInfo.lastRespondTime = System.nanoTime();
 		}
     }
 
@@ -589,12 +587,13 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
                 // Some response already read, then transmit again.
                 // In this case the time from last receive to this transmit
                 // is the pause time ...
-                long lastResponse = timingInfo.respondTime;
+                timingInfo.lastRespondTime = timingInfo.respondTime;
 
                 // We set the pause time only on the first byte transmitted.
                 timingInfo.respondTime = TIME_NOT_SET;
 
-                timingInfo.pauseTime += System.nanoTime() - lastResponse;
+                timingInfo.pauseTime +=
+                        System.nanoTime() - timingInfo.lastRespondTime;
             }
         }
     }
@@ -626,8 +625,8 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
         // And set the other times to invalid.
         timingInfo.invokeTime = TIME_NOT_SET;
         timingInfo.respondTime = TIME_NOT_SET;
+        timingInfo.lastRespondTime = TIME_NOT_SET;
         timingInfo.pauseTime = 0l;
-        pauseStart = TIME_NOT_SET;
     }
 
     /**
@@ -635,21 +634,20 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      * timing records for each operation.
      */
     public static class TimingInfo {
-    	/**
-    	 * Intended Invoke Time.
-    	 */
+
+    	/** Intended Invoke Time. */
         public long intendedInvokeTime = TIME_NOT_SET;
-        /**
-         * Actual Invoke Time.
-         */
+
+        /** Actual Invoke Time. */
         public long invokeTime = TIME_NOT_SET;
-        /**
-         * Respond Time.
-         */
+
+        /** Respond Time. */
         public long respondTime = TIME_NOT_SET;
-        /**
-         * Pause Time.
-         */
+
+        /** Last respond time, if any. */
+        public long lastRespondTime = TIME_NOT_SET;
+
+        /** Pause Time. */
         public long pauseTime = 0l;
     }
 

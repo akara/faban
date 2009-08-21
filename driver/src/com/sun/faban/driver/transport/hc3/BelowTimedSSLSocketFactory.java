@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: SecureProtocolTimedSocketFactory.java,v 1.2 2009/07/03 01:52:35 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -36,12 +36,12 @@ import java.net.UnknownHostException;
 import com.sun.faban.driver.transport.util.TimedSocket;
 
 /**
- * The SecureProtocolTimedSocketFactory is used for the Apache Commons
+ * The BelowTimedSSLSocketFactory is used for the Apache Commons
  * HttpClient 3.1 SSL connections to let the transport be timed.
  *
  * @author Akara Sucharitakul
  */
-public class SecureProtocolTimedSocketFactory implements SecureProtocolSocketFactory {
+public class BelowTimedSSLSocketFactory implements SecureProtocolSocketFactory {
 
     private static SSLSocketFactory secureFactory =
             (SSLSocketFactory) SSLSocketFactory.getDefault();
