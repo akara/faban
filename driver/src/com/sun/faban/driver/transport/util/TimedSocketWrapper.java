@@ -23,6 +23,8 @@
  */
 package com.sun.faban.driver.transport.util;
 
+import com.sun.faban.driver.engine.DriverContext;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -50,6 +52,21 @@ public class TimedSocketWrapper extends Socket {
      * @param socket The existing socket
      */
     public TimedSocketWrapper(Socket socket) {
+        delegate = socket;
+    }
+
+    /**
+     * Creates a TimedSocketWrapper wrapping an existing socket.
+     * @param socket The existing socket
+     * @param startTimer Whether to start the timer at time of construction
+     */
+    public TimedSocketWrapper(Socket socket, boolean startTimer) {
+        if (startTimer) {
+            // Here we capture the start time.
+            DriverContext ctx = DriverContext.getContext();
+            if (ctx != null)
+                ctx.recordStartTime();
+        }
         delegate = socket;
     }
 
@@ -717,23 +734,6 @@ public class TimedSocketWrapper extends Socket {
     }
 
     /**
-     * Connects this socket to the server.
-     *
-     * @param	endpoint the <code>SocketAddress</code>
-     * @throws	IOException if an error occurs during the connection
-     * @throws  java.nio.channels.IllegalBlockingModeException
-     *          if this socket has an associated channel,
-     *          and the channel is in non-blocking mode
-     * @throws  IllegalArgumentException if endpoint is null or is a
-     *          SocketAddress subclass not supported by this socket
-     * @since 1.4
-     */
-    @Override
-    public void connect(SocketAddress endpoint) throws IOException {
-        delegate.connect(endpoint);
-    }
-
-    /**
      * Connects this socket to the server with a specified timeout value.
      * A timeout of zero is interpreted as an infinite timeout. The connection
      * will then block until established or an error occurs.
@@ -752,7 +752,14 @@ public class TimedSocketWrapper extends Socket {
     @Override
     public void connect(SocketAddress endpoint, int timeout)
             throws IOException {
+        // Here we intercept the connect and capture the start time.
+        DriverContext ctx = DriverContext.getContext();
+        if (ctx != null)
+            ctx.recordStartTime();
+        if (timeout <= 0)
+            timeout = 30000; // 30 second connect timeout.
         delegate.connect(endpoint, timeout);
+        delegate.setSoTimeout(30000); // 30 second socket read timeout.
     }
 
     /**

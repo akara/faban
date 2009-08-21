@@ -24,7 +24,6 @@
 package com.sun.faban.driver.transport.hc3;
 
 import com.sun.faban.driver.transport.util.TimedSocketWrapper;
-import com.sun.faban.driver.engine.DriverContext;
 import org.apache.commons.httpclient.params.HttpConnectionParams;
 import org.apache.commons.httpclient.protocol.SecureProtocolSocketFactory;
 
@@ -49,16 +48,11 @@ public class AboveTimedSSLSocketFactory implements SecureProtocolSocketFactory {
     public Socket createSocket(String host, int port, InetAddress localAddress,
                                int localPort) throws IOException {
 
-        Socket socket = secureFactory.createSocket();
+        Socket socket = new TimedSocketWrapper(secureFactory.createSocket());
         InetSocketAddress endpoint = new InetSocketAddress(host, port);
         socket.bind(new InetSocketAddress(localAddress, localPort));
-
-        DriverContext ctx = DriverContext.getContext();
-        if (ctx != null)
-            ctx.recordStartTime();
-        socket.connect(endpoint, 30000);
-        socket.setSoTimeout(30000); // 30 second socket read timeout.
-        return new TimedSocketWrapper(socket);
+        socket.connect(endpoint);
+        return socket;
     }
 
     public Socket createSocket(String host, int port, InetAddress localAddress,
@@ -68,47 +62,32 @@ public class AboveTimedSSLSocketFactory implements SecureProtocolSocketFactory {
             throw new IllegalArgumentException("Parameters may not be null");
         }
         int timeout = params.getConnectionTimeout();
-        if (timeout == 0) {
+        if (timeout <= 0) {
             return createSocket(host, port, localAddress, localPort);
         } else {
-            Socket socket = secureFactory.createSocket();
+            Socket socket = new TimedSocketWrapper(secureFactory.createSocket());
             InetSocketAddress endpoint = new InetSocketAddress(host, port);
             socket.bind(new InetSocketAddress(localAddress, localPort));
-
-            DriverContext ctx = DriverContext.getContext();
-            if (ctx != null)
-                ctx.recordStartTime();
-            if (timeout < 0)
-                timeout = 30000; // 30 second connect timeout.
             socket.connect(endpoint, timeout);
-            socket.setSoTimeout(30000); // 30 second socket read timeout.
-            return new TimedSocketWrapper(socket);
+            return socket;
         }
     }
 
     public Socket createSocket(String host, int port) throws IOException {
-        Socket socket = secureFactory.createSocket();
+        Socket socket = new TimedSocketWrapper(secureFactory.createSocket());
         InetSocketAddress endpoint = new InetSocketAddress(host, port);
-
-        DriverContext ctx = DriverContext.getContext();
-        if (ctx != null)
-            ctx.recordStartTime();
-        socket.connect(endpoint, 30000);
-        socket.setSoTimeout(30000); // 30 second socket read timeout.
-        return new TimedSocketWrapper(socket);
+        socket.connect(endpoint);
+        return socket;
     }
 
     public Socket createSocket(Socket socket, String host, int port,
                                boolean close)
             throws IOException, UnknownHostException {
 
-        DriverContext ctx = DriverContext.getContext();
-        if (ctx != null)
-            ctx.recordStartTime();
-
-        // This is the most accurate we can do with an existing socket.
+        // Starting the timer at this point is the most accurate we can do
+        // with an existing socket. So we pass 'true' to start the timer.
         return new TimedSocketWrapper(
-                secureFactory.createSocket(socket, host, port, close));
+                secureFactory.createSocket(socket, host, port, close), true);
     }
 
     /**
