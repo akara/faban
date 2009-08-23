@@ -56,17 +56,21 @@ public class TimedSocketWrapper extends Socket {
     }
 
     /**
-     * Creates a TimedSocketWrapper wrapping an existing socket.
-     * @param socket The existing socket
-     * @param startTimer Whether to start the timer at time of construction
+     * Creates a blank TimedSocketWrapper and starts the timer. The
+     * wrapper is not useful until setSocket(Socket) is being called.
      */
-    public TimedSocketWrapper(Socket socket, boolean startTimer) {
-        if (startTimer) {
-            // Here we capture the start time.
-            DriverContext ctx = DriverContext.getContext();
-            if (ctx != null)
-                ctx.recordStartTime();
-        }
+    public TimedSocketWrapper() {
+        DriverContext ctx = DriverContext.getContext();
+        if (ctx != null)
+            ctx.recordStartTime();
+    }
+
+    /**
+     * Sets the socket this wrapper represents. This is usually done
+     * after the no-arg constructor is called. 
+     * @param socket The existing socket
+     */
+    public void setSocket(Socket socket) {
         delegate = socket;
     }
 

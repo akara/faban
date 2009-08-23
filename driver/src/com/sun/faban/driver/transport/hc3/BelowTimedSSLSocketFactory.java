@@ -43,12 +43,12 @@ import com.sun.faban.driver.transport.util.TimedSocket;
  */
 public class BelowTimedSSLSocketFactory implements SecureProtocolSocketFactory {
 
-    private static SSLSocketFactory secureFactory =
+    private static SSLSocketFactory sslFactory =
             (SSLSocketFactory) SSLSocketFactory.getDefault();
 
     public Socket createSocket(String host, int port, InetAddress localAddress,
                                int localPort) throws IOException {
-        return secureFactory.createSocket(
+        return sslFactory.createSocket(
                 new TimedSocket(host, port, localAddress, localPort),
                 host, port, true);
     }
@@ -66,12 +66,12 @@ public class BelowTimedSSLSocketFactory implements SecureProtocolSocketFactory {
             TimedSocket socket = new TimedSocket();
             socket.bind(new InetSocketAddress(localAddress, localPort));
             socket.connect(new InetSocketAddress(host, port), timeout);
-            return secureFactory.createSocket(socket, host, port, true);
+            return sslFactory.createSocket(socket, host, port, true);
         }
     }
 
     public Socket createSocket(String host, int port) throws IOException {
-        return secureFactory.createSocket(new TimedSocket(host, port),
+        return sslFactory.createSocket(new TimedSocket(host, port),
                                             host, port, true);
     }
 
@@ -79,7 +79,7 @@ public class BelowTimedSSLSocketFactory implements SecureProtocolSocketFactory {
                                boolean close)
             throws IOException, UnknownHostException {
         if (socket instanceof TimedSocket)
-            return secureFactory.createSocket(socket, host, port, close);
+            return sslFactory.createSocket(socket, host, port, close);
         else
             throw new IllegalStateException(
                     "Socket to use must already be a timed socket.");

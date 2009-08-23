@@ -42,13 +42,13 @@ import java.net.UnknownHostException;
  */
 public class AboveTimedSSLSocketFactory implements SecureProtocolSocketFactory {
 
-    private static SSLSocketFactory secureFactory =
+    private static SSLSocketFactory sslFactory =
             (SSLSocketFactory) SSLSocketFactory.getDefault();
 
     public Socket createSocket(String host, int port, InetAddress localAddress,
                                int localPort) throws IOException {
 
-        Socket socket = new TimedSocketWrapper(secureFactory.createSocket());
+        Socket socket = new TimedSocketWrapper(sslFactory.createSocket());
         InetSocketAddress endpoint = new InetSocketAddress(host, port);
         socket.bind(new InetSocketAddress(localAddress, localPort));
         socket.connect(endpoint);
@@ -65,7 +65,7 @@ public class AboveTimedSSLSocketFactory implements SecureProtocolSocketFactory {
         if (timeout <= 0) {
             return createSocket(host, port, localAddress, localPort);
         } else {
-            Socket socket = new TimedSocketWrapper(secureFactory.createSocket());
+            Socket socket = new TimedSocketWrapper(sslFactory.createSocket());
             InetSocketAddress endpoint = new InetSocketAddress(host, port);
             socket.bind(new InetSocketAddress(localAddress, localPort));
             socket.connect(endpoint, timeout);
@@ -74,7 +74,7 @@ public class AboveTimedSSLSocketFactory implements SecureProtocolSocketFactory {
     }
 
     public Socket createSocket(String host, int port) throws IOException {
-        Socket socket = new TimedSocketWrapper(secureFactory.createSocket());
+        Socket socket = new TimedSocketWrapper(sslFactory.createSocket());
         InetSocketAddress endpoint = new InetSocketAddress(host, port);
         socket.connect(endpoint);
         return socket;
@@ -85,9 +85,10 @@ public class AboveTimedSSLSocketFactory implements SecureProtocolSocketFactory {
             throws IOException, UnknownHostException {
 
         // Starting the timer at this point is the most accurate we can do
-        // with an existing socket. So we pass 'true' to start the timer.
-        return new TimedSocketWrapper(
-                secureFactory.createSocket(socket, host, port, close), true);
+        // with an existing socket - so the time includes createSocket.
+        TimedSocketWrapper wrapper = new TimedSocketWrapper();
+        wrapper.setSocket(sslFactory.createSocket(socket, host, port, close));
+        return wrapper;
     }
 
     /**
