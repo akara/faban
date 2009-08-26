@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: edit_archive.jsp,v 1.7 2009/03/03 02:32:51 sheetalpatil Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -38,20 +38,23 @@
         <meta name="Author" content="Akara Sucharitakul"/>
         <meta name="Description" content="Edit Archive JSP"/>
         <title>Archive Runs [<%= Config.FABAN_HOST %>]</title>
+        <link rel="stylesheet" type="text/css" href="/css/style.css" />
         <link rel="icon" type="image/gif" href="img/faban.gif">
     </head>
     <body>
     <h2><center>Archive Runs to <%=model.head%></center></h2>
     <form name="analyzename" method="post" action="/controller/result_action/archive">
-    <table border="1" cellpadding="2" cellspacing="0"
-     style="width: 80%; text-align: left; margin-left: auto; margin-right: auto;">
+    <table  BORDER=0 CELLPADDING=4 CELLSPACING=3 width="80%" align="center"
+            style="padding:2px; border: 2px solid #cccccc;">
       <tbody>
         <tr>
-          <th style="vertical-align: top;">RunId</th>
-          <th style="vertical-align: top;">Tags</th>
-          <th style="vertical-align: top;">Description</th>
+          <th style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="header">RunId</th>
+          <th style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="header">Tags</th>
+          <th style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="header">Description</th>
         </tr>
-        <% for (int i = 0; i < model.runIds.length; i++) {
+        <%
+        final String[] rowType = {"even", "odd"};
+        for (int i = 0; i < model.runIds.length; i++) {
             String runId = model.runIds[i];
             String tags = null;
             if (model.results[i].tags != null && model.results[i].tags.length > 0) {
@@ -64,8 +67,8 @@
                 b.setLength(0);
             }
         %>
-            <tr>
-              <td style="vertical-align: top;"><%=runId%>
+            <tr class="<%=rowType[i % 2]%>">
+              <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif; vertical-align: top;" class="tablecell"><%=runId%>
                 <input type="hidden" name="select" value="<%=runId%>"/><br>
      <%
             if (model.duplicates.contains(runId)) {
@@ -77,13 +80,13 @@
             }
      %>
               </td>
-              <td style="vertical-align: top;">
+              <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif; vertical-align: top;" class="tablecell">
                   <textarea name="<%=runId%>_tags"
                        title="Tags associated for run <%=runId%>"
                        rows="2" style="width: 98%;"
                        ><% if(tags != null && !"".equals(tags)){ %><%=tags%><% } %></textarea>
               </td>
-              <td style="vertical-align: top;">
+              <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif; vertical-align: top;" class="tablecell">
                 <textarea name="<%=runId%>_description"
                        title="Input/modify the description of run <%=runId%>"
                        rows="3" style="width: 98%;"
