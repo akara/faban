@@ -37,12 +37,12 @@
         String user = usrEnv.getUser();
         if (user == null) {
 %>
-        <a href="login.jsp" target="main">Login</a>
+        <a href="login.jsp" target="main">Login</a>&nbsp;&nbsp;
 <%
         } else {
 %>
         Logged in: <%= user %> |
-        <a href="login.jsp?logout" target="main">Logout</a>
+        <a href="login.jsp?logout" target="main">Logout</a>&nbsp;&nbsp;
 <%
 
         }

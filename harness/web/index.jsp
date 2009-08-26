@@ -28,16 +28,22 @@
                                  com.sun.faban.harness.common.Config"%>
 <html>
     <head>
-        <title><%=BenchmarkDescription.getBannerName()%> Administration [<%= Config.FABAN_HOST %>]</title>
+        <title><%=BenchmarkDescription.getBannerName()%> [<%= Config.FABAN_HOST %>]</title>
         <link rel="icon" type="image/gif" href="img/faban.gif">
     </head>
     <%
         String bannerPage = BenchmarkDescription.getBannerPage();
+        if (Config.SECURITY_ENABLED) {
     %>
-    <frameset rows="140,*">
-        <frame name="banner" src="<%=bannerPage%>" scrolling="no"  noresize="noresize" frameborder="0" />
-        <frameset rows="40,*">
-            <frame name="loginstat" src="loginstat.jsp" scrolling="no"  noresize="noresize" frameborder="0" />
+    <frameset rows="120,*">
+        <frameset rows="80,*">
+            <frame name="banner" src="<%=bannerPage%>" scrolling="no" noresize="noresize" frameborder="0"/>
+            <frame name="loginstat" src="loginstat.jsp" scrolling="no" noresize="noresize" frameborder="0" marginheight="0"/>
+        </frameset>
+    <%  } else { %>
+    <frameset rows="80,*">
+        <frame name="banner" src="<%=bannerPage%>" scrolling="no" noresize="noresize" frameborder="0"/>
+    <%  } %>
         <frameset cols="15%,*">
             <frame name="menu" src="menu.jsp" frameborder="0"/>
             <frame name="main" src="welcome.jsp" frameborder="0"/>
@@ -45,6 +51,5 @@
         <noframes>
             <p>This page requires frames, but your browser does not support them.</p>
         </noframes>
-   </frameset>
    </frameset>
 </html>

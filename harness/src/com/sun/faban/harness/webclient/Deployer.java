@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Deployer.java,v 1.14 2009/07/29 02:06:49 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -303,22 +303,20 @@ public class Deployer extends HttpServlet {
                 " Benchmark/Service Deployment</title>\n");
         w.write("<link rel=\"icon\" type=\"image/gif\" href=\"" +
                     request.getContextPath() + "/img/faban.gif\">");
+        w.write("<link rel=\"stylesheet\" type=\"text/css\" href=\"/css/style.css\" />");
 
         w.write("    </head>\n");
         w.write("    <body>\n");
-        w.write("        <table BORDER=\"0\" CELLSPACING=\"5\" CELL" +
-                "PADDING=\"10\" WIDTH=\"100%\" BGCOLOR=\"#FFFFFF\" >\n");
-        w.write("            <tr>\n");
-        w.write("                <td ALIGN=\"CENTER\" WIDTH=\"33%\" " +
-                "BGCOLOR=\"#5382A1\"> Sun Microsystems </td>\n");
-        w.write("                <td ALIGN=\"CENTER\" WIDTH=\"34%\" " +
-                "BGCOLOR=\"#E76F00\"><b>" + Config.HARNESS_NAME +
-                " Benchmark/Service Deployment</b></td>\n");
-        w.write("                <td ALIGN=\"CENTER\" WIDTH=\"33%\" " +
-                "BGCOLOR=\"#B2BC00\"> Version " + Config.HARNESS_VERSION +
-                " </td>\n");
+        w.write("        <table BORDER=\"0\" CELLSPACING=\"0\" CELLPADDING=\"0\" WIDTH=\"100%\" >\n");
+        w.write("            <tr class=\"gradient\">\n");
+        w.write("                <td align=\"left\" width=\"25%\" style=\"color:white; font-size:10px\">\n");
+        w.write("                &nbsp;&nbsp;<img src=\"img/faban_large.png\" height=\"50\" width=\"58\"/><br></td>\n");
+        w.write("                <td align=\"center\" width=\"50%\" style=\"color:white; font-size:10px\">\n");
+        w.write("                <b>Benchmark/Service Deployment</b></td>\n");
+        w.write("                <td align=\"right\" valign=\"bottom\" width=25% style=\"color:white\">");
+        w.write(Config.HARNESS_NAME + "&nbsp;&nbsp;" + Config.HARNESS_VERSION +"&nbsp;</td>\n");
         w.write("            </tr>\n");
-        w.write("        </table>\n");
+        w.write("        </table>");
         w.write("        <br><center><b>");
     }
 
