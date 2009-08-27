@@ -640,15 +640,19 @@ public class ApacheHC3Transport extends HttpTransport {
         if (contentType != null && (contentType.startsWith("text/") ||
                                     texttypes.contains(contentType))) {
             InputStream is = method.getResponseBodyAsStream();
-            Reader reader = new InputStreamReader(is, encoding);
+            if (is != null) {
+                Reader reader = new InputStreamReader(is, encoding);
 
-            // We have to close the input stream in order to return it to
-            // the cache, so we get it for all content, even if we don't
-            // use it. It's (I believe) a bug that the content handlers used
-            // by getContent() don't close the input stream, but the JDK team
-            // has marked those bugs as "will not fix."
-            fetchResponseData(reader);
-            reader.close();
+                // We have to close the input stream in order to return it to
+                // the cache, so we get it for all content, even if we don't
+                // use it. It's (I believe) a bug that the content handlers
+                // used by getContent() don't close the input stream, but the
+                // JDK team has marked those bugs as "will not fix."
+                fetchResponseData(reader);
+                reader.close();
+            } else {
+                reInitBuffer(2048); // Ensure we have an empty buffer.
+            }
             return charBuffer;
         }
         readResponse(method);
@@ -664,8 +668,9 @@ public class ApacheHC3Transport extends HttpTransport {
      * @throws java.io.IOException
      */
     private int readResponse(HttpMethod method) throws IOException {
-        InputStream in = method.getResponseBodyAsStream();
         int totalLength = 0;
+        InputStream in = method.getResponseBodyAsStream();
+        if (in != null) {
         int length = in.read(byteReadBuffer);
         while (length != -1) {
             totalLength += length;
@@ -673,6 +678,7 @@ public class ApacheHC3Transport extends HttpTransport {
         }
         in.close();
         contentSize = totalLength;
+        }
         return totalLength;
     }
 
