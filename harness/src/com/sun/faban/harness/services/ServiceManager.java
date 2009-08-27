@@ -300,14 +300,7 @@ public class ServiceManager {
             for (int j = 0; j < serviceCount; j++) {
                 Element serviceElement = (Element) serviceNodes.item(j);
                 String serviceName = par.getParameter("fh:name",
-                                                        serviceElement);
-                
-                File runIdFile = new File(Config.SERVICE_DIR +
-                                serviceName + File.separator +
-                                "META-INF" + File.separator + "RunID");
-                FileWriter wFile = new FileWriter(runIdFile);
-                wFile.write(run.getRunId());
-                wFile.close();
+                                                        serviceElement);                
                 Node configNode = par.getNode("fh:config", serviceElement);
                 Properties properties = new Properties();
                 NodeList propsList = configNode.getChildNodes();
@@ -322,6 +315,18 @@ public class ServiceManager {
                     }
                 }
                 ServiceDescription sd = serviceMap.get(serviceName);
+
+                // Benchmarks get loaded automatically and have their checks.
+                // We need to mark a service only in the services directory.
+                if ("services".equals(sd.locationType)) {
+                    File runIdFile = new File(Config.SERVICE_DIR +
+                                sd.location + File.separator +
+                                "META-INF" + File.separator + "RunID");
+                    FileWriter wFile = new FileWriter(runIdFile);
+                    wFile.write(run.getRunId());
+                    wFile.close();
+                }
+
                 ServiceContext ctx =
                         new ServiceContext(sd, par, ti, properties);
                 ctxList.add(ctx);
