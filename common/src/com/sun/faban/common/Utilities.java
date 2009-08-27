@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Utilities.java,v 1.15 2009/08/05 22:45:33 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -350,5 +350,42 @@ public class Utilities {
         xmlEscapes = new HashSet<String>(escStrings.length);
         for (String escString : escStrings)
             xmlEscapes.add(escString);
+    }
+
+    /**
+     * Tests if a given host name is an ipv4 address.
+     * @param name The host name
+     * @return true if the name is an ipv4 address, false otherwise
+     */
+    public static boolean isIpv4Address(String name) {
+        int count = 0;
+
+        for (int startIdx = 0; startIdx < name.length();) {
+            int idx = name.indexOf('.', startIdx);
+            String byteString;
+            if (idx <= startIdx) {
+                byteString = name.substring(startIdx);
+                idx = name.length();
+            } else {
+                byteString = name.substring(startIdx, idx);
+            }
+            int val;
+            try {
+                val = Integer.parseInt(byteString);
+            } catch (NumberFormatException e) {
+                return false;
+            }
+            if (val < 0 || val > 255)
+                return false;
+
+            startIdx = ++idx;
+            ++count;
+            if (count > 4)
+                return false;
+        }
+        if (count != 4)
+            return false;
+
+        return true;
     }
 }
