@@ -17,8 +17,6 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id$
- *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.tools;
@@ -28,8 +26,10 @@ import com.sun.faban.common.CommandHandle;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.services.ServiceContext;
 
+import com.sun.faban.harness.services.ServiceDescription;
 import java.util.List;
 import java.io.IOException;
+import java.util.HashMap;
 
 /**
  * This class is a subclass of MasterToolContext.
@@ -124,7 +124,19 @@ public class ToolContext extends MasterToolContext {
      */
     public CommandHandle exec(Command cmd)
             throws IOException, InterruptedException {
-        return wrapper.cmdAgent.execute(cmd, wrapper.serviceBinMap.get(super.getToolDescription().serviceName));
+        if(getServiceContext() != null) {
+            ServiceDescription sd = getServiceContext().desc;
+            String serviceName = null;
+            HashMap<String, List<String>> extMap = null;
+            if(sd != null)
+                serviceName = sd.id;
+            if(wrapper.serviceBinMap != null && serviceName != null)
+                extMap = wrapper.serviceBinMap.get(serviceName.toString());
+
+            return wrapper.cmdAgent.execute(cmd, extMap);
+            } else {
+                return wrapper.cmdAgent.execute(cmd, null);
+        }
     }
 
     /**
@@ -156,7 +168,18 @@ public class ToolContext extends MasterToolContext {
         if (useOutput) {
             cmd.setStreamHandling(stream, Command.CAPTURE);
             cmd.setOutputFile(stream, localOutputFile);
-            wrapper.outputHandle = wrapper.cmdAgent.execute(cmd, wrapper.serviceBinMap.get(super.getToolDescription().serviceName));
+            if(getServiceContext() != null) {
+                ServiceDescription sd = getServiceContext().desc;
+                String serviceName = null;
+                HashMap<String, List<String>> extMap = null;
+                if(sd != null)
+                    serviceName = sd.id;
+                if(wrapper.serviceBinMap != null && serviceName != null)
+                    extMap = wrapper.serviceBinMap.get(serviceName.toString());
+                wrapper.outputHandle = wrapper.cmdAgent.execute(cmd, extMap);
+            } else {
+                wrapper.outputHandle = wrapper.cmdAgent.execute(cmd, null);
+            }
             wrapper.outputStream = stream;
             return wrapper.outputHandle;
         } else {
