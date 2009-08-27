@@ -145,8 +145,9 @@
                        row[j] = " ";
                     String val = row[j].toString();
                     if(j == 0) {
-                        String unit = row[4].toString().substring(row[4].toString().lastIndexOf(" "),row[4].toString().length());
-                        String addTargetLink = "/addtarget.jsp?targetname=" + row[0].toString() + "&targetowner=" + row[1].toString() + "&targetmetric=" + row[4].toString() + "&targetmetricunit=" + unit + "&targettags=" + row[5].toString() + "&targetcolorred=" + row[6].toString() + "&targetcolororange=" + row[7].toString() + "&targetcoloryellow=" + row[8].toString();
+                        String metric = row[4].toString().substring(0, row[4].toString().lastIndexOf(" ")).trim();
+                        String unit = row[4].toString().substring(row[4].toString().lastIndexOf(" "),row[4].toString().length()).trim();
+                        String addTargetLink = "/addtarget.jsp?targetname=" + row[0].toString() + "&targetowner=" + row[1].toString() + "&targetmetric=" + metric + "&targetmetricunit=" + unit + "&targettags=" + row[5].toString() + "&targetcolorred=" + row[6].toString() + "&targetcolororange=" + row[7].toString() + "&targetcoloryellow=" + row[8].toString();
                         String deleteTargetLink = "/controller/results/add_edit_target?viewMy=" + viewMy + "&viewAll="+ viewAll+ "&flag=delete&targetname=" + row[0].toString()+ "&targetowner=" + row[1].toString() + "&targetmetric=" + row[4].toString() + "&targettags=" + row[5].toString();
         %>
         <% if(row[1].toString().equalsIgnoreCase(usrEnv.getUser())){ %>

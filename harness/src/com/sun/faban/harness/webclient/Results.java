@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Results.java,v 1.11 2009/08/18 17:42:30 sheetalpatil Exp $
+ * $Id: Results.java,v 1.12 2009/08/27 19:55:02 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -100,11 +100,11 @@ public class Results {
                 if(found == false){
                     FileHelper.tokenReplace(targetFile.getAbsolutePath(),
                             "</targets>", add, null);
-                    req.setAttribute("answer", "Target " + targetname +
-                            " added Successfully!!" );
+                    req.setAttribute("answer", "<span style=color:#00cc00; font-size: 14px>Target " + targetname +
+                            " added Successfully!!</span>" );
                 }else{
-                    req.setAttribute("answer", "Sorry, target " + targetname +
-                            " already exists, please try different name." );
+                    req.setAttribute("answer", "<span style=color:red; font-size: 14px>Sorry, target " + targetname +
+                            " already exists, please try different name.</span>" );
                 }
             }else if (flag.equals("edit") || flag.equals("delete")) {
                 if (found == true) {
@@ -134,13 +134,13 @@ public class Results {
                                                     targetmetric, targetmetricunit, targettags,
                                                     targetcolorred, targetcolororange,
                                                     targetcoloryellow);
-                                            req.setAttribute("answer", "Target " +
-                                                    targetname + " edited Successfully!!" );
+                                            req.setAttribute("answer", "<span style=color:#00cc00; font-size: 14px>Target " +
+                                                    targetname + " edited Successfully!!</span>" );
                                         }else if(flag.equals("delete")){
                                             deleteTargetNode(e, e.getParentNode(),
                                                     reader);
-                                            req.setAttribute("answer", "Target " +
-                                                    targetname + " deleted Successfully!!" );
+                                            req.setAttribute("answer", "<span style=color:#00cc00; font-size: 14px>Target " +
+                                                    targetname + " deleted Successfully!!</span>" );
                                         }
                                         break;
                                     }
@@ -149,8 +149,8 @@ public class Results {
                         }
                     }                   
                 }else{
-                    req.setAttribute("answer", "Sorry, could not find target " +
-                            targetname + " for editing." );
+                    req.setAttribute("answer", "<span style=color:red; font-size: 14px>Sorry, could not find target " +
+                            targetname + " for editing.</span>" );
                 }
             }
         }        
