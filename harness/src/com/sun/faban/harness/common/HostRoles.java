@@ -17,19 +17,20 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: HostRoles.java,v 1.4 2009/07/28 22:54:14 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.common;
 
-import com.sun.faban.harness.ParamRepository;
-import com.sun.faban.harness.ConfigurationException;
-import com.sun.faban.harness.engine.CmdService;
 import com.sun.faban.common.NameValuePair;
+import com.sun.faban.common.Utilities;
+import com.sun.faban.harness.ConfigurationException;
+import com.sun.faban.harness.ParamRepository;
+import com.sun.faban.harness.engine.CmdService;
 
-import java.util.*;
 import java.io.*;
+import java.util.*;
 
 /**
  * The HostRoles class maintains the role - host - alias relationship.
@@ -95,7 +96,7 @@ public class HostRoles {
 
             // Map short name and domain names.
             int idx = aliasName.indexOf('.');
-            if (idx > 0) {
+            if (idx > 0 && !Utilities.isIpv4Address(aliasName)) {                
                 String shortName = aliasName.substring(0, idx);
                 String fullName = domainMap.get(shortName);
                 if (fullName == null) {
@@ -169,7 +170,7 @@ public class HostRoles {
 
                     // Map short name and domain names.
                     int idx = alias.indexOf('.');
-                    if (idx > 0) {
+                    if (idx > 0 && !Utilities.isIpv4Address(alias)) {
                         String shortName = alias.substring(0, idx);
                         String fullName = domainMap.get(shortName);
                         if (fullName == null) {
