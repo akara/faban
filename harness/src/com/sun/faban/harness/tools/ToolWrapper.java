@@ -34,6 +34,8 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CountDownLatch;
@@ -70,6 +72,7 @@ public class ToolWrapper {
     String toolName;
     String path = null; // The path to the tool.
     CmdAgentImpl cmdAgent;
+    HashMap<String, HashMap<String, List<String>>> serviceBinMap;
 
     /** The timer used for scheduling the tools. */
     protected Timer timer;
@@ -230,7 +233,8 @@ public class ToolWrapper {
      * @throws java.lang.Exception
      */
     public void configure(String toolName, String path, String outDir, String host,
-                          CmdAgentImpl cmdAgent, CountDownLatch latch) 
+                          CmdAgentImpl cmdAgent, CountDownLatch latch,
+                          HashMap<String, HashMap<String, List<String>>> serviceBinMap)
                           throws Exception {
 
         // Prepare the context based on the params.
@@ -238,6 +242,7 @@ public class ToolWrapper {
         this.cmdAgent = cmdAgent;
         this.timer = cmdAgent.getTimer();
         this.latch = latch;
+        this.serviceBinMap = serviceBinMap;
 
         if (path != null)
             this.path = path;

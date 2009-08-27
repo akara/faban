@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgentImpl.java,v 1.31 2009/08/05 23:50:10 akara Exp $
+ * $Id: CmdAgentImpl.java,v 1.32 2009/08/27 21:03:21 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -161,9 +161,23 @@ public class CmdAgentImpl extends UnicastRemoteObject
      */
     public CommandHandle execute(Command c)
             throws IOException, InterruptedException {
+       return execute(c, null);
+    }
+
+    /**
+     * Executes a command from the remote command agent.
+     *
+     * @param c The command to be executed
+     * @param extMap The external map, if any
+     * @return A handle to the command
+     * @throws IOException Error communicating with resulting process
+     * @throws InterruptedException Thread got interrupted waiting
+     */
+    public CommandHandle execute(Command c, Map<String, List<String>> extMap)
+                throws IOException, InterruptedException {
         c.register(handleList);
         try {
-            return c.execute(this);
+            return c.execute(this, extMap);
         } catch (IOException ex) {
             logger.log(Level.WARNING, ex.getMessage(), ex);
             throw ex;
@@ -389,13 +403,22 @@ public class CmdAgentImpl extends UnicastRemoteObject
     /**
      * Checks and completes the command list, if possible.
      * @param cmd The command and arg list
+     * @param extMap The external map, if any
      * @return The checked command
      */
-    public List<String> checkCommand(List<String> cmd) {
+    public List<String> checkCommand(List<String> cmd,
+                                     Map<String, List<String>> extMap) {
 
         convertCommand(cmd);
 
         String bin = cmd.get(0);
+        // Check for the external/service bin map first.
+        if (extMap != null && bin.indexOf(File.separator) == -1) {
+            List<String> mods = extMap.get(bin);
+            if (mods != null) {
+                CmdMap.replaceFirst(cmd, mods);
+            }
+        }
         if (bin.indexOf(File.separator) == -1) { // not an absolute path
             List<String> mods = binMap.get(bin);
             // If we find modified commands, replace the command with the mods.
@@ -550,7 +573,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
         c.setLogLevel(Command.STDOUT, Level.FINER);
         c.setLogLevel(Command.STDERR, Level.WARNING);
         try {
-            int exitValue = c.execute(this).exitValue();
+            int exitValue = c.execute(this, null).exitValue();
             if (exitValue != 0)
                 logger.log(Level.WARNING, "Error on \"" + c +
                         "\" command trying to set the date. Exit value: " +
