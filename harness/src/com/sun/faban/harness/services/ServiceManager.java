@@ -582,12 +582,13 @@ public class ServiceManager {
      */
     public void shutdown() throws Exception {
         for (ServiceContext ctx : ctxList) {
-            
-            File runIdFile = new File(Config.SERVICE_DIR +
-                                ctx.desc.id + File.separator +
-                                "META-INF" + File.separator + "RunID");
-            if (runIdFile.exists())
-                runIdFile.delete();
+            if ("services".equals(ctx.desc.locationType)) {
+                File runIdFile = new File(Config.SERVICE_DIR +
+                        ctx.desc.location + File.separator +
+                        "META-INF" + File.separator + "RunID");
+                if (runIdFile.exists())
+                    runIdFile.delete();
+            }
         }
         for(ServiceWrapper sw : loadedServicesList){
             sw.shutdown();
