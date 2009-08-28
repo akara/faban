@@ -274,6 +274,7 @@ public class ServiceManager {
             throws IOException, ConfigurationException {
         NodeList topLevelElements = par.getTopLevelElements();
         int topLevelSize = topLevelElements.getLength();
+        Properties properties = null;
         for (int i = 0; i < topLevelSize; i++) {
             Node node = topLevelElements.item(i);
             if (node.getNodeType() != Node.ELEMENT_NODE) {
@@ -302,16 +303,18 @@ public class ServiceManager {
                 String serviceName = par.getParameter("fh:name",
                                                         serviceElement);                
                 Node configNode = par.getNode("fh:config", serviceElement);
-                Properties properties = new Properties();
-                NodeList propsList = configNode.getChildNodes();
-                for (int k = 0; k < propsList.getLength(); k++) {
-                    if (propsList.item(k).getNodeType() == Node.ELEMENT_NODE) {
-                        Element propElement = (Element) propsList.item(k);
-                        String key = propsList.item(k).getNodeName();
-                        NodeList props = propElement.getChildNodes();
-                        String value = ((Node) props.item(0)).getNodeValue().
-                                        trim();
-                        properties.setProperty(key, value);
+                if(configNode != null) {
+                    properties = new Properties();
+                    NodeList propsList = configNode.getChildNodes();
+                    for (int k = 0; k < propsList.getLength(); k++) {
+                        if (propsList.item(k).getNodeType() == Node.ELEMENT_NODE) {
+                            Element propElement = (Element) propsList.item(k);
+                            String key = propsList.item(k).getNodeName();
+                            NodeList props = propElement.getChildNodes();
+                            String value = ((Node) props.item(0)).getNodeValue().
+                                            trim();
+                            properties.setProperty(key, value);
+                        }
                     }
                 }
                 ServiceDescription sd = serviceMap.get(serviceName);

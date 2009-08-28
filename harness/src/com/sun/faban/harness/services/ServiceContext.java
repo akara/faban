@@ -99,7 +99,11 @@ public class ServiceContext implements Serializable {
      * @return the property value
      */
     public String getProperty(String key) {
-        return properties.getProperty(key);
+        if(properties != null){
+            return properties.getProperty(key);
+        }else{
+            return null;
+        }
     }
 
     /**
