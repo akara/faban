@@ -1,22 +1,24 @@
-                    Hadoop GridMix README
+                    MemcachedService Sample README
 
-This is the Faban version of the Gridmix benchmark. We provide a wrapper 
-around the yahoo gridmix benchmark as is - without changing the way the
-benchmark is run in any way.
+The MemcachedService sample provides a very simple example for organizing a Faban
+service project as well as how to write a new service. It is a good starting
+point to copy the directory from this sample to create your new service.
 
 Notes:
 - The sbin directory contains utilities to run a benchmark outside
   the Faban harness. This will not be packaged into the deployment
-  jar files. Benchmark-specific scripts and binaries should be places
+  jar files. Services/tools-specific scripts and binaries should be placed
   into the bin directory.
 
-- The deploy directory contains the files used for the UI. Any changes to the
-  UI need to go here (e.g. adding additional user parameters).
+- The deploy directory contains the files services-tools.xml and toolsets.xml.
+  service-tools.xmls has list services and the tools to run for that service.
+  toolsets.xml has the list of toolsets.
 
-- The benchmark consists of a single class - HadoopGridMix.java which is the
-  harness hook. It implements the configure, start and end methods, replacing
-  these from DefaultFabanBenchmark.
+- The service project consists of a single service class - MemcachedService.java
+  that is responsible for configuring, starting and stopping the service. There
+  can be many tools associated with this service. In this example project we
+  have Memcachestats tool.
 
 - If you need to change the default deployment system, edit build.properties.
-  To deploy, simply type 'ant deploy'. This will build and deploy the benchmark
+  To deploy, simply type 'ant deploy'. This will build and deploy the service
   to the target faban master.
