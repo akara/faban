@@ -319,6 +319,12 @@ public class ServiceManager {
                 }
                 ServiceDescription sd = serviceMap.get(serviceName);
 
+                if (sd == null) {
+                    logger.warning("Cannot find service: " + serviceName +
+                                   ". Service may not be deployed.");
+                    continue;
+                }
+
                 // Benchmarks get loaded automatically and have their checks.
                 // We need to mark a service only in the services directory.
                 if ("services".equals(sd.locationType)) {
