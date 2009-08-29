@@ -64,7 +64,7 @@ public class LighttpdService {
     private CommandHandle[] ch = null;
 
     @Configure public void configure() {
-        myServers = ctx.getHosts();
+        myServers = ctx.getUniqueHosts();
         lightyCmd = ctx.getProperty("cmdPath");
         if (!lightyCmd.endsWith(File.separator))
             lightyCmd = lightyCmd + File.separator;
@@ -222,7 +222,6 @@ public class LighttpdService {
      * clear server logs and session files
 	 * clears access log, error log, pidfile and session files
      * It assumes that session files are in /tmp/sess*
-     * @return true if operation succeeded, else fail
      */
     @ClearLogs public void clearLogs() {
         for (int i = 0; i < myServers.length; i++) {
@@ -260,7 +259,6 @@ public class LighttpdService {
      * transfer log files
 	 * This method copies over the error log to the run output directory
 	 * and keeps only the portion of the log relevant for this run
-	 * @param totalRunTime - the time in seconds for this run
      */
     @GetLogs public void xferLogs() {
         String duration = ctx.getRunDuration();

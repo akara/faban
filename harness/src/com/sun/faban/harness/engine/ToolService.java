@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ToolService.java,v 1.16 2009/08/05 23:50:11 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -115,7 +115,7 @@ final public class ToolService {
         List<MasterToolContext> tools = serviceMgr.getTools();
         List<MasterToolContext> hostToolList = null;
         for (MasterToolContext tool : tools) {
-            String[] hosts = tool.getToolServiceContext().getHosts();
+            String[] hosts = tool.getToolServiceContext().getUniqueHosts();
             for (String host : hosts) {
                 hostToolList = hostMap.get(host);
                 if (hostToolList == null) {

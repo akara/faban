@@ -57,7 +57,7 @@ public class MemcachedService {
 
     @Configure public void configure() {        
         logger.info("Configuring memcached service ");
-        myHostPorts = ctx.getHostPorts();
+        myHostPorts = ctx.getUniqueHostPorts();
         memcachedCmdPath = ctx.getProperty("cmdPath");
        memcachedMemSize = ctx.getProperty("serverMemSize");
        /* if (!memcachedHome.endsWith(File.separator))

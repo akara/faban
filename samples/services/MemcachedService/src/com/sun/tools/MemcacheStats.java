@@ -260,7 +260,7 @@ public class MemcacheStats {
      *  @param args String []
      *
      */
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         int intervalTime = 10000; // in msecs
         LinkedHashSet<String> serverSet = new LinkedHashSet<String>();
 
@@ -306,7 +306,8 @@ public class MemcacheStats {
     @Configure public void configure() {
         LinkedHashSet<String> serverSet = new LinkedHashSet<String>();
         List<String> toolArgs = ctx.getToolArgs();
-        List<NameValuePair<Integer>> myHostPorts = ctx.getServiceContext().getHostPorts();
+        List<NameValuePair<Integer>> myHostPorts =
+                ctx.getServiceContext().getUniqueHostPorts();
         for(NameValuePair<Integer> myHostPort : myHostPorts){
             if(myHostPort.value == null)
                 myHostPort.value = 11211;
@@ -412,7 +413,7 @@ public class MemcacheStats {
 
         /**
          * Constructs the client for the given servers on the local system
-         * @param servers host:port pairs for the server.
+         * @param ports The list of ports.
          */
         public StatsClient(ArrayList<Integer> ports) throws IOException {
             connections = new ArrayList<StatsConnection>(ports.size());
