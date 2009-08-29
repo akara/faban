@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MySQLService.java,v 1.2 2009/07/28 22:55:24 akara Exp $
+ * $Id$
  *
  * Copyright 2008 Sun Microsystems Inc. All Rights Reserved
  */
@@ -87,6 +87,7 @@ public class MySQLService {
             Command startCmd = new Command(mysqlCmd + "--user=mysql " +
                 "--datadir=" + dataDir + " --pid-file=" + pidFile);
             logger.fine("Starting mysql with: " + mysqlCmd);
+            startCmd.setWorkingDirectory(dbHome);
             startCmd.setSynchronous(false); // to run in bg
             try {
                 // Run the command in the background
