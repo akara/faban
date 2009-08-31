@@ -59,25 +59,29 @@ public class MemcachedService {
         logger.info("Configuring memcached service ");
         myHostPorts = ctx.getUniqueHostPorts();
         memcachedCmdPath = ctx.getProperty("cmdPath");
-       memcachedMemSize = ctx.getProperty("serverMemSize");
-       /* if (!memcachedHome.endsWith(File.separator))
+        memcachedMemSize = ctx.getProperty("serverMemSize");
+        /* if (!memcachedHome.endsWith(File.separator))
             memcachedHome = memcachedHome + File.separator;        
         memcachedBin = memcachedHome + "bin";*/
-        memcachedStartCmd = memcachedCmdPath + " -u mysql -m " + memcachedMemSize;
+        memcachedStartCmd = memcachedCmdPath + " -u mysql -m " +
+                memcachedMemSize;
         memcacheHandles = new CommandHandle[myHostPorts.size()];
         logger.info("MemcachedService Configure complete.");
 
     }
 
     @Startup public void startup() {
-        Command startCmd = new Command(memcachedStartCmd + " -p " + DEFAULT_PORT);
         int i = 0;
         for (NameValuePair<Integer> myHostPort : myHostPorts) {
             logger.info("Starting memcached on " + myHostPort.name);
+            Command startCmd;
             if (myHostPort.value != null) {
-                startCmd = new Command(memcachedStartCmd + " -p " + myHostPort.value);
+                startCmd = new Command(memcachedStartCmd + " -p " +
+                        myHostPort.value);
+            } else {
+                startCmd = new Command(memcachedStartCmd + "-p " +
+                        DEFAULT_PORT);
             }
-            startCmd.setSynchronous(false);
             startCmd.setLogLevel(Command.STDOUT, Level.INFO);
             startCmd.setLogLevel(Command.STDERR, Level.INFO);
             logger.fine("Starting memcached with: " + memcachedStartCmd);
@@ -88,7 +92,8 @@ public class MemcachedService {
                logger.info("Completed memcached server startup successfully on "
                         + myHostPort.name);
             } catch (Exception e) {
-               logger.log(Level.WARNING, "Failed to start Oracle server.", e);
+               logger.log(Level.WARNING, "Failed to start memcached on " +
+                       myHostPort.name + '.', e);
             }
             ++i;
         }
@@ -98,31 +103,30 @@ public class MemcachedService {
         for (int i = 0; i < memcacheHandles.length; i++) {
             NameValuePair myHostPort = myHostPorts.get(i);
             if (memcacheHandles[i] != null) {
-            try {
-                int exit = memcacheHandles[i].exitValue();
-                
-                logger.warning("Memcached on " + myHostPort.name + ':' +
-                        myHostPort.value +
-              " has exited unexpectedly during run with exit value of " + exit);
-            } catch (IllegalThreadStateException ie) {
-                // The server has not yet exited. Kill it
                 try {
-                    memcacheHandles[i].destroy();
+                    int exit = memcacheHandles[i].exitValue();
+
+                    logger.warning("Memcached on " + myHostPort.name + ':' +
+                            myHostPort.value + " has exited unexpectedly " +
+                            "during run with exit value of " + exit);
+                } catch (IllegalThreadStateException ie) {
+                    // The server has not yet exited. Kill it
+                    try {
+                        memcacheHandles[i].destroy();
+                        memcacheHandles[i] = null;
+                    } catch (RemoteException re) {
+                        logger.warning("Failed to stop memcached on " +
+                                myHostPort.name + ':' + myHostPort.value +
+                                " with " + re.toString());
+                        logger.log(Level.FINE, "Exception", re);
+                    }
                 } catch (RemoteException re) {
-                    logger.warning("Failed to stop memcached on " + 
-                            myHostPort.name + ':' + myHostPort.value +
-                            " with " + re.toString());
+                    logger.warning("exception while trying to get exitValue" +
+                            "on " + myHostPort.name + ':' + myHostPort.value +
+                            " - " + re.toString());
                     logger.log(Level.FINE, "Exception", re);
                 }
-            } catch (RemoteException re) {
-                logger.warning("exception while trying to get exitValue on " + 
-                        myHostPort.name + ':' + myHostPort.value + " - " +
-                        re.toString());
-                logger.log(Level.FINE, "Exception", re);
             }
-			}
         }
-        memcacheHandles = null;
     }
-
 }
