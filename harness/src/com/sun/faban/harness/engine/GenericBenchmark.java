@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.45 2009/07/28 22:54:14 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -210,6 +210,7 @@ public class GenericBenchmark {
             logger.info("Executed services configure method");
             // start services
             serviceMgr.startup();
+            serviceMgr.getConfig();
             logger.info("Executed services Startup method");
 
             // Reading parameters used by ToolService
@@ -336,8 +337,7 @@ public class GenericBenchmark {
                 runStatus = Run.COMPLETED;
             }
 
-            // After the tools are all done, we shutdown the service.
-            serviceMgr.shutdown();
+            serviceMgr.getLogs();
 
             try {
                 // Postprocessing may need tools output. So the postRun
@@ -361,6 +361,7 @@ public class GenericBenchmark {
             logger.log(Level.SEVERE,
                     "Unexpected Exception processing benchmark.", t);
         } finally { // Ensure we kill the processes in any case.
+            serviceMgr.shutdown();
             postProcess();
             _kill();
             // We need to place a marker into the Benchmark's META-INF directory

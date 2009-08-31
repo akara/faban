@@ -48,24 +48,27 @@ public class ServiceContext implements Serializable {
     List<NameValuePair<Integer>> hostPorts;
     List<NameValuePair<Integer>> uniqueHostPorts;
     String steadyState;
+    boolean restart;
 
     private Properties properties = new Properties();
 
     /**
-     * Constructor.
-     * @param desc
-     * @param par
-     * @param roleElement
-     * @param properties
+     * Constructs the service context.
+     * @param desc The service description
+     * @param par The parameter repository
+     * @param roleElement The top level element defining the role
+     * @param properties The service configuration properties
      * @throws com.sun.faban.harness.ConfigurationException
      */
     ServiceContext(ServiceDescription desc, ParamRepository par, 
-                    Element roleElement, Properties properties)
+                    Element roleElement, Properties properties, boolean restart)
             throws ConfigurationException {
         this.desc = desc;
         role = roleElement.getLocalName();
+        this.restart = restart;
         this.properties = properties;
-        steadyState = par.getParameter("fa:runConfig/fa:runControl/fa:steadyState");
+        steadyState = par.getParameter(
+                "fa:runConfig/fa:runControl/fa:steadyState");
 
         hosts = par.getEnabledHosts(roleElement);
 
@@ -82,20 +85,21 @@ public class ServiceContext implements Serializable {
         uniqueHosts = hostList.toArray(uniqueHosts);
 
         hostPorts = par.getEnabledHostPorts(roleElement);
-        if (hostPorts != null && hostPorts.size() > 0)
+        if (hostPorts != null && hostPorts.size() > 0) {
             hostPorts = Collections.unmodifiableList(
                     par.getEnabledHostPorts(roleElement));
 
-        uniqueHostPorts =
-                new ArrayList<NameValuePair<Integer>>(hostPorts.size());
-        HashSet<NameValuePair<Integer>> hostPortSet =
-                new HashSet<NameValuePair<Integer>>(hostPorts.size());
-        for (NameValuePair<Integer> hostPort : hostPorts) {
-            if (hostPortSet.add(new NameValuePair<Integer>(
-                    cmds.getHostName(hostPort.name), hostPort.value)))
-                uniqueHostPorts.add(hostPort);
+            uniqueHostPorts =
+                    new ArrayList<NameValuePair<Integer>>(hostPorts.size());
+            HashSet<NameValuePair<Integer>> hostPortSet =
+                    new HashSet<NameValuePair<Integer>>(hostPorts.size());
+            for (NameValuePair<Integer> hostPort : hostPorts) {
+                if (hostPortSet.add(new NameValuePair<Integer>(
+                        cmds.getHostName(hostPort.name), hostPort.value)))
+                    uniqueHostPorts.add(hostPort);
+            }
+            uniqueHostPorts = Collections.unmodifiableList(uniqueHostPorts);
         }
-        uniqueHostPorts = Collections.unmodifiableList(uniqueHostPorts);
     }
 
     /**

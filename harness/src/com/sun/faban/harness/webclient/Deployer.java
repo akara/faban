@@ -247,9 +247,9 @@ public class Deployer extends HttpServlet {
             writeHeader(request, writer);
 
             if (deployNames.size() > 1)
-                writer.write("Benchmarks ");
+                writer.write("Benchmarks/services ");
             else if (deployNames.size() > 0)
-                writer.write("Benchmark ");
+                writer.write("Benchmark/service ");
 
             for (int i = 0; i < deployNames.size(); i++) {
                 if (i > 0)
@@ -262,15 +262,16 @@ public class Deployer extends HttpServlet {
 
             if (cantDeployNames.size() > 0) {
                 if (cantDeployNames.size() > 1)
-                    writer.write("Cannot deploy benchmarks ");
+                    writer.write("Cannot deploy benchmarks/services ");
                 else
-                    writer.write("Cannot deploy benchmark ");
+                    writer.write("Cannot deploy benchmark/services ");
                 for (int i = 0; i < cantDeployNames.size(); i++) {
                     if (i > 0)
                         writer.write(", ");
                     writer.write((String) cantDeployNames.get(i));
                 }
-                writer.write(". Benchmark being run or queued up for run.<br>\n");
+                writer.write(". Benchmark/services being used or " +
+                        "queued up for run.<br>\n");
             }
 
             if (!hasPermission)

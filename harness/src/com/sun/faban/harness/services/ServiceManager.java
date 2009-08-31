@@ -301,7 +301,9 @@ public class ServiceManager {
             for (int j = 0; j < serviceCount; j++) {
                 Element serviceElement = (Element) serviceNodes.item(j);
                 String serviceName = par.getParameter("fh:name",
-                                                        serviceElement);                
+                                                        serviceElement);
+                boolean restart = par.getBooleanValue("fh:restart",
+                                                      serviceElement);
                 Node configNode = par.getNode("fh:config", serviceElement);
                 if(configNode != null) {
                     properties = new Properties();
@@ -337,7 +339,7 @@ public class ServiceManager {
                 }
 
                 ServiceContext ctx =
-                        new ServiceContext(sd, par, ti, properties);
+                        new ServiceContext(sd, par, ti, properties, restart);
                 ctxList.add(ctx);
                 activeDeployments.add(
                         sd.locationType + File.separator + sd.location);
@@ -576,20 +578,29 @@ public class ServiceManager {
     }
 
     /**
-     * Starts a service.
+     * Starts a service. If the service is marked for restart,
+     * this will shutdown the service and restart it.
      * @throws java.lang.Exception
      */
     public void startup() throws Exception {
+        // Use two separate loops to leave some time
+        // between shutdown and startup.
         for(ServiceWrapper sw : loadedServicesList){
-            sw.startup();
+            if (sw.ctx.restart) {
+                sw.shutdown();
+            }
+        }
+        for(ServiceWrapper sw : loadedServicesList){
+            if (sw.ctx.restart) {
+                sw.startup();
+            }
         }
     }
 
     /**
      * Stops a service.
-     * @throws java.lang.Exception
      */
-    public void shutdown() throws Exception {
+    public void shutdown() {
         for (ServiceContext ctx : ctxList) {
             if ("services".equals(ctx.desc.locationType)) {
                 File runIdFile = new File(Config.SERVICE_DIR +
@@ -600,7 +611,13 @@ public class ServiceManager {
             }
         }
         for(ServiceWrapper sw : loadedServicesList){
-            sw.shutdown();
+            if (sw.ctx.restart)
+                try {
+                    sw.shutdown();
+                } catch (Exception e) {
+                    logger.log(Level.WARNING, "Failed to shutdown service " +
+                            sw.ctx.desc.id, e);
+                }
         }
         instance = null;
     }

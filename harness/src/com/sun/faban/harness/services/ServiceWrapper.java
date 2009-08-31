@@ -41,6 +41,7 @@ public class ServiceWrapper {
             Logger.getLogger(ServiceWrapper.class.getName());
 
     Object service;
+    ServiceContext ctx;
     Method clearLogsMethod;
     Method configureMethod;
     Method getConfigMethod;
@@ -56,6 +57,7 @@ public class ServiceWrapper {
      */
     ServiceWrapper(Class serviceClass, ServiceContext ctx) throws Exception {
         service = serviceClass.newInstance();
+        this.ctx = ctx;
         Method[] methods = serviceClass.getMethods();
         for (Method method : methods) {
             // Check annotation.
