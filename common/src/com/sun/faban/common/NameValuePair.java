@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: NameValuePair.java,v 1.4 2009/07/28 22:51:57 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -54,5 +54,40 @@ public class NameValuePair<V> implements Serializable {
      * Constructs an empty NameValuePair.
      */
     public NameValuePair() {
+    }
+
+    /**
+     * A NameValuePair equals another if and only if both the name and value
+     * equal.
+     * @param o The other NameValuePair
+     * @return True if the o equals this object, false otherwise
+     */
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof NameValuePair))
+            return false;
+
+        final NameValuePair nameValuePair = (NameValuePair) o;
+
+        if (name != null ? !name.equals(nameValuePair.name) :
+                nameValuePair.name != null)
+            return false;
+        if (value != null ? !value.equals(nameValuePair.value) :
+                nameValuePair.value != null)
+            return false;
+
+        return true;
+    }
+
+    /**
+     * Obtains the hash code of this NameValuePair.
+     * @return The hash code
+     */
+    public int hashCode() {
+        int result;
+        result = (name != null ? name.hashCode() : 0);
+        result = 29 * result + (value != null ? value.hashCode() : 0);
+        return result;
     }
 }
