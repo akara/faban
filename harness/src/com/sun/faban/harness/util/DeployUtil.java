@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DeployUtil.java,v 1.23 2009/07/29 02:06:49 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -260,7 +260,7 @@ public class DeployUtil {
      */
     public static boolean canDeployService(String serviceName) {
         Set<String> activeBundles = ServiceManager.getActiveDeployments();
-        String serviceBundleName = "services" + File.separator + serviceName;
+        String serviceBundleName = "services/" + serviceName;
         if (activeBundles != null && activeBundles.contains(serviceBundleName))
             return false;
         return true;

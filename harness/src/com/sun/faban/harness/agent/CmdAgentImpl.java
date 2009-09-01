@@ -68,6 +68,9 @@ public class CmdAgentImpl extends UnicastRemoteObject
     private final List<CommandHandle> handleList = Collections.synchronizedList(
                                                 new ArrayList<CommandHandle>());
 
+    private static HashMap<String, HashMap<String, List<String>>> servicesToolsBinMap =
+                           new HashMap<String, HashMap<String, List<String>>>();
+
     private Timer timer;
 
     String[] baseClassPath;
@@ -149,6 +152,25 @@ public class CmdAgentImpl extends UnicastRemoteObject
 
         //Update logging.properties file which is used by faban driver
 
+    }
+
+    /**
+     * Downloads the files used by services and tools to
+     * the remote agent system.
+     * @param pathList The list of service bundle paths
+     * @throws java.rmi.RemoteException If there is an error downloading
+     */
+    public void downloadFiles(List<String> pathList) {
+        for(String path : pathList){          
+            try {
+                new Download().loadService(path, AgentBootstrap.downloadURL);
+                if (servicesToolsBinMap.get(path) == null) {
+                    servicesToolsBinMap.put(path, CmdMap.getServiceBinMap(path));
+                }
+            } catch (Exception ex) {
+                logger.log(Level.INFO, ex.getMessage() , ex);
+            }
+        }
     }
 
     /**
@@ -371,6 +393,14 @@ public class CmdAgentImpl extends UnicastRemoteObject
      */
     public static Registry getRegistry() {
         return AgentBootstrap.registry;
+    }
+
+    /**
+     * Obtains the service/tools bin map.
+     * @return Registry
+     */
+    public static HashMap<String, HashMap<String, List<String>>> getServicesToolsBinMap() {
+        return servicesToolsBinMap;
     }
 
     /**

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdAgent.java,v 1.10 2009/08/05 23:50:10 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.List;
 import java.util.logging.Level;
 
 /**
@@ -70,6 +71,15 @@ public interface CmdAgent extends Remote {
       * @throws RemoteException A communications error occurred
       */
     public void setLogLevel(String name, Level level) throws RemoteException;
+
+    /**
+     * Downloads the files used by services and tools to 
+     * the remote agent system.
+     * @param pathList The list of service bundle paths
+     * @throws java.rmi.RemoteException If there is an error downloading
+     */
+    public void downloadFiles(List<String> pathList) throws RemoteException;
+
 
     /**
      * Executes a command from the remote command agent.

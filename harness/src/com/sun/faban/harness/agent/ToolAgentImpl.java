@@ -74,6 +74,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
         super();
         logger = Logger.getLogger(this.getClass().getName());
         host = CmdAgentImpl.getHost();
+        serviceBinMap = CmdAgentImpl.getServicesToolsBinMap();
         masterMachine = CmdAgentImpl.getMaster();
         logger.info("Started");
     }
@@ -126,11 +127,6 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
 
         logger.info("Processing tools");
         latch = new CountDownLatch(toollist.size());
-        try {
-            downloadTools(toollist);
-        } catch (Exception ex) {
-            Logger.getLogger(ToolAgentImpl.class.getName()).log(Level.SEVERE, null, ex);
-        }
         
         for (int i=0; i<toollist.size(); i++) {
             MasterToolContext ctx = toollist.get(i);
@@ -372,32 +368,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
      */
     public void unreferenced() {
         kill();
-    }
-
-    /**
-     * Downloads the tools.
-     * @param toollist list of tool contexts
-     * @throws java.io.IOException
-     */
-    private void downloadTools(List<MasterToolContext> toollist) throws IOException, Exception {
-        LinkedHashSet<ToolDescription> downloads = new LinkedHashSet<ToolDescription>();
-        for (int i=0; i < toollist.size(); i++) {
-            MasterToolContext ctx = toollist.get(i);
-            ToolDescription toolDesc = ctx.getToolDescription();
-            if (toolDesc != null)
-                downloads.add(toolDesc);
-        }
-
-        for(ToolDescription desc : downloads){
-            if (desc.getLocationType() != null && "services".equals(desc.getLocationType())){
-                new Download().loadService(desc.getLocation(),
-                                            AgentBootstrap.downloadURL);
-                if(serviceBinMap.get(desc.getServiceName()) == null){
-                    serviceBinMap.put(desc.getServiceName(), CmdMap.getServiceBinMap(desc.getServiceName()));
-                }
-            }
-        }
-    }
+    } 
 
     /**
      * Obtains the OS toolsets.

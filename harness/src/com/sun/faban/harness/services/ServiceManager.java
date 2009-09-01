@@ -21,15 +21,18 @@
  */
 package com.sun.faban.harness.services;
 
+import com.sun.faban.common.NameValuePair;
 import com.sun.faban.common.ParamReader;
 import com.sun.faban.harness.ConfigurationException;
 import com.sun.faban.harness.ParamRepository;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.Run;
+import com.sun.faban.harness.engine.CmdService;
 import com.sun.faban.harness.engine.DeployImageClassLoader;
 import com.sun.faban.harness.tools.MasterToolContext;
 import com.sun.faban.harness.tools.ToolDescription;
 import com.sun.faban.harness.util.XMLReader;
+import java.rmi.RemoteException;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -39,6 +42,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -71,6 +75,10 @@ public class ServiceManager {
 
     HashSet<String> activeDeployments = new HashSet<String>();
 
+    ArrayList<NameValuePair<String>> hostDeploymentList =
+                                        new ArrayList<NameValuePair<String>>();
+
+
     private Run run;
 
     /**
@@ -101,6 +109,8 @@ public class ServiceManager {
 
         // Obtain the active service list.
         parseRequestedServices(par);
+        
+        initiateDownload();
 
         for (ServiceContext ctx : ctxList) {            
             DeployImageClassLoader loader = DeployImageClassLoader.getInstance(
@@ -272,6 +282,9 @@ public class ServiceManager {
 
     private void parseRequestedServices(ParamRepository par)
             throws IOException, ConfigurationException {
+        HashSet<NameValuePair<String>> hostDeploymentSet =
+                new HashSet<NameValuePair<String>>();
+
         NodeList topLevelElements = par.getTopLevelElements();
         int topLevelSize = topLevelElements.getLength();
         Properties properties = null;
@@ -349,9 +362,20 @@ public class ServiceManager {
                 ServiceContext ctx =
                         new ServiceContext(sd, par, ti, properties, restart);
                 ctxList.add(ctx);
-                activeDeployments.add(
-                        sd.locationType + File.separator + sd.location);
+                if ("services".equals(sd.locationType)) {
+                    String fullLocation = sd.locationType + '/' + sd.location;
+                    activeDeployments.add(fullLocation);
 
+                    CmdService cmds = CmdService.getHandle();
+                    String[] ctxHosts = ctx.getHosts();
+                    for (String ctxHost : ctxHosts) {
+                        if (hostDeploymentSet.add(new NameValuePair<String>(
+                                cmds.getHostName(ctxHost), fullLocation))) {
+                            hostDeploymentList.add(new NameValuePair<String>(
+                                    ctxHost, fullLocation));
+                        }
+                    }
+                }
                 String toolCmds = par.getParameter("fh:tools", serviceElement);
                 Set<String> tools = new LinkedHashSet<String>();
                 if (toolCmds.toUpperCase().equals("NONE")) {
@@ -398,59 +422,75 @@ public class ServiceManager {
                         }
 
                 }
-                if(tools != null){
-                    for (String tool : tools) {
-                        StringTokenizer tt = new StringTokenizer(tool);
-                        String toolId = tt.nextToken();
-                        String toolKey = toolId + '/' + serviceName;
-                        Set<String> toolset_tools = new LinkedHashSet<String>();
-                        if(toolSetsMap.containsKey(toolKey)){
-                            toolset_tools.addAll(toolSetsMap.get(toolKey));
-                            for (String t1 : toolset_tools){
-                                StringTokenizer tt1 = new StringTokenizer(t1);
-                                String toolId1 = tt1.nextToken();
-                                String toolKey1 = toolId1 + '/' + serviceName;
-                                ToolDescription toolDesc = toolMap.get(toolKey1);
-                                MasterToolContext toolCtx = null;
-                                if (toolDesc != null) {
-                                    toolCtx = new MasterToolContext(t1, ctx, toolDesc);
-                                } else {
-                                    toolDesc = toolMap.get(toolId1);
-                                    if (toolDesc != null) {
-                                        toolCtx = new MasterToolContext(
-                                                t1, ctx, toolDesc);
-                                    } else {                                       
-                                        //logger.info("No Tool Description for tool: " + t1);
-                                        logger.fine("No Tool Description for tool: "
-                                                + t1 +" ,so it's a command line tool");
-                                        toolCtx = new MasterToolContext(
-                                                t1, ctx, null);
-                                    }
-                                }
-                                if (toolCtx != null) {
-                                    toolList.add(toolCtx);
-                                }
-                            }
-                        }else{
-                            ToolDescription toolDesc = toolMap.get(toolKey);
+                for (String tool : tools) {
+                    StringTokenizer tt = new StringTokenizer(tool);
+                    String toolId = tt.nextToken();
+                    String toolKey = toolId + '/' + serviceName;
+                    Set<String> toolset_tools = new LinkedHashSet<String>();
+                    if (toolSetsMap.containsKey(toolKey)) {
+                        toolset_tools.addAll(toolSetsMap.get(toolKey));
+                        for (String t1 : toolset_tools) {
+                            StringTokenizer tt1 = new StringTokenizer(t1);
+                            String toolId1 = tt1.nextToken();
+                            String toolKey1 = toolId1 + '/' + serviceName;
+                            ToolDescription toolDesc = toolMap.get(toolKey1);
                             MasterToolContext toolCtx = null;
                             if (toolDesc != null) {
-                                toolCtx = new MasterToolContext(tool, ctx, toolDesc);
+                                toolCtx = new MasterToolContext(t1, ctx, toolDesc);
                             } else {
-                                toolDesc = toolMap.get(toolId);
+                                toolDesc = toolMap.get(toolId1);
                                 if (toolDesc != null) {
                                     toolCtx = new MasterToolContext(
-                                            tool, ctx, toolDesc);
+                                            t1, ctx, toolDesc);
                                 } else {
-                                    //logger.info("No Tool Description for tool: " + tool);
-                                    logger.fine("No Tool Description for tool: "
-                                                + tool +" ,so it's a command line tool");
+                                    //logger.info("No Tool Description for tool: " + t1);
+                                    logger.fine("No Tool Description for tool: " + t1 + " ,so it's a command line tool");
                                     toolCtx = new MasterToolContext(
-                                                tool, ctx, null);
+                                            t1, ctx, null);
                                 }
                             }
                             if (toolCtx != null) {
                                 toolList.add(toolCtx);
+                            }
+                        }
+                    } else {
+                        ToolDescription toolDesc = toolMap.get(toolKey);
+                        MasterToolContext toolCtx = null;
+                        if (toolDesc != null) {
+                            toolCtx = new MasterToolContext(tool, ctx, toolDesc);
+                        } else {
+                            toolDesc = toolMap.get(toolId);
+                            if (toolDesc != null) {
+                                toolCtx = new MasterToolContext(
+                                        tool, ctx, toolDesc);
+                            } else {
+                                //logger.info("No Tool Description for tool: " + tool);
+                                logger.fine("No Tool Description for tool: " + tool + " ,so it's a command line tool");
+                                toolCtx = new MasterToolContext(
+                                        tool, ctx, null);
+                            }
+                        }
+                        if (toolCtx != null) {
+                            toolList.add(toolCtx);
+                        }
+                    }
+                }
+                for (MasterToolContext toolCtx : toolList) {
+                    String locationType =
+                            toolCtx.getToolDescription().getLocationType();
+                    if ("services".equals(locationType)) {
+                        String fullLocation = locationType + '/' +
+                                toolCtx.getToolDescription().getLocation();
+                        activeDeployments.add(fullLocation);
+
+                        CmdService cmds = CmdService.getHandle();
+                        String[] ctxHosts =
+                                toolCtx.getToolServiceContext().getHosts();
+                        for (String ctxHost : ctxHosts) {
+                            if (hostDeploymentSet.add(new NameValuePair<String>(
+                                    cmds.getHostName(ctxHost), fullLocation))) {
+                                hostDeploymentList.add(new NameValuePair<String>(
+                                        ctxHost, fullLocation));
                             }
                         }
                     }
@@ -532,9 +572,25 @@ public class ServiceManager {
         } catch  (Exception e) {
             logger.log(Level.WARNING, "Error reading toolsets.xml " +
                     "for " + dir, e);
+        }        
+    }
+
+    private void initiateDownload() throws RemoteException {
+        HashMap<String, List<String>> downloadMap = new HashMap<String, List<String>>();
+        for (NameValuePair<String> hostPath : hostDeploymentList) {
+            List<String> pathList = downloadMap.get(hostPath.name);
+            if (pathList == null) {
+                pathList = new ArrayList<String>();
+                downloadMap.put(hostPath.name, pathList);
+            }
+            pathList.add(hostPath.value);
         }
 
-        
+        Set<Map.Entry<String, List<String>>> entrySet = downloadMap.entrySet();
+        CmdService cmds = CmdService.getHandle();
+        for (Map.Entry<String, List<String>> entry : entrySet) {
+            cmds.downloadFiles(entry.getKey(), entry.getValue());
+        }
     }
 
     /**
