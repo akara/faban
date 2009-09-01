@@ -42,6 +42,7 @@ public class ServiceWrapper {
 
     Object service;
     ServiceContext ctx;
+    boolean configured = false;
     Method clearLogsMethod;
     Method configureMethod;
     Method getConfigMethod;
@@ -151,6 +152,7 @@ public class ServiceWrapper {
             }
             return retval;
     }
+
     private void throwSourceException(InvocationTargetException e)
                 throws Exception {
             Throwable t = e.getCause();
@@ -167,7 +169,7 @@ public class ServiceWrapper {
      * @throws java.lang.Exception
      */
     void clearLogs() throws Exception {
-        if (clearLogsMethod != null){
+        if (configured && clearLogsMethod != null) {
             try {
                 clearLogsMethod.invoke(service,new Object[] {});
             } catch (InvocationTargetException e) {
@@ -181,13 +183,14 @@ public class ServiceWrapper {
      * @throws java.lang.Exception
      */
     void configure() throws Exception {
-        if (configureMethod != null){
+        if (configureMethod != null) {
             try {
                 configureMethod.invoke(service,new Object[] {});
             } catch (InvocationTargetException e) {
                 throwSourceException(e);
             }
         }
+        configured = true;
     }
 
     /**
@@ -195,7 +198,7 @@ public class ServiceWrapper {
      * @throws java.lang.Exception
      */
     void getConfig() throws Exception {
-        if (getConfigMethod != null){
+        if (configured && getConfigMethod != null) {
             try {
                 getConfigMethod.invoke(service,new Object[] {});
             } catch (InvocationTargetException e) {
@@ -209,7 +212,7 @@ public class ServiceWrapper {
      * @throws java.lang.Exception
      */
     void getLogs() throws Exception {
-        if (getLogsMethod != null){
+        if (configured && getLogsMethod != null) {
             try {
                 getLogsMethod.invoke(service,new Object[] {});
             } catch (InvocationTargetException e) {
@@ -223,7 +226,7 @@ public class ServiceWrapper {
      * @throws java.lang.Exception
      */
     void startup() throws Exception {
-        if (startupMethod != null){
+        if (configured && startupMethod != null) {
             try {
                 startupMethod.invoke(service,new Object[] {});
             } catch (InvocationTargetException e) {
@@ -237,7 +240,7 @@ public class ServiceWrapper {
      * @throws java.lang.Exception
      */
     void shutdown() throws Exception {
-        if (shutdownMethod != null){
+        if (configured && shutdownMethod != null) {
             try {
                 shutdownMethod.invoke(service,new Object[] {});
             } catch (InvocationTargetException e) {
@@ -245,5 +248,4 @@ public class ServiceWrapper {
             }
         }
     }
-
 }

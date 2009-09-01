@@ -546,61 +546,79 @@ public class ServiceManager {
     }
 
     /**
-     * Clears the logs.
-     * @throws java.lang.Exception
-     */
-    public void clearLogs() throws Exception{
-        for(ServiceWrapper sw : loadedServicesList){
-            sw.clearLogs();
-        }
-    }
-
-    /**
      * Configures the service.
-     * @throws java.lang.Exception
      */
-    public void configure() throws Exception {
+    public void configure() {
         for(ServiceWrapper sw : loadedServicesList){
-            sw.configure();
+            try {
+                sw.configure();
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Failed to configure service " +
+                        sw.ctx.desc.id, e);
+            }
         }
     }
 
     /**
      * Obtains the configuration of a service.
-     * @throws java.lang.Exception
      */
-    public void getConfig() throws Exception {
+    public void getConfig() {
         for(ServiceWrapper sw : loadedServicesList){
-            sw.getConfig();
+            try {
+                sw.getConfig();
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Failed to obtain service " +
+                        "configuration for service " + sw.ctx.desc.id, e);
+            }
         }
     }
 
     /**
      * Obtains the logs of a service.
-     * @throws java.lang.Exception
      */
-    public void getLogs() throws Exception {
+    public void getLogs() {
         for(ServiceWrapper sw : loadedServicesList){
-            sw.getLogs();
+            try {
+                sw.getLogs();
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Failed to obtain service logs " +
+                        "for service " + sw.ctx.desc.id, e);
+             }
         }
     }
 
     /**
      * Starts a service. If the service is marked for restart,
      * this will shutdown the service and restart it.
-     * @throws java.lang.Exception
      */
-    public void startup() throws Exception {
+    public void startup() {
         // Use two separate loops to leave some time
         // between shutdown and startup.
         for(ServiceWrapper sw : loadedServicesList){
             if (sw.ctx.restart) {
-                sw.shutdown();
+                try {
+                    sw.shutdown();
+                } catch (Exception e) {
+                    logger.log(Level.WARNING, "Failed to shutdown service " +
+                            sw.ctx.desc.id, e);
+                }
+                try {
+                    sw.clearLogs();
+                } catch (Exception e) {
+                    logger.log(Level.WARNING, "Failed to clear service logs " +
+                            "for service " + sw.ctx.desc.id, e);
+                }
             }
         }
+
         for(ServiceWrapper sw : loadedServicesList){
             if (sw.ctx.restart) {
-                sw.startup();
+                try {
+                    sw.startup();
+                } catch (Exception e) {
+                    logger.log(Level.WARNING, "Failed to startup service " +
+                            sw.ctx.desc.id, e);
+                }
             }
         }
     }
