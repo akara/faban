@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Timing.java,v 1.2 2006/06/29 19:38:36 akara Exp $
+ * $Id: Timing.java,v 1.3 2009/07/03 01:52:37 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -32,9 +32,9 @@ package com.sun.faban.driver;
  * @author Akara Sucharitakul
  */
 public enum Timing {
-    /** Configures AUTO timing for the operation */
+    /** Configures AUTO timing for the operation. */
     AUTO,
 
-    /** Configures MANUAL timing for the operation */
+    /** Configures MANUAL timing for the operation. */
     MANUAL
 }

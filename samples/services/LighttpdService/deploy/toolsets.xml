@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Document   : toolsets.xml
+    Created on : April 6, 2009, 1:30 PM
+    Author     : Sheetal Patil
+    Description:
+        Purpose of the document follows.
+-->
+<toolsets>
+    <toolset>
+        <service>LighttpdService</service>
+        <name>default</name>
+        <includes>vmstat 10</includes>
+        <includes>iostat -xn 10</includes>
+        <includes>mpstat 10</includes>
+    </toolset>
+    <toolset>
+        <service>LighttpdService</service>
+        <name>detail</name>
+        <base>default</base>
+        <includes>cpustat</includes>
+        <includes>trapstat</includes>
+    </toolset>
+    <toolset>
+        <service>LighttpdService</service>
+        <name>lite</name>
+        <base>default</base>
+        <excludes>iostat -xn 10</excludes>
+    </toolset>
+</toolsets>

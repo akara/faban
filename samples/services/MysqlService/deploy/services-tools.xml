@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : service-tools.xml
+    Created on : April 6, 2009, 1:26 PM
+    Author     : Sheetal Patil
+    Description:
+        Purpose of the document follows.
+-->
+<services-tools>
+    <service id="MySQLService">
+        <class>com.sun.services.MySQLService</class>
+    </service>
+    <tool id="Mysqlstats" service="MySQLService">
+        <class>com.sun.tools.Mysqlstats</class>
+    </tool>
+</services-tools>

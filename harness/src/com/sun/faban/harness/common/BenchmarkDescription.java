@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: BenchmarkDescription.java,v 1.12 2008/12/05 22:02:14 sheetalpatil Exp $
+ * $Id: BenchmarkDescription.java,v 1.15 2009/07/28 22:54:14 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -64,13 +64,13 @@ public class BenchmarkDescription implements Serializable {
     /** The form used to configure the benchmark. */
     public String configForm = "config.xhtml";
 
-    /** The stylesheet used to format the form, if any */
+    /** The stylesheet used to format the form, if any. */
     public String configStylesheet;
 
     /** The file used for configuring the benchmark. */
     public String configFileName = "run.xml";
 
-    /** The result file path relative to the output directory */
+    /** The result file path relative to the output directory. */
     public String resultFilePath = "summary.xml";
 
     /** The benchmark class name. */
@@ -104,6 +104,12 @@ public class BenchmarkDescription implements Serializable {
         return benchDirMap;
     }
 
+    /**
+     * Obtains a map of benchmarks using the directory (or short name)
+     * as the key.
+     * @param deploy of type boolean
+     * @return The resulting map
+     */
     public static Map<String, BenchmarkDescription> getBenchDirMap(
             boolean deploy) {
         checkMaps(deploy);

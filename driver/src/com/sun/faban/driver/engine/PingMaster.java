@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: PingMaster.java,v 1.1 2008/09/10 18:25:55 akara Exp $
+ * $Id: PingMaster.java,v 1.2 2009/07/28 22:53:31 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -38,7 +38,7 @@ public class PingMaster {
 
 	    /**
 	     * Constructs the MasterState object to query the master.
-	     * @throws RemoteException 
+	     * @throws RemoteException A communications error occurred
 	     */
 	    private PingMaster() throws RemoteException {
 	       getMaster();
@@ -59,6 +59,7 @@ public class PingMaster {
 	    /**
 	     * Obtains the current state of the master.
 	     * @return The current state of the master.
+         * @throws RemoteException A communications error occurred
 	     */
 	    MasterState getCurrentState() throws RemoteException {
 	        if (getMaster() == null) {
@@ -69,7 +70,8 @@ public class PingMaster {
 
 	    /**
 	     * Wait for a certain state on the master.
-	     * @param state
+	     * @param state The state to wait for
+         * @throws RemoteException A communications error occurred
 	     */
 	    void waitForState(MasterState state) throws RemoteException {
 	        if (state == MasterState.NOT_STARTED) {
@@ -89,7 +91,7 @@ public class PingMaster {
 	    /**
 	     * Main method to enquire master state or wait for a master state.
 	     * @param args Command line args
-	     * @throws RemoteException 
+         * @throws RemoteException A communications error occurred
 	     */
 	    public static void main(String[] args) throws RemoteException {
 	        PingMaster mState = new PingMaster();

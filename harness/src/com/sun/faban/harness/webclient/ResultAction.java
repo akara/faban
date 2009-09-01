@@ -17,7 +17,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: ResultAction.java,v 1.13 2009/03/17 22:49:03 sheetalpatil Exp $
+* $Id: ResultAction.java,v 1.17 2009/08/05 23:50:12 akara Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 */
@@ -28,25 +28,25 @@ import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.RunId;
 import com.sun.faban.harness.util.FileHelper;
-import static com.sun.faban.harness.util.FileHelper.*;
-import java.text.ParseException;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.multipart.FilePart;
+import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
+import org.apache.commons.httpclient.methods.multipart.Part;
+import org.apache.commons.httpclient.methods.multipart.StringPart;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.Set;
-import java.util.HashSet;
-import java.net.URL;
-import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.StringTokenizer;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.methods.MultipartPostMethod;
-import org.apache.commons.httpclient.methods.PostMethod;
+
+import static com.sun.faban.harness.util.FileHelper.*;
 
 /**
  * Controller handling actions from the result list screen.
@@ -57,9 +57,19 @@ public class ResultAction {
             Logger.getLogger(ResultAction.class.getName());
     private SimpleDateFormat dateFormat = new SimpleDateFormat(
                               "EEE MM/dd/yy HH:mm:ss z");
+
+    /**
+     * Checks for actions the user asked to perform and take the appropriate
+     * action.
+     * @param request The request
+     * @param response The response
+     * @return The name of the jsp view to forward this request
+     * @throws IOException If there are problems reading or writing data
+     * @throws ParseException Error parsing input
+     */
     public String takeAction(HttpServletRequest request,
-                           HttpServletResponse response) throws IOException,
-                           FileNotFoundException, ParseException {
+                           HttpServletResponse response)
+            throws IOException, ParseException {
         String process = request.getParameter("process");
         if ("Compare".equals(process))
             return editAnalysis(process, request, response);
@@ -70,10 +80,22 @@ public class ResultAction {
         return null;
     }
 
+    /**
+     * The model object for the EditArchive screen view.
+     * This is according to the MVC pattern.
+     */
     public class EditArchiveModel implements Serializable {
+
+        /** The display header. */
         public String head;
+
+        /** The run id of the runs to archive. */
         public String[] runIds;
+
+        /** The set of duplicate runs. */
         public Set<String> duplicates;
+
+        /** The list of run result objects. */
         public RunResult[] results;
     }
 
@@ -109,6 +131,12 @@ public class ResultAction {
         return "/edit_archive.jsp";
     }
 
+    /**
+     * Obtains the tags list for each profile.
+     * @param req
+     * @param resp
+     * @throws java.io.IOException
+     */
     public void profileTagList (HttpServletRequest req,
             HttpServletResponse resp) throws IOException {
         String profile = req.getParameter("profileselected");
@@ -150,8 +178,8 @@ public class ResultAction {
         return existingRuns;
     }*/
 
-    private String editResultInfo(String runID) throws FileNotFoundException,
-                                                IOException, ParseException {
+    private String editResultInfo(String runID)
+            throws FileNotFoundException, IOException {
         RunId runId = new RunId(runID);
         String ts = null;
         String[] status = new String[2];
@@ -187,7 +215,7 @@ public class ResultAction {
     }
 
     private Set<String> checkArchivedRuns(String[] runIds) throws
-                            FileNotFoundException, IOException, ParseException {
+                            FileNotFoundException, IOException {
         HashSet<String> existingRuns = new HashSet<String>();
         String[] runIdTimeStamps = new  String[runIds.length];
         for (int r=0; r< runIds.length ; r++){
@@ -205,7 +233,8 @@ public class ResultAction {
                 post.addParameter("ts",ts);
             }
             HttpClient client = new HttpClient();
-            client.setConnectionTimeout(5000);
+            client.getHttpConnectionManager().getParams().
+                    setConnectionTimeout(5000);
             int status = client.executeMethod(post);
             if (status != HttpStatus.SC_OK)
                 logger.info("SC_OK not ok");
@@ -219,11 +248,24 @@ public class ResultAction {
         return existingRuns;
     }
 
+    /**
+     * The model object for the EditAnalysis screen view.
+     * This is according to the MVC pattern.
+     */
     public static class EditAnalysisModel implements Serializable {
+        /** The header, usually the process type. */
         public String head;
+
+        /** The type string in all lowercase. */
         public String type;
+
+        /** The string representation of the list of runs to analyze. */
         public String runList;
+
+        /** The analysis name. */
         public String name;
+
+        /** The run ids to analyze. */
         public String[] runIds;
     }
 
@@ -259,6 +301,13 @@ public class ResultAction {
         return "/edit_analysis.jsp";
     }
 
+    /**
+     * This method is responsible for analyzing the runs.
+     * @param request
+     * @param response
+     * @return string
+     * @throws java.io.IOException
+     */
     public String analyze(HttpServletRequest request,
                           HttpServletResponse response) throws IOException {
 
@@ -317,6 +366,16 @@ public class ResultAction {
         return null;
     }
 
+    /**
+     * This method is responsible for archiving the runs to the repository.
+     * @param request
+     * @param response
+     * @return String
+     * @throws java.io.IOException
+     * @throws java.io.FileNotFoundException
+     * @throws java.text.ParseException
+     * @throws java.lang.ClassNotFoundException
+     */
     public String archive(HttpServletRequest request,
                         HttpServletResponse response) throws IOException,
                         FileNotFoundException, ParseException, ClassNotFoundException {
@@ -444,10 +503,10 @@ public class ResultAction {
     }
 
     /**
-     * Edit run.xml file
-     * @param result
+     * Edit run.xml file.
+     * @param result The run result object to edit
      */
-    private void editXML(RunResult result){
+    public static void editXML(RunResult result){
         try {
             File resultDir = result.runId.getResultDir();
             String shortName = result.runId.getBenchName();
@@ -466,9 +525,9 @@ public class ResultAction {
     }
 
     /**
-     * Jar up the run by runId
+     * Jar up the run by runId.
      * @param runId
-     * @return
+     * @return File
      * @throws IOException 
      */
     private File jarUpRun(String runId) throws IOException{
@@ -479,39 +538,58 @@ public class ResultAction {
         //return new File(Config.TMP_DIR, "test.jar");
     }   
 
+    /**
+     * This method is responsible for uploading the runs to repository.
+     * @param uploadSet
+     * @param replaceSet
+     * @return HashSet
+     * @throws java.io.IOException
+     */
     public static HashSet<String> uploadRuns(HashSet<File> uploadSet,
-                               HashSet<String> replaceSet) throws IOException {
+                                             HashSet<String> replaceSet)
+            throws IOException {
         // 3. Upload the run
         HashSet<String> duplicates = new HashSet<String>();
-        for (URL repository : Config.repositoryURLs) {
-           URL repos = new URL(repository, "/controller/uploader/upload_runs");
-           MultipartPostMethod post = new MultipartPostMethod(repos.toString());
-           post.addParameter("host",Config.FABAN_HOST);
-           for (String replaceId : replaceSet){
-                post.addParameter("replace", replaceId);
-           }
-           for (File jarFile : uploadSet) {
-                post.addParameter("jarfile", jarFile);
-           }
-           HttpClient client = new HttpClient();
-           client.setConnectionTimeout(5000);
-           int status = client.executeMethod(post);
 
-           if (status == HttpStatus.SC_FORBIDDEN)
+        // Prepare the parts for the request.
+        ArrayList<Part> params = new ArrayList<Part>();
+        params.add(new StringPart("host", Config.FABAN_HOST));
+        for (String replaceId : replaceSet) {
+            params.add(new StringPart("replace", replaceId));
+        }
+        for (File jarFile : uploadSet) {
+            params.add(new FilePart("jarfile", jarFile));
+        }
+        Part[] parts = new Part[params.size()];
+        parts = params.toArray(parts);
+
+        // Send the request for each reposotory.
+        for (URL repository : Config.repositoryURLs) {
+            URL repos = new URL(repository, "/controller/uploader/upload_runs");
+            PostMethod post = new PostMethod(repos.toString());
+            post.setRequestEntity(
+                    new MultipartRequestEntity(parts, post.getParams()));
+
+            HttpClient client = new HttpClient();
+            client.getHttpConnectionManager().getParams().
+                    setConnectionTimeout(5000);
+            int status = client.executeMethod(post);
+
+            if (status == HttpStatus.SC_FORBIDDEN)
                 logger.severe("Server denied permission to upload run !");
-           else if (status == HttpStatus.SC_NOT_ACCEPTABLE)
+            else if (status == HttpStatus.SC_NOT_ACCEPTABLE)
                 logger.severe("Run origin error!");
-           else if (status != HttpStatus.SC_CREATED)
+            else if (status != HttpStatus.SC_CREATED)
                 logger.severe("Server responded with status code " +
                         status + ". Status code 201 (SC_CREATED) expected.");
-           for (File jarFile : uploadSet) {
+            for (File jarFile : uploadSet) {
                 jarFile.delete();
-           }
-           String response = post.getResponseBodyAsString();
-           StringTokenizer t = new StringTokenizer(response.trim(),"\n");
-           while (t.hasMoreTokens()) {
+            }
+            String response = post.getResponseBodyAsString();
+            StringTokenizer t = new StringTokenizer(response.trim(),"\n");
+            while (t.hasMoreTokens()) {
                 duplicates.add(t.nextToken().trim());
-           }
+            }
         }
         return duplicates;
     }

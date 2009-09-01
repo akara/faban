@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DriverContext.java,v 1.10 2008/09/10 18:25:57 akara Exp $
+ * $Id: DriverContext.java,v 1.11 2009/05/17 20:02:03 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -106,6 +106,28 @@ public abstract class DriverContext {
      * @param metrics The custom metrics to be replaced
      */
     public abstract void attachMetrics(CustomMetrics metrics);
+
+    /**
+     * Attaches a custom metrics object to the primary metrics,
+     * given a name or description. The name/description must be unique.
+     * This should be done by the driver at initialization time.
+     * Only one custom metrics can be attached. Subsequent calls
+     * to this method replaces the previously attached metrics.
+     * @param name    The name or description of this metrics
+     * @param metrics The custom metrics to be replaced
+     */
+    public abstract void attachMetrics(String name, CustomMetrics metrics);
+
+    /**
+     * Attaches a custom table metrics object to the primary metrics,
+     * given a name or description. The name/description must be unique.
+     * This should be done by the driver at initialization time.
+     * Only one custom metrics can be attached. Subsequent calls
+     * to this method replaces the previously attached metrics.
+     * @param name    The name or description of this metrics
+     * @param metrics The custom table metrics to be replaced
+     */
+    public abstract void attachMetrics(String name, CustomTableMetrics metrics);
 
     /**
      * Obtains the name of the operation currently executing.

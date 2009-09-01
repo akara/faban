@@ -17,17 +17,16 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TableHandler.java,v 1.8 2009/01/23 23:42:33 akara Exp $
+ * $Id: TableHandler.java,v 1.13 2009/07/28 22:54:17 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.webclient;
 
 import com.sun.faban.harness.common.Config;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.servlet.http.HttpServletRequest;
+
 import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
 /**
@@ -41,9 +40,8 @@ class TableHandler extends LogParseHandler {
     boolean headerWritten = false;
     String requestBase;
     LogBuffer logBuffer;
-    
 
-    public TableHandler(long start, HttpServletRequest request, 
+    public TableHandler(long start, HttpServletRequest request,
                                 ServletOutputStream out, String runId) {        
         super(request, out, runId);
         requestBase = request.getRequestURI() + "?runId=" + runId;
@@ -61,6 +59,10 @@ class TableHandler extends LogParseHandler {
         }
     }
 
+    /**
+     * Processes the records.
+     * @throws java.io.IOException
+     */
     @Override
     public void processRecord() throws IOException {
         if (logBuffer != null) {
@@ -78,16 +80,24 @@ class TableHandler extends LogParseHandler {
                 printHeader(null);
                 headerWritten = true;
             }
-            printRow(logRecord, requestBase);
+            printRow(begin + recordCount++, logRecord, requestBase);
             logRecord.clear();
         }
     }
 
+    /**
+     * Processes the details.
+     * @param qName The element name
+     */
     public void processDetail(String qName) {
         if ("exception".equals(qName))
             logRecord.exceptionFlag = true;
     }
 
+    /**
+     * Prints the table to the screen.
+     * @throws java.io.IOException
+     */
     public void printHtml()
             throws IOException {
         
@@ -128,7 +138,7 @@ class TableHandler extends LogParseHandler {
             // Write the records.
             int size = logBuffer.size();
             for (int i = 0; i < size; i++) {
-                printRow(logBuffer.get(i), requestBase);
+                printRow(begin + i, logBuffer.get(i), requestBase);
             }
         }
         printTrailer(naviBar);
@@ -139,6 +149,12 @@ class TableHandler extends LogParseHandler {
         out.println("<html>");
         out.print("<head><title>Logs: RunID " + runId);
         out.println("</title>");
+        out.println("<link rel=\"stylesheet\" type=\"text/css\" " +
+                    "href=\"/css/style.css\" />");
+        out.println("<link rel=\"stylesheet\" type=\"text/css\" " +
+                    "href=\"/css/balloontip2.css\" />");
+        out.println("<script type=\"text/javascript\" " +
+                    "src=\"/scripts/balloontip2.js\"></script>");
         out.println("<link rel=\"icon\" type=\"image/gif\" href=\"" +
                     request.getContextPath() + "/img/faban.gif\">");        
         if (displayEnd && !xmlComplete)
@@ -146,54 +162,64 @@ class TableHandler extends LogParseHandler {
         out.println("</head><body>");
         if (naviBar != null)
             out.println(naviBar);
-        out.println("<hr><table border=\"1\" cellpadding=\"2\" " +
-                "cellspacing=\"0\">");
+        out.println("<hr style=\"border: 1px solid #cccccc;\">" +
+                    "<table border=\"0\" cellpadding=\"4\" " +
+                    "cellspacing=\"3\" style=\"padding: 2px; border: " +
+                    "2px solid #cccccc;\">");
         out.println("<tbody>");
         out.println("<tr>");
-        out.println("<th>Time</th>");
-        out.println("<th>Host</th>");
-        out.println("<th>Level</th>");
-        out.println("<th>Message</th>");
-        out.println("<th>Thread</th>");
-        out.println("<th>Source</th>");
+        out.println("<th class=\"header\">Time</th>");
+        out.println("<th class=\"header\">Host</th>");
+        out.println("<th class=\"header\">Level</th>");
+        out.println("<th class=\"header\">Message</th>");
+        //out.println("<th class=\"header\">Thread</th>");
+        //out.println("<th class=\"header\">Source</th>");
         out.println("</tr>");        
     }
     
     private void printTrailer(String naviBar) throws IOException {
         // Write the trailer.
-        out.println("</tbody></table><a name=\"end\"><hr></a>");
+        out.println("</tbody></table><a name=\"end\">" +
+                "<hr style=\"border: 1px solid #cccccc;\"></a>");
         if (naviBar != null)
             out.println(naviBar);
         out.println("</body></html>");        
     }
 
-    private void printRow(LogRecord record, String requestBase)
+    private void printRow(long sequence, LogRecord record, String requestBase)
             throws IOException {
-        out.println("<tr>");
-        out.println("<td>" + record.date + "</td>");
+        String dt = record.date.toString();
+        dt = dt.substring(dt.lastIndexOf("T")+1, dt.length());
+        String thread = "Thread: " + record.thread;
+        String source = "Source: " + record.clazz + '.' + record.method;       
+        String content = thread + "<br/>" + source;
+        String msgmouseover = "onmouseover=\"showtip('"+ content +"', '"+ content.length() * 6 +"')\" onmouseout=\"hideddrivetip()\"";
+        String datemouseover = "onmouseover=\"showtip('"+ record.date +"')\" onmouseout=\"hideddrivetip()\"";
+        out.print("<tr class=\"" + ROWCLASS[(int) (sequence % 2l)] + "\">");
+        out.println("<td " + datemouseover + "  class=\"tablecell\">" + dt + "</td>");
         if (record.host == null) {
-            out.println("<td>&nbsp;</td>");
+            out.println("<td class=\"tablecell\">&nbsp;</td>");
         } else {
             int endHostName = record.host.indexOf('.');
             if (endHostName > 0)
                 record.host = record.host.substring(0, endHostName);
-            out.println("<td style=\"text-align: center;\">" + record.host +
+            out.println("<td class=\"tablecell\" style=\"text-align: center;\">" + record.host +
                     "</td>");
         }
         if ("SEVERE".equals(record.level)) {
-            out.print("<td style=\"text-align: center; font-weight: " +
+            out.print("<td class=\"tablecell\" style=\"text-align: center; font-weight: " +
                     "bold; color: rgb(255, 0, 0);\">");
         } else if ("WARNING".equals(record.level)) {
-            out.print("<td style=\"text-align: center; font-weight: " +
+            out.print("<td class=\"tablecell\" style=\"text-align: center; font-weight: " +
                     "bold; color: rgb(255, 102, 51);\">");
         } else if ("INFO".equals(record.level)) {
-            out.print("<td style=\"text-align: center; font-weight: " +
+            out.print("<td class=\"tablecell\" style=\"text-align: center; font-weight: " +
                     "bold; color: rgb(0, 192, 0);\">");
         } else if ("CONFIG".equals(record.level)) {
-            out.print("<td style=\"text-align: center; font-weight: " +
+            out.print("<td class=\"tablecell\" style=\"text-align: center; font-weight: " +
                     "bold;\">");
         } else {
-            out.print("<td style=\"text-align: center;\">");
+            out.print("<td class=\"tablecell\" style=\"text-align: center;\">");
         }
         out.print(record.level);
         if (record.exceptionFlag)
@@ -202,10 +228,10 @@ class TableHandler extends LogParseHandler {
                     "\">exception</a></i></font></td>");
         else
             out.println("</td>");
-        out.println("<td>" + record.message + "</td>");
-        out.println("<td style=\"text-align: center;\">" + record.thread +
-                "</td>");
-        out.println("<td>" + record.clazz + '.' + record.method + "</td>");
+        out.println("<td " + msgmouseover + " class=\"tablecell\">" + record.message + "</td>");
+        //out.println("<td class=\"tablecell\" style=\"text-align: center;\">" + record.thread +
+        //        "</td>");
+        //out.println("<td class=\"tablecell\">" + record.clazz + '.' + record.method + "</td>");
         out.println("</tr>");
     }
 

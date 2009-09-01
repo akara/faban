@@ -1,0 +1,55 @@
+#!/bin/sh
+#
+#       Copyright (c) 1994 by Sun Microsystems, Inc.
+#
+# @(#)messages.com  1.01    95/07/14        SMI
+#
+#
+#   Extract any messages from /var/adm/messages for this run and write
+#   to stdout
+#
+#   Author:  Allan Packer
+#   Date:    July 1996
+#
+# Usage: messages <start> <end>
+# start,end are in ascii of the form 'Mon dd hh:mm:ss'
+
+PATH=$PATH:/bin
+export PATH
+
+start=$1
+end=$2
+
+# For this trick, we need nawk or gawk.
+# Plain old awk usually does not work.
+# But we still fall back to it if
+# everything else falls apart.
+AWK=/usr/bin/awk
+if [ -x "/usr/bin/nawk" ] ; then
+    AWK=/usr/bin/nawk
+elif [ -x "/usr/bin/gawk" ] ; then
+    AWK=/usr/bin/gawk
+fi
+
+
+(echo "$start\n$end";
+cat /var/log/system.log ) | $AWK '{
+	if (NR == 1) {
+		mon=$1; day=$2; split($3,arr,":")
+		smon=$1; sday=$2; stime=$3
+	}
+	else if (NR == 2) {
+		emon=$1; eday=$2; etime=$3
+	}
+	else {
+		if (smon == $1 && sday == $2 && mon == $1 && day == $2) {
+			if ($3 >= stime && $3 <= etime) print $0
+		}
+		else if (smon == $1 && sday == $2) {
+			if ($3 >= stime) print $0
+		}
+		else if (mon == $1 && day == $2) {
+			if ($3 <= etime) print $0
+		}
+	}
+}'

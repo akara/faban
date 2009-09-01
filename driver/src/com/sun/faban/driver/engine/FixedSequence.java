@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FixedSequence.java,v 1.1 2008/09/10 18:25:53 akara Exp $
+ * $Id: FixedSequence.java,v 1.2 2009/07/03 01:52:34 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -38,9 +38,6 @@ import java.lang.annotation.Annotation;
  */
 public class FixedSequence extends Mix {
 
-    /**
-	 * SerialVersionUID
-	 */
 	private static final long serialVersionUID = 1L;
 
 	/**

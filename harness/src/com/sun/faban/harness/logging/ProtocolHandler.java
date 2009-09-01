@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ProtocolHandler.java,v 1.2 2006/06/29 19:38:42 akara Exp $
+ * $Id: ProtocolHandler.java,v 1.4 2009/07/28 22:54:15 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -51,8 +51,8 @@ public interface ProtocolHandler {
     void setConfig(LogConfig config);
 
     /**
-     * Sets the selection key for subsequent invocations
-     * @param key
+     * Sets the selection key for subsequent invocations.
+     * @param key The nio selection key
      */
     void setKey(SelectionKey key);
 
@@ -84,7 +84,7 @@ public interface ProtocolHandler {
     boolean doContinueResponse() throws IOException;
 
     /**
-     * Tests the handler whether it needs to further process this request
+     * Tests the handler whether it needs to further process this request.
      * @return True if the handler still needs to proceed, false if it is done
      */
     boolean requestPending();

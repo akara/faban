@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunDaemon.java,v 1.30 2009/03/03 02:28:35 sheetalpatil Exp $
+ * $Id: RunDaemon.java,v 1.33 2009/07/28 22:54:15 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -71,7 +71,7 @@ public class RunDaemon implements Runnable {
     Logger logger;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param runqLock the monitor object used to syncronize on the runq
      *
@@ -128,8 +128,13 @@ public class RunDaemon implements Runnable {
      * be executed.
      * @param name The name of the run to fetch
      * @return The run object for the next run
+     * @throws RunEntryException The next run entry is incomplete
+     * @throws IOException There is an error reading the entry
+     * @throws ClassNotFoundException Could not find the benchmark class
+     * for the run.
      */
-    public Run fetchNextRun(String name) throws RunEntryException, IOException, ClassNotFoundException {
+    public Run fetchNextRun(String name) throws RunEntryException, IOException,
+            ClassNotFoundException {
 
         // get the lock for the runq.
         runqLock.grabLock();
@@ -444,6 +449,9 @@ public class RunDaemon implements Runnable {
         }
     }
 
+    /**
+     * Exits the RunDaemon.
+     */
     public void exit() {
         logger.info("RunDaemon Exit called");
         keepRunning = false;
@@ -451,6 +459,10 @@ public class RunDaemon implements Runnable {
         resumeRunDaemonThread();
     }
 
+    /**
+     * Obtains RunDaemon thread status.
+     * @return status of RunDaemon thread
+     */
     public String getRunDaemonThreadStatus() {
         if (runDaemonThread != null) {
             synchronized (runDaemonThread) {
@@ -466,8 +478,8 @@ public class RunDaemon implements Runnable {
     }
 
     /**
-     * Called by RunQ's stopRunDaemon method. Not sure if it will be used yet
-     *
+     * Called by RunQ's stopRunDaemon method.
+     * @return Whether or not the suspend succeeded
      */
     public boolean suspendRunDaemonThread() {
         if (runDaemonThread != null && !suspended) {
@@ -481,8 +493,8 @@ public class RunDaemon implements Runnable {
     }
 
     /**
-     * Called by RunQ's resumeRunDaemon method. Not sure if it will be used yet
-     *
+     * Called by RunQ's resumeRunDaemon method.
+     * @return Whether or not the resume succeeded
      */
     public boolean resumeRunDaemonThread() {
 
@@ -507,9 +519,9 @@ public class RunDaemon implements Runnable {
 
     /**
      * Redirect the log to file named log.xml inside the
-     * current run output directory
+     * current run output directory.
      * @param logFile the output directory for the run
-     *
+     * @param limit the log file size limit
      */
     private void redirectLog(String logFile, String limit) {
         StringBuilder sb = new StringBuilder();

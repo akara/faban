@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FlexBuffer.java,v 1.2 2006/06/29 19:38:42 akara Exp $
+ * $Id: FlexBuffer.java,v 1.6 2009/07/28 22:54:15 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -40,8 +40,13 @@ import java.io.IOException;
  */
 public class FlexBuffer {
 
+    /** Carriage return. */
     public static final byte CR = '\r';
+
+    /** Line feed. */
     public static final byte LF = '\n';
+
+    /** White space.  */
     public static final byte WS = ' ';
 
     private int initialSize = 0;
@@ -168,8 +173,8 @@ public class FlexBuffer {
      * Appends content of the nio ByteBuffer of a certain length. This
      * method will access the buffer's backing array if possible and
      * call appendDirect if there is no backing array.
-     * @param b
-     * @param length
+     * @param b The buffer
+     * @param length append
      */
     public void append(ByteBuffer b, int length) {
         if (b.hasArray())
@@ -181,8 +186,8 @@ public class FlexBuffer {
     /**
      * Appends content of the nio direct ByteBuffer of a certain length
      * to the FlexBuffer.
-     * @param b
-     * @param length
+     * @param b The buffer
+     * @param length The length to append
      */
     public void appendDirect(ByteBuffer b, int length) {
         for (;;) {
@@ -353,6 +358,12 @@ public class FlexBuffer {
         }
     }
 
+    /**
+     * Trims the string based on the position and the length.
+     * @param pos The starting position
+     * @param length The length
+     * @return the resulting substring
+     */
     public String getTrimmedString(int pos, int length) {
 
         // 1. Some basic checks.
@@ -472,6 +483,11 @@ public class FlexBuffer {
         return indexOf(s, 0);
     }
 
+    /**
+     * Checks if the string ends with provided string.
+     * @param s The string to check the buffer against
+     * @return true if the buffer ends with the provided string, false otherwise
+     */
     public boolean endsWith(String s) {
         byte[] sample = s.getBytes();
         int lastIdx = totalSize % initialSize;
@@ -625,6 +641,10 @@ public class FlexBuffer {
         return result;
     }
 
+    /**
+     * Returns Tokenizer instance.
+     * @return Tokenizer
+     */
     public Tokenizer getTokenizer() {
         return new Tokenizer();
     }
@@ -686,6 +706,11 @@ public class FlexBuffer {
             return getTrimmedString(oldPosition, eol - oldPosition);
         }
 
+        /**
+         * Returns next token.
+         * @param bytes
+         * @return String
+         */
         public String nextToken(byte[] bytes) {
             byte[] cBuffer = null;
             int start = position;
@@ -774,11 +799,21 @@ public class FlexBuffer {
             return new String(result);
         }
 
+        /**
+         * Returns next token.
+         * @param c
+         * @return String
+         */
         public String nextToken(byte c) {
             byte[] search = { c };
             return nextToken(search);
         }
 
+        /**
+         * Returns next token.
+         * @param s
+         * @return String
+         */
         public String nextToken(String s) {
             int tokenStart = indexOf(s, position);
             if (tokenStart == -1)
@@ -789,6 +824,10 @@ public class FlexBuffer {
             return result;
         }
 
+        /**
+         * Returns position of end of data.
+         * @return boolean
+         */
         public boolean endOfData() {
             return position == totalSize;
         }

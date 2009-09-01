@@ -1,0 +1,32 @@
+#!/bin/sh
+#########################################################################
+# The interface script determines the ip address of the interface used to
+# talk to the given remote host. If remote host cannot be contacted, it
+# will exit with an exit value of 1.
+#########################################################################
+
+COMMAND="$0"
+TARGET="$1"
+
+usage() {
+    echo "usage: ${COMMAND} host" >&2
+    exit 1;
+}
+
+if [ -z "${TARGET}" ] ; then
+    usage
+fi
+
+INTERFACE=`ping -R -c1 "${TARGET}" | grep RR | awk 'BEGIN{FS="(";RS=")"}{ print $2 }' 2>/tmp/interface.$$.err`
+
+if [ -z "${INTERFACE}" ] ; then
+    cat /tmp/interface.$$.err >&2
+    echo "Cannot contact ${TARGET}" >&2
+    exit 1
+fi
+
+if [ -e "/tmp/interface.$$.err" ] ; then
+    rm /tmp/interface.$$.err
+fi
+
+echo "${INTERFACE}"

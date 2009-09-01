@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Uniform.java,v 1.2 2006/06/29 19:38:36 akara Exp $
+ * $Id: Uniform.java,v 1.3 2009/07/03 01:52:37 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -36,15 +36,15 @@ import java.lang.annotation.ElementType;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})
 public @interface Uniform {
-        /** The type of cycle to be used */
+        /** The type of cycle to be used. */
     CycleType cycleType() default CycleType.CYCLETIME;
 
-    /** The min cycle or think time in milliseconds */
+    /** The min cycle or think time in milliseconds. */
     int cycleMin() default 1000;
 
-    /** The max cycle or think time in milliseconds */
+    /** The max cycle or think time in milliseconds. */
     int cycleMax() default 1000;
 
-    /** The allowed deviation from the targeted time, in % */
+    /** The allowed deviation from the targeted time, in %. */
     double cycleDeviation();
 }

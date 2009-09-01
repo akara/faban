@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MasterImpl.java,v 1.5 2009/04/01 23:29:25 akara Exp $
+ * $Id: MasterImpl.java,v 1.10 2009/07/21 21:21:09 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -28,6 +28,7 @@ import com.sun.faban.common.RegistryLocator;
 import com.sun.faban.driver.ConfigurationException;
 import com.sun.faban.driver.FatalException;
 import com.sun.faban.driver.RunControl;
+import com.sun.faban.driver.util.PairwiseAggregator;
 import com.sun.faban.driver.util.Timer;
 
 import java.io.*;
@@ -60,9 +61,6 @@ import java.util.logging.SimpleFormatter;
  */
 public class MasterImpl extends UnicastRemoteObject implements Master {
 
-    /**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 
 	// This field is a legal requirement and serves no other purpose.
@@ -121,7 +119,8 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
             "d\351sign\351s, sont rigoureusement interdites.\n";
 
     private String className = getClass().getName();
-    protected Logger logger = Logger.getLogger(className);
+
+    private Logger logger = Logger.getLogger(className);
 
     BenchmarkDefinition benchDef;
 
@@ -135,26 +134,32 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
     /** Remaining threads to be distributed to the first agents. */
     protected int[] remainderThreads;
 
-    /** The RunInfo structure */
+    /** The RunInfo structure. */
     protected RunInfo runInfo;
 
-    protected Timer timer; // The time recorder.
+    /** The time recorder. */
+    protected Timer timer;
 
+    /** Convenience accessor to the file separator. */
     protected static String fs = System.getProperty("file.separator");
 
     private boolean runAborted = false;
 
+    /** The lock object for the state. */
     protected final Object stateLock = new Object();
+
+    /** The current state of the master. */
     protected MasterState state = MasterState.CONFIGURING;
 
+    /** The scheduler used in the master. */
     protected java.util.Timer scheduler;
 
     StatsWriter statsWriter;
 
     /**
-     * Creates and exports a new Master
+     * Creates and exports a new Master.
      *
-     * @throws java.rmi.RemoteException if failed to export object
+     * @throws RemoteException if failed to export object
      */
     protected MasterImpl() throws RemoteException {
         super();
@@ -245,6 +250,9 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
             if (agentCnt > 0) {
                 for (int i = 0; i < benchDef.drivers.length && !runAborted; i++) {
 					configureAgents(i);
+				}
+                for (int i = 0; i < benchDef.drivers.length && !runAborted; i++) {
+					startThreads(i);
 				}
                 logger.config("Detected " + agentCnt + " Remote Agents.");
             } else {
@@ -375,6 +383,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
      * Contacts the registry and gets references for all agents.
      * Then calculates the load distribution to each agentImpl.
      * @return The total number of agents configured
+     * @throws Exception Any error that could happen configuring the master
      */
     protected int configure() throws Exception {
 
@@ -461,6 +470,10 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         return totalAgentCnt;
     }
 
+    /**
+     * Configures a local, in-process agent.
+     * @throws Exception If anything goes wrong during the configuration
+     */
     protected void configureLocal() throws Exception {
         int driverToRun = -1;
         if (runInfo.driverConfigs.length > 1) {
@@ -516,11 +529,13 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         agentInfo.agentScale = runInfo.scale;
         agentRefs[driverToRun][0].configure(this, runInfo,
                 driverToRun, timer);
+        agentRefs[driverToRun][0].startThreads();
     }
 
     /**
-     * configureAgents()
-     * Get a list of all the registered agents and parseProperties them
+     * Configures all agents for a driver type.
+     * @param driverType The driver type id to configure
+     * @throws Exception If anything goes wrong in the process
      */
     private void configureAgents(int driverType) throws Exception {
 
@@ -572,11 +587,26 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
     }
 
     /**
+     * Starts all the threads for a driver type.
+     * @param driverType The type id of the driver
+     * @throws Exception An error occurred starting the driver threads
+     */
+    private void startThreads(int driverType) throws Exception {
+        int agentCnt = runInfo.driverConfigs[driverType].numAgents;
+        if (agentCnt > 0) {
+            Agent[] refs = agentRefs[driverType];
+            for (int agentId = 0; agentId < refs.length; agentId++)
+                refs[agentId].startThreads();
+        }
+    }
+
+    /**
      * Tell the agents to start the run execution
      * Note that the Agent's run method call is non-blocking
      * i.e the Master does not wait for an Agent. Instead, we
      * wait for the total length of the run, after we signal
      * all the agents to start.
+     * @throws Exception Anything that could go wrong during the run
      */
     private void executeRun() throws Exception {
 
@@ -645,7 +675,6 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
             } catch (InterruptedException ie) {
             	logger.log(Level.FINE, ie.getMessage(), ie);
             }
-            logger.info("Ramp down completed");
 
             // Schedule a forced termination 2 minutes from here where we start
             // the wait.
@@ -654,21 +683,48 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
                         Thread mainThread = Thread.currentThread();
 
 						public void run() {
+                            // Terminate all agents except agent 0 for all
+                            // driver types first.
                             for (int i = 0; i < agentRefs.length; i++) {
 								if (agentRefs[i] != null) {
 									// Ensure we terminate the first agent last
                                     for (int j = agentRefs[i].length - 1;
-                                         j >= 0; j--) {
+                                         j > 0; j--) {
 										try {
                                             agentRefs[i][j].terminate();
                                         } catch (RemoteException e) {
                                             logger.log(Level.SEVERE,
                                                     "Error checking thread " +
-                                                    "starts.", e);
+                                                    "termination.", e);
                                         }
 									}
 								}
 							}
+                            // Then terminate agent 0.
+                            for (int i = 0; i < agentRefs.length; i++) {
+                                if (agentRefs[i] != null &&
+                                        agentRefs[i][0] != null)
+                                    try {
+                                        agentRefs[i][0].terminate();
+                                    } catch (RemoteException e) {
+                                        logger.log(Level.SEVERE,
+                                                "Error checking thread " +
+                                                "termination.", e);
+                                    }
+                            }
+
+                            // Then, call postRun on all agent 0s.
+                            for (int i = 0; i < agentRefs.length; i++) {
+                                if (agentRefs[i] != null &&
+                                        agentRefs[i][0] != null)
+                                    try {
+                                        agentRefs[i][0].postRun();
+                                    } catch (RemoteException e) {
+                                        logger.log(Level.SEVERE,
+                                                "Error calling postRun", e);
+                                    }
+                            }
+
                             if (joining.get()) {
 								mainThread.interrupt();
 							}
@@ -682,6 +738,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         // Now wait for all threads under all agents to terminate.
         joining.set(true);
 
+        // Join all other agents.
         joinLoop:
         for (int driverType = 0; driverType < runInfo.driverConfigs.length;
              driverType++) {
@@ -692,8 +749,8 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 					try {
                         refs[i].join();
                     } catch (RemoteException e) {
-                        logger.warning("Master: RemoteException got " + e);
-                        logger.throwing(className, "executeRun", e);
+                        logger.log(Level.WARNING,
+                                "Master: RemoteException got " + e, e);
 
                         // If the RemoteException is caused by an interrupt,
                         // we break the loop. This is because killAtEnd is in
@@ -705,6 +762,31 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 				}
             }
         }
+
+        // Join agent 0.
+        for (int driverType = 0; driverType < runInfo.driverConfigs.length;
+             driverType++) {
+            if (runInfo.driverConfigs[driverType].numAgents > 0) {
+                Agent refs[] = agentRefs[driverType];
+                if (refs != null && refs[0] != null) {
+					try {
+                        refs[0].join();
+                    } catch (RemoteException e) {
+                        logger.log(Level.WARNING,
+                                "Master: RemoteException got " + e, e);
+
+                        // If the RemoteException is caused by an interrupt,
+                        // we break the loop. This is because killAtEnd is in
+                        // effect.
+                        if (Thread.interrupted()) {
+							break;
+						}
+                    }
+                }
+            }
+        }
+        logger.info("Ramp down completed");
+
         joining.set(false);
 
         // It would be good if we do not have to execute killAtEnd. By now
@@ -713,6 +795,29 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         if (killAtEnd != null) {
 			killAtEnd.cancel();
 		}
+
+        // Call postRun
+        for (int driverType = 0; driverType < runInfo.driverConfigs.length;
+             driverType++) {
+            if (runInfo.driverConfigs[driverType].numAgents > 0) {
+                Agent refs[] = agentRefs[driverType];
+                if (refs != null && refs[0] != null) {
+					try {
+                        refs[0].postRun();
+                    } catch (RemoteException e) {
+                        logger.log(Level.WARNING,
+                                "Master: RemoteException got " + e, e);
+
+                        // If the RemoteException is caused by an interrupt,
+                        // we break the loop. This is because killAtEnd is in
+                        // effect.
+                        if (Thread.interrupted()) {
+							break;
+						}
+                    }
+                }
+            }
+        }
 
         /* Gather stats and print report */
         changeState(MasterState.RESULTS);
@@ -732,52 +837,94 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
             statsWriter.quit();
     }
 
+    private class MetricsProvider
+            implements PairwiseAggregator.Provider<Metrics> {
+
+        ArrayList<Metrics> metrices;
+
+        private MetricsProvider() {
+            metrices = new ArrayList<Metrics>();
+        }
+
+        private MetricsProvider(int count) {
+            metrices = new ArrayList<Metrics>(count);
+        }
+
+        public void add(Metrics m) {
+            metrices.add(m);
+        }
+
+        public Metrics getMutableMetrics(int idx) {
+            return (Metrics) metrices.get(idx).clone();
+        }
+
+        public void add(Metrics instance, int idx) {
+            instance.add(metrices.get(idx));
+        }
+
+        public Class getComponentClass() {
+            return Metrics.class;
+        }
+
+        public void recycle(Metrics r) {
+        }
+    }
+
+
     private Map<String, Metrics> getDriverMetrics(int driverType) {
 
+        LinkedHashMap<String, MetricsProvider> hostProviders =
+                                   new LinkedHashMap<String, MetricsProvider>();
         LinkedHashMap<String, Metrics> hostMetrics =
-                                        new LinkedHashMap<String, Metrics>();
+                                   new LinkedHashMap<String, Metrics>();
         try {
             if (runInfo.driverConfigs[driverType].numAgents > 0) {
-                Metrics[] results = new Metrics[
-                        runInfo.driverConfigs[driverType].numAgents];
-                Agent[] refs = agentRefs[driverType];
+                Agent[] agents = agentRefs[driverType];
                 logger.info("Gathering " +
                         benchDef.drivers[driverType].name + "Stats ...");
-                for (int i = 0; i < refs.length; i++) {
-					results[i] = refs[i].getResults();
-				}
 
-                // Add the results on a per-host basis.
-                for (Metrics r : results) {
+                // Add the results on a per-host basis and grand summary
+                MetricsProvider grandSumProvider = new MetricsProvider(
+                        runInfo.driverConfigs[driverType].numAgents);
+
+                for (Agent agent : agents) {
+                    Metrics r = agent.getResults();
                     if (r == null)
                         continue;
-                    Metrics hostResult = hostMetrics.get(r.host);
+                    MetricsProvider hostResult = hostProviders.get(r.host);
                     if (hostResult == null) {
-                        hostMetrics.put(r.host, r);
-                    } else {
-                        hostResult.add(r);
-                    }
+                        hostResult = new MetricsProvider();
+                        hostProviders.put(r.host, hostResult);
+                    } 
+                    hostResult.add(r);
+                    grandSumProvider.add(r);
+
+                    // Once we have the metrics, we have to set it's start time
+                    // Since this is set after all threads have started, it will
+                    // be 0 in all the metrices we receive.
+                    r.startTime = runInfo.start;
+
                 }
 
                 Metrics result = null;
 
-                // Add all host results together to get the final result.
-                for (Metrics r : hostMetrics.values()) {
-                    if (result == null) {
-                        // Clone, so we won't add on a summarized
-                        // host metric and make results wrong.
-                        result = (Metrics) r.clone();
-                    } else {
-                        result.add(r);
-                    }
-                    // Once we have the metrics, we have to set it's start time
-                    // Since this is set after all threads have started, it will
-                    // be 0 in all the metrices we receive.
-
-                    r.startTime = runInfo.start;
+                // Aggregate the per driver host metrics, calculate results.
+                for (MetricsProvider r : hostProviders.values()) {
+                    PairwiseAggregator<Metrics> aggregator = new
+                            PairwiseAggregator<Metrics>(r.metrices.size(), r);
+                    result = aggregator.collectStats();
+                    hostMetrics.put(result.host, result);
                 }
 
-                if (result != null) {
+                // Aggregate the final metrics, calculate results.
+                if (grandSumProvider.metrices.size() > 0) {
+                    PairwiseAggregator<Metrics> aggregator =
+                            new PairwiseAggregator<Metrics>(
+                                    grandSumProvider.metrices.size(),
+                                    grandSumProvider);
+
+                    result = aggregator.collectStats();
+
                     // And finally set it for the final result, too.
 					result.startTime =  runInfo.start;
                     // Set it in the map, under the name __MASTER__
@@ -872,6 +1019,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
      * Aggregates results of incompatible stats and prints the benchmark
      * summary report header.
      * @param results The per-driver metrics
+     * @param host The host name for which to create the summary report, or null
      * @return The report as a char sequence
      */
     @SuppressWarnings("boxing")
@@ -948,6 +1096,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
     /**
      * Aggregates detail results into a single buffer.
      * @param results The per-driver metrics
+     * @param host The host name for which to create the detail report, or null
      * @return The report as a char sequence
      */
     private CharSequence createDetailReport(Metrics[] results, String host) {
@@ -987,6 +1136,45 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         }
     }
 
+    private class RuntimeMetricsProvider
+            implements PairwiseAggregator.Provider<RuntimeMetrics> {
+
+        public ArrayList<RuntimeMetrics> metrices =
+                new ArrayList<RuntimeMetrics>();
+
+        public void add(RuntimeMetrics m) {
+            metrices.add(m);
+        }
+
+        public RuntimeMetrics getMutableMetrics(int idx) {
+            return metrices.get(idx);
+        }
+
+        public void add(RuntimeMetrics instance, int idx) {
+            instance.add(metrices.get(idx));
+        }
+
+
+        public Class getComponentClass() {
+            return RuntimeMetrics.class;
+        }
+
+        public void recycle(RuntimeMetrics r) {
+        }
+
+        public int getSequence() {
+            if (metrices.size() == 0)
+                return -1;
+            else
+                return metrices.get(0).sequence;
+        }
+
+        public void reset() {
+            metrices.clear();
+        }
+    }
+
+
     private class StatsWriter extends Thread {
 
         boolean terminated = false;
@@ -1004,6 +1192,16 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
             int[] metricsCount = new int[agentRefs.length];
             RuntimeMetrics[] previous = new RuntimeMetrics[agentRefs.length];
             RuntimeMetrics[] current = new RuntimeMetrics[agentRefs.length];
+            RuntimeMetricsProvider[] providers =
+                    new RuntimeMetricsProvider[agentRefs.length];
+            ArrayList<PairwiseAggregator<RuntimeMetrics>> aggregators =
+                    new ArrayList<PairwiseAggregator<RuntimeMetrics>>(
+                    agentRefs.length);
+            for (int i = 0; i < agentRefs.length; i++) {
+                providers[i] = new RuntimeMetricsProvider();
+                aggregators.add(new PairwiseAggregator<RuntimeMetrics>(
+                        runInfo.driverConfigs[i].numAgents, providers[i]));
+            }
             while (!terminated) {
                 try {
                     RuntimeMetrics m = queue.poll(
@@ -1012,33 +1210,38 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
                         continue;
                     }
                     int type = m.driverType;
-                    if (current[type] == null) {
-                        current[type] = m;
+                    int sequence = providers[type].getSequence();
+                    if (sequence < 0) { // Empty.
+                        providers[type].add(m);
                         if (++metricsCount[type] >=
                                 runInfo.driverConfigs[type].numAgents) {
+                            current[type] = 
+                                    aggregators.get(type).collectStats();
                             dumpStats(type, previous, current);
+                            providers[type].reset();
                             previous[type] = current[type];
                             current[type] = null;
                             metricsCount[type] = 0;
                         }
                     } else {
-                        if (current[type].sequence == m.sequence) {
-                            current[type].add(m);
+                        if (sequence == m.sequence) {
+                            providers[type].add(m);
                             if (++metricsCount[type] >=
                                     runInfo.driverConfigs[type].numAgents) {
+                                current[type] =
+                                        aggregators.get(type).collectStats();
                                 dumpStats(type, previous, current);
+                                providers[type].reset();
                                 previous[type] = current[type];
                                 current[type] = null;
                                 metricsCount[type] = 0;
                             }
-                        } else if (current[type].sequence < m.sequence) {
+                        } else if (sequence < m.sequence) {
                             logger.warning("Missing " + (runInfo.driverConfigs[
                                     type].numAgents - metricsCount[type]) +
                                     " runtime stats from " + benchDef.drivers[
-                                    type].name + ". Ignoring the rest.");
-                            dumpStats(type, previous, current);
-                            previous[type] = current[type];
-                            current[type] = m;
+                                    type].name + ". Ignoring.");
+                            providers[type].add(m);
                             metricsCount[type] = 1;
                         } else {
                             logger.warning("Received out-of-sequence runtime " +
@@ -1075,10 +1278,16 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 
             for (int i = 0; i < s.length; i++) {
                 b.append(' ').append(RuntimeMetrics.LABELS[i]).append('=');
-                formatter.format("%.03f", s[i][0]);
+                if (Double.isNaN(s[i][0]))
+                    b.append('-');
+                else
+                    formatter.format("%.03f", s[i][0]);
                 for (int j = 1; j < s[i].length; j++) {
                     b.append('/');
-                    formatter.format("%.03f", s[i][j]);
+                    if (Double.isNaN(s[i][j]))
+                        b.append('-');
+                    else
+                        formatter.format("%.03f", s[i][j]);
                 }
             }
             
@@ -1100,6 +1309,10 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         return System.currentTimeMillis();
     }
 
+    /**
+     * Introduces a state change in the master.
+     * @param newState The new state
+     */
     protected void changeState(MasterState newState) {
         synchronized (stateLock) {
             state = newState;
@@ -1123,7 +1336,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 
     /**
      * Wait for a certain state on the master.
-     * @param state
+     * @param state The state to wait for
      */
     public void waitForState(MasterState state) {
         synchronized (stateLock) {
@@ -1238,12 +1451,39 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 					}
                     for (int i = 0; i < agentRefs.length; i++) {
 						if (agentRefs[i] != null) {
-							for (int j = 0; j < agentRefs[i].length; j++) {
+							for (int j = agentRefs[i].length - 1; j > 0; j--) {
 								try {
                                     agentRefs[i][j].join();
                                 } catch (RemoteException e) {
                                     logger.log(Level.SEVERE,
                                             "Error calling join on agent.", e);
+                                }
+							}
+						}
+					}
+                    for (int i = 0; i < agentRefs.length; i++) {
+						if (agentRefs[i] != null) {
+							if (agentRefs[i] != null &&
+                                    agentRefs[i][0] != null) {
+								try {
+                                    agentRefs[i][0].join();
+                                } catch (RemoteException e) {
+                                    logger.log(Level.SEVERE,
+                                            "Error calling join on agent.", e);
+                                }
+							}
+						}
+					}
+                    for (int i = 0; i < agentRefs.length; i++) {
+						if (agentRefs[i] != null) {
+							if (agentRefs[i] != null &&
+                                    agentRefs[i][0] != null) {
+								try {
+                                    agentRefs[i][0].postRun();
+                                } catch (RemoteException e) {
+                                    logger.log(Level.SEVERE,
+                                            "Error calling postRun on agent.",
+                                            e);
                                 }
 							}
 						}

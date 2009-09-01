@@ -1,0 +1,15 @@
+#!/bin/sh
+addtime() {
+    while read a
+    do
+        case $a in
+            [sd]*)
+                DATE=`date +%I:%M:%S`
+                echo "$DATE  $a";;
+            *)  echo "          $a";;
+        esac
+    done
+}
+
+iostat $@ | addtime
+

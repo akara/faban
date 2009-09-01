@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentImpl.java,v 1.5 2009/04/01 19:11:11 akara Exp $
+ * $Id: AgentImpl.java,v 1.11 2009/08/05 23:36:20 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,6 +25,7 @@ package com.sun.faban.driver.engine;
 
 import com.sun.faban.common.RegistryLocator;
 import com.sun.faban.common.Utilities;
+import com.sun.faban.driver.util.PairwiseAggregator;
 import com.sun.faban.driver.util.Timer;
 
 import java.io.File;
@@ -33,6 +34,7 @@ import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.rmi.server.Unreferenced;
+import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -59,7 +61,6 @@ public class AgentImpl extends UnicastRemoteObject
     Timer timer;
     AgentThread[] agentThreads;
     String agentType;
-    Metrics results[] = null;
     int numThreads;
     String driverBase;
     String host;
@@ -72,17 +73,23 @@ public class AgentImpl extends UnicastRemoteObject
     CountDownLatch threadStartLatch;
     CountDownLatch timeSetLatch;
     CountDownLatch preRunLatch;
+    CountDownLatch startLatch;
+    CountDownLatch finishLatch;
     CountDownLatch postRunLatch;
     private boolean runAborted = false;
     StatsCollector statsCollector;
 
-    public int timeToRunFor = 1;
-    public int runningThreads = 0;
-    public VariableLoadHandlerThread threadController;
+    int timeToRunFor = 1;
+    int runningThreads = 0;
+    VariableLoadHandlerThread threadController;
+    private long earliestStartTime = Long.MIN_VALUE;
 
     /**
-     * Constructor
-     * Create properties object from file
+     * Constructs the AgentImpl object.
+     * @param driverName The type name of the driver to execute
+     * @param agentId The id of this agent, unique among agents of same driver
+     * @param master The master system
+     * @throws Exception Any issue that may occur as part of the construction
      */
     AgentImpl(String driverName, String agentId, String master)
             throws Exception {
@@ -123,8 +130,7 @@ public class AgentImpl extends UnicastRemoteObject
     }
 
     /**
-     * Configures each agents with the props passed
-     * The threads are created at this point
+     * Configures each agents with the properties passed.
      * @param master the remote interface to the Master
      * @param runInfo run information passed by Master
      * @param driverType 
@@ -155,8 +161,10 @@ public class AgentImpl extends UnicastRemoteObject
         if (runInfo.agentInfo.startThreadNumber == 0) { // first agent
             if (runInfo.driverConfig.preRun != null) {
 				preRunLatch = new CountDownLatch(1);
+                startLatch = new CountDownLatch(1);
 			}
             if (runInfo.driverConfig.postRun != null) {
+                finishLatch = new CountDownLatch(1);
 				postRunLatch = new CountDownLatch(1);
 			}
         }
@@ -169,22 +177,18 @@ public class AgentImpl extends UnicastRemoteObject
         }
 
         runInfo.agentInfo.agentType = agentType;
-        results = null;		// so that we don't use old results
-        calibrateTime();
+        doPreRun();
+    }
 
+    /**
+     * Start all the driver threads.
+     */
+    public void startThreads() {
         // Agents will Start the threads in parallel if
         // parallelThreadStart is set.
         if (runInfo.parallelAgentThreadStart) {
             // start thread and return
             new Thread(this).start();
-            if (runInfo.agentInfo.startThreadNumber == 0 &&
-                    runInfo.driverConfig.preRun != null) {
-				try {
-                    preRunLatch.await();
-                } catch (InterruptedException e) {
-                    // Do nothing.
-                }
-			}
         } else {
             // block until done and return
             this.run();
@@ -237,19 +241,63 @@ public class AgentImpl extends UnicastRemoteObject
         timer.adjustBaseTime(offset + minLatency / 2);
     }
 
+    private void doPreRun() {
+        numThreads = runInfo.agentInfo.threads;
+        agentThreads = new AgentThread[numThreads];
+        try {
+            if (runInfo.agentInfo.startThreadNumber == 0 &&
+                    runInfo.driverConfig.preRun != null) {
+                agentThreads[0] = AgentThread.getInstance(agentType, agentId,
+                        0, runInfo.driverConfig.driverClass, timer,
+                        this);
+                agentThreads[0].start();
+                preRunLatch.await();
+                preRunLatch = null;
+
+                earliestStartTime = System.nanoTime() +
+                        runInfo.msBetweenThreadStart * 1000000L;
+            }
+            if (runAborted) {
+                logger.warning(displayName +
+                        ": Run aborted starting initial driver threads.");
+            }
+        } catch (Exception e) {
+            logger.warning(displayName +
+                    ": Run aborted starting initial driver threads.");
+            logger.log(Level.SEVERE, e.getMessage(), e);
+            try {
+                master.abortRun();
+            } catch (RemoteException e1) {
+                logger.log(Level.FINE, e1.getMessage(), e);
+            }
+        }
+    }
+
     /**
+     * Starts the driver threads for this agent, possibly in it's own thread.
      * @see java.lang.Runnable#run()
      */
     public void run() {
         // Create the required number of threads
-        numThreads = runInfo.agentInfo.threads;
-        agentThreads = new AgentThread[numThreads];
         long nsBetweenThreadStart = runInfo.msBetweenThreadStart * 1000000L;
         try {
             // We use System.nanoTime() here directly
             // instead of timer.getTime().
             long baseTime = System.nanoTime();
             int count = 0;
+
+            // First thread already started if preRun is there
+            if (runInfo.agentInfo.startThreadNumber == 0 &&
+                    runInfo.driverConfig.preRun != null) {
+                // First thread already started, just let it run.
+                startLatch.countDown();
+                if (System.nanoTime() < earliestStartTime)
+                    timer.wakeupAt(earliestStartTime);
+                ++count;
+            }
+
+            calibrateTime();
+
             for (; count < numThreads && !runAborted; count++) {
                 int globalThreadId = runInfo.agentInfo.startThreadNumber +
                         count;
@@ -257,19 +305,6 @@ public class AgentImpl extends UnicastRemoteObject
                         agentId, globalThreadId,
                         runInfo.driverConfig.driverClass, timer, this);
                 agentThreads[count].start();
-
-                // Ensure the preRun is done before proceeding.
-                if (globalThreadId == 0 &&
-                        runInfo.driverConfig.preRun != null) {
-                    preRunLatch.await();
-
-                    // Adjust baseTime if the preRun takes long.
-                    long currentTime = System.nanoTime();
-
-                    if (currentTime - baseTime > nsBetweenThreadStart) {
-						baseTime = currentTime - nsBetweenThreadStart;
-					}                    
-                }
 
                 // We ensure we catch up with the configured thread starting
                 // rate. If we fall short, we sleep less until we caught up.
@@ -385,7 +420,6 @@ public class AgentImpl extends UnicastRemoteObject
         // cleanup
         if (statsCollector != null)
             statsCollector.cancel();
-        results = null;
     }
 
     /**
@@ -445,8 +479,13 @@ public class AgentImpl extends UnicastRemoteObject
                             ": Error killing thread.", e);
                 }
             }
-            postRunLatch.countDown();
-            agentThreads[0].waitThreadState(AgentThread.RunState.ENDED);
+            try {
+                finishLatch.await();
+            } catch (InterruptedException e) {
+                logger.warning(
+                        "Interrupted waiting for thread 0 to finish run. " +
+                        "PostRun may not get executed.");
+            }
         } else if (agentThreads[0] != null && agentThreads[0].isAlive()) {
             try { // Just terminate it like any other thread.
                 if (!terminationLogged) { // Log this only once.
@@ -475,6 +514,25 @@ public class AgentImpl extends UnicastRemoteObject
             statsCollector.cancel();
     }
 
+    private class MetricsProvider implements
+            PairwiseAggregator.Provider<Metrics> {
+
+        public Metrics getMutableMetrics(int idx) {
+            return (Metrics) agentThreads[idx].getResult().clone();
+        }
+
+        public void add(Metrics instance, int idx) {
+            instance.add(agentThreads[idx].getResult());
+        }
+
+        public Class<Metrics> getComponentClass() {
+            return Metrics.class;
+        }
+
+        public void recycle(Metrics metrics) {
+        }
+    }
+
     /**
      * Report stats from a run
      * Each thread's result is obtained by calling that thread's getResult()
@@ -483,15 +541,9 @@ public class AgentImpl extends UnicastRemoteObject
      * @return results
      */
     public Metrics getResults() {
-        Metrics[] results = new Metrics[numThreads];
-        for (int i = 0; i < numThreads; i++) {
-            results[i] = agentThreads[i].getResult();
-        }
-        Metrics agentStats = (Metrics) results[0].clone();
-        for (int index = 1; index < results.length; index++) {
-			agentStats.add(results[index]);
-		}
-        return agentStats;
+        PairwiseAggregator<Metrics> aggregator = new
+                PairwiseAggregator<Metrics>(numThreads, new MetricsProvider());
+        return aggregator.collectStats();
     }
 
     /**
@@ -509,10 +561,9 @@ public class AgentImpl extends UnicastRemoteObject
 		}
         if (runInfo.agentInfo.startThreadNumber == 0 &&
                 runInfo.driverConfig.postRun != null &&
-                agentThreads[0] != null) {// first agent, preRun
-            postRunLatch.countDown();
+                agentThreads[0] != null) {// first agent, postRun
             try {
-                agentThreads[0].join();
+                finishLatch.await();
             } catch (InterruptedException e) {
             	logger.log(Level.FINE, e.getMessage(), e);
             }            
@@ -525,6 +576,26 @@ public class AgentImpl extends UnicastRemoteObject
         }
         if (statsCollector != null)
             statsCollector.cancel();
+    }
+
+    /**
+     * Invokes the post run method on thread 0 of each driver agent 0, if
+     * postRun is configured.
+     */
+    public void postRun() {
+        if (runInfo.agentInfo.startThreadNumber == 0 &&
+                runInfo.driverConfig.postRun != null &&
+                agentThreads[0] != null) {// first agent, postRun
+            logger.finest(agentType + "Releasing postRun latch.");
+            postRunLatch.countDown();
+            try {
+                agentThreads[0].join();
+                logger.finest(agentType + " Thread 0 completed postRun");
+            } catch (InterruptedException e) {
+                logger.warning(agentType +
+                        " Interrupted waiting for thread 0 to finish postRun.");
+            }
+        }
         master = null;
     }
 
@@ -544,7 +615,7 @@ public class AgentImpl extends UnicastRemoteObject
     }
 
     /**
-     * AgentImpl's main method
+     * AgentImpl's main method.
      * @param argv the arguments passed to the java command
      */
     public static void main(String [] argv) {
@@ -571,10 +642,44 @@ public class AgentImpl extends UnicastRemoteObject
         }
     }
 
+    private class RuntimeMetricsProvider
+            implements PairwiseAggregator.Provider<RuntimeMetrics> {
+
+        public ArrayList<RuntimeMetrics> pool = new ArrayList<RuntimeMetrics>();
+
+        public RuntimeMetrics getMutableMetrics(int idx) {
+
+            RuntimeMetrics rtm;
+            int size = pool.size();
+            if (size > 0) {
+                rtm = pool.remove(size - 1);
+            } else {
+                rtm = new RuntimeMetrics();
+            }
+            rtm.copy(agentThreads[idx].metrics);
+            return rtm;
+        }
+
+        public void add(RuntimeMetrics instance, int idx) {
+            instance.add(agentThreads[idx].metrics);
+        }
+
+        public Class getComponentClass() {
+            return RuntimeMetrics.class;
+        }
+
+        public void recycle(RuntimeMetrics r) {
+            pool.add(r);
+        }
+    }
+
+
     private class StatsCollector extends Thread {
 
         long interval = runInfo.runtimeStatsInterval * 1000000000l;
-        RuntimeMetrics rtm = new RuntimeMetrics();
+        PairwiseAggregator<RuntimeMetrics> aggregator =
+                new PairwiseAggregator<RuntimeMetrics>(
+                agentThreads.length, new RuntimeMetricsProvider());
         boolean terminated = false;
 
         StatsCollector() {
@@ -585,25 +690,31 @@ public class AgentImpl extends UnicastRemoteObject
 
         @Override
         public void run() {
+            int sequence = 0;
+            long duration = (runInfo.rampUp + runInfo.stdyState +
+                                runInfo.rampDown) * 1000000000l;
+            RuntimeMetrics rtm = null;
             while (!terminated) {
+                long wakeupTime = startTime + sequence * interval;
+                if (wakeupTime > startTime + duration)
+                    break;
                 try {
-                    timer.wakeupAt(startTime + rtm.sequence * interval);
-                    for (int i = 0; i < agentThreads.length; i++) {
-                        rtm.add(agentThreads[i].metrics);
-                    }
+                    timer.wakeupAt(wakeupTime);
+                    rtm = aggregator.collectStats();
+                    if (rtm == null)
+                        logger.warning("Null RuntimeStats");
                     try {
                         rtm.timestamp = (int) ((System.nanoTime() - startTime) /
                                 1000000l);
+                        rtm.sequence = sequence;
                         master.updateMetrics(rtm);
                     } catch (RemoteException e) {
                         logger.log(Level.SEVERE, "Communication error " +
                                 "sending runtime metrics to master", e);
                     }
-                    rtm.reset();
-                    ++rtm.sequence;
-                } catch (RuntimeException e) {
-                    // When wakeupAt gets interrupted, just do nothing. Go back
-                    // and check whether the statscollector is terminated.
+                    ++sequence;
+                } catch (Exception e) {
+                    logger.log(Level.WARNING, e.getMessage(), e);
                 }
             }
         }

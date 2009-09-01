@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CommandHandleImpl.java,v 1.11 2009/01/28 19:17:22 akara Exp $
+ * $Id: CommandHandleImpl.java,v 1.12 2009/07/02 20:26:40 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -75,7 +75,7 @@ public class CommandHandleImpl implements CommandHandle {
      *
      * @return The command string executed.
      */
-    public String getCommandString() throws RemoteException {
+    public String getCommandString() {
         return command.toString();
     }
 
@@ -173,10 +173,9 @@ public class CommandHandleImpl implements CommandHandle {
      * @throws java.io.IOException      There is an error getting the output
      * @throws IllegalStateException    The command is not yet terminated or
      *                                  does not record output
-     * @throws java.rmi.RemoteException A network error occurred
      */
-    public FileTransfer fetchOutput(int streamId, String destFile) throws
-            IOException, IllegalStateException {
+    public FileTransfer fetchOutput(int streamId, String destFile)
+            throws IOException, IllegalStateException {
         if (command.streamHandling[streamId] == Command.TRICKLE_LOG)
             throw new IllegalStateException("Output not available if " +
                     "StreamHandling is TRICKLE_LOG");
@@ -184,6 +183,11 @@ public class CommandHandleImpl implements CommandHandle {
 
     }
 
+    /**
+     * Waits for the command until it matches a certain string it its
+     * output streams.
+     * @throws InterruptedException The wait was interrupted
+     */
     public void waitMatch() throws InterruptedException {
         for (int i = 0; i < readers.length; i++)
             readers[i].waitMatch();

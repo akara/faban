@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Deployer.java,v 1.10 2009/03/31 00:23:56 sheetalpatil Exp $
+ * $Id: Deployer.java,v 1.14 2009/07/29 02:06:49 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -44,7 +44,8 @@ import java.util.logging.Logger;
 import java.util.logging.Level;
 
 /**
- * The Deployer servlet is used to deploy a benchmark from a remote system.
+ * The Deployer servlet is used to deploy a benchmark/service from a remote
+ * system.
  *
  * @author Akara Sucharitakul
  */
@@ -79,7 +80,7 @@ public class Deployer extends HttpServlet {
         writer.write("        </td>\n");
         writer.write("    </tr>\n");
         writer.write("    <tr>\n");
-        writer.write("        <td colspan=\"2\">Benchmark JAR File:<br>\n");
+        writer.write("        <td colspan=\"2\">Benchmark/Service JAR File:<br>\n");
         writer.write("    	      <input type=\"file\" name=\"jarfile\" " +
                      "size=\"64\"/>\n");
         writer.write("        </td>\n");
@@ -192,14 +193,16 @@ public class Deployer extends HttpServlet {
 
                 String benchName = fileName.substring(0, fileName.length() - 4);
 
-                if (benchName.indexOf('.') >= 0) {
+                if (benchName.indexOf('.') > -1) {
                     invalidNames.add(benchName);
                     continue;
                 }
 
-                // Check whether we can deploy or not. If running or queued,
-                // we won't deploy.
-                if (!DeployUtil.canDeploy(benchName)) {
+                // Check if we can deploy benchmark or service.
+                // If running or queued, we won't deploy benchmark.
+                // If service being used by current run,we won't deploy service.
+                if (!DeployUtil.canDeployBenchmark(benchName) ||
+                        !DeployUtil.canDeployService(benchName)) {
                     cantDeployNames.add(benchName);
                     continue;
                 }
@@ -216,9 +219,9 @@ public class Deployer extends HttpServlet {
 
 
                 try {
-                    DeployUtil.unjar(benchName);
-                    DeployUtil.generateDD(benchName);
-                    DeployUtil.generateXform(benchName);
+                    DeployUtil.unjar(uploadFile, benchName);
+                    //DeployUtil.generateDD(benchName);
+                    //DeployUtil.generateXform(benchName);
                 } catch (Exception e) {
                     throw new ServletException(e);
                 }
@@ -297,7 +300,7 @@ public class Deployer extends HttpServlet {
         w.write("<html>\n");
         w.write("    <head>\n");
         w.write("        <title>" + Config.HARNESS_NAME +
-                " Benchmark Deployment</title>\n");
+                " Benchmark/Service Deployment</title>\n");
         w.write("<link rel=\"icon\" type=\"image/gif\" href=\"" +
                     request.getContextPath() + "/img/faban.gif\">");
 
@@ -310,7 +313,7 @@ public class Deployer extends HttpServlet {
                 "BGCOLOR=\"#5382A1\"> Sun Microsystems </td>\n");
         w.write("                <td ALIGN=\"CENTER\" WIDTH=\"34%\" " +
                 "BGCOLOR=\"#E76F00\"><b>" + Config.HARNESS_NAME +
-                " Benchmark Deployment</b></td>\n");
+                " Benchmark/Service Deployment</b></td>\n");
         w.write("                <td ALIGN=\"CENTER\" WIDTH=\"33%\" " +
                 "BGCOLOR=\"#B2BC00\"> Version " + Config.HARNESS_VERSION +
                 " </td>\n");

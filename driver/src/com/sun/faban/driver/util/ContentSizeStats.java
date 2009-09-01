@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ContentSizeStats.java,v 1.2 2007/06/29 08:35:17 akara Exp $
+ * $Id: ContentSizeStats.java,v 1.3 2009/07/28 22:53:32 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -34,6 +34,7 @@ import com.sun.faban.driver.Result;
  */
 public class ContentSizeStats implements CustomMetrics {
 
+    /** The sum of content sizes. */
     public long[] sumContentSize;
 
     /**

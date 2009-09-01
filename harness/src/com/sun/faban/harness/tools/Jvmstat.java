@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Jvmstat.java,v 1.5 2008/05/23 05:57:42 akara Exp $
+ * $Id: Jvmstat.java,v 1.8 2009/07/21 22:54:47 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -45,43 +45,39 @@ import java.util.logging.Level;
  * @see GenericTool
  * @see com.sun.faban.harness.tools.Tool
  */
-public class Jvmstat extends GenericTool {
+public class Jvmstat extends CommandLineTool {
 
-    List<String> argList;
 
     /**
      * This is the method that should get the arguments to
      * call the tool with.
      */
-    public void configure(String tool, List<String> argList, String path,
-                          String outDir, String host, String masterhost,
-                          CmdAgentImpl cmdAgent, CountDownLatch latch) {
-        this.argList = argList;
-        path = Utilities.getJavaHome() + File.separator + "bin" + File.separator;
-        tool = "java";
+    @Configure public void configure() {
+        super.config();
+    }
+
+    /**
+     * This method is responsible for starting the tool utility.
+     * @throws java.io.IOException
+     * @throws java.lang.InterruptedException
+     */
+    @Start public void start() throws IOException, InterruptedException {
+        ArrayList<String> jvmCmd = new ArrayList<String>();
+        ArrayList<String> argList = new ArrayList<String>();
+        String path = Utilities.getJavaHome() + File.separator + "bin" + File.separator+ "java";
+        String tool = "java";
         argList.add(0, "-jar");
         argList.add(1, Config.LIB_DIR + "jvmps.jar");
         argList.add(2, "-v");
-        super.configure(tool, argList, path, outDir, host, masterhost,
-                cmdAgent, latch);
-    }
-
-    protected void start() {
-
+        jvmCmd.add(path);
+        jvmCmd.add(tool);
+        jvmCmd.addAll(argList);
         ArrayList<String> pids = new ArrayList<String>();
-        Command cmd = new Command(this.toolCmd);
-        cmd.setStreamHandling(Command.STDOUT, Command.CAPTURE);
+        Command c = new Command(jvmCmd);
+        c.setStreamHandling(Command.STDOUT, Command.CAPTURE);
         String result = null;
-        try {
-            tool = cmdAgent.execute(cmd);
-            result = new String(tool.fetchOutput(Command.STDOUT));
-        } catch (IOException e) {
-            logger.log(Level.WARNING, "Error starting command " + this.toolCmd, e);
-        } catch (InterruptedException e) {
-            logger.log(Level.WARNING, "Interrupted starting command " +
-                    this.toolCmd, e);
-        }
-
+        processRef = ctx.exec(c);
+        
         int startIdx = 0;
         int endIdx = result.indexOf('\n');
         while (endIdx > 0) {
@@ -99,8 +95,9 @@ public class Jvmstat extends GenericTool {
         for (int i = 1; i < pids.size(); i++)
             argList.add(i + 2, pids.get(i));
 
-        buildCmd(argList);
-
+        jvmCmd.add(path);
+        jvmCmd.add(tool);
+        jvmCmd.addAll(argList);
 
         // @todo If there are more than one JVM we need to spawn multiple jvmstat
 
@@ -108,7 +105,7 @@ public class Jvmstat extends GenericTool {
         super.start();
     }
     
-    //  All other methods are inherited from GenericTool
+    //  All other methods are inherited from CommandLineTool
     //  @todo The process.destroy is not killing the jvmstat process.
 
 }

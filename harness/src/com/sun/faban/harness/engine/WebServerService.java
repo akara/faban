@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: WebServerService.java,v 1.2 2008/02/25 20:41:22 shanti_s Exp $
+ * $Id: WebServerService.java,v 1.4 2009/07/28 22:54:15 akara Exp $
  *
  * Copyright 2008 Sun Microsystems Inc. All Rights Reserved
  */
@@ -30,8 +30,9 @@ import java.util.*;
  * This is the interface implemented by all webserver services.
  *
  * @author Shanti Subramanyam
+ * @deprecated
  */
-public interface WebServerService {
+@Deprecated public interface WebServerService {
 
     /**
      * The setup method is called to set up a benchmark run. 
@@ -47,7 +48,7 @@ public interface WebServerService {
             String confDir, String pidDir);
     
     /**
-     * Start all web servers on configured hosts
+     * Start all web servers on configured hosts.
      * @return boolean true if start succeeded on all machines, else false
      */
     public boolean startServers();
@@ -61,28 +62,28 @@ public interface WebServerService {
     public boolean restartServers();
     
     /**
-     * stop Servers
+     * Stop servers.
      * @return boolean true if stop succeeded on all machines, else false
      */
     public boolean stopServers();
     
     /**
-     * clear webserver logs
+     * Clear webserver logs.
      * @return boolean true if operation succeeded, else fail
      */
     public boolean clearLogs();
     
     /**
-     * transfer log files
+     * Transfer log files.
      * This method copies over the error_log to the run output directory
-     * and keeps only the portion of the log relevant for this run
+     * and keeps only the portion of the log relevant for this run.
      * @param totalRunTime - the time in seconds for this run
      */
     public void xferLogs(int totalRunTime);
 
     /**
      *
-     * Kill all web servers
+     * Kill all web servers.
      */
     public void kill();
 }

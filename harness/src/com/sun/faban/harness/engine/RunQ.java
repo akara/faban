@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunQ.java,v 1.27 2009/03/17 00:36:56 sheetalpatil Exp $
+ * $Id: RunQ.java,v 1.30 2009/08/05 23:50:10 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -30,13 +30,11 @@ import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.Run;
 import com.sun.faban.harness.common.RunId;
 import com.sun.faban.harness.util.FileHelper;
-import com.sun.faban.harness.util.FileHelper.*;
-import com.sun.faban.harness.webclient.TagEngine;
+
 import java.io.*;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Map;
-import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -49,25 +47,20 @@ import java.util.logging.Logger;
 
 public class RunQ {
 
-    String runqDir;
     RunDaemon runDaemon = null;
     RunQLock runqLock;
     static Logger logger = Logger.getLogger(RunQ.class.getName());
 
     private static RunQ runQ = null;
 
-    static final int GENERIC = 0;
-    static final int GENERATED = 1;
-    static final int BENCH = 2;
-
+    /** Run seqeunce field index in the run queue listing. */
     public static final int RUNSEQ = 0;
-    public static final int BENCHNAME = 1;
-    public static final int DESCRIPTION = 2;
 
-    /**
-     * Constructor
-     *
-     */
+    /** Benchmark name field index in the run queue listing. */
+    public static final int BENCHNAME = 1;
+
+    /** Description field index in the run queue listing. */
+    public static final int DESCRIPTION = 2;
 
     private RunQ() {
         runqLock = new RunQLock();
@@ -75,7 +68,7 @@ public class RunQ {
     }
 
     /**
-     * Singleton initializer for runQ and runDaemon
+     * Singleton initializer for runQ and runDaemon.
      * @return runQ
      */
 
@@ -87,14 +80,16 @@ public class RunQ {
     }
 
     /**
-      * Adds a Run to the runq. Creates a directory for the run in the runq
-      * directory and stores the parameter repository in it. It also notifies
-      * the RunDaemon thread of the newly added run. All operations on the runq
-      * directory are synchronized through the use of the LockFileMonitor class.
-      * @param user The user name or id if logged in, or null
-      * @param profile Profile name for this run
-      * @param desc The description of the benchmark to run
-      */
+     * Adds a Run to the runq. Creates a directory for the run in the runq
+     * directory and stores the parameter repository in it. It also notifies
+     * the RunDaemon thread of the newly added run. All operations on the runq
+     * directory are synchronized through the use of the LockFileMonitor class.
+     * @param user The user name or id if logged in, or null
+     * @param profile Profile name for this run
+     * @param desc The description of the benchmark to run
+     * @return The run id of the run just added
+     * @throws IOException There was a problem accessing the run queue directory
+     */
     public String addRun(String user, String profile, BenchmarkDescription desc)
             throws IOException {
 
@@ -212,13 +207,13 @@ public class RunQ {
     }
 
     /**
-      * Deletes the run with the specified runId from the runq. Does not take
-      * any action if such a run is not found or is already being executed
-      * by the runDaemon thread
-      *
-      * @param runId the runId of the run to be deleted
-      *
-      */
+     * Deletes the run with the specified runId from the runq. Does not take
+     * any action if such a run is not found or is already being executed
+     * by the runDaemon thread.
+     *
+     * @param runId the runId of the run to be deleted
+     * @return Whether or not the run was successfully deleted from the queue
+     */
     public boolean deleteRun(String runId)
     {
         try {
@@ -307,27 +302,27 @@ public class RunQ {
 
 
     /**
-      * Reports the status of the RunDaemonThread.
-      *
-      */
+     * Reports the status of the RunDaemonThread.
+     * @return String representing the current status of the run daemon.
+     */
     public String getRunDaemonStatus()
     {
         return "Run Daemon is " + runDaemon.getRunDaemonThreadStatus();
     }
 
     /**
-      * Not sure if this method will be used
-      *
-      */
+     * Starts/restarts the run daemon.
+     * @return Whether the run daemon is started
+     */
     public boolean startRunDaemon()
     {
         return runDaemon.resumeRunDaemonThread();
     }
 
     /**
-      * Not sure if this method will be used
-      *
-      */
+     * Stops/suspends the run daemon.
+     * @return Whether the run daemon is successfully stopped
+     */
     public boolean stopRunDaemon()
     {
         return runDaemon.suspendRunDaemonThread();
@@ -351,8 +346,9 @@ public class RunQ {
     }
 
     /**
-     * method to stop the current benchamark run
+     * Method to stop the current benchamark run.
      * @param runId The run id to kill - this is for safety
+     * @param user The current user name, or null if security is disabled
      * @return current run name.
      */
     public String killCurrentRun(String runId, String user) {
@@ -393,73 +389,6 @@ public class RunQ {
      */
     public void exit() {
         runDaemon.exit();
-    }
-
-    /**
-      * This method returns a previous run with a parameter repository
-      * from the runq or the output directory.
-      *
-      * It is called when loading parameters from some previous run
-      * and to create paramchanges file too.
-      *
-      */
-    public String getValidPrevRun(String benchName)
-    {
-        File seqFile = new File(Config.SEQUENCE_FILE);
-        if (seqFile.exists()) {
-            BufferedReader bufIn = null;
-            try {
-                bufIn = new BufferedReader(new FileReader(seqFile));
-            }
-            catch (FileNotFoundException fe) {
-                logger.severe("RunQ getValidPrevRun: the sequence file does not exist");
-                logger.log(Level.FINE, "Exception", fe);
-            }
-            String runSeqIntChar = null;
-            try {
-                runSeqIntChar = bufIn.readLine();
-                bufIn.close();
-            }
-            catch (IOException ie) {
-                logger.log(Level.SEVERE, "RunQ getValidPrevRun: " +
-                        "could not read/close the sequence file", ie);
-            }
-            int colonPos = -1;
-            if((runSeqIntChar != null) && ((colonPos = runSeqIntChar.indexOf(":")) != -1)) {
-                String runSeqChar = runSeqIntChar.substring(colonPos + 1);
-                int runSeqInt =
-                    Integer.parseInt(runSeqIntChar.substring(0, colonPos));
-            
-                if ((runSeqChar.charAt(0) == 'A') && (runSeqInt == 1))
-                    return null;
-                    
-                char runSeqCharZero = runSeqChar.charAt(0);
-                if (runSeqCharZero == 'A') {
-                    runSeqInt--;
-                    runSeqChar = String.valueOf('z');
-                }
-                else {
-                    if (runSeqCharZero == 'a') {
-                        runSeqChar = String.valueOf('Z');
-                    }
-                    else {
-                        runSeqChar = String.valueOf((char)((int) runSeqCharZero - 1));
-                    }   
-                }
-                String runId = benchName + "." + String.valueOf(runSeqInt) + runSeqChar;
-                BenchmarkDescription desc = BenchmarkDescription.getDescription(benchName);
-                File checkIfExists =
-                     new File(Config.RUNQ_DIR + runId + File.separator + desc.configFileName);
-                if (checkIfExists.exists())
-                    return runId;
-                
-                checkIfExists = new File(Config.OUT_DIR +
-                    runId + File.separator + desc.configFileName);
-                if (checkIfExists.exists())
-                    return runId;
-            }
-        }
-        return null;
     }
 
     /**

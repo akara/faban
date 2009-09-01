@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- $Id: config-orig.xhtml,v 1.1 2009/06/01 17:01:26 sheetalpatil Exp $ -->
+<html xmlns:xforms="http://www.w3.org/2002/xforms"
+      xmlns:fa="http://faban.sunsource.net/ns/faban"
+      xmlns:fh="http://faban.sunsource.net/ns/fabanharness"
+      xmlns:fd="http://faban.sunsource.net/ns/fabandriver">
+    <head>
+        <xforms:model id="benchmark-model">
+            <xforms:instance id="benchmark-instance" src="{benchmark.template}"/>
+            <xforms:submission xforms:action="schedule-run.jsp" xforms:replace="all" id="submission-debug" xforms:method="post"/>
+            <xforms:bind id="bind-fabanLoad" xforms:nodeset="/fabanLoad">
+                <xforms:bind id="bind-jvmConfig" xforms:nodeset="fh:jvmConfig">
+                    <xforms:bind id="bind-javaHome" xforms:nodeset="fh:javaHome"/>
+                    <xforms:bind id="bind-jvmOptions" xforms:nodeset="fh:jvmOptions"/>
+                </xforms:bind>
+                <xforms:bind id="bind-runConfig" xforms:nodeset="fa:runConfig">
+                    <xforms:bind id="bind-description" xforms:nodeset="fh:description"/>
+                    <xforms:bind id="bind-runConfig-hostConfig" xforms:nodeset="fa:hostConfig">
+                        <xforms:bind id="bind-agent-host" xforms:nodeset="fa:host"/>
+                        <xforms:bind id="bind-agent-tools" xforms:nodeset="fh:tools"/>
+                    </xforms:bind>
+                    <xforms:bind id="bind-scale" xforms:nodeset="fa:scale" xforms:type="positiveInteger"/>
+                    <xforms:bind id="bind-runControl" xforms:nodeset="fa:runControl">
+                        <xforms:bind id="bind-unit" xforms:nodeset="@unit"/>
+                        <xforms:bind id="bind-rampUp" xforms:nodeset="fa:rampUp" xforms:type="positiveInteger"/>
+                        <xforms:bind id="bind-steadyState" xforms:nodeset="fa:steadyState" xforms:type="positiveInteger"/>
+                        <xforms:bind id="bind-rampDown" xforms:nodeset="fa:rampDown" xforms:type="positiveInteger"/>
+                    </xforms:bind>
+                    <xforms:bind id="bind-threadStart" xforms:nodeset="fd:threadStart">
+                        <xforms:bind id="bind-delay" xforms:nodeset="fd:delay" xforms:type="positiveInteger"/>
+                        <xforms:bind id="bind-simultaneous" xforms:nodeset="fd:simultaneous"/>
+                        <xforms:bind id="bind-parallel" xforms:nodeset="fd:parallel"/>
+                    </xforms:bind>
+                    <xforms:bind id="bind-uiDriver" xforms:nodeset="fd:driverConfig[@name='UIDriver']">
+                        <xforms:bind id="bind-driver-agents" xforms:nodeset="fd:agents"/>
+                        <xforms:bind id="bind-driver-statsInterval" xforms:nodeset="fd:stats/fd:interval" xforms:type="positiveInteger"/>
+                        <xforms:bind id="bind-driver-properties" xforms:nodeset="fd:properties">
+                            <xforms:bind id="bind-driver-realSubmit" xforms:nodeset="fd:property[@name='realSubmit']"/>
+                        </xforms:bind>
+                    </xforms:bind>
+                </xforms:bind>
+                <xforms:bind id="bind-serverConfig" xforms:nodeset="serverConfig">
+                    <xforms:bind id="bind-server-host" xforms:nodeset="fa:hostConfig/fa:host"/>
+                    <xforms:bind id="bind-server-port" xforms:nodeset="port" xforms:type="positiveInteger"/>
+                </xforms:bind>
+            </xforms:bind>
+        </xforms:model>
+        <xforms:model id="benchmark-labels">
+            <xforms:instance id="benchmark-label-names">
+                <labels>
+                    <benchmark>Sample Web Benchmark 1</benchmark>
+                    <jvmConfig>Java</jvmConfig>
+                    <javaHome>JAVA HOME</javaHome>
+                    <jvmOptions>JVM Options</jvmOptions>
+                    <runConfig>Driver</runConfig>
+                    <description>Description</description>
+                    <scale>Scale</scale>
+                    <runControl>Run Control</runControl>
+                    <unit>Unit</unit>
+                    <time>Time (sec)</time>
+                    <cycles>Cycles</cycles>
+                    <rampUp>Ramp Up</rampUp>
+                    <steadyState>Steady State</steadyState>
+                    <rampDown>Ramp Down</rampDown>
+                    <yes>Yes</yes>
+                    <no>No</no>
+                    <threadStart>Email</threadStart>
+                    <delay>Delay between thread starts (ms)</delay>
+                    <simultaneous>Start Threads simultaneously</simultaneous>
+                    <parallel>Start Agents parallely</parallel>
+                    <uiDriver>Harness&#160;UI&#160;Driver</uiDriver>
+                    <agents>Agents</agents>
+                    <statsInterval>Stats Collection Interval</statsInterval>
+                    <serverConfig>Server Information</serverConfig>
+                    <host>Host</host>
+                    <port>Port</port>
+                    <pathConfig>URL Path Configurations</pathConfig>
+                    <realSubmit>Really schedule runs?</realSubmit>
+                    <tools>Tools</tools>
+                    <ok>Ok</ok>
+                    <cancel>Cancel</cancel>
+                </labels>
+            </xforms:instance>
+        </xforms:model>
+    </head>
+    <body>
+        <xforms:group id="group-tabsheet">
+            <xforms:trigger id="trigger-jvmConfig">
+                <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/jvmConfig"/>
+                <xforms:action id="action-jvmConfig">
+                    <xforms:revalidate xforms:model="benchmark-model" id="revalidate-jvmConfig"/>
+                    <xforms:toggle id="toggle-jvmConfig" xforms:case="case-jvmConfig"/>
+                </xforms:action>
+            </xforms:trigger>
+            <xforms:trigger id="trigger-runConfig">
+                <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/runConfig"/>
+                <xforms:action id="action-runConfig">
+                    <xforms:revalidate xforms:model="benchmark-model" id="revalidate-runConfig"/>
+                    <xforms:toggle id="toggle-runConfig" xforms:case="case-runConfig"/>
+                </xforms:action>
+            </xforms:trigger>
+            <xforms:trigger id="trigger-uiDriver">
+                <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/uiDriver"/>
+                <xforms:action id="action-uiDriver">
+                    <xforms:revalidate xforms:model="benchmark-model" id="revalidate-uiDriver"/>
+                    <xforms:toggle id="toggle-uiDriver" xforms:case="case-uiDriver"/>
+                </xforms:action>
+            </xforms:trigger>
+            <xforms:switch id="switch">
+                <xforms:case id="case-jvmConfig" xforms:selected="true">
+                    <xforms:group id="group-nogroup">
+                        <xforms:input id="input-javaHome" xforms:bind="bind-javaHome">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/javaHome"/>
+                        </xforms:input>
+                        <xforms:input id="input-jvmOptions" xforms:bind="bind-jvmOptions">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/jvmOptions"/>
+                        </xforms:input>
+                    </xforms:group>
+                </xforms:case>
+                <xforms:case id="case-runConfig">
+                    <xforms:group id="group-nogroup">
+                        <xforms:textarea id="input-description" xforms:bind="bind-description">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/description"/>
+                            <xforms:hint>Enter description of this run</xforms:hint>
+                        </xforms:textarea>
+                        <xforms:input id="input-agent-host" xforms:bind="bind-agent-host">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/host"/>
+                            <xforms:hint>Enter machine names seperated by space</xforms:hint>
+                        </xforms:input>
+                        <xforms:input id="input-scale" xforms:bind="bind-scale">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/scale"/>
+                            <xforms:hint>Enter Transaction rate</xforms:hint>
+                            <xforms:help>Enter Transaction rate (Default 1)</xforms:help>
+                            <xforms:alert>Not a valid number</xforms:alert>
+                        </xforms:input>
+                        <xforms:input id="input-agent-tools" xforms:bind="bind-agent-tools">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/tools"/>
+                            <xforms:hint>Enter tool commands to collect statistics, separated by semi-colon</xforms:hint>
+                            <xforms:help>Enter tool commands to collect statistics, separated by semi-colon</xforms:help>
+                        </xforms:input>
+                    </xforms:group>
+                    <xforms:group id="group-runControl">
+                        <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/runControl"/>
+                        <xforms:output xforms:bind="bind-unit"/>
+                        <xforms:input id="input-rampUp" xforms:bind="bind-rampUp">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/rampUp"/>
+                        </xforms:input>
+                        <xforms:input id="input-steadyState" xforms:bind="bind-steadyState">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/steadyState"/>
+                        </xforms:input>
+                        <xforms:input id="input-rampDown" xforms:bind="bind-rampDown">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/rampDown"/>
+                        </xforms:input>
+                    </xforms:group>
+                </xforms:case>
+                <xforms:case id="case-uiDriver">
+                    <xforms:group id="group-nogroup">
+                        <xforms:input id="input-driver-agents" xforms:bind="bind-driver-agents">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/agents"/>
+                            <xforms:hint>The number of agents to run for this driver</xforms:hint>
+                            <xforms:help>Enter the number of agents for this driver</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-driver-statsInterval" xforms:bind="bind-driver-statsInterval">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/statsInterval"/>
+                            <xforms:hint>The interval, in seconds, to collect detailed statistics</xforms:hint>
+                            <xforms:help>Enter the interval, in seconds, to collect detailed statistics</xforms:help>
+                            <xforms:alert>Not a valid number</xforms:alert>
+                        </xforms:input>
+                        <xforms:select1 id="select1-driver-realSubmit" xforms:bind="bind-driver-realSubmit">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/realSubmit"/>
+                            <xforms:choices>
+                                <xforms:item>
+                                    <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/yes"/>
+                                    <xforms:value>true</xforms:value>
+                                </xforms:item>
+                                <xforms:item>
+                                    <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/no"/>
+                                    <xforms:value>false</xforms:value>
+                                </xforms:item>
+                                <xforms:hint>Really submit runs? This will send the runIds of the test rig spinning!</xforms:hint>
+                                <xforms:help>Really submit runs? This will send the runIds of the test rig spinning!</xforms:help>
+                            </xforms:choices>
+                        </xforms:select1>
+                    </xforms:group>
+                    <xforms:group id="group-serverConfig">
+                        <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/serverConfig"/>
+                        <xforms:input id="input-server-host" xforms:bind="bind-server-host">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/host"/>
+                            <xforms:hint>The server host name or IP address</xforms:hint>
+                            <xforms:help>Enter the server host name or IP address</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-server-port" xforms:bind="bind-server-port">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/port"/>
+                            <xforms:hint>The server port</xforms:hint>
+                            <xforms:help>Enter the server port</xforms:help>
+                            <xforms:alert>Not a valid port number</xforms:alert>
+                        </xforms:input>
+                    </xforms:group>
+                </xforms:case>
+            </xforms:switch>
+        </xforms:group>
+        <xforms:group id="group-buttons">
+            <xforms:trigger id="trigger-ok">
+                <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ok"/>
+                <xforms:action id="action-ok">
+                    <xforms:send id="send-debug" xforms:submission="submission-debug"/>
+                </xforms:action>
+            </xforms:trigger>
+            <xforms:trigger id="trigger-cancel">
+                <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/cancel"/>
+                <xforms:action id="action-cancel">
+                    <xforms:reset id="reset-cancel" xforms:model="benchmark-model"/>
+                    <xforms:toggle id="toggle-cancel" xforms:case="case-jvmConfig"/>
+                </xforms:action>
+            </xforms:trigger>
+        </xforms:group>
+    </body>
+</html>

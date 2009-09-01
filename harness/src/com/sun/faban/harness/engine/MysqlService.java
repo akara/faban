@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MysqlService.java,v 1.1 2008/02/06 00:36:07 shanti_s Exp $
+ * $Id: MysqlService.java,v 1.3 2009/07/28 22:54:15 akara Exp $
  *
  * Copyright 2008 Sun Microsystems Inc. All Rights Reserved
  */
@@ -46,8 +46,9 @@ import java.util.logging.Logger;
  * NOTE: It is assumed that the pid and err file are in $DBHOME/data.
  * 
  * @author Shanti Subramanyam
+ * @deprecated
  */
-final public class MysqlService {
+@Deprecated final public class MysqlService {
 
     private static MysqlService service;
     private String dbHome,  myServer;
@@ -99,7 +100,7 @@ final public class MysqlService {
     }
 
     /**
-     * Start the mysql server on the configured host
+     * Start the mysql server on the configured host.
      * @return boolean true if start succeeded, else false
      */
     public boolean startServer() {
@@ -179,7 +180,7 @@ final public class MysqlService {
     }
 
     /**
-     * stop Server
+     * Stop server.
      * @return true if stop succeeded, else false
      */
     public boolean stopServer() {
@@ -214,9 +215,9 @@ final public class MysqlService {
     }
 
     /**
-     * transfer log files
+     * Transfer log files to the master.
      * This method copies over the error_log to the run output directory
-     * and keeps only the portion of the log relevant for this run
+     * and keeps only the portion of the log relevant for this run.
      * @param totalRunTime - the time in seconds for this run
      * 
      * TODO: Modify code for mysql date/time format
@@ -264,6 +265,12 @@ final public class MysqlService {
 
     }
 
+    /**
+     * Obtains the gregorian calendar representing the current time.
+     * @param hostName The host name to get the calendar from
+     * @return The calendar
+     * @throws Exception Error obtaining calendar
+     */
     public static GregorianCalendar getGregorianCalendar(
             String hostName)
             throws Exception {
@@ -277,8 +284,8 @@ final public class MysqlService {
 
     /**
      *
-     * Kill Mysql server
-     * Same as stopServer
+     * Kill the MySQL server.
+     * Same as stopServer.
      */
     public void kill() {
         stopServer();

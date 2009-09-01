@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ContentReader.java,v 1.5 2008/05/02 21:35:43 akara Exp $
+ * $Id: ContentReader.java,v 1.6 2009/05/21 10:13:27 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -84,7 +84,9 @@ public class ContentReader extends HttpServlet {
             resource = Config.ANALYSIS_DIR + resource;
         } else if ("/bench_downloads".equals(path)) {
             resource = Config.BENCHMARK_DIR + resource;
-        } else if ("/benchmarks".equals(path)) {
+        } else if ("/service_downloads".equals(path)) {
+            resource = Config.SERVICE_DIR + resource;
+        }else if ("/benchmarks".equals(path)) {
             // This is the form /benchmarks/<bench_name>/resource
             // It maps to public_html under the benchmark.
             int idx1 = resource.indexOf('/');

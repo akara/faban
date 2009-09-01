@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Mysqlstats.java,v 1.3 2009/01/12 23:15:51 akara Exp $
+ * $Id: Mysqlstats.java,v 1.5 2009/07/28 22:54:16 akara Exp $
  *
  * Copyright 2008 Sun Microsystems Inc. All Rights Reserved
  */
@@ -51,8 +51,9 @@ import java.util.logging.Logger;
  * E.g: mysqlstats /opt/coolstack/mysql_32bit web20 web20
  * @author Shanti Subramanyam
  * @see GenericTool
+ * @deprecated
  */
-public class Mysqlstats implements Tool {
+@Deprecated public class Mysqlstats implements Tool {
 
     static final int NOT_STARTED = 0;
     static final int STARTED = 1;
@@ -73,19 +74,29 @@ public class Mysqlstats implements Tool {
     int duration;
     CmdAgent cmdAgent;
 
+    /** The timer to be used by this tool. */
     protected Timer timer;
 
     // Thread toolThread = null;
 	// private Mysqlstats toolObj;
 
+    /**
+     * Constructs the Mysqlstats.
+     */
     public Mysqlstats() {
 		logger = Logger.getLogger(this.getClass().getName());
 	}
 
     /**
-     * This is the method that should get the arguments to
-     * call the tool with.
-     *
+     * Configures Mysqlstats.
+     * @param tool name of the tool (Executable)
+     * @param argList list containing arguments to tool
+     * @param path The path to run mysqlstats
+     * @param outDir The output directory
+     * @param host name of machine the tool is running on
+     * @param masterhost name of master machine
+     * @param cmdAgent agent The command agent used for executing tools
+     * @param latch The latch the tool uses to identify it's completion.
      */
     public void configure(String tool, List<String> argList, String path,
                           String outDir, String host, String masterhost,
@@ -172,8 +183,8 @@ public class Mysqlstats implements Tool {
      * delay + duration and then calls the stop().
      * @param delay int delay (sec) after which start should be called
      * @param duration int duration for which the tool needs to be run
+     * @return true if mysqlstats scheduled successfully
      */
-
     public boolean start(int delay, int duration) {
         this.duration = duration;
 
@@ -193,8 +204,8 @@ public class Mysqlstats implements Tool {
     /**
      * This method is responsible for starting up the tool utility.
      * @param delay int delay (sec) after which start should be called
+     * @return true if mysqlstats scheduled successfully
      */
-
     public boolean start(int delay) {
         TimerTask startTask = new TimerTask() {
             public void run() {
@@ -205,6 +216,9 @@ public class Mysqlstats implements Tool {
         return true;
     }
 
+    /**
+     * Starts the mysqlstat tool.
+     */
     protected void start() {
         try {            
 		    mysql.setOutputFile(Command.STDOUT, logfile1);
@@ -219,7 +233,7 @@ public class Mysqlstats implements Tool {
     }
 
     /**
-     * This method is responsible for stopping the tool
+     * This method is responsible for stopping the tool.
      */
     public void stop() {
         stop(true);
@@ -255,7 +269,7 @@ public class Mysqlstats implements Tool {
     }
 
     /**
-     * Get final report by diffing the two logfiles
+     * Get final report by diffing the two logfiles.
      * @param log1 The first logfile
      * @param log2 The second logfile
      * @param outFile The output file
@@ -297,6 +311,9 @@ public class Mysqlstats implements Tool {
         }
     }
 
+    /**
+     * Finishes up mysqlstats.
+     */
     protected void finish() {
         if (!countedDown)
             latch.countDown();

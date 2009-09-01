@@ -24,7 +24,8 @@ package com.sun.faban.harness.engine;
 import com.sun.faban.harness.Benchmark;
 
 /**
- *
+ * Wrapper class for benchmarks implemented using the now deprecated
+ * Benchmark interface.
  * @author Sheetal Patil, Sun Microsystems.
  */
 public class InterfaceBenchmarkWrapper extends BenchmarkWrapper {
@@ -37,31 +38,55 @@ public class InterfaceBenchmarkWrapper extends BenchmarkWrapper {
         benchmark = c.newInstance();
     }
 
+    /**
+     * Invokes validate on the benchmark class.
+     * @throws Exception Indicating an error thrown by the benchmark class
+     */
     @Override
     void validate() throws Exception {
         benchmark.validate();
     }
 
+    /**
+     * Invokes configure on the benchmark class.
+     * @throws Exception Indicating an error thrown by the benchmark class
+     */
     @Override
     void configure() throws Exception {
        benchmark.configure();
     }
 
+    /**
+     * Invokes start on the benchmark class.
+     * @throws Exception Indicating an error thrown by the benchmark class
+     */
     @Override
     void start() throws Exception {
         benchmark.start();
     }
 
+    /**
+     * Invokes end on the benchmark class.
+     * @throws Exception Indicating an error thrown by the benchmark class
+     */
     @Override
     void end() throws Exception {
         benchmark.end();
     }
 
+    /**
+     * Noop. The benchmark interface does not have a postRun method.
+     * To support postRun, switch to the annotation-based benchmark class. 
+     */
     @Override
-    void postRun() throws Exception {
+    void postRun() {
         // Noop.
     }
 
+    /**
+     * Invokes kill on the benchmark class.
+     * @throws Exception Indicating an error thrown by the benchmark class
+     */
     @Override
     void kill() throws Exception {
         benchmark.kill();

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Mix.java,v 1.1 2008/09/10 18:25:54 akara Exp $
+ * $Id: Mix.java,v 1.2 2009/07/28 22:53:30 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -41,6 +41,7 @@ public abstract class Mix implements Serializable, Cloneable {
     BenchmarkDefinition.Operation[] operations;
     double deviation;
 
+    /** The actual class name of the implementing subclass. */
     protected String className;
     private transient Logger logger;
 

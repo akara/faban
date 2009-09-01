@@ -43,6 +43,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * This class maintains the tags to runs mapping.
  *
  * @author Sheetal Patil
  */

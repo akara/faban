@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultnavigator.jsp,v 1.13 2009/03/03 21:39:35 akara Exp $
+ * $Id: resultnavigator.jsp,v 1.15 2009/07/24 22:48:25 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -63,6 +63,7 @@
         <% } %>
     </head>
     <body>
+        <a href="/controller/results/get_run_info?runId=<%= runId %>" target="display">Run&nbsp;Info</a>&nbsp;
         <%
            String outputRef = null;
            File summaryFile = new File(Config.OUT_DIR + runId, desc.resultFilePath);
@@ -74,7 +75,9 @@
         <%
            }
            outputRef = null;
-           String[] detailFiles = { "detail.html", "detail.xan.html", "detail.xml.html" };
+           String[] detailFiles = { Config.POST_DIR + "detail.xan.html",
+                                    "detail.xan.html", "detail.html",
+                                    "detail.xml.html" };
            for (int i = 0; i < detailFiles.length; i++) {
                File detailOutput = new File (Config.OUT_DIR + runId, detailFiles[i]);
                if (detailOutput.exists()) {

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Wlp2.java,v 1.5 2008/05/23 05:57:42 akara Exp $
+ * $Id: Wlp2.java,v 1.7 2009/07/28 22:54:16 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -36,8 +36,9 @@ import java.util.concurrent.CountDownLatch;
  * the appropriate place.
  *
  * @author Akara Sucharitakul
+ * @deprecated
  */
-public class Wlp2 extends Statspack {
+@Deprecated public class Wlp2 extends Statspack {
 
     private String outDir;
     private String host;
@@ -47,6 +48,14 @@ public class Wlp2 extends Statspack {
     /**
      * This is the method that should get the arguments to
      * call the tool with.
+     * @param tool name of the tool (Executable)
+     * @param argList list containing arguments to tool
+     * @param path The path for the tool
+     * @param outDir The output directory
+     * @param host name of machine the tool is running on
+     * @param masterhost name of master machine
+     * @param cmdAgent agent The command agent used for executing tools
+     * @param latch The latch the tool uses to identify it's completion.
      */
     public void configure(String tool, List<String> argList, String path,
                           String outDir, String host, String masterhost,

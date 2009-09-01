@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MemcacheStats.java,v 1.7 2008/04/17 22:08:52 akara Exp $
+ * $Id: MemcacheStats.java,v 1.9 2009/07/28 22:54:16 akara Exp $
  */
 package com.sun.faban.harness.tools;
 
@@ -43,9 +43,9 @@ import java.util.logging.Logger;
  * allowing easy tabulation and comparison with other tools.
  *
  * @author Shanti Subramanyam based on work by Kim LiChong
- * 
+ * @deprecated
  */
-public class MemcacheStats {
+@Deprecated public class MemcacheStats {
 
     private static StatsClient cache = null;
     static Logger logger = Logger.getLogger(MemcacheStats.class.getName());
@@ -54,10 +54,11 @@ public class MemcacheStats {
     private SimpleDateFormat df = new SimpleDateFormat("HH:mm:ss");
 
     /**
-	 * This constructor creates a memcache client with a pool of servers
+	 * This constructor creates a memcache client with a pool of servers.
      * 
      * @param servers -  name of servers running memcached
 	 * @param interval - interval in secs for stats collection
+     * @throws IOException Cannot connect to memcached
      */
     public MemcacheStats(String servers[], int interval) throws IOException {
         this.interval = interval;
@@ -231,8 +232,8 @@ public class MemcacheStats {
      *  Usage:  java com.sun.faban.harnes.tools.MemcacheStats host[:port]... [-i interval]
 	 * It creates an instance of MemcacheStats and sets up a timer task
 	 * at the specified interval to gather the stats.
-     *  @param args String []
-     *
+     * @param args Command line argument
+     * @throws IOException Cannot connect to memcached
      */
     public static void main(String[] args) throws IOException {
         int intervalTime = 10000; // in msecs
@@ -301,7 +302,8 @@ public class MemcacheStats {
 
         /**
          * Constructs the client for all given servers.
-         * @param servers host:port pairs for the server.
+         * @param servers host:port pairs for the server
+         * @throws IOException Cannot connect to memcached server
          */
         public StatsClient(String[] servers) throws IOException {
             connections = new ArrayList<StatsConnection>(servers.length);

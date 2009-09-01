@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.47 2009/02/13 20:40:09 akara Exp $
+ * $Id: CmdService.java,v 1.55 2009/08/05 23:50:10 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -30,7 +30,7 @@ import com.sun.faban.harness.agent.CmdAgent;
 import com.sun.faban.harness.agent.FileAgent;
 import com.sun.faban.harness.agent.FileService;
 import com.sun.faban.harness.common.Config;
-import com.sun.faban.harness.common.HostTypes;
+import com.sun.faban.harness.common.HostRoles;
 import com.sun.faban.harness.util.CmdMap;
 import com.sun.faban.harness.util.FileHelper;
 import com.sun.faban.harness.util.InterfaceProbe;
@@ -79,8 +79,11 @@ import java.util.logging.Logger;
  */
 final public class CmdService { 	// The final keyword prevents clones
 
-    public static final int SEQUENTIAL = 1;	/* Sequential flag in FG mode*/
-    public static final int PARALLEL = 2;	/* parallel flag in FG mode*/
+    /** Sequential flag in FG mode. */
+    public static final int SEQUENTIAL = 1;
+
+    /** Parallel flag in FG mode. */
+    public static final int PARALLEL = 2;
 
     private static Logger logger = Logger.getLogger(CmdService.class.getName());
     private static CmdService cmds;
@@ -88,7 +91,7 @@ final public class CmdService { 	// The final keyword prevents clones
     private ArrayList<CmdAgent> cmdp = new ArrayList<CmdAgent>();
     private ArrayList<FileAgent> filep = new ArrayList<FileAgent>();
 
-    /** List of all machines */
+    /** List of all machines. */
     private ArrayList<String> machinesList = new ArrayList<String>();
     private Properties hostInterfaces = new Properties();
     private Registry registry;
@@ -101,7 +104,7 @@ final public class CmdService { 	// The final keyword prevents clones
             new HashMap<String, List<String>>();
     private Map<String, String> ifMap;
     private List<String> rsh,  agent;
-    private HostTypes hostTypes;
+    private HostRoles hostRoles;
 
     private CmdService() {
 
@@ -130,8 +133,8 @@ final public class CmdService { 	// The final keyword prevents clones
     }
 
     /**
-     *
-     * @return master machine name
+     * Obtains the name of the master machine.
+     * @return The master machine name
      */
     public String getMaster() {
         return master;
@@ -170,12 +173,15 @@ final public class CmdService { 	// The final keyword prevents clones
 
     /**
      * This method initializes the CmdAgent RMI server processes
-     * on the specified set of machines
+     * on the specified set of machines.
      * This method can be called multiple times to initialize multiple
-     * classes of machines
+     * classes of machines.
+     * @param benchName The name of the benchmark
      * @param hosts String[][] of machines
+     * @param home JAVA_HOME
+     * @param options Driver JVM options
+     * @param clockSync Whether to synchronize the clocks between systems
      * @return true if successful, false if setup failed
-     *
      */
     public boolean setup(String benchName, String[][] hosts,
             String home, String options, boolean clockSync) {
@@ -456,21 +462,21 @@ final public class CmdService { 	// The final keyword prevents clones
         return true;
     }
 
-    void setHostTypes(HostTypes ht) {
-        hostTypes = ht;
+    void setHostRoles(HostRoles hr) {
+        hostRoles = hr;
 
         // We need to populate the machinesList and cmdp with
         // the real host names.
 
         // First get the real names.
-        String[] realHosts = hostTypes.getHostsInOrder();
+        String[] realHosts = hostRoles.getHostsInOrder();
         
         // For each real host name not in machinesList, we take the first alias
         // and look it up in the machinesList. Fetch the command agent and add
         // the real name to the machinesList -> cmdp mapping.
         for (String hostName : realHosts) {
             if (!machinesList.contains(hostName)) {
-                String[] aliases = hostTypes.getAliasesByHost(hostName);
+                String[] aliases = hostRoles.getAliasesByHost(hostName);
                 CmdAgent a = findCmdAgent(aliases[0]); // Just one is enough
                 machinesList.add(hostName);
                 cmdp.add(a);
@@ -636,15 +642,17 @@ final public class CmdService { 	// The final keyword prevents clones
 
                 try { // See first whether we have an agent daemon.
                     Socket socket = new Socket(mach, Config.AGENT_PORT);
-                    OutputStream socketOut = socket.getOutputStream();
+                    ObjectOutputStream socketOut =
+                            new ObjectOutputStream(socket.getOutputStream());
                     InputStream socketIn = socket.getInputStream();
                     byte[] buffer = new byte[1024];
-                    StringBuilder b = new StringBuilder();
-                    for (String agentParam : agentParams) {
-                        b.append(agentParam).append(' ');
-                    }
-                    b.setLength(b.length() - 1);
-                    socketOut.write(b.toString().getBytes());
+
+                    ArrayList<String> agentExtParams = 
+                            new ArrayList<String>(agentParams);
+                    agentExtParams.add(File.separator);
+                    agentExtParams.add(File.pathSeparator);
+                    socketOut.writeObject(agentExtParams);
+
                     int length = socketIn.read(buffer);
                     socketIn.close();
                     socketOut.close();
@@ -896,15 +904,17 @@ final public class CmdService { 	// The final keyword prevents clones
      * Obtains the cached HostType object. Note that this is not a public API.
      * @return The cached HostType object;
      */
-    public HostTypes getHostTypes() {
-        return hostTypes;
+    public HostRoles getHostRoles() {
+        return hostRoles;
     }
 
     /**
-     * Returns the hostname of this machine as known to this machine
+     * Returns the hostname of this machine as known to the machine
      * itself. This method is included in order to solve a Naming problem
      * related to the names of the tpcw result files to be transferred to the
      * the master machine.
+     * @param machineName The target machine to check the host name
+     * @return The host name of the remote machine
      */
     public String getHostName(String machineName) {
 
@@ -1020,12 +1030,26 @@ final public class CmdService { 	// The final keyword prevents clones
         return result;
     }
 
+    /**
+     * Executes a job in a remote command agent.
+     * @param machine The host to execute the command
+     * @param callable The job
+     * @return The return value of the job
+     * @throws Exception An error occured executing the remote job
+     */
     public <V extends Serializable> V
             execute(String machine, RemoteCallable<V> callable)
             throws Exception {
         return findCmdAgent(machine).exec(callable);
     }
 
+    /**
+     * Executes a job on remote command agents on a list of systems.
+     * @param machines The host names to execute the job
+     * @param callable The job
+     * @return The return values of the job, in sequence
+     * @throws Exception An error occurred executing the job
+     */
     public <V extends Serializable> List<V>
             execute(String[] machines, RemoteCallable<V> callable)
             throws Exception {
@@ -1037,163 +1061,15 @@ final public class CmdService { 	// The final keyword prevents clones
     }
 
     /**
-     * Start commands sequentially in foreground on machines
-     * The command string should include all stdin, stdout, stderr
-     * redirections (if any). Note that files referred in the command
-     * should be on the machine on which the command is run.
-     * The 'copy' method can be used to transfer files to remote machines.
-     * @param machines on which command should be started
-     * @param cmd command to be started
-     * @param seq flag to indicate if commands should be sequential or parallel
-     * @param priority (default or higher priority) for command
-     * @return true if all commands completed successfully, else false
-     * @see #copy (String, String, String, String, boolean)
+     * Start the agent on a single machine.
+     * @param machine on which command should be started
+     * @param agentClass Impl Class of the agent to be started
+     * @param identifier to identify this agent later
+     * @return true if the command completed successfully, else false
+     * @throws Exception An error occurred starting the command
      */
-    public boolean start(String machines[], String cmd, int seq,
-            int priority) throws Exception {
-
-        boolean exitcode = true;
-
-
-        for (int i = 0; i<machines.length; i++)
-            logger.fine("Starting command = " + cmd +" on machine " + machines[i]);
-
-        if (seq == SEQUENTIAL) {
-            /* Start cmd on each m/c in foreground */
-            for (int i = 0; i < machines.length; i++) {
-                if (findCmdAgent(machines[i]).start(cmd, priority) == false)
-                    exitcode = false;
-            }
-        } else if (seq == PARALLEL) {
-            /* Start cmd on each m/c in parallel, then wait for all */
-            String ident = "Generated";
-            for (int i = 0; i < machines.length; i++)
-                findCmdAgent(machines[i]).start(cmd, ident, priority);
-            for (int i = 0; i < machines.length; i++)
-                if (findCmdAgent(machines[i]).wait(ident) == false)
-                    exitcode = false;
-        }
-        return (exitcode);
-    }
-
-    /**
-     * Start a command on a single machine
-     */
-    public boolean start(String machine, String command, int seq,
-            int priority) throws Exception {
-
-        String m[] = new String[1];
-        m[0] = machine;
-
-        return start(m, command, seq, priority);
-    }
-
-    /**
-     * Start commands in background
-     *
-     * @param machines on which command should be started
-     * @param cmd command to be started
-     * @param ident to identify this command later
-     * @param priority (default or higher priority) for command
-     */
-    public void start(String machines[], String cmd, String ident,
-            int priority) throws Exception {
-        for (int i = 0; i < machines.length; i++) {
-            if ((machines[i] == null) || (machines[i].equals("")))
-                continue;
-            findCmdAgent(machines[i]).start(cmd, ident, priority);
-        }
-    }
-
-    /**
-     * Start command in background and wait for the
-     * specified message
-     * @param machines on which command should be started
-     * @param cmd command to be started
-     * @param ident to identify this command later null if you don't want to do wait
-     *              or kill the process when the cmdAgent exits.
-     * @param msg message message to which wait for
-     * @param priority (default or higher priority) for command
-     */
-    public void start(String machines[], String cmd, String ident, String msg,
-            int priority) throws Exception {
-
-        for (int i = 0; i < machines.length; i++) {
-
-            if ((machines[i] == null) || (machines[i].equals("")))
-                continue;
-
-            boolean ret = findCmdAgent(machines[i]).
-                    start(cmd, ident, msg, priority);
-            if(ret)
-                logger.fine("Started command " + cmd + " on machine " + machines[i]);
-            else
-                logger.severe("command " + cmd + " on machine " + machines[i] + " failed");
-        }
-    }
-
-    /**
-     * Start a command in background on a single machine
-     */
-    public void start(String machine, String command, String ident,
-            int priority) throws Exception {
-        String m[] = new String[1];
-        m[0] = machine;
-        start(m, command, ident, priority);
-    }
-
-    /**
-     * Start a  command in background and returning the first line of output.
-     *
-     * @param machine name of the machine on which to start the command
-     * @param command to start
-     * @param ident identifier to associate with this command
-     * @param priority in which to run command
-     * @return String the first line of output from the command
-     */
-    public String startAndGetOneOutputLine(String machine, String command,
-            String ident, int priority)
-            throws Exception {
-
-        logger.info("starting command = " + command + " on machine = " + machine);
-        String retVal = findCmdAgent(machine).startAndGetOneOutputLine(
-                command, ident, priority);
-        return retVal;
-    }
-
-    /**
-     * Start a command in foreground and returning the stdout.
-     *
-     * @param machine name of the machine on which to start the command
-     * @param command to start
-     * @param priority in which to run command
-     * @return String the standard output from the command
-     */
-    public String startAndGetStdOut(String machine, String command, int priority)
-            throws Exception {
-
-        String retVal = findCmdAgent(machine).
-                startAndGetStdOut(command, priority);
-        return retVal;
-    }
-
-    public void startJavaCmd(String machines[], String cmd,
-            String ident, String env[]) throws Exception {
-
-
-        for (int i = 0; i < machines.length; i++) {
-            if ((machines[i] == null) || (machines[i].equals(""))) {
-                continue;
-            }
-            logger.fine("Starting JAVA with " + cmd + " on " + machines[i]);
-            findCmdAgent(machines[i]).startJavaCmd(cmd, ident, env);
-        }
-    }
-
-    /**
-     * Start the agent on a single machine
-     */
-    public boolean startAgent(String machine, Class agentClass, String identifier) throws Exception {
+    public boolean startAgent(String machine, Class agentClass,
+                              String identifier) throws Exception {
 
         String m[] = new String[1];
         m[0] = machine;
@@ -1207,8 +1083,11 @@ final public class CmdService { 	// The final keyword prevents clones
      * @param machines on which command should be started
      * @param agentClass Impl Class of the agent to be started
      * @param identifier to identify this agent later
+     * @return true if all commands completed successfully, else false
+     * @throws Exception An error occurred starting the commands
      */
-    public boolean startAgent(String machines[], Class agentClass, String identifier) throws Exception {
+    public boolean startAgent(String machines[], Class agentClass,
+                              String identifier) throws Exception {
         boolean result = true;
 
         for (int i = 0; i < machines.length; i++) {
@@ -1223,85 +1102,7 @@ final public class CmdService { 	// The final keyword prevents clones
     }
 
     /**
-     * Wait for command started earlier in background
-     * This method calls wait on all the CmdAgent objects for
-     * the listed machines
-     *
-     * @param machine on which to wait
-     * @param ident used to identify command in 'start' call
-     * @return true if command finished succesfully
-     */
-    public boolean wait(String machine, String ident) throws Exception {
-        boolean exitcode = true;
-        logger.info("Waiting for " + ident + " to complete ");
-        if (findCmdAgent(machine).wait(ident) == false) {
-            exitcode = false;
-        }
-        return (exitcode);
-    }
-
-    /**
-     * Wait for command started earlier in background
-     * This method calls wait on all the CmdAgent objects for
-     * the listed machines
-     *
-     * @param machines on which to wait
-     * @param ident used to identify command in 'start' call
-     * @return true if command finished succesfully on all machines
-     */
-    public boolean wait(String machines[], String ident) throws Exception {
-        boolean exitcode = true;
-        for (int i = 0; i < machines.length; i++) {
-            if (wait(machines[i], ident) == false) {
-                exitcode = false;
-            }
-        }
-        return (exitcode);
-    }
-
-    /**
-     * Kill command started earlier in background
-     * This method calls kill on all the CmdAgent objects for
-     * the listed machines
-     * @param machines on which to issue kill
-     * @param ident used to identify command in 'start' call
-     */
-    public void kill(String machines[], String ident) {
-        try {
-            for (int i = 0; i < machines.length; i++) {
-                findCmdAgent(machines[i]).kill(ident);
-            }
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Failed to kill " + ident, e);
-        }
-    }
-
-    /**
-
-     * Kill command started earlier in background using the killem script.
-     * This method calls killem on all the CmdAgent objects for
-     * the listed machines.
-     * @param machines on which to issue kill
-     * @param ident identifier if any if this process was previously started
-     *              through the CmdService.
-     * @param processString search string to grep the process while killing
-     *                      (same as in killem)
-     * @param sigNum the signal number to be used to kill.
-     *
-     */
-    public void killem(String machines[], String ident, String processString, int sigNum) {
-        try {
-            for (int i = 0; i < machines.length; i++) {
-                findCmdAgent(machines[i]).killem(ident, processString, sigNum);
-                logger.info("killed " + processString +
-                        " on machine " + machines[i]);
-            }
-        } catch (Exception e) {
-        }
-    }
-
-    /**
-     * Gets a property from a given file
+     * Gets a property from a given file.
      * @param machine The machine name
      * @param propFile The property file name
      * @param propName The property key name
@@ -1314,7 +1115,7 @@ final public class CmdService { 	// The final keyword prevents clones
     }
 
     /**
-     * Kill all commands currently running and cleanup
+     * Kill all commands currently running and cleanup.
      * This method is called when a run must be aborted
      * or at the end of a benchmark run.
      */
@@ -1379,11 +1180,17 @@ final public class CmdService { 	// The final keyword prevents clones
             throw new FabanHostUnknownException(
                     "Host " + destmachine + " not found!");
         }
+        
+        // Ensure the file is accessed from the right place.
+        File src = new File(srcfile);
+        if (!src.isAbsolute())
+            src = new File(Config.OUT_DIR, srcfile);
+        srcfile = src.getAbsolutePath();
+
         try {
-            String src = InetAddress.getLocalHost().getHostName();
-            String dest = hostTypes.getHostByAlias(destmachine);
-            if (dest.equals(src)) {
-                srcfile = Config.OUT_DIR + srcfile;
+            String srcHost = InetAddress.getLocalHost().getHostName();
+            String destHost = hostRoles.getHostByAlias(destmachine);
+            if (destHost.equals(srcHost)) {
                 if (srcfile.equals(destfile)) {
                     return true;
                 } else {
@@ -1439,7 +1246,7 @@ final public class CmdService { 	// The final keyword prevents clones
         }
         try {
             String src = InetAddress.getLocalHost().getHostName();
-            String dest = hostTypes.getHostByAlias(srcmachine);
+            String dest = hostRoles.getHostByAlias(srcmachine);
             if (dest.equals(src)) {
                 if (srcfile.equals(destfile)) {
                     return true;
@@ -1483,15 +1290,16 @@ final public class CmdService { 	// The final keyword prevents clones
     /**
      * Copy a file from one remote machine to another
      * This method essentially does the work of 'rcp'
-     * using the FileAgents on the machines
+     * using the FileAgents on the machines.
      * @param srcmachine - Name of source machine
      * @param destmachine - Name of destination machine
      * @param srcfile - Name of source file
      * @param destfile - Name of destination file
      * @param append to dest file or overwrite it
      * @return true/false if copy was successful/failed
+     * @deprecated
      */
-    public synchronized boolean copy(String srcmachine, String destmachine,
+    @Deprecated public synchronized boolean copy(String srcmachine, String destmachine,
             String srcfile, String destfile,
             boolean append) {
 
@@ -1543,31 +1351,12 @@ final public class CmdService { 	// The final keyword prevents clones
         return true;
     }
 
-    public synchronized boolean move(String srcmachine, String destmachine,
-            String srcfile, String destfile,
-            boolean append) {
-        // First copy the file then delete
-        try {
-            if (this.copy(srcmachine, destmachine, srcfile, destfile, append)) {
-                FileAgent srcf = null;
-                int sidx = machinesList.indexOf(srcmachine);
-                int didx = machinesList.indexOf(destmachine);
-                if (sidx == didx && srcfile.equals(destfile)) {
-                    return (true);
-                }
-                srcf = filep.get(sidx);
-                return srcf.removeFile(srcfile);
-            }
-        } catch (Exception ie) {
-            logger.severe("CmdService: Could not move " + srcmachine +
-                    ":" + srcfile + " to " + destmachine + ":" +
-                    destfile);
-            logger.log(Level.FINE, "Exception", ie);
-            return (false);
-        }
-        return false;
-    }
-
+    /**
+     * Obtains the temporary dircteroy for the given machine.
+     *
+     * @param machine The machine name
+     * @return The temporary directory to use on the machine
+     */
     public String getTmpDir(String machine) {
         try {
             return findCmdAgent(machine).getTmpDir();
@@ -1602,6 +1391,13 @@ final public class CmdService { 	// The final keyword prevents clones
         return filep.get(index);
     }
 
+    /**
+     * Deletes the file from the machine.
+     *
+     * @param srcmachine The machine name
+     * @param srcfile The file name
+     * @return true if the file has been deleted, false otherwise
+     */
     public synchronized boolean delete(String srcmachine, String srcfile) {
         try {
             return findFileAgent(srcmachine).removeFile(srcfile);
@@ -1613,6 +1409,14 @@ final public class CmdService { 	// The final keyword prevents clones
         }
     }
 
+    /**
+     * Deletes the file from the machine based on the filter provided.
+     *
+     * @param srcmachine The machine name
+     * @param dir The directory name
+     * @param filter The file filter to use
+     * @return true if akk files selected by the filter has been removed
+     */
     public synchronized boolean delete(String srcmachine, String dir,
             com.sun.faban.harness.FileFilter filter) {
         try {
@@ -1629,7 +1433,7 @@ final public class CmdService { 	// The final keyword prevents clones
     /**
      * Copy a file from one remote machine to a stream on the master.
      * This method essentially does the work of 'rcp'
-     * using the FileAgents on the machines
+     * using the FileAgents on the machines.
      * @param srcmachine - Name of source machine
      * @param srcfile - Name of source file
      * @param stream The stream to copy the content to
@@ -1666,78 +1470,7 @@ final public class CmdService { 	// The final keyword prevents clones
     }
 
     /**
-     * Copy a file from one remote machine to another
-     * This method essentially does the work of 'rcp'
-     * using the FileAgents on the machines
-     * @param srcmachine - Name of source machine
-     * @param destmachine - Name of destination machine
-     * @param srcfile - Name of source file
-     * @param destfile - Name of destination file
-     * @param append to dest file or overwrite it
-     * @return true/false if copy was successful/failed
-     */
-    public synchronized boolean copyBytes(String srcmachine,
-            String destmachine,
-            String srcfile, String destfile,
-            boolean append) {
-        FileAgent srcf, destf = null;
-        FileService srcfilep = null, destfilep = null;
-        int sidx = machinesList.indexOf(srcmachine);
-        int didx = machinesList.indexOf(destmachine);
-        byte[] buf = new byte[1000000];
-
-        //logger.info("CmdService: Copying " + srcfile + " to " + destfile);
-        //logger.info("CmdService: Copying from " + srcmachine + " to " + destmachine);
-        if (sidx == didx && srcfile.equals(destfile)) {
-            return (true);
-        }
-        srcf = filep.get(sidx);
-        destf = filep.get(didx);
-        try {
-            srcfilep = srcf.open(srcfile, FileAgent.READ);
-            if (append) {
-                destfilep = destf.open(destfile, FileAgent.APPEND);
-            } else {
-                destfilep = destf.open(destfile, FileAgent.WRITE);
-            }
-
-            // Now loop, reading from src and writing to dest
-            while (true) {
-                buf = srcfilep.readBytes(1000000);
-                //	logger.info("           Read " + buf);
-                //	logger.info(buf);
-                //		logger.info(buf.length);
-                destfilep.writeBytes(buf, 0, buf.length);
-                if (buf.length < 1000000) {
-                    break;
-                }
-            }
-
-            srcfilep.close();
-            destfilep.close();
-        } catch (Exception ie) {
-            logger.log(Level.WARNING, "CmdService: Could not copy " +
-                    srcmachine + ":" + srcfile + " to " + destmachine + ":" +
-                    destfile, ie);
-            return (false);
-        }
-        return (true);
-    }
-
-    /**
-     *
-     * The hostInterfaces Properties object stores mappings of machine name
-     * in the benchmark configuration to the corresponding interface of the
-     * master machine used to connect to that machine.
-     *
-     * @return Properties - the hostInterfaces oject.
-     */
-    public Properties getHostInterfaces() {
-        return hostInterfaces;
-    }
-
-    /**
-     * Set the Log level for Agents
+     * Set the Log level for Agents.
      * @param name Logger name
      * @param level Log level
      */
@@ -1753,7 +1486,11 @@ final public class CmdService { 	// The final keyword prevents clones
         }
     }
 
-    Registry getRegistry() {
+    /**
+     * Obtains the registry.
+     * @return The registry
+     */
+    public Registry getRegistry() {
         return registry;
     }
 

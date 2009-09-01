@@ -1,0 +1,310 @@
+<?xml version='1.0' encoding='ISO-8859-1'?>
+<html xmlns:xforms='http://www.w3.org/2002/xforms'
+      xmlns:fa='http://faban.sunsource.net/ns/faban'
+      xmlns:fh='http://faban.sunsource.net/ns/fabanharness'
+      xmlns:fd='http://faban.sunsource.net/ns/fabandriver'>
+    <head>
+        <xforms:model id='benchmark-model'>
+            <xforms:instance id='benchmark-instance' src='{benchmark.template}'/>
+            <xforms:submission xforms:action='schedule-run.jsp' xforms:replace='all' id='submission-debug' xforms:method='post'/>
+            <xforms:bind id='bind-fabanLoad' xforms:nodeset='/fabanLoad'>
+	<xforms:bind id='bind-jvmConfig' xforms:nodeset='fh:jvmConfig'  >
+		<xforms:bind id='bind-jvmConfig-javaHome' xforms:nodeset='fh:javaHome'  >
+		</xforms:bind>
+		<xforms:bind id='bind-jvmConfig-jvmOptions' xforms:nodeset='fh:jvmOptions'  >
+		</xforms:bind>
+	</xforms:bind>
+	<xforms:bind id='bind-runConfig' xforms:nodeset='fa:runConfig'  >
+		<xforms:bind id='bind-runConfig-description' xforms:nodeset='fh:description'  >
+		</xforms:bind>
+		<xforms:bind id='bind-runConfig-hostConfig' xforms:nodeset='fa:hostConfig'  >
+			<xforms:bind id='bind-runConfig-hostConfig-host' xforms:nodeset='fa:host'  >
+			</xforms:bind>
+			<xforms:bind id='bind-runConfig-enabledConfig-enabled' xforms:nodeset='fh:enabled'  >
+			</xforms:bind>
+			<xforms:bind id='bind-runConfig-cpusConfig-cpus' xforms:nodeset='fh:cpus'  >
+			</xforms:bind>
+			<xforms:bind id='bind-runConfig-toolsConfig-tools' xforms:nodeset='fh:tools'  >
+			</xforms:bind>
+			<xforms:bind id='bind-runConfig-userCommandsConfig-userCommands' xforms:nodeset='fh:userCommands'  >
+			</xforms:bind>
+		</xforms:bind>
+		<xforms:bind id='bind-runConfig-scale' xforms:nodeset='fa:scale' xforms:type='positiveInteger'>
+		</xforms:bind>
+		<xforms:bind id='bind-runConfig-runControl' xforms:nodeset='fa:runControl'  >
+			<xforms:bind id='bind-runConfig-runControl-rampUp' xforms:nodeset='fa:rampUp'  >
+			</xforms:bind>
+			<xforms:bind id='bind-runConfig-runControl-steadyState' xforms:nodeset='fa:steadyState'  >
+			</xforms:bind>
+			<xforms:bind id='bind-runConfig-runControl-rampDown' xforms:nodeset='fa:rampDown'  >
+			</xforms:bind>
+		</xforms:bind>
+		<xforms:bind id='bind-runConfig-outputDir' xforms:nodeset='fd:outputDir'  >
+		</xforms:bind>
+		<xforms:bind id='bind-runConfig-audit' xforms:nodeset='fd:audit'  >
+		</xforms:bind>
+		<xforms:bind id='bind-runConfig-threadStart' xforms:nodeset='fd:threadStart'  >
+			<xforms:bind id='bind-runConfig-threadStart-delay' xforms:nodeset='fd:delay' xforms:type='positiveInteger'>
+			</xforms:bind>
+			<xforms:bind id='bind-runConfig-threadStart-simultaneous' xforms:nodeset='fd:simultaneous'  >
+			</xforms:bind>
+			<xforms:bind id='bind-runConfig-threadStart-parallel' xforms:nodeset='fd:parallel'  >
+			</xforms:bind>
+		</xforms:bind>
+		<xforms:bind id='bind-runConfig-stats' xforms:nodeset='fd:stats'  >
+			<xforms:bind id='bind-runConfig-stats-maxRunTime' xforms:nodeset='fd:maxRunTime'  >
+			</xforms:bind>
+			<xforms:bind id='bind-runConfig-stats-interval' xforms:nodeset='fd:interval'  >
+			</xforms:bind>
+		</xforms:bind>
+		<xforms:bind id='bind-runConfig-runtimeStats' xforms:nodeset='fd:runtimeStats'  >
+			<xforms:bind id='bind-runConfig-runtimeStats-interval' xforms:nodeset='fd:interval'  >
+			</xforms:bind>
+		</xforms:bind>
+		<xforms:bind id='bind-runConfig-driverConfig' xforms:nodeset='fd:driverConfig[@name="UIDriver"]'  >
+			<xforms:bind id='bind-runConfig-driverConfig-agents' xforms:nodeset='fd:agents'  >
+			</xforms:bind>
+			<xforms:bind id='bind-runConfig-driverConfig-stats' xforms:nodeset='fd:stats'  >
+				<xforms:bind id='bind-runConfig-driverConfig-stats-interval' xforms:nodeset='fd:interval'  >
+				</xforms:bind>
+			</xforms:bind>
+			<xforms:bind id='bind-runConfig-driverConfig-runtimeStats' xforms:nodeset='fd:runtimeStats'  >
+			</xforms:bind>
+			<xforms:bind id='bind-runConfig-driverConfig-properties' xforms:nodeset='fd:properties'  >
+				<xforms:bind id='bind-runConfig-driverConfig-properties-property' xforms:nodeset='fd:property[@name="realSubmit"]'  >
+				</xforms:bind>
+			</xforms:bind>
+		</xforms:bind>
+	</xforms:bind>
+	<xforms:bind id='bind-serverConfig' xforms:nodeset='serverConfig'  >
+		<xforms:bind id='bind-serverConfig-hostConfig' xforms:nodeset='fa:hostConfig'  >
+			<xforms:bind id='bind-serverConfig-hostConfig-host' xforms:nodeset='fa:host'  >
+			</xforms:bind>
+			<xforms:bind id='bind-serverConfig-enabledConfig-enabled' xforms:nodeset='fh:enabled'  >
+			</xforms:bind>
+			<xforms:bind id='bind-serverConfig-cpusConfig-cpus' xforms:nodeset='fh:cpus'  >
+			</xforms:bind>
+			<xforms:bind id='bind-serverConfig-toolsConfig-tools' xforms:nodeset='fh:tools'  >
+			</xforms:bind>
+			<xforms:bind id='bind-serverConfig-userCommandsConfig-userCommands' xforms:nodeset='fh:userCommands'  >
+			</xforms:bind>
+		</xforms:bind>
+		<xforms:bind id='bind-serverConfig-port' xforms:nodeset='port' xforms:type='positiveInteger'>
+		</xforms:bind>
+	</xforms:bind>
+</xforms:bind>
+
+        </xforms:model>
+        <xforms:model id='benchmark-labels'>
+            <xforms:instance id='benchmark-label-names'>
+                <labels>
+                    <fabanLoad>Faban Load</fabanLoad>
+<jvmConfig>Jvm Config</jvmConfig>
+<javaHome>Java Home</javaHome>
+<jvmOptions>Jvm Options</jvmOptions>
+<runConfig>Run Config</runConfig>
+<description>Description</description>
+<hostConfig>Host Config</hostConfig>
+<host>Host</host>
+<enabled>Enabled</enabled>
+<cpus>Cpus</cpus>
+<tools>Tools</tools>
+<userCommands>User Commands</userCommands>
+<scale>Scale</scale>
+<runControl>Run Control</runControl>
+<rampUp>Ramp Up</rampUp>
+<steadyState>Steady State</steadyState>
+<rampDown>Ramp Down</rampDown>
+<outputDir>Output Dir</outputDir>
+<audit>Audit</audit>
+<threadStart>Thread Start</threadStart>
+<delay>Delay</delay>
+<simultaneous>Simultaneous</simultaneous>
+<parallel>Parallel</parallel>
+<stats>Stats</stats>
+<maxRunTime>Max Run Time</maxRunTime>
+<interval>Interval</interval>
+<runtimeStats>Runtime Stats</runtimeStats>
+<driverConfig>Driver Config</driverConfig>
+<agents>Agents</agents>
+<properties>Properties</properties>
+<property>Property</property>
+<serverConfig>Server Config</serverConfig>
+<port>Port</port>
+
+                    <unit>Unit</unit>
+                    <time>Time (sec)</time>
+                    <cycles>Cycles</cycles>
+                    <yes>Yes</yes>
+                    <no>No</no>
+                    <ok>Ok</ok>
+                    <cancel>Cancel</cancel>
+                </labels>
+            </xforms:instance>
+        </xforms:model>
+    </head>
+    <body>
+        <xforms:group id="group-tabsheet">
+            <xforms:trigger id='trigger-jvmConfig'>
+	<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/jvmConfig'/>
+	<xforms:action id='action-jvmConfig'>
+		<xforms:revalidate xforms:model='benchmark-model' id='revalidate-jvmConfig'/>
+		<xforms:toggle id='toggle-jvmConfig' xforms:case='case-jvmConfig'/>
+	</xforms:action>
+</xforms:trigger>
+<xforms:trigger id='trigger-runConfig'>
+	<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/runConfig'/>
+	<xforms:action id='action-runConfig'>
+		<xforms:revalidate xforms:model='benchmark-model' id='revalidate-runConfig'/>
+		<xforms:toggle id='toggle-runConfig' xforms:case='case-runConfig'/>
+	</xforms:action>
+</xforms:trigger>
+<xforms:trigger id='trigger-serverConfig'>
+	<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/serverConfig'/>
+	<xforms:action id='action-serverConfig'>
+		<xforms:revalidate xforms:model='benchmark-model' id='revalidate-serverConfig'/>
+		<xforms:toggle id='toggle-serverConfig' xforms:case='case-serverConfig'/>
+	</xforms:action>
+</xforms:trigger>
+
+            <xforms:switch id="switch">
+                	<xforms:case id='case-jvmConfig'>
+		<xforms:group id='group-jvmConfig'>
+		<xforms:input id='input-jvmConfig-javaHome' xforms:bind='bind-jvmConfig-javaHome'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/javaHome'/>
+		</xforms:input>
+		<xforms:input id='input-jvmConfig-jvmOptions' xforms:bind='bind-jvmConfig-jvmOptions'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/jvmOptions'/>
+		</xforms:input>
+		</xforms:group>
+	</xforms:case>
+	<xforms:case id='case-runConfig'>
+		<xforms:group id='group-runConfig'>
+		<xforms:input id='input-runConfig-description' xforms:bind='bind-runConfig-description'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/description'/>
+		</xforms:input>
+
+			<xforms:input id='input-runConfig-hostConfig-host' xforms:bind='bind-runConfig-hostConfig-host'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/host'/>
+		</xforms:input>
+			<xforms:input id='input-runConfig-enabledConfig-enabled' xforms:bind='bind-runConfig-enabledConfig-enabled'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/enabled'/>
+		</xforms:input>
+			<xforms:input id='input-runConfig-cpusConfig-cpus' xforms:bind='bind-runConfig-cpusConfig-cpus'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/cpus'/>
+		</xforms:input>
+			<xforms:input id='input-runConfig-toolsConfig-tools' xforms:bind='bind-runConfig-toolsConfig-tools'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/tools'/>
+		</xforms:input>
+			<xforms:input id='input-runConfig-userCommandsConfig-userCommands' xforms:bind='bind-runConfig-userCommandsConfig-userCommands'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/userCommands'/>
+		</xforms:input>
+
+		<xforms:input id='input-runConfig-scale' xforms:bind='bind-runConfig-scale'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/scale'/>
+		</xforms:input>
+
+			<xforms:input id='input-runConfig-runControl-rampUp' xforms:bind='bind-runConfig-runControl-rampUp'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/rampUp'/>
+		</xforms:input>
+			<xforms:input id='input-runConfig-runControl-steadyState' xforms:bind='bind-runConfig-runControl-steadyState'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/steadyState'/>
+		</xforms:input>
+			<xforms:input id='input-runConfig-runControl-rampDown' xforms:bind='bind-runConfig-runControl-rampDown'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/rampDown'/>
+		</xforms:input>
+
+		<xforms:input id='input-runConfig-outputDir' xforms:bind='bind-runConfig-outputDir'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/outputDir'/>
+		</xforms:input>
+		<xforms:input id='input-runConfig-audit' xforms:bind='bind-runConfig-audit'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/audit'/>
+		</xforms:input>
+
+			<xforms:input id='input-runConfig-threadStart-delay' xforms:bind='bind-runConfig-threadStart-delay'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/delay'/>
+		</xforms:input>
+			<xforms:input id='input-runConfig-threadStart-simultaneous' xforms:bind='bind-runConfig-threadStart-simultaneous'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/simultaneous'/>
+		</xforms:input>
+			<xforms:input id='input-runConfig-threadStart-parallel' xforms:bind='bind-runConfig-threadStart-parallel'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/parallel'/>
+		</xforms:input>
+
+
+			<xforms:input id='input-runConfig-stats-maxRunTime' xforms:bind='bind-runConfig-stats-maxRunTime'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/maxRunTime'/>
+		</xforms:input>
+			<xforms:input id='input-runConfig-stats-interval' xforms:bind='bind-runConfig-stats-interval'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/interval'/>
+		</xforms:input>
+
+
+			<xforms:input id='input-runConfig-runtimeStats-interval' xforms:bind='bind-runConfig-runtimeStats-interval'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/interval'/>
+		</xforms:input>
+
+
+			<xforms:input id='input-runConfig-driverConfig-agents' xforms:bind='bind-runConfig-driverConfig-agents'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/agents'/>
+		</xforms:input>
+
+				<xforms:input id='input-runConfig-driverConfig-stats-interval' xforms:bind='bind-runConfig-driverConfig-stats-interval'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/interval'/>
+		</xforms:input>
+
+			<xforms:input id='input-runConfig-driverConfig-runtimeStats' xforms:bind='bind-runConfig-driverConfig-runtimeStats'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/runtimeStats'/>
+		</xforms:input>
+
+				<xforms:input id='input-runConfig-driverConfig-properties-property' xforms:bind='bind-runConfig-driverConfig-properties-property'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/property'/>
+		</xforms:input>
+
+
+		</xforms:group>
+	</xforms:case>
+	<xforms:case id='case-serverConfig'>
+		<xforms:group id='group-serverConfig'>
+
+			<xforms:input id='input-serverConfig-hostConfig-host' xforms:bind='bind-serverConfig-hostConfig-host'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/host'/>
+		</xforms:input>
+			<xforms:input id='input-serverConfig-enabledConfig-enabled' xforms:bind='bind-serverConfig-enabledConfig-enabled'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/enabled'/>
+		</xforms:input>
+			<xforms:input id='input-serverConfig-cpusConfig-cpus' xforms:bind='bind-serverConfig-cpusConfig-cpus'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/cpus'/>
+		</xforms:input>
+			<xforms:input id='input-serverConfig-toolsConfig-tools' xforms:bind='bind-serverConfig-toolsConfig-tools'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/tools'/>
+		</xforms:input>
+			<xforms:input id='input-serverConfig-userCommandsConfig-userCommands' xforms:bind='bind-serverConfig-userCommandsConfig-userCommands'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/userCommands'/>
+		</xforms:input>
+
+		<xforms:input id='input-serverConfig-port' xforms:bind='bind-serverConfig-port'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/port'/>
+		</xforms:input>
+		</xforms:group>
+	</xforms:case>
+
+            </xforms:switch>
+        </xforms:group>
+        <xforms:group id="group-buttons">
+            <xforms:trigger id="trigger-ok">
+                <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ok"/>
+                <xforms:action id="action-ok">
+                    <xforms:send id="send-debug" xforms:submission="submission-debug"/>
+                </xforms:action>
+            </xforms:trigger>
+            <xforms:trigger id="trigger-cancel">
+                <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/cancel"/>
+                <xforms:action id="action-cancel">
+                    <xforms:reset id="reset-cancel" xforms:model="benchmark-model"/>
+                    <xforms:toggle id="toggle-cancel" xforms:case="case-jvmConfig"/>
+                </xforms:action>
+            </xforms:trigger>
+        </xforms:group>
+    </body>
+</html>

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: PrimaryListener.java,v 1.3 2006/11/13 18:24:55 akara Exp $
+ * $Id: PrimaryListener.java,v 1.4 2009/07/28 22:54:15 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -45,6 +45,8 @@ public class PrimaryListener extends Listener {
     /**
      * Constructs the primary listener with this selector.
      * @param selector The selector
+     * @param config The log configuration
+     * @param acceptQueue The accept queue
      */
     public PrimaryListener(Selector selector, LogConfig config,
                            Queue<SocketChannel> acceptQueue) {
@@ -57,6 +59,7 @@ public class PrimaryListener extends Listener {
      * be called here. The implementation in this class logs changes to
      * the channel.
      * @param selector The selector
+     * @throws IOException Error registering the selector with the channel
      */
     protected void selectorOps(Selector selector) throws IOException {
         super.selectorOps(selector);

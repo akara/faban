@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericBenchmark.java,v 1.36 2009/02/13 20:34:59 akara Exp $
+ * $Id: GenericBenchmark.java,v 1.45 2009/07/28 22:54:14 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -26,21 +26,19 @@ package com.sun.faban.harness.engine;
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
 import com.sun.faban.common.Utilities;
-import com.sun.faban.harness.Benchmark;
 import com.sun.faban.harness.ParamRepository;
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
-import com.sun.faban.harness.common.HostTypes;
+import com.sun.faban.harness.common.HostRoles;
 import com.sun.faban.harness.common.Run;
+import com.sun.faban.harness.services.ServiceManager;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.text.StyledEditorKit.ItalicAction;
 
 /**
  * GenericBenchmark.java
@@ -60,27 +58,29 @@ public class GenericBenchmark {
     private Run run;
     private CmdService cmds = null;
     private ToolService tools = null;
+    private ServiceManager serviceMgr = null;
     //private Benchmark bm = null;
     private static BenchmarkWrapper bmw = null;
 
     private static Logger logger =
             Logger.getLogger(GenericBenchmark.class.getName());
 
-    public static final int COMPLETED = 0;
-    public static final int FAILED = 1;
-    public static final int KILLED = 2;
-    
-    public static final String[] COMPLETIONMESSAGE =
-            { "COMPLETED", "FAILED", "KILLED" };
-
     // Flag to detect failed run
-    private int runStatus = FAILED;
+    private int runStatus = Run.FAILED;
     private int stdyState = 0;
 
+    /**
+     * Constructor.
+     * @param r run
+     */
     public GenericBenchmark(Run r) {
         this.run = r;
     }
 
+    /**
+     * Responsible for configuring, starting and stopping services and tools.
+     * Creates the actual benchmark object and requests it to execute the run.
+     */
     @SuppressWarnings("static-access")
     public void start() {
         ParamRepository par = null;
@@ -105,7 +105,7 @@ public class GenericBenchmark {
 
         // Update the status of the run
         try {
-            run.updateStatus("STARTED");
+            run.updateStatus(Run.STARTED);
         } catch (IOException e) {
             logger.log(Level.SEVERE,  "Failed to update run status.", e);
             return;
@@ -178,31 +178,14 @@ public class GenericBenchmark {
                 // Start CmdAgent on all ENABLED hosts using the JAVA HOME
                 // Specified JVM options will be used by the Agent when it
                 // starts java processes
-                ArrayList enabledHosts = new ArrayList();
-                List hosts = par.getTokenizedParameters(
-                                                    "fa:hostConfig/fa:host");
-                List enabled = par.getParameters("fa:hostConfig/fh:enabled");
-                if(hosts.size() != enabled.size()) {
-                    logger.severe("Number of hosts, " + hosts.size() +
-                            ", does not match enabled, " +
-                            enabled.size() + ".");
-                    return;
-                } else {
-                    for(int i = 0; i < hosts.size(); i++) {
-                        if(Boolean.valueOf((String) enabled.get(i)).
-                                booleanValue()) {
-                            enabledHosts.add(hosts.get(i));
-                        }
-                    }
-                    String[][] hostArray = (String[][])
-                            enabledHosts.toArray(new String[1][1]);
-                    boolean clockSync = par.getBooleanValue(
+                List<String[]> enabledHosts = par.getEnabledHosts();
+                String[][] hostArray = enabledHosts.toArray(new String[1][1]);
+                boolean clockSync = par.getBooleanValue(
                                             "fa:runConfig/fh:timeSync", true);
-                    if (!cmds.setup(benchDesc.shortName,
-                            hostArray, javaHome, jvmOpts, clockSync)) {
-                        logger.severe("CmdService setup failed. Exiting");
-                        return;
-                    }
+                if (!cmds.setup(benchDesc.shortName,
+                        hostArray, javaHome, jvmOpts, clockSync)) {
+                logger.severe("CmdService setup failed. Exiting");
+                    return;
                 }
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Start failed.", e);
@@ -210,14 +193,24 @@ public class GenericBenchmark {
             }
 
             // Extract host metadata and save it.
-            HostTypes ht = new HostTypes(par);
-            cmds.setHostTypes(ht);
+            HostRoles hr = new HostRoles(par);
+            cmds.setHostRoles(hr);
             try {
-                ht.write(run.getOutDir() + File.separator + "META-INF" +
+                hr.write(run.getOutDir() + File.separator + "META-INF" +
                                         File.separator + "hosttypes");
             } catch (IOException e) {
                 logger.log(Level.WARNING, "Error writing hosttypes file!", e);
             }
+
+            // Deal with the services.
+            serviceMgr = new ServiceManager(par, run);
+            logger.info("Got Service Manager Instance");
+            // transfer service configuration.
+            serviceMgr.configure();
+            logger.info("Executed services configure method");
+            // start services
+            serviceMgr.startup();
+            logger.info("Executed services Startup method");
 
             // Reading parameters used by ToolService
             String s = par.getParameter("fa:runControl/fa:rampUp");
@@ -247,12 +240,6 @@ public class GenericBenchmark {
                 len = s.length();
             }
             if (len > 0) {
-                //if (s == null || s.length() == 0) {
-                    //logger.severe("Configuration runControl/steadyState not set.");
-                    //return;
-                    //logger.info("Configuration runControl/steadyState left open");
-                //}
-
                 try {
                     stdyState = Integer.parseInt(s);
                 } catch (NumberFormatException e) {
@@ -271,7 +258,7 @@ public class GenericBenchmark {
             logger.finer("Got Tool Service Handle");
             tools.init();
             logger.finer("Tool Service Inited");
-            tools.setup(par, run.getOutDir());	// If Tools setup fails,
+            tools.setup(par, run.getOutDir(), serviceMgr);	// If Tools setup fails,
                                                 // we ignore it
             logger.finer("Tool Service Set Up");
             // Now, process generic server parameters
@@ -312,12 +299,12 @@ public class GenericBenchmark {
             // Start the tools
             try {
                 if (stdyState > 0) {
-                    ToolService.getHandle().start(delay, stdyState);
-                    logger.info("Started tools with ToolService.getHandle()." +
+                    tools.start(delay, stdyState);
+                    logger.fine("Started tools with tools." +
                             "start(delay, stdyState)");
                 }else{
-                    ToolService.getHandle().start(delay);
-                    logger.info("Started tools with tools.start(delay)");
+                    tools.start(delay);
+                    logger.fine("Started tools with tools.start(delay)");
                 }
             } catch (Exception e) {
                 logger.log(Level.WARNING, "ToolService not started.", e);
@@ -333,12 +320,28 @@ public class GenericBenchmark {
                 return;
             }
 
+            // s represents the string value of steady state.
+            // We only call stop here for benchmarks that do not have
+            // a firm length, i.e. no steady state.
             if (s == null || s.length() == 0) {
                 logger.info("Stop called for tools");
                 tools.stop();
                 logger.info("Stopped tools");
             }
+
+            // Even if the run got killed, we can arrive here.
+            // So we need to check the killed flag first.
+            if (runStatus != Run.KILLED) {
+                tools.waitFor();
+                runStatus = Run.COMPLETED;
+            }
+
+            // After the tools are all done, we shutdown the service.
+            serviceMgr.shutdown();
+
             try {
+                // Postprocessing may need tools output. So the postRun
+                // must be called after all tools and services are done.
                 bmw.postRun();
             } catch (Throwable t) {
                 logger.log(Level.SEVERE, "Post run failed!", t);
@@ -353,12 +356,6 @@ public class GenericBenchmark {
 
             logger.info("END TIME : " + new java.util.Date());
 
-            // Even if the run got killed, we can arrive here.
-            // So we need to check the killed flag first.
-            if (runStatus != KILLED) {
-                tools.waitFor();
-                runStatus = COMPLETED;
-            }
             return;
         } catch (Throwable t) {
             logger.log(Level.SEVERE,
@@ -378,57 +375,23 @@ public class GenericBenchmark {
         }
     }
 
-    private Benchmark newInstance(BenchmarkDescription desc) {
-        Benchmark benchmark = null;
-        BenchmarkClassLoader loader = BenchmarkClassLoader.getInstance(
-                desc.shortName, this.getClass().getClassLoader());
-        if (loader != null)
-            try {
-                benchmark = (Benchmark) Class.forName(desc.benchmarkClass,
-                        true, loader).asSubclass(Benchmark.class).newInstance();
-            } catch (ClassNotFoundException e) {
-                logger.warning("Cannot find class " + desc.benchmarkClass +
-                        " within the Faban Harness.");
-            } catch (Exception e) {
-                logger.log(Level.SEVERE, "Error instantiating " +
-                        desc.benchmarkClass + '.', e);
-            }
-
-        // In some cases, the benchmark class is in the Faban package itself.
-        if (benchmark == null) {
-            logger.info("Trying reading class " + desc.benchmarkClass +
-                        " from Faban Harness.");
-            try {
-                benchmark = (Benchmark) Class.forName(desc.benchmarkClass).
-                            asSubclass(Benchmark.class).newInstance();
-            } catch (ClassNotFoundException e) {
-                logger.severe("Cannot find class " + desc.benchmarkClass +
-                              " within the Faban Harness.");
-            } catch (Exception e) {
-                logger.log(Level.SEVERE, "Error instantiating " +
-                           desc.benchmarkClass + '.', e);
-            }
-        }
-        return benchmark;
-    }
-
     /**
      * Method : kill
-     * This method is called externally to abort or terminate 
+     * This method is called externally to abort or terminate
      * the current run.
      */
     public void kill() {
-        runStatus = KILLED;
+        runStatus = Run.KILLED;
         _kill();
     }
 
     /**
      * This method is called internally to terminate the current run.
-     */ 
+     */
     private void _kill() {
 
         try {
-            run.updateStatus(COMPLETIONMESSAGE[runStatus]);
+            run.updateStatus(runStatus);
         } catch (IOException e) {
             logger.log(Level.SEVERE,  "Failed to update run status.", e);
         }
@@ -452,16 +415,20 @@ public class GenericBenchmark {
         }
     }
 
+    /**
+     * Responsible for doing the postprocessing.
+     * @return true if successful
+     */
     private boolean postProcess() {
         // Create the dir for storing Xanadu XMLs
         String outDir = run.getOutDir();
 
-        String fenxiDir = outDir + File.separator + Config.XML_STATS_DIR;
-        if(!(new File(fenxiDir)).mkdirs())
+        String postDir = outDir + File.separator + Config.POST_DIR;
+        if(!(new File(postDir)).mkdirs())
             return false;
 
 		// Process the text using FenXi.
-		Command fenxi = new Command ("fenxi", "process", outDir, outDir,
+		Command fenxi = new Command ("fenxi", "process", outDir, postDir,
                                                             run.getRunId());
         fenxi.setWorkingDirectory(Config.FABAN_HOME + "logs");
 

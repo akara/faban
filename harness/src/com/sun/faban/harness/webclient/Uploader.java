@@ -17,7 +17,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: Uploader.java,v 1.9 2009/03/17 22:49:04 sheetalpatil Exp $
+* $Id: Uploader.java,v 1.11 2009/07/21 22:54:48 sheetalpatil Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 */
@@ -27,10 +27,12 @@ import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.RunId;
 
 import com.sun.faban.harness.util.FileHelper;
+import java.util.logging.Level;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.logging.Logger;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -43,12 +45,22 @@ import org.apache.commons.fileupload.FileUploadException;
 import static com.sun.faban.harness.util.FileHelper.*;
 
 /**
+ * This is a controller class.
+ *
  * @author Sheetal Patil
  */
 
 public class Uploader {
   private static Logger logger = Logger.getLogger(ResultAction.class.getName());
 
+  /**
+   * Checks the existence of the runs on the repository.
+   * @param request
+   * @param response
+   * @return String
+   * @throws java.io.IOException
+   * @throws javax.servlet.ServletException
+   */
   public String checkRuns(HttpServletRequest request, HttpServletResponse
                                 response) throws IOException, ServletException {
             HashSet<String> duplicateSet = new HashSet<String>();
@@ -125,6 +137,62 @@ public class Uploader {
             return found;
         }
 
+        /**
+         * Updates the tags file.
+         * @param req
+         * @param resp
+         * @throws java.io.IOException
+         */
+        public void updateTagsFile(HttpServletRequest req,
+            HttpServletResponse resp) throws IOException{
+            String tags = req.getParameter("tags");
+            String runId = req.getParameter("runId");
+            RunResult result = RunResult.getInstance(new RunId(runId));
+            StringBuilder formattedTags = new StringBuilder();
+            File runTagFile = new File(Config.OUT_DIR + runId + "/META-INF/tags");
+            if (tags != null && !"".equals(tags)) {
+                StringTokenizer t = new StringTokenizer(tags," \n,");
+                ArrayList<String> tagList = new ArrayList<String>(t.countTokens());
+                while (t.hasMoreTokens()) {
+                    String nextT = t.nextToken().trim();
+                    if( nextT != null && !"".equals(nextT) ){
+                        formattedTags.append(nextT + "\n");
+                        tagList.add(nextT);
+                    }
+                }
+                FileHelper.writeContentToFile(formattedTags.toString(), runTagFile);
+                result.tags = tagList.toArray(new String[tagList.size()]);
+            }
+            try {
+                uploadTags(runId);
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(Uploader.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            Writer w = resp.getWriter();
+            w.write("Tags updating completed");
+            w.flush();
+            w.close();
+        }
+
+        /**
+         * Updates the run description.
+         * @param req
+         * @param resp
+         * @throws java.io.IOException
+         */
+        public void updateRunDesc(HttpServletRequest req,
+            HttpServletResponse resp) throws IOException{
+            String runId = req.getParameter("runId");
+            RunResult result = RunResult.getInstance(new RunId(runId));
+            result.description = req.getParameter("desc");
+            ResultAction.editXML(result);
+            Writer w = resp.getWriter();
+            w.write("Tags updating completed");
+            w.flush();
+            w.close();
+        }
+
+
         private void uploadTags(String runId) throws IOException, ClassNotFoundException {
             File file = new File(Config.OUT_DIR + runId + "/META-INF/tags");
             String tags = FileHelper.readContentFromFile(file);
@@ -147,6 +215,15 @@ public class Uploader {
             te.save();
         }
 
+        /**
+         * Responsible for uploading the runs.
+         * @param request
+         * @param response
+         * @return String
+         * @throws java.io.IOException
+         * @throws javax.servlet.ServletException
+         * @throws java.lang.ClassNotFoundException
+         */
         public String uploadRuns(HttpServletRequest request, HttpServletResponse
                                 response) throws IOException, ServletException, ClassNotFoundException {
             // 3. Upload the run

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentThread.java,v 1.1 2008/09/10 18:25:53 akara Exp $
+ * $Id: AgentThread.java,v 1.4 2009/07/21 21:21:08 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -58,8 +58,9 @@ public abstract class AgentThread extends Thread {
 		 * Enum#compareTo is used which is based on the order of these RunStates.
 		 * !!!
 		 */
+
 		/**
-		 * The {@link AgentThread} thread has not started
+		 * The {@link AgentThread} thread has not started.
 		 */
 	    NOT_STARTED,
 	    /**
@@ -115,13 +116,14 @@ public abstract class AgentThread extends Thread {
     long endRampDown = Long.MAX_VALUE;
     int cycleCount = 0; // The cycles executed so far
 
-    /** Run configuration from the Master */
+    /** Run configuration from the Master. */
     RunInfo runInfo;
 
     boolean startTimeSet = false;
 
     boolean stopped = false;
 
+    /** Constant value for specifying that the time is not set. */
     public static final long TIME_NOT_SET = Long.MIN_VALUE;
 
     /**
@@ -237,14 +239,23 @@ public abstract class AgentThread extends Thread {
      * @param op The operation
      */
     void checkFatal(Throwable e, BenchmarkDefinition.Operation op) {
+        checkFatal(e, op.m);
+    }
+
+    /**
+     * Checks for a fatal exception. This is called from the pre/post.
+     * @param e The throwable
+     * @param m The method
+     */
+    void checkFatal(Throwable e, Method m) {
         if (e instanceof FatalException) {
             FatalException fatal = (FatalException) e;
             e = fatal.getCause();
             if (e != null) {
-				logger.log(Level.SEVERE, name + '.' + op.m.getName() +
+				logger.log(Level.SEVERE, name + '.' + m.getName() +
                         ": " + e.getMessage(), e);
 			} else {
-				logger.log(Level.SEVERE, name + '.' + op.m.getName() +
+				logger.log(Level.SEVERE, name + '.' + m.getName() +
                         ": " + fatal.getMessage(), fatal);
 			}
             fatal.setLogged();
@@ -324,7 +335,7 @@ public abstract class AgentThread extends Thread {
     }
 
     /**
-     * Executes the method market with @OnceBefore in thread 0
+     * Executes the method market with @OnceBefore in thread 0.
      */
     void preRun() {
         // Thread 0 needs to do the preRun
@@ -338,16 +349,30 @@ public abstract class AgentThread extends Thread {
                 // we don't really care to redo this.
             }
             agent.preRunLatch.countDown();
+            try {
+                agent.startLatch.await();
+            } catch (InterruptedException e) {
+                logger.log(Level.WARNING, name +
+                        ": Start latch await interrupted!");
+            }
+            agent.startLatch = null;
+            logger.finest(name + ": Thread 0 got startLatch, now executing.");
         }
         setThreadState(RunState.RUNNING);
     }
 
     /**
-     * Executes the method market with @OnceAfter in thread 0
+     * Executes the method marked with @OnceAfter in thread 0.
      */
     void postRun() {
         if (id == 0 && driverConfig.postRun != null &&
                 compareAndSetThreadState(RunState.RUNNING, RunState.POST_RUN)) {
+            // Tell the world we're finished.
+            agent.finishLatch.countDown();
+            logger.finest(name +
+                    ": Thread 0 finished, awaiting postRunLatch");
+
+            // Then wait for a signal (everybody else finished) to run postrun.
             while (agent.postRunLatch.getCount() > 0l) {
 				try {
                     agent.postRunLatch.await();
@@ -367,6 +392,7 @@ public abstract class AgentThread extends Thread {
                     interrupted = true;
                 }
             } while (interrupted);
+            logger.finest(name + ": Thread 0 finished postRun.");
         }
         setThreadState(RunState.ENDED);
     }
@@ -379,8 +405,9 @@ public abstract class AgentThread extends Thread {
             if (cause == null) {
 				cause = e;
 			}
+            checkFatal(cause, m);
             logger.log(Level.WARNING, name + "." + m.getName() + ": " +
-                    e.getMessage(), e);
+                    cause.getMessage(), cause);
             if (cause instanceof InterruptedIOException) {
 				throw (InterruptedIOException) cause;
 			}

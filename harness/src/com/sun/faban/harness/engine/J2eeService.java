@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: J2eeService.java,v 1.2 2006/06/29 19:38:41 akara Exp $
+ * $Id: J2eeService.java,v 1.4 2009/07/28 22:54:15 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -30,62 +30,80 @@ import java.util.Properties;
 
 /**
  *
- * This abstract class is extended by Application Server Services
+ * This abstract class is extended by Application Server Services.
  *
  * @author Ramesh Ramachandran
+ * @deprecated
  */
-public interface J2eeService {
+@Deprecated public interface J2eeService {
     
     /**
-     * setup Service and agents
+     * Setup Service and agents.
      * The instanceArray vector should contain  array of instance dirs and 
-     * logArray should contain array of log files for the corresponging 
-     * instances in the serverMachines.
+     * logArray should contain array of log files for the corresponging instances.
+     * @param r The run
+     * @param serverMachines The server machines to start the service
+     * @param serverHomes The server homes to start the service
+     * @param instanceArray Array of instance directories
+     * @param logsArray The array of log files
      */
-    
     public void setup(Run r, String[] serverMachines,
                 String[] serverHomes, List instanceArray, List logsArray);
     
     /**
-     * set server configuration parameters  
-     * if serverMachine is null then config will be set for all instances in all servers
-     * if instanceHomes is null then config will be set for all instances in the serverMachine
+     * Set server configuration parameters.
+     * If serverMachine is null then config will be set for all instances in all servers.
+     * If instanceHomes is null then config will be set for all instances in the serverMachine.
+     * @param serverMachine The target system
+     * @param instanceHomes The instance home directories
+     * @param params The server configuration parameters
      */
     public void setConfig(String serverMachine, String[] instanceHomes, Properties params);
     
     /**
-     * start/restart Server 
-     * if serverMachine is null then restart all instances in all servers
-     * if instanceHomes is null then restart all instances in the serverMachine
+     * Start/restart server.
+     * If serverMachine is null then restart all instances in all servers.
+     * If instanceHomes is null then restart all instances in the serverMachine
      * boolean force if true the instances will be restarted even if there is 
-     * no change in the config from the last start
+     * no change in the config from the last start.
+     * @param serverMachine The target system
+     * @param instanceHomes The instance home directories
+     * @param force Whether to force the restart or not
+     * @return If the restart succeeded
      */
     public boolean restartServer(String serverMachine, String[] instanceHomes, boolean force);
     
     /**
-     * stop Server
-     * if serverMachine is null then stop all instances in all servers
-     * if instanceHomes is null then stop all instances in the serverMachine
+     * Stop Server.
+     * If serverMachine is null then stop all instances in all servers.
+     * If instanceHomes is null then stop all instances in the serverMachine.
+     * @param serverMachine The target system
+     * @param instanceHomes The instance home directories
+     * @return If the stop succeeded
      */
     public boolean stopServer(String serverMachine, String[] instanceHomes);
     
     /**
-     * transfer log files 
-     * if serverMachine is null then transfer logs of all instances in all servers
-     * if instanceHomes is null then transfer logs of all instances in the serverMachine
+     * Transfer log files.
+     * If serverMachine is null then transfer logs of all instances in all servers.
+     * If instanceHomes is null then transfer logs of all instances in the serverMachine.
+     * @param serverMachine The target system
+     * @param instanceHomes The instance home directories
      */
     public void xferLogs(String serverMachine, String[] instanceHomes);
     
     /**
-     * clear log files 
-     * if serverMachine is null then clear all instances in all servers
-     * if instanceHomes is null then clear all instances in the serverMachine
-     */     
+     * Clear log files.
+     * If serverMachine is null then clear all instances in all servers.
+     * If instanceHomes is null then clear all instances in the serverMachine.
+     * @param serverMachine The target system
+     * @param instanceHomes The instance home directories
+     */
     public void clearLogs(String serverMachine, String[] instanceHomes);
     
     /**
-     * kill the all agents associated with this service.
-     * The App server agents will stop the app server instances
+     * Kill the all agents associated with this service.
+     * The App server agents will stop the app server instances.
      */
     public void kill ();
      

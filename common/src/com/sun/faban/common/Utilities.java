@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Utilities.java,v 1.6 2008/10/09 09:58:32 akara Exp $
+ * $Id: Utilities.java,v 1.15 2009/08/05 22:45:33 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,10 +25,7 @@ package com.sun.faban.common;
 
 import java.io.File;
 import java.net.URL;
-import java.util.List;
-import java.util.Set;
-import java.util.LinkedHashSet;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
@@ -36,6 +33,33 @@ import java.util.regex.Matcher;
  * Common utilities, usually accessible via static import.
  */
 public class Utilities {
+
+    /** The file separator on the master. */
+    public static String masterFileSeparator;
+
+    /** The path separator on the master. */
+    public static String masterPathSeparator;
+
+    private static HashSet<String> xmlEscapes;
+
+    /**
+     * Attempts to convert a path from Windows to Unix. This is needed
+     * as '/' separated paths are well accepted by the JVM on windows, but
+     * '\' in the path is rejected on all Unix-based JVMs.
+     * @param path The path to convert
+     * @return The converted path
+     */
+    public static String convertPath(String path) {
+        if (masterFileSeparator != null &&      // Daemon mode
+            File.separatorChar != '\\' &&       // Current system not windows
+            masterFileSeparator.equals("\\")) { // Master is windows
+            String oldPath = path;
+            path = path.replace(masterFileSeparator, File.separator);
+            path = path.replace(masterPathSeparator, File.pathSeparator);
+            System.err.println("Converted: " + oldPath + " -> " + path);
+        }
+        return path;
+    }
 
     /**
      * Parses a string escaped with \n, \t, \020, etc. Returns the
@@ -88,8 +112,8 @@ public class Utilities {
     }
 
     /**
-     * Obtains the JAVA_HOME of the current JVM.
-     * @return The current JAVA_HOME
+     * Obtains the javaHome of the current JVM.
+     * @return The current javaHome
      */
     public static String getJavaHome() {
         String javaHome = System.getProperty("java.home");
@@ -147,7 +171,7 @@ public class Utilities {
 
     /**
      * Parses the host:port string and puts the list of host:port pairs
-     * into the hostPortList
+     * into the hostPortList.
      * @param hostPorts The host:port string
      * @param hostPortList The list to insert the host:port pairs
      * @param hostSet The set to insert host names, null if not needed
@@ -230,5 +254,101 @@ public class Utilities {
             if (current < selector[bucket])
                 break;
         return bucket;
+    }
+
+    /**
+     * Formats the message to be XML compatible, with the XML escaping.
+     *
+     * @param message The raw message
+     * @return a localized and formatted message
+     */
+    public static String escapeXML(String message) {
+        StringBuilder msgBuffer = new StringBuilder(message.length() * 2);
+        escapeXML(message, msgBuffer);
+        return msgBuffer.toString();
+    }
+
+    /**
+     * Formats the message to be XML compatible, with the XML escaping.
+     *
+     * @param message The raw message
+     * @param msgBuffer The buffer to write the escaped string
+     */
+    public static void escapeXML(String message, StringBuilder msgBuffer) {
+        char[] msgChars = message.toCharArray();
+        for (int i = 0; i < msgChars.length; i++) {
+            switch(msgChars[i]) {
+                case '<' : msgBuffer.append("&lt;");      break;
+                case '>' : msgBuffer.append("&gt;");      break;
+                case '"' : msgBuffer.append("&quot;");    break;
+                case '\'': msgBuffer.append("&apos;");    break;
+                case '&' : i = checkEscapedXML(message, msgChars, i, msgBuffer);
+                           break;
+                default  : msgBuffer.append(msgChars[i]);
+            }
+        }
+    }
+
+    private static int checkEscapedXML(String message, char[] msgChars,
+                                         int ampIdx, StringBuilder msgBuffer) {
+        // First search the message for any ';' char, as in &..; escape
+        // sequences.
+        int seqStart = ampIdx + 1;
+        int semiIdx = message.indexOf(';', seqStart);
+        if (semiIdx < ampIdx) { // not found
+            msgBuffer.append("&amp;");
+            return ampIdx;
+        } else if (msgChars[seqStart] == '#') { // Indicating a number
+            ++seqStart;
+            if (msgChars[seqStart] == 'x' || msgChars[seqStart] == 'X') { // hex
+                for (int i = ++seqStart; i < semiIdx; i++) {
+                    if ((msgChars[i] >= '0' && msgChars[i] <= '9') ||
+                        (msgChars[i] >= 'a' && msgChars[i] <= 'f') ||
+                        (msgChars[i] >= 'A' && msgChars[i] <= 'F')) {
+                        continue;
+                    } else {
+                        msgBuffer.append("&amp;");
+                        return ampIdx;
+                    }
+                }
+            } else {
+                for (int i = seqStart; i < semiIdx; i++) {
+                    if (msgChars[i] >= '0' && msgChars[i] <= '9') {
+                        continue;
+                    } else {
+                        msgBuffer.append("&amp;");
+                        return ampIdx;
+                    }
+                }
+            }
+            msgBuffer.append(msgChars, ampIdx, semiIdx - ampIdx + 1);
+            return semiIdx;
+        } else { // expecting a valid sequence.
+            if (xmlEscapes == null)
+                initXMLEscapes();
+            String sequence =
+                    new String(msgChars, seqStart, semiIdx - seqStart);
+            if (xmlEscapes.contains(sequence)) {
+                msgBuffer.append(msgChars, ampIdx, semiIdx - ampIdx + 1);
+                return semiIdx;
+            } else {
+                msgBuffer.append("&amp;");
+                return ampIdx;
+            }
+        }
+    }
+
+    private static void initXMLEscapes() {
+        String[] escStrings = { "quot", "amp", "apos", "lt", "gt", "nbsp",
+                                "iexcl", "cent", "pound", "curren", "yen",
+                                "brvbar", "sect", "uml", "copy", "ordf",
+                                "laquo", "not", "shy", "reg", "macr", "deg",
+                                "plusmn", "sup2", "sup3", "acute", "micro",
+                                "para", "middot", "cedil", "sup1", "ordm",
+                                "raquo", "frac14", "frac12", "frac34",
+                                "iquest"};
+        xmlEscapes = new HashSet<String>(escStrings.length);
+        for (String escString : escStrings)
+            xmlEscapes.add(escString);
     }
 }

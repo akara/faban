@@ -17,13 +17,13 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TimedSocketFactory.java,v 1.4 2008/05/06 21:58:12 akara Exp $
+ * $Id: TimedSocketFactory.java,v 1.7 2009/07/29 00:29:30 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver.transport.util;
 
-import com.sun.faban.driver.transport.http.SocketFactory;
+import com.sun.faban.driver.transport.sunhttp.SocketFactory;
 
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -39,14 +39,18 @@ import java.io.IOException;
 public class TimedSocketFactory extends SocketFactory {
 
     /**
-     * @see com.sun.faban.driver.transport.http.SocketFactory#createSocket(java.net.Proxy)
+     * Creates a socket through the given proxy.
+     * @param proxy The proxy
+     * @return The socket
      */
 	public Socket createSocket(Proxy proxy) {
         return new TimedSocket(proxy);
     }
 
     /**
-     * @see com.sun.faban.driver.transport.http.SocketFactory#createSocket(java.net.Proxy)
+     * Creates a new socket.
+     * @return The newly created socket
+     * @throws IOException Error creating the socket
      */
     @Override public Socket createSocket() throws IOException {
         return new TimedSocket();
@@ -55,33 +59,63 @@ public class TimedSocketFactory extends SocketFactory {
     /**
      * @see javax.net.SocketFactory#createSocket(java.lang.String, int)
      */
-	public Socket createSocket(String s, int i)
+    /**
+     * Creates a new socket connected to the given host and port.
+     * @param host The host to connect
+     * @param port The port to use
+     * @return The newly created and connected socket
+     * @throws IOException Error creating the socket
+     * @throws UnknownHostException The host is unknown
+     */
+	public Socket createSocket(String host, int port)
             throws IOException, UnknownHostException {
-        return new TimedSocket(s, i);
+        return new TimedSocket(host, port);
     }
 
     /**
-     * @see javax.net.SocketFactory#createSocket(java.lang.String, int, java.net.InetAddress, int)
+     * Creates a stream socket and connects it to the specified port using
+     * a specified local address and port.
+     * @param host      the name of the remote host, or <code>null</code>
+     *                  for the loopback address.
+     * @param port      the remote port
+     * @param localAddr the local address the socket is bound to
+     * @param localPort the local port the socket is bound to
+     * @return The newly created and connected socket
+     * @throws IOException if an I/O error occurs when creating the socket.
+     * @throws UnknownHostException The host is unknown
      */
-	public Socket createSocket(String s, int i, InetAddress inetAddress, int i1)
+	public Socket createSocket(String host, int port, InetAddress localAddr,
+                               int localPort)
             throws IOException, UnknownHostException {
-        return new TimedSocket(s, i, inetAddress, i1);
+        return new TimedSocket(host, port, localAddr, localPort);
     }
 
     /**
-     * @see javax.net.SocketFactory#createSocket(java.net.InetAddress, int)
+     * Creates a stream socket and connects it to the specified port
+     * number at the specified IP address.     *
+     * @param address the IP address.
+     * @param port    the port number.
+     * @return The newly created and connected socket
+     * @throws IOException if an I/O error occurs when creating the socket.
      */
-	public Socket createSocket(InetAddress inetAddress, int i)
+	public Socket createSocket(InetAddress address, int port)
             throws IOException {
-        return new TimedSocket(inetAddress, i);
+        return new TimedSocket(address, port);
     }
 
     /**
-     * @see javax.net.SocketFactory#createSocket(java.net.InetAddress, int, java.net.InetAddress, int)
+     * Creates a stream socket and connects it to the specified port using
+     * a specified local address and port.
+     * @param host      the address of the remote host
+     * @param port      the remote port
+     * @param localAddr the local address the socket is bound to
+     * @param localPort the local port the socket is bound to
+     * @return The newly created and connected socket
+     * @throws IOException if an I/O error occurs when creating the socket.
      */
-	public Socket createSocket(InetAddress inetAddress, int i,
-                               InetAddress inetAddress1, int i1)
+	public Socket createSocket(InetAddress host, int port,
+                               InetAddress localAddr, int localPort)
             throws IOException {
-        return new TimedSocket(inetAddress, i, inetAddress1, i1);
+        return new TimedSocket(host, port, localAddr, localPort);
     }
 }

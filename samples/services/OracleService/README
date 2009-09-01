@@ -1,0 +1,22 @@
+                    Hadoop GridMix README
+
+This is the Faban version of the Gridmix benchmark. We provide a wrapper 
+around the yahoo gridmix benchmark as is - without changing the way the
+benchmark is run in any way.
+
+Notes:
+- The sbin directory contains utilities to run a benchmark outside
+  the Faban harness. This will not be packaged into the deployment
+  jar files. Benchmark-specific scripts and binaries should be places
+  into the bin directory.
+
+- The deploy directory contains the files used for the UI. Any changes to the
+  UI need to go here (e.g. adding additional user parameters).
+
+- The benchmark consists of a single class - HadoopGridMix.java which is the
+  harness hook. It implements the configure, start and end methods, replacing
+  these from DefaultFabanBenchmark.
+
+- If you need to change the default deployment system, edit build.properties.
+  To deploy, simply type 'ant deploy'. This will build and deploy the benchmark
+  to the target faban master.

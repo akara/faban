@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Registry.java,v 1.3 2008/03/05 02:49:51 akara Exp $
+ * $Id: Registry.java,v 1.4 2009/07/02 20:26:40 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -56,6 +56,7 @@ public interface Registry extends Remote {
      * @param service Remote reference to service
      * @return true if registration succeeded, false if there is already
      *         an object registered by this name.
+     * @throws RemoteException A network error occurred
      */
     public boolean register(String name, Remote service) throws RemoteException;
 
@@ -71,6 +72,7 @@ public interface Registry extends Remote {
      * @param service Remote reference to service
      * @return true if registration succeeded, false if there is already
      *         an object registered by this name.
+     * @throws RemoteException A network error occurred
      */
     public boolean register(String type, String name, Remote service)
             throws RemoteException;
@@ -83,6 +85,7 @@ public interface Registry extends Remote {
      * identified by driverName.
      * @param name public driverName of service
      * @param service Remote reference to service
+     * @throws RemoteException A network error occurred
      */
     public void reregister(String name, Remote service) throws RemoteException;
 
@@ -95,69 +98,77 @@ public interface Registry extends Remote {
      * @param type of service
      * @param name of service
      * @param service Remote reference to service
+     * @throws RemoteException A network error occurred
      */
     public void reregister(String type, String name, Remote service)
             throws RemoteException;
 
     /**
-     * unregister service from Registry
+     * Unregisters service from Registry.
      * The registry removes this service from its list and clients
      * can no longer access it. This method is typically called when
      * the service exits.
      * @param name public driverName of service
+     * @throws RemoteException A network error occurred
      */
     public void unregister(String name) throws RemoteException;
 
     /**
-           * unregister service from Registry
-           * The registry removes this service from its list and clients
-           * can no longer access it. This method is typically called when
-           * the service exits.
-           * @param type of service
-           * @param name public driverName of service
-           */
+     * Unregisters service from Registry.
+     * The registry removes this service from its list and clients
+     * can no longer access it. This method is typically called when
+     * the service exits.
+     * @param type of service
+     * @param name public driverName of service
+     * @throws RemoteException A network error occurred
+     */
     public void unregister(String type, String name) throws RemoteException;
     
     /**
-     * get reference to service from Registry
+     * Get reference to the service from the registry.
      * The registry searches in its list of registered services
      * and returns a remote reference to the requested one.
      * The service driverName is of the form <driverName>@<host>
      * @param name public driverName of service
      * @return remote reference
+     * @throws RemoteException A network error occurred
      */
     public Remote getService(String name) throws RemoteException;
 
     /**
-           * get reference to service from Registry
-           * The registry searches in its list of registered services
-           * and returns a remote reference to the requested one.
-           * The service driverName is of the form <driverName>@<host>
-           * @param type of service
-           * @param name public driverName of service
-           * @return remote reference
-           */
+     * Get reference to service from registry.
+     * The registry searches in its list of registered services
+     * and returns a remote reference to the requested one.
+     * The service driverName is of the form <driverName>@<host>
+     * @param type of service
+     * @param name public driverName of service
+     * @return remote reference
+     * @throws RemoteException A network error occurred
+     */
     public Remote getService(String type, String name) throws RemoteException;
     
     /**
-           * get all references to a type of services from Registry
-           * The registry searches in its list of registered services
-           * and returns all  remote references to the requested type.
-           * The service driverName is of the form <driverName>@<host>
-           * @param type of service
-           * @return remote references
-           */
+     * Get all references to a type of services from registry.
+     * The registry searches in its list of registered services
+     * and returns all  remote references to the requested type.
+     * The service driverName is of the form <driverName>@<host>
+     * @param type of service
+     * @return remote references
+     * @throws RemoteException A network error occurred
+     */
     public Remote[] getServices(String type) throws RemoteException;
     
     /**
-        * Get the number of registered Services of a type
-        * @param type of service
-        * @return int number of registered services
-        */
+     * Get the number of registered services of a given type.
+     * @param type The type of service
+     * @return The number of registered services
+     * @throws RemoteException A network error occurred
+     */
     public int getNumServices(String type) throws RemoteException;
 
     /**
-     * Kill is called to exit the RMI registry and Registry
+     * Kill is called to exit the RMI registry and Registry.
+     * @throws RemoteException A network error occurred
      */
     public void kill() throws RemoteException;
 }

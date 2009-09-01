@@ -17,22 +17,27 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DeployTask.java,v 1.6 2007/02/23 06:50:46 akara Exp $
+ * $Id: DeployTask.java,v 1.8 2009/07/29 02:06:48 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.util;
 
-import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.Task;
-import org.apache.commons.httpclient.methods.MultipartPostMethod;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.multipart.FilePart;
+import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
+import org.apache.commons.httpclient.methods.multipart.Part;
+import org.apache.commons.httpclient.methods.multipart.StringPart;
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.Task;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * Ant task for deployment of benchmarks. Usage is as follows:<p>
@@ -49,7 +54,7 @@ public class DeployTask extends Task {
     private String password;
 
     /**
-     * Sets the target URL to the Faban deployment servlet
+     * Sets the target URL to the Faban deployment servlet.
      * @param target The deployment servlet
      */
     public void setUrl(String target) {
@@ -98,18 +103,45 @@ public class DeployTask extends Task {
      */
     public void execute() throws BuildException {
         try {
-            MultipartPostMethod post = new MultipartPostMethod(
-                    target + "/deploy");
+            // First check the jar file and name
+            if (jarFile == null)
+                throw new BuildException(
+                        "jar attribute missing for target deploy.");
+            if (!jarFile.isFile())
+                throw new BuildException("jar file not found.");
+            String jarName = jarFile.getName();
+            if (!jarName.endsWith(".jar"))
+                throw new BuildException(
+                        "Jar file name must end with \".jar\"");
+            jarName = jarName.substring(0, jarName.length() - 4);
+            if (jarName.indexOf('.') > -1)
+                throw new BuildException("Jar file name must not have any " +
+                        "dots except ending with \".jar\"");
+
+            // Prepare the parts for the request.
+            ArrayList<Part> params = new ArrayList<Part>(4);
             if (user != null)
-                post.addParameter("user", user);
+                params.add(new StringPart("user", user));
             if (password != null)
-                post.addParameter("password", password);
+                params.add(new StringPart("password", password));
             if (clearConfig)
-                post.addParameter("clearconfig", "true");
-            post.addParameter("jarfile", jarFile);
+                params.add(new StringPart("clearconfig", "true"));
+            params.add(new FilePart("jarfile", jarFile));
+            Part[] parts = new Part[params.size()];
+            parts = params.toArray(parts);
+
+            // Prepare the post method.
+            PostMethod post = new PostMethod(target + "/deploy");
+            post.setRequestEntity(
+                    new MultipartRequestEntity(parts, post.getParams()));
+
+            // Execute the multi-part post method.
             HttpClient client = new HttpClient();
-            client.setConnectionTimeout(5000);
+            client.getHttpConnectionManager().getParams().
+                    setConnectionTimeout(5000);
             int status = client.executeMethod(post);
+
+            // Check status.
             if (status == HttpStatus.SC_CONFLICT)
                 throw new BuildException("Benchmark to deploy is currently " +
                         "run or queued to be run. Please clear run queue " +

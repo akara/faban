@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunRetriever.java,v 1.13 2009/02/14 05:34:17 sheetalpatil Exp $
+ * $Id: RunRetriever.java,v 1.15 2009/07/28 22:54:17 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -49,7 +49,7 @@ import java.util.logging.Logger;
  */
 public class RunRetriever extends HttpServlet {
 
-    public static final String SERVLET_PATH = "pollrun";
+    static final String SERVLET_PATH = "pollrun";
 
     private static Logger logger = Logger.getLogger(
             RunRetriever.class.getName());
@@ -190,7 +190,7 @@ public class RunRetriever extends HttpServlet {
         out.close();
 
         // Update status locally
-        nextRun.updateStatus("RECEIVED");
+        nextRun.updateStatus(Run.RECEIVED);
 
         // Clear tmp file
         jarFile.delete();
@@ -199,6 +199,8 @@ public class RunRetriever extends HttpServlet {
     /**
      * Jars up the run directory.
      * @param run The run to jar up
+     * @return The resulting jar file
+     * @throws IOException Error creating the jar
      */
     public static File jar(Run run) throws IOException {
 

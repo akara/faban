@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileAgentImpl.java,v 1.9 2008/05/14 07:08:31 akara Exp $
+ * $Id: FileAgentImpl.java,v 1.12 2009/08/05 23:50:10 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -26,6 +26,7 @@ package com.sun.faban.harness.agent;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.util.FileHelper;
 import com.sun.faban.common.FileTransfer;
+import com.sun.faban.common.Utilities;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -38,7 +39,7 @@ import java.util.Properties;
 
 
 /**
- * This is the class that reads/writes files for remote objects
+ * This is the class that reads/writes files for remote objects.
  *
  * @author Ramesh Ramachandran
  * @see com.sun.faban.harness.agent.FileAgent
@@ -49,9 +50,8 @@ public class FileAgentImpl extends UnicastRemoteObject
     private Logger logger;
 
     /**
-     *
-     * Constructor
-     *
+     * Constructs the file agent.
+     * @throws RemoteException A communications error occurred.
      */
     public FileAgentImpl() throws RemoteException {
         super();
@@ -68,26 +68,24 @@ public class FileAgentImpl extends UnicastRemoteObject
      * @param mode - specifies whether the file is opened for reading or
      *                   for writing. The mode is specified by the FileAgent
      *                   interface class variables - READ, WRITE, APPEND.
-     *
      * @return FileService - reference to the FileService interface.
-     *
+     * @throws RemoteException A communications error occurred.
+     * @throws FileServiceException Error opening file
      */
-    public FileService open(String file, int mode) throws RemoteException, FileServiceException {
-        return(new FileServiceImpl(file, mode));
+    public FileService open(String file, int mode)
+            throws RemoteException, FileServiceException {
+        return(new FileServiceImpl(Utilities.convertPath(file), mode));
     }
 
     /**
      *
      * Read the contents of a file. It maybe called by the benchmark specific 
      * code or the RunQ to copy files.
-     *
-     * @param file - The pathname for the file.
-     * 
-     * @return String - Contents of the file as a String object.
-     *
+     * @param file - The pathname for the file
+     * @return String - Contents of the file as a String object
+     * @throws IOException An I/O error occurred
      */
-    public String readWholeFile(String file)
-            throws RemoteException, IOException, FileNotFoundException {
+    public String readWholeFile(String file) throws IOException {
 
         BufferedReader br;
         char[] buf = new char[65535];
@@ -126,7 +124,7 @@ public class FileAgentImpl extends UnicastRemoteObject
 
 
     /**
-     * Gets a property from a given file
+     * Gets a property from a given file.
      * @param configFile The config file name
      * @param propName The property key name
      * @return The property value
@@ -149,11 +147,9 @@ public class FileAgentImpl extends UnicastRemoteObject
      *
      * @param fileName - The pathname for the file.
      * @param contents - Contents of the file as a String object.
-     *
      * @return boolean - true if successful, false if not.
-     *
      */
-    public boolean writeWholeFile(String fileName, String contents) throws RemoteException {
+    public boolean writeWholeFile(String fileName, String contents) {
 
         PrintWriter pr = null;
         try {
@@ -192,16 +188,14 @@ public class FileAgentImpl extends UnicastRemoteObject
 
     /**
      *
-     * Remove a file.
+     * Removes a file.
      *
      * @param fileName - The pathname for the file.
-     *
-     * @return boolean - true if successful, 
+     * @return boolean - true if successful,
      *                   false if not successful or file does not exist.
-     *
      */
-    public boolean removeFile(String fileName) throws RemoteException {
-
+    public boolean removeFile(String fileName) {
+        fileName = Utilities.convertPath(fileName);
         File file = new File(fileName);
 
         if (file.exists()) {
@@ -218,6 +212,7 @@ public class FileAgentImpl extends UnicastRemoteObject
      */
     public boolean removeFiles(String dirName, 
                                com.sun.faban.harness.FileFilter filter) {
+        dirName = Utilities.convertPath(dirName);
         return FileHelper.delete(new File(dirName), filter);
     }
 
@@ -228,6 +223,7 @@ public class FileAgentImpl extends UnicastRemoteObject
      * @return true if exists, false otherwise.
      */
     public boolean doesFileExist(String fileName) {
+        fileName = Utilities.convertPath(fileName);
         File file = new File(fileName);
         return file.exists();
     }
@@ -239,6 +235,7 @@ public class FileAgentImpl extends UnicastRemoteObject
      * @return true if file is a normal file, false otherwise.
      */
     public boolean isFile(String fileName) {
+        fileName = Utilities.convertPath(fileName);
         File file = new File(fileName);
         return file.isFile();
     }
@@ -250,6 +247,7 @@ public class FileAgentImpl extends UnicastRemoteObject
      * @return true if file is a directory, false otherwise.
      */
     public boolean isDirectory(String fileName) {
+        fileName = Utilities.convertPath(fileName);
         File file = new File(fileName);
         return file.isDirectory();
     }
@@ -289,16 +287,19 @@ public class FileAgentImpl extends UnicastRemoteObject
         // Copying happens in FileTransfer.writeObject and
         // FileTransfer.readObject. This is the most memory-efficient way
         // to transfer large files over RMI.
+        srcFile = Utilities.convertPath(srcFile);
         FileTransfer t = new FileTransfer(srcFile, destFile);
         logger.fine("Transferring " + t.getSource() + "->" + t.getDest() +
                     " size " + t.getTransferSize() + " bytes.");
         return t;
     }
 
-    /**
-     * Registration for RMI serving - used only for stand-alone testing
-     */
+    // Registration for RMI serving - used only for stand-alone testing.
 
+    /**
+     * Starts a standalong file agent.
+     * @param argv Command line arguments, not used
+     */
     public static void main(String [] argv) {
 
         //		LocateRegistry.createRegistry();

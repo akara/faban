@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: NegativeExponential.java,v 1.1 2008/09/10 18:25:54 akara Exp $
+ * $Id: NegativeExponential.java,v 1.4 2009/07/28 22:53:30 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -36,12 +36,12 @@ import java.lang.annotation.Annotation;
  */
 public class NegativeExponential extends Cycle {
 
-    /**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
+
+    long cycleMin;
 	long cycleMean;
     long cycleMax;
+    boolean truncate;
 
     /**
      * Initializes this cycle according to the annotation.
@@ -53,18 +53,27 @@ public class NegativeExponential extends Cycle {
                 (com.sun.faban.driver.NegativeExponential) a;
         cycleType = cycleDef.cycleType();
         cycleDeviation = cycleDef.cycleDeviation();
+        cycleMin = cycleDef.cycleMin();
         cycleMean = cycleDef.cycleMean();
         cycleMax = cycleDef.cycleMax();
+        truncate = cycleDef.truncateAtMin();
         if (cycleMax == -1) {
 			cycleMax = 5 * cycleMean;
 		}
 
         // Now check parameters for validity.
+        if (cycleMin < 0) {
+			throw new DefinitionException("@NegativeExponential cycleMin < 0");
+		}
         if (cycleMean < 0) {
 			throw new DefinitionException("@NegativeExponential cycleMean < 0");
 		}
         if (cycleMax < 0) {
 			throw new DefinitionException("@NegativeExponential cycleMax < 0");
+		}
+        if (cycleMin > cycleMean) {
+			throw new DefinitionException(
+                    "@NegativeExponential cycleMin > cycleMean");
 		}
         if (cycleMean > cycleMax) {
 			throw new DefinitionException(
@@ -75,8 +84,9 @@ public class NegativeExponential extends Cycle {
                     "@NegativeExponential CYCLETIME cycleMax cannot be 0");
 		}
         // Adjust time to nanosec.
+        cycleMin  *= 1000000l;
         cycleMean *= 1000000l;
-        cycleMax *= 1000000l;
+        cycleMax  *= 1000000l;
     }
 
     /**
@@ -89,13 +99,23 @@ public class NegativeExponential extends Cycle {
      */
 	public long getDelay(Random random) {
         long delay = 0;
+        long mean = cycleMean;
+        long shift = 0;
+        
+        if (!truncate) {
+            shift = cycleMin;
+            mean -= shift;
+        }
+
         if (cycleMean > 0) {
             double x = random.drandom(0.0, 1.0);
             if (x == 0) {
-				x = 0.05;
+				x = 1e-20d;
 			}
-            delay = (long)(cycleMean * -Math.log(x));
-            if (delay > cycleMax) {
+            delay = shift + (long)(mean * -Math.log(x));
+            if (delay < cycleMin) {
+                delay = cycleMin;
+            } else if (delay > cycleMax) {
 				delay = cycleMax;
 			}
         }

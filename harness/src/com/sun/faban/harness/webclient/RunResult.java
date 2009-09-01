@@ -17,12 +17,14 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunResult.java,v 1.3 2009/03/17 22:49:03 sheetalpatil Exp $
+ * $Id: RunResult.java,v 1.10 2009/08/18 17:42:30 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.webclient;
 
+import com.sun.faban.common.SortDirection;
+import com.sun.faban.common.SortableTableModel;
 import com.sun.faban.harness.ParamRepository;
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
@@ -36,12 +38,17 @@ import javax.security.auth.Subject;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  * Result class scans through the output directory and compiles a list of run
@@ -67,24 +74,52 @@ public class RunResult {
                               "EEE MMM dd HH:mm:ss z yyyy");
 
     private static SimpleDateFormat dateFormatOrig = new SimpleDateFormat(
-                                    "EEE'&#160;'MM/dd/yy HH:mm:ss'&#160;'z");
-
+                                    "MM/dd/yy EEE'&#160;'HH:mm:ss'&#160;'z");
 
     private long modTime = 0;
+
+    /** The run id. */
     public RunId runId;
+
+    /** The run description. */
     public String description;
+
+    /** The result. */
     public String result;
+
+    /** The link for the result to link to. */
     public String resultLink;
+
+    /** The name of the scale. */
     private String scaleName;
+
+    /** The scale value. */
     public String scale;
+
+    /** The unit of the scale. */
     private String scaleUnit;
+
+    /** The metric. */
     public ResultField<Double> metric = new ResultField<Double>();
+
+    /** The unit of the metric. */
     private String metricUnit;
+
+    /** The status of the run. */
     public String status;
+
+    /** The link to the run logs. */
     public String logLink;
+
+    /** The timestamp of the run. */
     public Date dateTime;
+
+    /** The run submitter. */
     public String submitter;
+
+    /** Tags applicable to this run. */
     public String[] tags;
+    static LinkedHashMap<String, Target> targetMap = new LinkedHashMap<String, Target>();
 
     /**
      * This getInstance0 assumes you've checked the run id is found. It will
@@ -328,7 +363,17 @@ public class RunResult {
     }
 
 
-    public static TableModel getResultTable(Subject user, String tags)
+    /**
+     * Returns the SortableTableModel with tag search.
+     * @param user
+     * @param tags
+     * @param column
+     * @param sortDirection
+     * @return SortableTableModel
+     * @throws java.io.IOException
+     */
+    public static SortableTableModel getResultTable(Subject user, String tags,
+            int column, String sortDirection)
             throws IOException {
         TagEngine tagEngine;
         try {
@@ -359,10 +404,17 @@ public class RunResult {
                 logger.log(Level.WARNING, "Cannot read result dir " + runid, e);
             }
         }
-        return generateTable(resultList);
+        return generateTable(resultList, column, sortDirection);
     }
-    
-    public static TableModel getResultTable(Subject user) {
+
+    /**
+     * Returns the SortableTableModel.
+     * @param user
+     * @param column
+     * @param sortDirection
+     * @return SortableTableModel
+     */
+    public static SortableTableModel getResultTable(Subject user, int column, String sortDirection) {
 
         File[] dirs = new File(Config.OUT_DIR).listFiles();
         ArrayList<RunResult> runs = new ArrayList<RunResult>(dirs.length);
@@ -386,10 +438,18 @@ public class RunResult {
                                                                             e);
             }
         }
-        return generateTable(runs);
+        return generateTable(runs, column, sortDirection);
     }
 
-    static TableModel generateTable(List<RunResult> runs) {
+    /**
+     * Generates the table.
+     * @param runs
+     * @param column
+     * @param sortDirection
+     * @return SortableTableModel
+     */
+    static SortableTableModel generateTable(List<RunResult> runs, int column,
+            String sortDirection) {
 
         HashSet<String> scaleNames = new HashSet<String>();
         HashSet<String> scaleUnits = new HashSet<String>();
@@ -418,73 +478,130 @@ public class RunResult {
             return null;
 
         // 2. Generate table header
-        TableModel table = new TableModel(9);
-        table.setHeader(0, "RunID");
-        table.setHeader(1, "Description");
-        table.setHeader(2, "Result");
+        SortableTableModel table = new SortableTableModel(8);
+        String sort = "<img src=/img/sort_asc.gif></img>";
+        if(sortDirection.equals("DESCENDING")){
+             sort = "<img src=\"/img/sort_asc.gif\" border=\"0\"></img>";
+        }else if(sortDirection.equals("ASCENDING")){
+             sort = "<img src=\"/img/sort_desc.gif\" border=\"0\"></img>";
+        }
+        if(column == 0)
+            table.setHeader(0, "RunID " + sort);
+        else
+            table.setHeader(0, "RunID");
+
+        if(column == 1)
+            table.setHeader(1, "Description " + sort);
+        else
+            table.setHeader(1, "Description");
+
+        if(column == 2)
+            table.setHeader(2, "Result " + sort);
+        else
+            table.setHeader(2, "Result");
 
         boolean singleScale = false;
         if (scaleNames.size() == 1 && scaleUnits.size() == 1) {
             singleScale = true;
             if (result0.scaleName.length() > 0 &&
-                    result0.scaleUnit.length() > 0)
+                    result0.scaleUnit.length() > 0){
                 table.setHeader(3, result0.scaleName + " (" +
                         result0.scaleUnit + ')');
-            else if (result0.scaleName.length() > 0)
+            }else if (result0.scaleName.length() > 0){
                 table.setHeader(3, result0.scaleName);
-            else if (result0.scaleUnit.length() > 0)
+            }else if (result0.scaleUnit.length() > 0){
                 table.setHeader(3, result0.scaleUnit);
-            else
-                table.setHeader(3, "Scale");
+            }else{
+                if(column == 3)
+                    table.setHeader(3, "Scale " + sort);
+                else
+                    table.setHeader(3, "Scale");
+            }
 
         } else {
-            table.setHeader(3, "Scale");
+            if(column == 3)
+                table.setHeader(3, "Scale " + sort);
+            else
+                table.setHeader(3, "Scale");
         }
 
         boolean singleMetric = false;
         if (metricUnits.size() == 1) {
             singleMetric = true;
-            if (result0.metricUnit.length() > 0)
+            if (result0.metricUnit.length() > 0){
                 table.setHeader(4, result0.metricUnit);
+            }else{
+                if(column == 4)
+                    table.setHeader(4, "Metric " + sort);
+                else
+                    table.setHeader(4, "Metric");
+            }
+        } else {
+            if(column == 4)
+                table.setHeader(4, "Metric " + sort);
             else
                 table.setHeader(4, "Metric");
-        } else {
-            table.setHeader(4, "Metric");
         }
 
-        table.setHeader(5, "Status");
-        table.setHeader(6, "Date/Time");
-        table.setHeader(7, "Submitter");
-        table.setHeader(8, "Tags");
+        //table.setHeader(5, "Status");
+        if(column == 5)
+            table.setHeader(5, "Date/Time " + sort);
+        else
+            table.setHeader(5, "Date/Time");
+
+        if(column == 6)
+            table.setHeader(6, "Submitter " + sort);
+        else
+            table.setHeader(6, "Submitter");
+
+        if(column == 7)
+            table.setHeader(7, "Tags " + sort);
+        else
+            table.setHeader(7, "Tags");
 
         // 3. Generate table rows.
         StringBuilder b = new StringBuilder();
         // The output format.
         SimpleDateFormat dateFormat = (SimpleDateFormat) dateFormatOrig.clone();
         for (RunResult result : runs) {
-            int idx = table.addRow();
-            Comparable[] row = table.getRow(idx);
+            //int idx = table.newRow();
+            Comparable[] row = table.newRow();
             row[0] = result.runId;
             if (result.description == null || result.description.length() == 0)
                 row[1] = "UNAVAILABLE";
             else
                 row[1] = result.description;
 
+            ResultField<String> r = new ResultField<String>();
             if (result.result != null) {
-                ResultField<String> r = new ResultField<String>();
                 r.value = result.result;
-                if (result.resultLink != null)
-                    r.text = "<a href=\""+ result.resultLink + "\">" +
-                            result.result + "</a>";
-                else
-                    r.text = result.result;
-                row[2] = r;
+                if (result.resultLink != null){
+                    if(result.result.equals("PASSED"))
+                        r.text = "<a href=\""+ result.resultLink + "\"><img onmouseover=\"showtip('" + result.result.toString() + "')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/passed.png'></img></a>";
+                    else if(result.result.equals("FAILED"))
+                        r.text = "<a href=\""+ result.resultLink + "\"><img onmouseover=\"showtip('" + result.result.toString() + "')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/failed.png'></img></a>";
+                    
+                }
+            }else if(result.status != null){
+                r.value = result.status;
+                if (result.logLink != null){
+                    if(result.status.equals("FAILED"))
+                        r.text = "<a href=\""+ result.logLink + "\"><img onmouseover=\"showtip('" + result.status.toString() + "')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/incomplete.png'></img></a>";
+                    else if(result.status.equals("KILLED"))
+                        r.text = "<a href=\""+ result.logLink + "\"><img onmouseover=\"showtip('" + result.status.toString() + "')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/killed.png'></img></a>";
+                    else if(result.status.equals("RECEIVED"))
+                        r.text = "<a href=\""+ result.logLink + "\"><img onmouseover=\"showtip('" + result.status.toString() + "')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/received.png'></img></a>";
+                    else if(result.status.equals("STARTED"))
+                        r.text = "<a href=\""+ result.logLink + "\"><img onmouseover=\"showtip('" + result.status.toString() + "')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/running.png'></img></a>";
+                    else if(result.status.equals("COMPLETED")){
+                        r.text = "<a href=\""+ result.logLink + "\"><img onmouseover=\"showtip('" + result.status.toString() + "')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/failed.png'></img></a>";
+                    }
+                }
             } else {
-                ResultField<String> r = new ResultField<String>();
                 r.value = NOT_AVAILABLE;
-                r.text = "N/A";
-                row[2] = r;
+                r.text = "<a href=\"/controller/results/list\"><img onmouseover=\"showtip('unknown')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/unknown.png'></img></a>";
             }
+            row[2] = r;
 
             ResultField<Integer> scale = new ResultField<Integer>();
             if (result.scale == null || result.scale.length() < 1) {
@@ -494,9 +611,9 @@ public class RunResult {
                 scale.text = result.scale;
                 scale.value = new Integer(result.scale);
             } else {
-                if (result.scaleName.length() > 0)
-                    b.append(result.scaleName).append(' ');
                 b.append(result.scale);
+                if (result.scaleName.length() > 0)
+                    b.append(' ').append(result.scaleName).append(' ');
                 if (result.scaleUnit.length() > 0)
                     b.append(' ').append(result.scaleUnit);
                 scale.text = b.toString();
@@ -523,7 +640,7 @@ public class RunResult {
             }
             row[4] = metric;
 
-            ResultField<String> status = new ResultField<String>();
+            /*ResultField<String> status = new ResultField<String>();
             if (result.status != null) {
                 status.value = result.status;
                 if (result.logLink != null)
@@ -535,7 +652,7 @@ public class RunResult {
                 status.value = NOT_AVAILABLE;
                 status.text = "UNKNOWN";
             }
-            row[5] = status;
+            row[5] = status;*/
 
             ResultField<Long> dateTime = new ResultField<Long>();
             if (result.dateTime != null) {
@@ -545,12 +662,12 @@ public class RunResult {
                 dateTime.text = "N/A";
                 dateTime.value = 0l;
             }
-            row[6] = dateTime;
+            row[5] = dateTime;
 
             if (result.submitter != null)
-                row[7] = result.submitter;
+                row[6] = result.submitter;
             else
-                row[7] = "&nbsp;";
+                row[6] = "&nbsp;";
 
 
             if (result.tags != null && result.tags.length > 0) {
@@ -558,17 +675,246 @@ public class RunResult {
                     b.append(tag).append(' ');
                 }
                 b.setLength(b.length() - 1);
-                row[8] = b.toString();
+                row[7] = b.toString();
                 b.setLength(0);
             } else {
-                row[8] = "&nbsp;";
+                row[7] = "&nbsp;";
             }
         }
 
-        table.sort(6, SortDirection.DESCENDING);
+        SortDirection enumValForDirection = SortDirection.valueOf(sortDirection);
+        table.sort(column, enumValForDirection);
         return table;
     }
 
+    private static String getRunsForTarget(String tags)
+            throws IOException {
+        TagEngine tagEngine;
+        try {
+            tagEngine = TagEngine.getInstance();
+        } catch (ClassNotFoundException ex) {
+            logger.log(Level.SEVERE, "Cannot find tag engine class", ex);
+            throw new IOException("Cannot find tag engine class", ex);
+        }
+        Set<String> runIds = tagEngine.search(tags);
+        StringBuilder runs = new StringBuilder();
+        for (String runid : runIds) {
+            runs.append(" <a href=/resultframe.jsp?runId=" + runid + "&result=summary.xml>" + runid + "</a>");
+        }
+        return runs.toString();
+    }
+
+    private static HashMap<String, String> getAchievedMetricForTarget(String tags)
+            throws IOException {
+        HashMap<String, String> achievedMetricMap = new HashMap<String, String>();
+        TagEngine tagEngine;
+        try {
+            tagEngine = TagEngine.getInstance();
+        } catch (ClassNotFoundException ex) {
+            logger.log(Level.SEVERE, "Cannot find tag engine class", ex);
+            throw new IOException("Cannot find tag engine class", ex);
+        }
+        Set<String> runIds = tagEngine.search(tags);
+        Double achievedMetric = 0.0;
+        String achievedMetricUnit = " ";
+        for (String runid : runIds) {
+            try {
+                RunId runId = new RunId(runid);
+                RunResult res = getInstance(runId);
+                if (res != null && achievedMetric < res.metric.value){
+                    achievedMetric = res.metric.value;
+                    achievedMetricUnit = res.metricUnit;
+                }
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Cannot read result dir " + runid, e);
+            }           
+        }
+        achievedMetricMap.put("metric", achievedMetric.toString());
+        achievedMetricMap.put("metricunit", achievedMetricUnit);
+        return achievedMetricMap;
+    }
+
+
+    /**
+     * Returns the target list with target search.
+     * @param target
+     * @return ArrayList
+     * @throws java.io.IOException
+     */
+    public static ArrayList<Target> getTargetListForTarget(String target)
+            throws IOException {        
+        ArrayList<Target> targetList = getTargetList();
+        if(target != null ){
+            targetList = new ArrayList<Target>();
+            Object[] keyset = targetMap.keySet().toArray();
+            for (int i = 0; i < keyset.length; i++) {
+                    if (keyset[i].toString().contains(target) && targetMap.containsKey(keyset[i])) {
+                        targetList.add(targetMap.get(keyset[i]));
+                    }
+            }              
+        }
+        return targetList;
+    }
+
+    public static ArrayList<Target> getTargetListForUserWithTg(String target, String user)
+            throws IOException {
+        ArrayList<Target> list = new ArrayList<Target>();
+        if(target != null && user != null){
+            ArrayList<Target> targetList = getTargetListForTarget(target);
+            for (int i = 0; i < targetList.size(); i++) {
+                String owner = targetList.get(i).owner.toString();
+                if (owner.equals(user)) {
+                    list.add(targetList.get(i));
+                }
+            }
+        }
+        return list;
+    }
+
+    public static ArrayList<Target> getTargetListForUser(String user)
+            throws IOException {
+        ArrayList<Target> list = new ArrayList<Target>();
+        if(user != null){
+            ArrayList<Target> targetList = getTargetList();
+            for (int i = 0; i < targetList.size(); i++) {
+                String owner = targetList.get(i).owner.toString();
+                if (owner.equals(user)) {
+                    list.add(targetList.get(i));
+                }
+            }
+        }
+        return list;
+    }
+
+    
+    static SortableTableModel generateTargetTable(List<Target> targets, int column,
+            String sortDirection) {
+
+        // 1. Generate table header
+        SortableTableModel table = new SortableTableModel(9);
+        
+        String sort = "<img src=/img/sort_asc.gif></img>";
+        if(sortDirection.equals("DESCENDING")){
+             sort = "<img src=\"/img/sort_asc.gif\" border=\"0\"></img>";
+        }else if(sortDirection.equals("ASCENDING")){
+             sort = "<img src=\"/img/sort_desc.gif\" border=\"0\"></img>";
+        }
+        if(column == 0)
+            table.setHeader(0, "Targets " + sort);
+        else
+            table.setHeader(0, "Targets");
+
+        if(column == 1)
+            table.setHeader(1, "Owner " + sort);
+        else
+            table.setHeader(1, "Owner");
+
+        if(column == 2)
+            table.setHeader(2, "Status " + sort);
+        else
+            table.setHeader(2, "Status");
+
+        if(column == 3)
+            table.setHeader(3, "Achieved Metric " + sort);
+        else
+            table.setHeader(3, "Achieved Metric");
+
+        if(column == 4)
+            table.setHeader(4, "Metric " + sort);
+        else
+            table.setHeader(4, "Metric");
+
+        if(column == 5)
+            table.setHeader(5, "Tags " + sort);
+        else
+            table.setHeader(5, "Tags");
+
+        // 2. Generate table rows.
+        for (Target target : targets) {
+            //int idx = table.newRow();
+            Comparable[] row = table.newRow();
+            row[0] = target.name;
+            row[1] = target.owner;
+            row[2] = target.status;
+            row[3] = target.achievedMetric+ " " + target.achievedMetricunit;
+            row[4] = target.metric + " " + target.metricunit;
+            row[5] = target.tags;
+            row[6] = target.red;
+            row[7] = target.orange;
+            row[8] = target.yellow;
+        }
+
+        SortDirection enumValForDirection = table.getSortDirection().valueOf(sortDirection);
+        table.sort(column, enumValForDirection);
+        return table;
+    }
+
+    public static ArrayList<Target> getTargetList() throws IOException{
+        ArrayList<Target> targetList = new ArrayList<Target>();
+        File targetFile = new File(Config.CONFIG_DIR, "targets.xml");
+        if (targetFile.exists() && targetFile.length() > 0) {
+            //Use the XMLReader and locate the <passed> elements
+            XMLReader reader = new XMLReader(targetFile.
+                    getAbsolutePath());
+            if (reader != null) {
+                    NodeList targets = reader.getNodeListForTagName("target");
+                    for (int i = 0; i < targets.getLength(); i++) {
+                        Target tg = new Target();
+                        Node targetNode = targets.item(i);
+                        if (targetNode.getNodeType() != Node.ELEMENT_NODE) {
+                            continue;
+                        }
+                        Element se = (Element) targetNode;
+                        NodeList targetNodeChildNodes = targetNode.getChildNodes();
+                        int len = targetNodeChildNodes.getLength();                      
+                        for (int k = 0; k < len; k++) {
+                            if (targetNodeChildNodes.item(k).getNodeType() ==
+                                    Node.ELEMENT_NODE) {
+                                
+                                 if (targetNodeChildNodes.item(k).getNodeName().equals("name")){
+                                     tg.name = reader.getValue("name", se);
+                                 }
+                                 if (targetNodeChildNodes.item(k).getNodeName().equals("owner")){
+                                     tg.owner = reader.getValue("owner", se);
+                                 }
+                                 if (targetNodeChildNodes.item(k).getNodeName().equals("tags")){
+                                     tg.tags = reader.getValue("tags", se);
+                                 }
+                                 if (targetNodeChildNodes.item(k).getNodeName().equals("metric")){
+                                     tg.metric = reader.getValue("metric", se);
+                                 }
+                                 if (targetNodeChildNodes.item(k).getNodeName().equals("metricunit")){
+                                     tg.metricunit = reader.getValue("metricunit", se);
+                                 }
+                                 if (targetNodeChildNodes.item(k).getNodeName().equals("red")){
+                                     tg.red = reader.getValue("red", se);
+                                 }
+                                 if (targetNodeChildNodes.item(k).getNodeName().equals("orange")){
+                                     tg.orange = reader.getValue("orange", se);
+                                 }
+                                 if (targetNodeChildNodes.item(k).getNodeName().equals("yellow")){
+                                     tg.yellow = reader.getValue("yellow", se);
+                                 }
+
+                            }
+                        }
+                        HashMap<String, String> achievedMetricMap = getAchievedMetricForTarget(tg.tags);
+                        tg.achievedMetric = achievedMetricMap.get("metric");
+                        tg.achievedMetricunit = achievedMetricMap.get("metricunit");
+                        Double status = ((Double.parseDouble(tg.achievedMetric)/Double.parseDouble(tg.metric)) * 100);
+                        tg.status = status.toString();
+                        targetList.add(tg);
+                        targetMap.put(tg.name.toString(), tg);
+                    }
+            }
+        }
+        return targetList;
+    }
+
+    /**
+     * A result field representing the real value of the field used for
+     * sorting, and the text representation of the value.
+     */
     public static class ResultField<T extends Comparable>
             implements Comparable {
 
@@ -586,13 +932,30 @@ public class RunResult {
         }
     }
 
+    /**
+     * The feed record for the run results.
+     */
     public static class FeedRecord {
+
+        /** The feed title. */
         public String title;
+
+        /** The feed summary. */
         public String summary;
+
+        /** The feed id. */
         public String id;
+
+        /** Timestamp. */
         long date;
-        public String updated; // Formatted string value of updated.
+
+        /** The formatted timestamp. */
+        public String updated;
+
+        /** Resource URL. */
         public String link;
+
+        /** List of tags on the resource. */
         public String[] tags;
 
         FeedRecord(RunId runId, RunResult result) {
@@ -622,6 +985,11 @@ public class RunResult {
         }
     }
 
+    /**
+     * Obtains the list of feeds.
+     * @param user
+     * @return List<FeedRecord>.
+     */
     public static List<FeedRecord> getFeeds(Subject user) {
 
         File[] dirs = new File(Config.OUT_DIR).listFiles();
@@ -646,6 +1014,13 @@ public class RunResult {
         return sortAndLimit(feedList);
     }
 
+    /**
+     * Obtains the list of feeds based on tags.
+     * @param user
+     * @param tags
+     * @return List<FeedRecord>
+     * @throws java.io.IOException
+     */
     public static List<FeedRecord> getFeeds(Subject user, String[] tags) 
             throws IOException {
 
@@ -700,5 +1075,21 @@ public class RunResult {
         if (feedList.size() > FEED_LIMIT)
             return feedList.subList(0, FEED_LIMIT);
         return feedList;
+    }
+
+    public static class Target implements Serializable {
+        public String name;
+        public String owner;
+        public String tags;
+        public String runs;
+        public String status;
+        public String metric;
+        public String metricunit;
+        public String achievedMetric;
+        public String achievedMetricunit;
+        public String red;
+        public String orange;
+        public String yellow;
+
     }
 }

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DeployUtil.java,v 1.17 2009/03/31 00:23:25 sheetalpatil Exp $
+ * $Id: DeployUtil.java,v 1.23 2009/07/29 02:06:49 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,10 +25,10 @@ package com.sun.faban.harness.util;
 
 import com.sun.faban.common.Command;
 import com.sun.faban.common.Utilities;
-import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.BenchmarkDescription;
+import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.engine.RunQ;
-import javax.xml.parsers.ParserConfigurationException;
+import com.sun.faban.harness.services.ServiceManager;
 import org.w3c.dom.Node;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -37,13 +37,12 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
 import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.Date;
-import java.util.ArrayList;
-import java.text.SimpleDateFormat;
-import org.w3c.dom.NodeList;
 
 /**
  * Benchmark deployment utility used to check/generate the deployment
@@ -54,7 +53,11 @@ import org.w3c.dom.NodeList;
  */
 public class DeployUtil {
 
+    /** The benchmark directory. */
     public static final File BENCHMARKDIR;
+
+    /** The service directory. */
+    public static final File SERVICEDIR;
 
     private static Logger logger;
     static {
@@ -65,30 +68,68 @@ public class DeployUtil {
             throw new RuntimeException(Config.BENCHMARK_DIR +
                     " is not a directory");
         }
+        SERVICEDIR = new File(Config.SERVICE_DIR);
+        if (!SERVICEDIR.isDirectory()) {
+            logger.severe(Config.SERVICE_DIR + " is not a directory");
+            throw new RuntimeException(Config.SERVICE_DIR +
+                    " is not a directory");
+        }
     }
 
 
     /**
      * Unjars the content a benchmark jar file into the benchmark directory.
+     * @param jarFile The benchmark jar file
      * @param benchName The name of the benchmark
+     * @throws Exception Error unjaring the jar file.
      */
-    public static void unjar(String benchName) throws IOException {
-
+    public static void unjar(File jarFile, String benchName) throws Exception {
+                
         logger.info("Redeploying " + benchName);
 
-        String jarName = benchName + ".jar";
+        String jarName = jarFile.getName();
         File dir = new File(Config.BENCHMARK_DIR, benchName);
 
         if (dir.exists())
             FileHelper.recursiveDelete(dir);
+
         dir.mkdir();
 
-        FileHelper.unjar(Config.BENCHMARK_DIR + jarName, dir.getAbsolutePath());
+        FileHelper.unjar(jarFile.getAbsolutePath(), dir.getAbsolutePath());
+        File runXml = new File(Config.BENCHMARK_DIR + benchName + File.separator + "META-INF" + File.separator + "run.xml");
+        File servicesToolsXml = new File(Config.BENCHMARK_DIR + benchName + File.separator + "META-INF" + File.separator + "services-tools.xml");
+        if (servicesToolsXml.exists() && !runXml.exists()) {
+            logger.info("Redeploying Service " + benchName);
+
+            File dir1 = new File(Config.SERVICE_DIR, benchName);
+            if (dir1.exists()) {
+                FileHelper.recursiveDelete(dir1);
+            }
+            dir1.mkdir();
+            FileHelper.copyFile(Config.BENCHMARK_DIR + jarName, Config.SERVICE_DIR + jarName, false);
+            FileHelper.recursiveCopy(dir, dir1);
+            FileHelper.recursiveDelete(dir);
+            FileHelper.recursiveDelete(new File(Config.BENCHMARK_DIR + jarName));
+            /*String[] leftoverFiles = dir.list();
+
+            if(leftoverFiles != null && leftoverFiles.length > 0){
+                FileHelper.recursiveDelete(dir);
+            }else{
+                dir.delete();
+            }*/
+        }else{
+            generateDD(benchName);
+            generateXform(benchName);
+        }
+   
     }
 
+    /**
+     * This method is responsible for generation the deployment descriptor.
+     * @param dir The deployment directory
+     */
     public static void generateDD(String dir) {
-        String benchDir = Config.BENCHMARK_DIR + File.separator + dir +
-                          File.separator;
+        String benchDir = Config.BENCHMARK_DIR + dir + File.separator;
         String metaInf = benchDir + "META-INF" + File.separator;
         String xmlPath = metaInf + "benchmark.xml";
         File benchmarkXml = new File(xmlPath);
@@ -151,9 +192,14 @@ public class DeployUtil {
             }
     }
 
+    /**
+     * This method is responsible for generating xform.
+     *
+     * @param dir
+     * @throws java.lang.Exception
+     */
     public static void generateXform(String dir) throws Exception {
-        String benchDir = Config.BENCHMARK_DIR + File.separator + dir +
-                          File.separator;
+        String benchDir = Config.BENCHMARK_DIR + dir + File.separator;
         XPath xPath = XPathFactory.newInstance().newXPath();
         DocumentBuilder parser = DocumentBuilderFactory.
                             newInstance().newDocumentBuilder();
@@ -188,7 +234,12 @@ public class DeployUtil {
 
     }
 
-    public static boolean canDeploy(String benchName) {
+    /**
+     * Checks if benchmark can be deployed.
+     * @param benchName
+     * @return boolean
+     */
+    public static boolean canDeployBenchmark(String benchName) {
         RunQ runQ = RunQ.getHandle();
 
         if (benchName.equals(runQ.getCurrentBenchmark()))
@@ -202,6 +253,22 @@ public class DeployUtil {
         return true;
     }
 
+    /**
+     * Checks if service can be deployed.
+     * @param serviceName
+     * @return boolean
+     */
+    public static boolean canDeployService(String serviceName) {
+        Set<String> activeBundles = ServiceManager.getActiveDeployments();
+        String serviceBundleName = "services" + File.separator + serviceName;
+        if (activeBundles != null && activeBundles.contains(serviceBundleName))
+            return false;
+        return true;
+    }
+
+    /**
+     * Check for any jar files dropped in here. Deploys if needed.
+     */
     public static void checkDeploy() {
         // Check for any jar files dropped in here, deploy if needed.
         File[] jarFiles = BENCHMARKDIR.listFiles();
@@ -214,31 +281,103 @@ public class DeployUtil {
                 continue;
             String benchName = jarName.substring(0,
                              jarName.length() - suffix.length());
-            checkDeploy(jarFiles[i], benchName);
+            if (benchName.indexOf('.') > -1) {
+                logger.warning("Benchmark jar files must not have dots in " +
+                        "the name except for \".jar\". Ignoring " + jarName +
+                        ".");
+                continue;
+            }
+            checkDeployBenchmark(jarFiles[i], benchName);
+        }
+
+        File[] jarFiles1 = SERVICEDIR.listFiles();
+        for (int i = 0; i < jarFiles1.length; i++) {
+            if (jarFiles1[i].isDirectory())
+                continue;
+            String suffix = ".jar";
+            String jarName = jarFiles1[i].getName();
+            if (!jarName.endsWith(suffix))
+                continue;
+            String serviceName = jarName.substring(0,
+                             jarName.length() - suffix.length());
+            if (serviceName.indexOf('.') > -1) {
+                logger.warning("Service jar files must not have dots in " +
+                        "the name except for \".jar\". Ignoring " + jarName +
+                        ".");
+                continue;
+            }
+
+            checkDeployService(jarFiles1[i], serviceName);
+        }
+
+    }
+
+    /**
+     * Checks for service deployment.
+     * @param jarFile The service jar file
+     * @param serviceName The service name
+     */
+    public static void checkDeployService(File jarFile, String serviceName) {
+        File serviceDir = new File(SERVICEDIR, serviceName);
+        if (serviceDir.isDirectory()) {
+            if (jarFile.lastModified() > serviceDir.lastModified())
+                deployService(jarFile, serviceName);
+        } else {
+            deployService(jarFile, serviceName);
         }
     }
 
-    public static void checkDeploy(File jarFile, String benchName) {
+    /**
+     * Checks for benchmark deployment.
+     * @param jarFile The benchmark jar file
+     * @param benchName The benchmark name
+     */
+    public static void checkDeployBenchmark(File jarFile, String benchName) {
         File benchDir = new File(BENCHMARKDIR, benchName);
         if (benchDir.isDirectory()) {
             if (jarFile.lastModified() > benchDir.lastModified())
-                checkDeploy(benchName);
+                deployBenchmark(jarFile, benchName);
         } else {
-            checkDeploy(benchName);
+            deployBenchmark(jarFile, benchName);
         }
     }
 
-    public static void checkDeploy(String benchName) {
-        if (canDeploy(benchName))
+    /**
+     * Deploys a benchmark.
+     * @param jarFile The benchmark jar file
+     * @param benchName The benchmark name
+     */
+    public static void deployBenchmark(File jarFile, String benchName) {
+        if (canDeployBenchmark(benchName))
             try {
-                unjar(benchName);
+                unjar(jarFile, benchName);
                 generateDD(benchName);
+                generateXform(benchName);
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Error deploying benchmark \"" +
                         benchName + "\"", e);
             }
     }
 
+    /**
+     * Deploys a service.
+     * @param jarFile The service jar file
+     * @param serviceBundleName The service bundle name
+     */
+    public static void deployService(File jarFile, String serviceBundleName) {
+        if (canDeployService(serviceBundleName))
+            try {
+                unjar(jarFile, serviceBundleName);
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, "Error deploying serviceBundle \"" +
+                        serviceBundleName + "\"", e);
+            }
+    }
+
+    /**
+     * Clears benchmark's configuration.
+     * @param benchName The banchmark name
+     */
     public static void clearConfig(String benchName) {
 
         // 1. Figure out the config file name.

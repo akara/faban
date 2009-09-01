@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DefaultFabanBenchmark2.java,v 1.2 2009/03/15 07:22:19 akara Exp $
+ * $Id: DefaultFabanBenchmark2.java,v 1.7 2009/07/28 22:54:18 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -33,24 +33,36 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * The default benchmark class for use with benchmarks implemented with the
- * Faban Driver Framework. This class is designed to be extended if additional
- * features are desired. Do not use the DefaultFabanBenchmark if the actual
- * driver is not implemented using the Faban Driver Framework. Implement the
- * Benchmark interface directly in such cases.
+ * The default benchmark class(based on annotations) for use with benchmarks
+ * implemented with the Faban Driver Framework. This class is designed to be
+ * extended if additional features are desired. Do not use the
+ * DefaultFabanBenchmark2 if the actual driver is not implemented using the
+ * Faban Driver Framework.
  *
  * @author Akara Sucharitakul
  */
 public class DefaultFabanBenchmark2 {
 
-    private Logger logger = Logger.getLogger(getClass().getName());;
-    protected ParamRepository params;
-    protected List<String> agents;
-    protected String[] agentHosts;
-    protected Map<String, List<String>> hostAgents;
-    protected Map<String, List<String>> agentEnv;
-    protected CommandHandle masterHandle;
+    private Logger logger = Logger.getLogger(getClass().getName());
 
+    /** The param repository. */
+    protected ParamRepository params;
+
+    /** The agent list. */
+    protected List<String> agents;
+
+    /** The agent hosts. */
+    protected String[] agentHosts;
+
+    /** The map from host to agents. */
+    protected Map<String, List<String>> hostAgents;
+
+    /** Environment to pass to agents when starting. */
+    protected Map<String, List<String>> agentEnv;
+
+    /** Command handle to the master. */
+    protected CommandHandle masterHandle;
+    
     /**
      * Allows benchmark to validate the configuration file. Note that no
      * execution facility is available during validation.
@@ -188,7 +200,7 @@ public class DefaultFabanBenchmark2 {
                         } else if (agents == minAgents) {
                             // If there is more than one least busy, pick
                             // the first one that was not previously assigned.
-                            if (leastBusyHost == previousHost)
+                            if (leastBusyHost.equals(previousHost))
                                 leastBusyHost = hostAgentsEntry.getKey();
                         }
                     }
@@ -258,7 +270,9 @@ public class DefaultFabanBenchmark2 {
     //}
 
     /**
-     * This method is responsible for starting the benchmark run
+     * This method is responsible for starting the benchmark run.
+     *
+     * @throws Exception if any error occurred.
      */
     @StartRun public void start() throws Exception {
 
@@ -293,9 +307,15 @@ public class DefaultFabanBenchmark2 {
                 }
                 logger.info("Starting " + agentType + "Agent[" + agentId +
                         "] on host " + hostName + '.');
+
+                String masterIP = getMasterIP(hostName);
+                if (masterIP == null) {
+                    masterIP = getMasterIP();
+                }
+
                 Command agent = new Command("com.sun.faban.driver.engine." +
                         "AgentImpl", agentType, String.valueOf(agentId),
-                        getMasterIP());
+                        masterIP);
 
                 List<String> env = agentEnv.get(agentType);
                 if (env != null) {

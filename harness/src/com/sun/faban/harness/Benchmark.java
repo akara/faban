@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Benchmark.java,v 1.3 2007/05/24 01:04:39 akara Exp $
+ * $Id: Benchmark.java,v 1.5 2009/07/28 22:54:18 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -30,8 +30,9 @@ package com.sun.faban.harness;
  *
  * @author Ramesh Ramachandran
  * @see com.sun.faban.harness.engine.GenericBenchmark
+ * @deprecated Please use the benchmark annotations going forward
  */
-public interface Benchmark {
+@Deprecated public interface Benchmark {
 
     /**
      * Allows benchmark to validate the configuration file. Note that no
@@ -69,7 +70,7 @@ public interface Benchmark {
 
     /**
      * This method aborts the current benchmark run and is
-     * called when a user asks for a run to be killed
+     * called when a user asks for a run to be killed.
      *
      * @throws Exception if any error occurred.
      */

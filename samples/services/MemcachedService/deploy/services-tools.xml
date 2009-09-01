@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : service-tools.xml
+    Created on : April 6, 2009, 1:26 PM
+    Author     : Sheetal Patil
+    Description:
+        Purpose of the document follows.
+-->
+<services-tools>
+    <service id="MemcachedService">
+        <class>com.sun.services.MemcachedService</class>
+    </service>
+    <tool id="MemcacheStats" service="MemcachedService">
+        <class>com.sun.tools.MemcacheStats</class>
+    </tool>
+</services-tools>

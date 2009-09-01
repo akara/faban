@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: NegativeExponential.java,v 1.2 2006/06/29 19:38:36 akara Exp $
+ * $Id: NegativeExponential.java,v 1.3 2009/06/10 23:40:10 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -38,6 +38,18 @@ public @interface NegativeExponential {
 
     /** The type of cycle to be used. This is either think or cycle time. */
     CycleType cycleType() default CycleType.CYCLETIME;
+
+    /** The min cycle or think time in milliseconds. */
+    int cycleMin() default 0;
+
+    /**
+     * Whether to truncate the distribution at cycleMin shift the whole curve
+     * based on the cycleMin. The frequency at min will be high but the curve
+     * does not change from where cycleMin is 0. If that's not acceptable,
+     * set truncateAtMin to false and the whole distribution will shift to the
+     * right, starting at min.
+     */
+    boolean truncateAtMin() default true;
 
     /** The mean cycle or think time in milliseconds. */
     int cycleMean() default 1000;

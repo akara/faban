@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Document   : toolsets.xml
+    Created on : May 21, 2009, 1:30 PM
+    Author     : Sheetal Patil
+    Description:
+        Purpose of the document follows.
+-->
+<toolsets>
+    <toolset>
+        <name>default</name>
+        <includes>vmstat 10</includes>
+        <includes>mpstat 10</includes>
+    </toolset>
+    <toolset>
+        <name>detail</name>
+        <base>default</base>
+        <includes>iostat -xn 10</includes>
+    </toolset>
+    <toolset>
+        <name>lite</name>
+        <base>default</base>
+        <excludes>vmstat 10</excludes>
+    </toolset>
+</toolsets>

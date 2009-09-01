@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AccessController.java,v 1.7 2008/01/15 08:02:52 akara Exp $
+ * $Id: AccessController.java,v 1.10 2009/08/05 23:50:11 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -40,8 +40,6 @@ import java.util.logging.Logger;
  * control and therefore we implement our own simplified version.
  */
 public class AccessController {
-
-    static Logger logger = Logger.getLogger(AccessController.class.getName());
 
     /**
      * Checks whether the user can submit runs in at least one of the deployed
@@ -214,7 +212,7 @@ public class AccessController {
     }
 
     /**
-     * Checks whether the user is allowed to add comments on the given run
+     * Checks whether the user is allowed to add comments on the given run.
      * @param user The user in question
      * @param resource The run id of the run
      * @return True, if allowed to add comments to this run, false otherwise
@@ -225,8 +223,14 @@ public class AccessController {
         if (user == null)
             return false;
         Acl acl = Acl.getInstance(Permission.WRITE, resource);
-        if (acl.isEmpty() && isViewAllowed(user, resource))
-            return true;
+        if (acl.isEmpty()) {
+            if (Submitter.isSubmitter(user, resource))
+                return true;
+            else if (isRigManageAllowed(user))
+                return true;
+            else
+                return false;
+        }
         return acl.contains(user);
     }
 

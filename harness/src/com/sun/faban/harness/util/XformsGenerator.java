@@ -23,14 +23,9 @@
 package com.sun.faban.harness.util;
 
 import com.sun.faban.common.FabanNamespaceContext;
-import com.sun.faban.harness.common.Config;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
@@ -39,6 +34,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 /**
+ * This class is responsible for generatin the xform form the run.xml file.
  *
  * @author Sheetal Patil
  */
@@ -47,16 +43,21 @@ public class XformsGenerator {
 
     static Document doc;
     static int idCount = 0;
-    static boolean hasMoreElements = false;
     static ArrayList idStack = new ArrayList();
     static ArrayList labelsStack = new ArrayList();
-    static StringBuffer xformsBindBuffer;
-    static StringBuffer xformsLabelsBuffer;
-    static StringBuffer xformsTriggersBuffer;
-    static StringBuffer xformsCasesBuffer;
+    static StringBuilder xformsBindBuffer;
+    static StringBuilder xformsLabelsBuffer;
+    static StringBuilder xformsTriggersBuffer;
+    static StringBuilder xformsCasesBuffer;
     static FabanNamespaceContext ns = new FabanNamespaceContext();
     static HashMap<String, String> map = new HashMap<String, String>();
 
+    /**
+     * Generates the xform file.
+     * @param infile The input configuration file
+     * @param outfile The generated output
+     * @param templateFile The template file used for generation
+     */
     public static void generate(File infile, File outfile, File templateFile) {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(true);
@@ -142,7 +143,7 @@ public class XformsGenerator {
 
         }
         if (xformsBindBuffer == null) {
-            xformsBindBuffer = new StringBuffer(binds);
+            xformsBindBuffer = new StringBuilder(binds);
         } else {
             xformsBindBuffer.append(binds);
         }
@@ -168,7 +169,7 @@ public class XformsGenerator {
             }
         }
         if (xformsCasesBuffer == null) {
-            xformsCasesBuffer = new StringBuffer(inputs);
+            xformsCasesBuffer = new StringBuilder(inputs);
         } else {
             xformsCasesBuffer.append(inputs);
         }
@@ -228,7 +229,7 @@ public class XformsGenerator {
             labelsStack.add(s);
             s = "<"+s+">"+ makeLabel(s) +"</"+s+">" + "\n";
             if (xformsLabelsBuffer == null) {
-                xformsLabelsBuffer = new StringBuffer(s);
+                xformsLabelsBuffer = new StringBuilder(s);
             } else {
                 xformsLabelsBuffer.append(s);
             }
@@ -252,7 +253,7 @@ public class XformsGenerator {
                 "\t</xforms:action>" + "\n" +
             "</xforms:trigger>" + "\n";
         if (xformsTriggersBuffer == null) {
-            xformsTriggersBuffer = new StringBuffer(trigger);
+            xformsTriggersBuffer = new StringBuilder(trigger);
         } else {
             xformsTriggersBuffer.append(trigger);
         }
@@ -269,6 +270,12 @@ public class XformsGenerator {
         }
         return hasNodes;
     }
+
+    /**
+     * Generates a label from the given string.
+     * @param s
+     * @return String
+     */
     public static String makeLabel(String s) {
         int cnt = 0, j=0;
         ArrayList str = new ArrayList();
@@ -297,8 +304,16 @@ public class XformsGenerator {
         FileHelper.tokenReplace(outfile.getAbsolutePath(), "@labels@", xformsLabelsBuffer.toString(), null);
         FileHelper.tokenReplace(outfile.getAbsolutePath(), "@triggers@", xformsTriggersBuffer.toString(), null);
         FileHelper.tokenReplace(outfile.getAbsolutePath(), "@cases@", xformsCasesBuffer.toString(), null);
+        xformsBindBuffer = null;
+        xformsLabelsBuffer = null;
+        xformsTriggersBuffer = null;
+        xformsCasesBuffer = null;
     }
 
+    /**
+     * Tests/runs the XForms generator.
+     * @param args The command line argument
+     */
     public static void main(String[] args){
         File infile = new File(args[0]);
         File outfile = new File(args[1]);

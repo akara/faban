@@ -17,25 +17,15 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Cpustat.java,v 1.8 2008/05/23 23:24:46 akara Exp $
+ * $Id: Cpustat.java,v 1.15 2009/07/28 22:54:16 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.tools;
 
 import com.sun.faban.common.Command;
-import com.sun.faban.common.CommandHandle;
-import com.sun.faban.common.FileTransfer;
-import com.sun.faban.harness.agent.CmdAgentImpl;
-import com.sun.faban.harness.agent.FileAgent;
-import com.sun.faban.harness.common.Config;
 
 import java.io.IOException;
-import java.rmi.RemoteException;
-import java.util.List;
-import java.util.TimerTask;
-import java.util.concurrent.CountDownLatch;
-import java.util.logging.Level;
 
 /**
  * Cpustat starts the cpustat tool. Unlike GenericTool, cpustat needs some
@@ -44,69 +34,47 @@ import java.util.logging.Level;
  * @author Akara Sucharitakul
  * @see com.sun.faban.harness.tools.Tool
  */
-public class Cpustat extends GenericTool {
+public class Cpustat extends CommandLineTool{
 
-    String postFile;
+    private long stopTime;
 
-    public void configure(String tool, List<String> argList, String path,
-                          String outDir, String host, String masterhost,
-                          CmdAgentImpl cmdAgent, CountDownLatch latch) {
-        super.configure(tool, argList, path, outDir, host,
-                        masterhost, cmdAgent, latch);
+    /**
+     * This method is responsible for configuring the tool utility.
+     */
+    @Configure
+    public void configure() {
+        super.config();
         // The postprocessed output is in .xan.host file
-        postFile = outfile.replace(".log.", ".xan.");
-
-        // The raw output will come into the .raw.host file
-        outfile = outfile.replace(".log.", ".raw.");
+        String rawFile = ctx.getOutputFile();
+        ctx.setOutputFile(rawFile.replace(".log.", ".raw."));
     }
+
 
     /**
      * This method is responsible for stopping the tool utility.
+     * @throws IOException Error stopping cpustat
+     * @throws InterruptedException Interrupted waiting for commands
      */
-    @Override public void stop() {
-        stop(true); // Don't finish just yet.
+    @Stop
+    public void stop() throws IOException, InterruptedException {
+        super.stop();
+        stopTime = System.currentTimeMillis();
     }
 
     /**
-     * This method is responsible for stopping the tool utility.
+     * This method is responsible for postprocessing.
+     * @throws IOException Error post-processing cpustat
+     * @throws InterruptedException Interrupted waiting for commands
      */
-    @Override public void stop(boolean warn) {
-        super.stop(warn);
-
-        TimerTask postprocess = new TimerTask() {
-            public void run() {
-                try {
-                    Command cmd = new Command("cpustat-post", logfile);
-                    cmd.setStreamHandling(Command.STDOUT, Command.CAPTURE);
-                    CommandHandle ch = cmdAgent.execute(cmd);
-
-                    FileTransfer transfer = ch.fetchOutput(Command.STDOUT,
-                                                                    postFile);
-                    logger.finer("Transferring CPUstat post output to " +
-                                                                    postFile);
-                    if(transfer != null) {
-                        // Use FileAgent on master machine to copy log
-                        String s = Config.FILE_AGENT;
-                        FileAgent fa = (FileAgent) CmdAgentImpl.getRegistry().
-                                getService(s);
-                        if (fa.push(transfer) != transfer.getSize())
-                            logger.log(Level.SEVERE, "Invalid transfer size");
-                    }
-                } catch (RemoteException e) {
-                    logger.log(Level.SEVERE,
-                            "RemoteException post-processing cpustat!", e);
-                } catch (InterruptedException e) {
-                    logger.log(Level.SEVERE,
-                            "Interrupted post-processing cpustat!", e);
-                } catch (IOException e) {
-                    logger.log(Level.SEVERE,
-                            "IOException post-processing cpustat!", e);
-                } finally {
-                    finish();
-                }
-            }
-        };
-        // Wait till way into ramp down before postprocessing.
-        timer.schedule(postprocess, 5000l);
+    @Postprocess
+    public void postprocess() throws IOException, InterruptedException {
+        String rawFile = ctx.getOutputFile();
+        String postFile = rawFile.replace(".raw.", ".xan.");
+        ctx.setOutputFile(postFile);
+        long sleepTime = stopTime + 500 - System.currentTimeMillis();
+        if (sleepTime > 0)
+            Thread.sleep(sleepTime);
+        cmd = new Command("cpustat-post");
+        ctx.exec(cmd, true);
     }
 }

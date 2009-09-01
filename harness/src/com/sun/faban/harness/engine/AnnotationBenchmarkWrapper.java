@@ -21,18 +21,15 @@
  */
 package com.sun.faban.harness.engine;
 
-import com.sun.faban.harness.Benchmark;
-import com.sun.faban.harness.Configure;
-import com.sun.faban.harness.EndRun;
-import com.sun.faban.harness.KillRun;
-import com.sun.faban.harness.PostRun;
-import com.sun.faban.harness.StartRun;
-import com.sun.faban.harness.Validate;
+import com.sun.faban.harness.*;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * This is an annotation based benchmark wrapper class.
  *
  * @author Sheetal Patil, Sun Microsystems.
  */
@@ -134,12 +131,18 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
     private void throwSourceException(InvocationTargetException e)
                 throws Exception {
             Throwable t = e.getCause();
-            if (t instanceof Exception)
+            if (t instanceof Exception) {
+                logger.log(Level.WARNING, t.getMessage(), t);
                 throw (Exception) t;
-            else
+            } else {
                 throw e;
+            }
     }
 
+    /**
+     * Invokes a benchmark's method annotated by @Validate.
+     * @throws java.lang.Exception
+     */
     void validate() throws Exception {
         if (validateMethod != null){
             try {
@@ -150,6 +153,10 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
         }
     }
 
+    /**
+     * Invokes a benchmark's method annotated by @Configure.
+     * @throws java.lang.Exception
+     */
     void configure() throws Exception {
         if (configureMethod != null){
             try {
@@ -160,6 +167,10 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
         }
     }
 
+    /**
+     * Invokes a benchmark's method annotated by @StartRun.
+     * @throws java.lang.Exception
+     */
     void start() throws Exception {
         if (startMethod != null){
             try {
@@ -170,6 +181,10 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
         }
     }
 
+    /**
+     * Invokes a benchmark's method annotated by @EndRun.
+     * @throws java.lang.Exception
+     */
     void end() throws Exception {
         if (endMethod != null){
             try {
@@ -180,6 +195,10 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
         }
     }
 
+    /**
+     * Invokes a benchmark's method annotated by @PostRun.
+     * @throws java.lang.Exception
+     */
     void postRun() throws Exception {
         if (postRunMethod != null){
             try {
@@ -190,6 +209,10 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
         }
     }
 
+    /**
+     * Invokes a benchmark's method annotated by @KillRun.
+     * @throws java.lang.Exception
+     */
     void kill() throws Exception {
         if (killMethod != null){
             try {

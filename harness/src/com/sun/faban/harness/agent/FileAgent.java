@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileAgent.java,v 1.7 2008/05/02 23:17:32 akara Exp $
+ * $Id: FileAgent.java,v 1.9 2009/07/28 22:54:13 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -36,48 +36,52 @@ import java.io.*;
  * @see com.sun.faban.harness.agent.FileService
  */
 public interface FileAgent extends Remote {
-
-    public static final int READ = 1;	/* Open for reading */
-    public static final int WRITE = 2;	/* Open for writing */
-    public static final int APPEND = 3;	/* Open for write in append mode */
+    /** Open for reading. */
+    public static final int READ = 1;
+    /** Open for writing. */
+    public static final int WRITE = 2;
+    /** Open for write in append mode. */
+    public static final int APPEND = 3;	
 
     /**
-     * Open a file for reading and/or writing
+     * Open a file for reading and/or writing.
      * @param file filename
      * @param mode file open mode - READ, WRITE, APPEND
+     * @return FileService - reference to the FileService interface.
+     * @throws RemoteException A communications error occurred.
+     * @throws FileServiceException Error opening file
      */
-    public FileService open(String file, int mode) throws RemoteException, FileServiceException;
+    public FileService open(String file, int mode)
+            throws RemoteException, FileServiceException;
 
     /**
-     * Read a file from this machine and return the contents as a String
+     * Read a file from this machine and return the contents as a String.
      * 
      * @param file name of the file
-     * @return String contents of the file.
-     *
+     * @return String contents of the file
+     * @throws IOException An I/O error occurred
      */
-    public String readWholeFile(String file)
-	throws RemoteException, IOException, FileNotFoundException;
+    public String readWholeFile(String file) throws IOException;
 
     /**
-     * Write the given file to this machine
+     * Write the given file to this machine.
      * 
      * @param file path
      * @param contents of the file.
      * @return boolean true if successful, false if not.
-     *
+     * @throws RemoteException A communications error occurred.
      */
     public boolean writeWholeFile(String file, String contents)
-	throws RemoteException;
+            throws RemoteException;
 
     /**
      *
      * Remove a file.
      *
      * @param  fileName - The pathname for the file.
-     *
-     * @return boolean - true if successful, 
+     * @return boolean - true if successful,
      *                   false if not successful or file does not exist.
-     *
+     * @throws RemoteException A communications error occurred.
      */
     public boolean removeFile(String fileName) throws RemoteException;
 
@@ -86,16 +90,17 @@ public interface FileAgent extends Remote {
      * @param dirName The directory path name
      * @param filter The filter
      * @return True if files are successfully removed. False otherwise
+     * @throws RemoteException A communications error occurred.
      */
     boolean removeFiles(String dirName,
                                com.sun.faban.harness.FileFilter filter)
             throws RemoteException;
     /**
-     * Gets a property from a given file
+     * Gets a property from a given file.
      * @param configFile The config file name
      * @param propName The property key name
      * @return The property value
-     * @throws java.io.IOException If there is an error accessing the config file
+     * @throws IOException If there is an error accessing the config file
      */
     String getProperty(String configFile, String propName)
             throws IOException;
@@ -104,6 +109,7 @@ public interface FileAgent extends Remote {
      * Checks whether the given remote file exists.
      * @param fileName The file name to test.
      * @return true if exists, false otherwise.
+     * @throws RemoteException A communications error occurred.
      */
     boolean doesFileExist(String fileName) throws RemoteException;
 
@@ -111,6 +117,7 @@ public interface FileAgent extends Remote {
      * Checks whether the given remote file exists and is a normal file.
      * @param fileName The file name to test.
      * @return true if file is a normal file, false otherwise.
+     * @throws RemoteException A communications error occurred.
      */
     boolean isFile(String fileName) throws RemoteException;
 
@@ -118,6 +125,7 @@ public interface FileAgent extends Remote {
      * Checks whether the given remote file exists and is a directory.
      * @param fileName The file name to test.
      * @return true if file is a directory, false otherwise.
+     * @throws RemoteException A communications error occurred.
      */
     boolean isDirectory(String fileName) throws RemoteException;
 

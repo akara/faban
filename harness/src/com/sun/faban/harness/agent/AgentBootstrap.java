@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentBootstrap.java,v 1.17 2009/01/23 03:32:05 akara Exp $
+ * $Id: AgentBootstrap.java,v 1.24 2009/08/05 23:50:10 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -40,11 +40,13 @@ import java.rmi.RemoteException;
 import java.rmi.server.RMISocketFactory;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
-import java.util.logging.Logger;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 /**
- * Bootstrap class for the CmdAgent and FileAgent
+ * Bootstrap class for the CmdAgent and FileAgent.
  */
 public class AgentBootstrap {
 
@@ -55,12 +57,12 @@ public class AgentBootstrap {
     static AgentSocketFactory socketFactory;
     static String progName;
     static boolean daemon = false;
-    static boolean agentsAreUp = false;
     static String host;
     static String ident;
     static String master;
     static Registry registry;
     static String javaHome;
+    static String downloadURL;
     // Initialize it to make sure it doesn't end up a 'null'
     static ArrayList<String> jvmOptions = new ArrayList<String>();
     static ArrayList<String> extClassPath = new ArrayList<String>();
@@ -69,6 +71,10 @@ public class AgentBootstrap {
     static final Set<String> registeredNames =
                     Collections.synchronizedSet(new HashSet<String>());
 
+    /**
+     * Starts the agent bootstrap.
+     * @param args The command line arguments
+     */
     public static void main(String[] args) {
         System.setSecurityManager (new RMISecurityManager());
 
@@ -113,20 +119,34 @@ public class AgentBootstrap {
          */
         try {
             ServerSocket serverSocket = new ServerSocket(daemonPort);
-            byte[] buffer = new byte[8192];
             for (;;) {
                 Socket socket = serverSocket.accept();
-                InputStream in = socket.getInputStream();
+                ObjectInputStream in =
+                        new ObjectInputStream(socket.getInputStream());
                 OutputStream out = socket.getOutputStream();
-                int length = in.read(buffer);
+                ArrayList<String> argList = null;
+                try {
+                    argList = (ArrayList<String>) in.readObject();
+                } catch (ClassNotFoundException e) {
+                    System.err.println("WARNING: Object class not found.");
+                    e.printStackTrace();
+                    continue;
+                }
+                int length = argList.size();
                 if (length > 0) {
-                    String argLine = new String(buffer, 0, length);
-                    System.out.println("Agent(Daemon) starting agent with options: " +
-                                                                    argLine);
-                    String[] args = argLine.split(" ");
-                    if (args.length < 4) {
+                    System.out.println("Agent(Daemon) starting agent with " +
+                            "options: " + argList);
+                    Utilities.masterPathSeparator = argList.remove(--length);
+                    Utilities.masterFileSeparator = argList.remove(--length);
+
+                    if (length < 4) {
                        out.write("400 ERROR: Inadequate params.".getBytes());
+                       continue;
                     }
+
+                    String[] args = new String[length];
+                    args = argList.toArray(args);
+
                     try {
                         startAgents(args);
                         out.write("200 OK".getBytes());
@@ -161,7 +181,6 @@ public class AgentBootstrap {
         String masterLocal = args[2];
         javaHome = args[3];
 
-        String downloadURL = null;
         String benchName = null;
 
         // Setup the basic jvmOptions for this environment which may not
@@ -176,6 +195,9 @@ public class AgentBootstrap {
         jvmOptions.add("-Djava.util.logging.config.file=" + escapedHome +
                                         "config" + fs + "logging." + host +
                                         ".properties");
+
+        ArrayList<String> libPath = new ArrayList<String>();
+        String libPrefix = "-Djava.library.path=";
 
         // There may be optional JVM args
         boolean isClassPath = false;
@@ -213,10 +235,15 @@ public class AgentBootstrap {
                 } else if ("-classpath".equals(args[i])) {
                     isClassPath = true;
                 } else if (isClassPath) {
-                    String[] cp = args[i].split("[;:]");
+                    String[] cp = pathSplit(args[i]);
                     for (String cpElement : cp)
-                        extClassPath.add(cpElement);
+                        extClassPath.add(Utilities.convertPath(cpElement));
                     isClassPath = false;
+                } else if (args[i].startsWith(libPrefix)) {
+                    String[] lp = pathSplit(
+                            args[i].substring(libPrefix.length()));
+                    for (String lpElement : lp)
+                        libPath.add(Utilities.convertPath(lpElement));
                 } else {
                     jvmOptions.add(args[i]);
                 }
@@ -301,8 +328,8 @@ public class AgentBootstrap {
 
                 // setBenchName scans all resources.
                 // Benchmark needs to be loaded first.
-                new BenchmarkLoader().loadBenchmark(benchName, downloadURL);
-                cmd.setBenchName(benchName);
+                new Download().loadBenchmark(benchName, downloadURL);
+                cmd.setBenchName(benchName, libPath);
 
                 if(host.equals(master)) {
                     ident = Config.CMD_AGENT;
@@ -384,6 +411,10 @@ public class AgentBootstrap {
         }
     }
 
+    /**
+     * Unregisters all the registered services.
+     * @throws RemoteException A network error occurred
+     */
     static void deregisterAgents() throws RemoteException {
         synchronized(registeredNames) {
             for (String name : registeredNames)
@@ -393,10 +424,49 @@ public class AgentBootstrap {
         }
     }
 
+    /**
+     * Terminates the agents.
+     */
     static void terminateAgents() {
         if (!daemon) {
             System.exit(0);
         }
+    }
+
+    /**
+     * This method is for splitting both Unix and Windows paths into their
+     * pathElements. It detects the path separator whether it is Unix or
+     * Windows style and takes care of the separators accordingly.
+     * @param path The path to split
+     * @return The splitted path
+     */
+    private static String[] pathSplit(String path) {
+        char pathSeparator = ':';  // Unix style by default.
+
+        // Check for '\' used in Windows paths.
+        if (path.indexOf('\\') >= 0) {
+            pathSeparator=';';
+        }
+
+        // Check for "c:/foo/bar" sometimes used in Windows paths
+        if (pathSeparator == ':' ) {
+            Pattern p = Pattern.compile("\\A[a-zA-Z]:/");
+            Matcher m = p.matcher(path);
+            if (m.find())
+                pathSeparator = ';';
+        }
+
+        // Check for ...;c:/foo/bar at any place in the path
+        if (pathSeparator == ':' ) {
+            Pattern p = Pattern.compile(";[a-zA-Z]:/");
+            Matcher m = p.matcher(path);
+            if (m.find())
+                pathSeparator = ';';
+        }
+
+        String delimiter = "" + pathSeparator;
+
+        return path.split(delimiter);
     }
 
     private static boolean sameHost(String host1, String host2) {

@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- $Id: config-orig.xhtml,v 1.1 2009/06/01 17:01:28 sheetalpatil Exp $ -->
+<html xmlns:xforms="http://www.w3.org/2002/xforms"
+      xmlns:fa="http://faban.sunsource.net/ns/faban"
+      xmlns:fh="http://faban.sunsource.net/ns/fabanharness"
+      xmlns:fd="http://faban.sunsource.net/ns/fabandriver">
+    <head>
+        <xforms:model id="benchmark-model">
+            <xforms:instance id="benchmark-instance" src="{benchmark.template}"/>
+            <xforms:submission xforms:action="schedule-run.jsp" xforms:replace="all" id="submission-debug" xforms:method="post"/>
+            <xforms:bind id="bind-ftpBenchmark" xforms:nodeset="/ftpBenchmark">
+                <xforms:bind id="bind-jvmConfig" xforms:nodeset="fh:jvmConfig">
+                    <xforms:bind id="bind-javaHome" xforms:nodeset="fh:javaHome"/>
+                    <xforms:bind id="bind-jvmOptions" xforms:nodeset="fh:jvmOptions"/>
+                </xforms:bind>
+                <xforms:bind id="bind-runConfig" xforms:nodeset="fa:runConfig">
+                    <xforms:bind id="bind-description" xforms:nodeset="fh:description"/>
+                    <xforms:bind id="bind-runConfig-hostConfig" xforms:nodeset="fa:hostConfig">
+                        <xforms:bind id="bind-agent-host" xforms:nodeset="fa:host"/>
+                        <xforms:bind id="bind-agent-tools" xforms:nodeset="fh:tools"/>
+                    </xforms:bind>
+                    <xforms:bind id="bind-scale" xforms:nodeset="fa:scale" xforms:type="positiveInteger"/>
+                    <xforms:bind id="bind-runControl" xforms:nodeset="fa:runControl">
+                        <xforms:bind id="bind-unit" xforms:nodeset="@unit"/>
+                        <xforms:bind id="bind-rampUp" xforms:nodeset="fa:rampUp" xforms:type="positiveInteger"/>
+                        <xforms:bind id="bind-steadyState" xforms:nodeset="fa:steadyState" xforms:type="positiveInteger"/>
+                        <xforms:bind id="bind-rampDown" xforms:nodeset="fa:rampDown" xforms:type="positiveInteger"/>
+                    </xforms:bind>
+                    <xforms:bind id="bind-threadStart" xforms:nodeset="fd:threadStart">
+                        <xforms:bind id="bind-delay" xforms:nodeset="fd:delay" xforms:type="positiveInteger"/>
+                        <xforms:bind id="bind-simultaneous" xforms:nodeset="fd:simultaneous"/>
+                        <xforms:bind id="bind-parallel" xforms:nodeset="fd:parallel"/>
+                    </xforms:bind>
+                    <xforms:bind id="bind-ftpDriver" xforms:nodeset="fd:driverConfig[@name='FTPDriver']">
+                        <xforms:bind id="bind-driver-agents" xforms:nodeset="fd:agents"/>
+                        <xforms:bind id="bind-driver-statsInterval" xforms:nodeset="fd:stats/fd:interval" xforms:type="positiveInteger"/>
+                        <xforms:bind id="bind-driver-properties" xforms:nodeset="fd:properties">
+                            <!-- The property bindings below show the way to bind to properties of different
+                                 styles in the config file. Please see the config file for reference. -->
+                            <xforms:bind id="bind-driver-user" xforms:nodeset="fd:property[fd:name='user']/fd:value"/>
+                            <xforms:bind id="bind-driver-password" xforms:nodeset="fd:property[fd:name='password']/fd:value"/>
+                        </xforms:bind>
+                        <xforms:bind id="bind-driver-getMix" xforms:nodeset="fd:operationMix[fd:name='GET']/fd:r"/>
+                        <xforms:bind id="bind-driver-putMix" xforms:nodeset="fd:operationMix[fd:name='PUT']/fd:r"/>
+                        <xforms:bind id="bind-driver-connectMix" xforms:nodeset="fd:operationMix[fd:name='Connect']/fd:r"/>
+                    </xforms:bind>
+                </xforms:bind>
+                <xforms:bind id="bind-serverConfig" xforms:nodeset="serverConfig">
+                    <xforms:bind id="bind-server-host" xforms:nodeset="host"/>
+                    <xforms:bind id="bind-server-port" xforms:nodeset="port" xforms:type="positiveInteger"/>
+                    <xforms:bind id="bind-server-fileCount" xforms:nodeset="fileCount" xforms:type="positiveInteger"/>
+                </xforms:bind>
+            </xforms:bind>
+        </xforms:model>
+        <xforms:model id="benchmark-labels">
+            <xforms:instance id="benchmark-label-names">
+                <labels>
+                    <benchmark>Sample FTP Benchmark 1</benchmark>
+                    <jvmConfig>Java</jvmConfig>
+                    <javaHome>JAVA HOME</javaHome>
+                    <jvmOptions>JVM Options</jvmOptions>
+                    <runConfig>Driver</runConfig>
+                    <description>Description</description>
+                    <scale>Scale</scale>
+                    <runControl>Run Control</runControl>
+                    <unit>Unit</unit>
+                    <time>Time (sec)</time>
+                    <cycles>Cycles</cycles>
+                    <rampUp>Ramp Up</rampUp>
+                    <steadyState>Steady State</steadyState>
+                    <rampDown>Ramp Down</rampDown>
+                    <yes>Yes</yes>
+                    <no>No</no>
+                    <threadStart>Email</threadStart>
+                    <delay>Delay between thread starts (ms)</delay>
+                    <simultaneous>Start Threads simultaneously</simultaneous>
+                    <parallel>Start Agents parallely</parallel>
+                    <ftpDriver>FTPDriver</ftpDriver>
+                    <agents>Agents</agents>
+                    <statsInterval>Stats Collection Interval</statsInterval>
+                    <serverConfig>Server Information</serverConfig>
+                    <host>Host</host>
+                    <port>Port</port>
+                    <fileCount>Number of Files</fileCount>
+                    <user>Username</user>
+                    <password>Password</password>
+                    <mix>Operation Mixes</mix>
+                    <getMix>GET</getMix>
+                    <putMix>PUT</putMix>
+                    <connectMix>Connect</connectMix>
+                    <tools>Tools</tools>
+                    <ok>Ok</ok>
+                    <cancel>Cancel</cancel>
+                </labels>
+            </xforms:instance>
+        </xforms:model>
+    </head>
+    <body>
+        <xforms:group id="group-tabsheet">
+            <xforms:trigger id="trigger-jvmConfig">
+                <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/jvmConfig"/>
+                <xforms:action id="action-jvmConfig">
+                    <xforms:revalidate xforms:model="benchmark-model" id="revalidate-jvmConfig"/>
+                    <xforms:toggle id="toggle-jvmConfig" xforms:case="case-jvmConfig"/>
+                </xforms:action>
+            </xforms:trigger>
+            <xforms:trigger id="trigger-runConfig">
+                <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/runConfig"/>
+                <xforms:action id="action-runConfig">
+                    <xforms:revalidate xforms:model="benchmark-model" id="revalidate-runConfig"/>
+                    <xforms:toggle id="toggle-runConfig" xforms:case="case-runConfig"/>
+                </xforms:action>
+            </xforms:trigger>
+            <xforms:trigger id="trigger-ftpDriver">
+                <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ftpDriver"/>
+                <xforms:action id="action-ftpDriver">
+                    <xforms:revalidate xforms:model="benchmark-model" id="revalidate-ftpDriver"/>
+                    <xforms:toggle id="toggle-ftpDriver" xforms:case="case-ftpDriver"/>
+                </xforms:action>
+            </xforms:trigger>
+            <xforms:switch id="switch">
+                <xforms:case id="case-jvmConfig" xforms:selected="true">
+                    <xforms:group id="group-nogroup">
+                        <xforms:input id="input-javaHome" xforms:bind="bind-javaHome">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/javaHome"/>
+                        </xforms:input>
+                        <xforms:input id="input-jvmOptions" xforms:bind="bind-jvmOptions">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/jvmOptions"/>
+                        </xforms:input>
+                    </xforms:group>
+                </xforms:case>
+                <xforms:case id="case-runConfig">
+                    <xforms:group id="group-nogroup">
+                        <xforms:textarea id="input-description" xforms:bind="bind-description">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/description"/>
+                            <xforms:hint>Enter description of this run</xforms:hint>
+                        </xforms:textarea>
+                        <xforms:input id="input-agent-host" xforms:bind="bind-agent-host">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/host"/>
+                            <xforms:hint>Enter machine names seperated by space</xforms:hint>
+                        </xforms:input>
+                        <xforms:input id="input-scale" xforms:bind="bind-scale">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/scale"/>
+                            <xforms:hint>Enter Transaction rate</xforms:hint>
+                            <xforms:help>Enter Transaction rate (Default 1)</xforms:help>
+                            <xforms:alert>Not a valid number</xforms:alert>
+                        </xforms:input>
+                        <xforms:input id="input-agent-tools" xforms:bind="bind-agent-tools">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/tools"/>
+                            <xforms:hint>Enter tool commands to collect statistics, separated by semi-colon</xforms:hint>
+                            <xforms:help>Enter tool commands to collect statistics, separated by semi-colon</xforms:help>
+                        </xforms:input>
+                    </xforms:group>
+                    <xforms:group id="group-runControl">
+                        <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/runControl"/>
+                        <xforms:output xforms:bind="bind-unit"/>
+                        <xforms:input id="input-rampUp" xforms:bind="bind-rampUp">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/rampUp"/>
+                        </xforms:input>
+                        <xforms:input id="input-steadyState" xforms:bind="bind-steadyState">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/steadyState"/>
+                        </xforms:input>
+                        <xforms:input id="input-rampDown" xforms:bind="bind-rampDown">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/rampDown"/>
+                        </xforms:input>
+                    </xforms:group>
+                </xforms:case>
+                <xforms:case id="case-ftpDriver">
+                    <xforms:group id="group-nogroup">
+                        <xforms:input id="input-driver-agents" xforms:bind="bind-driver-agents">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/agents"/>
+                            <xforms:hint>The number of agents to run for this driver</xforms:hint>
+                            <xforms:help>Enter the number of agents for this driver</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-driver-statsInterval" xforms:bind="bind-driver-statsInterval">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/statsInterval"/>
+                            <xforms:hint>The interval, in seconds, to collect detailed statistics</xforms:hint>
+                            <xforms:help>Enter the interval, in seconds, to collect detailed statistics</xforms:help>
+                            <xforms:alert>Not a valid number</xforms:alert>
+                        </xforms:input>
+                    </xforms:group>
+                    <xforms:group id="group-serverConfig">
+                        <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/serverConfig"/>
+                        <xforms:input id="input-server-host" xforms:bind="bind-server-host">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/host"/>
+                            <xforms:hint>The server host name or IP address</xforms:hint>
+                            <xforms:help>Enter the server host name or IP address</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-server-port" xforms:bind="bind-server-port">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/port"/>
+                            <xforms:hint>The server port, or blank for default</xforms:hint>
+                            <xforms:help>Enter the server port, or blank for default</xforms:help>
+                            <xforms:alert>Not a valid port number</xforms:alert>
+                        </xforms:input>
+                        <xforms:input id="input-server-fileCount" xforms:bind="bind-server-fileCount">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/fileCount"/>
+                            <xforms:hint>The number of files to operate on</xforms:hint>
+                            <xforms:help>Enter the number of files to operate on</xforms:help>
+                            <xforms:alert>Not a valid number</xforms:alert>
+                        </xforms:input>
+                        <xforms:input id="input-driver-user" xforms:bind="bind-driver-user">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/user"/>
+                            <xforms:hint>The user name to connect to FTP</xforms:hint>
+                            <xforms:help>Enter the user name to connect to FTP</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-driver-password" xforms:bind="bind-driver-password">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/password"/>
+                            <xforms:hint>The passsword to connect to FTP</xforms:hint>
+                            <xforms:help>Enter the password to connect to FTP</xforms:help>
+                        </xforms:input>
+                    </xforms:group>
+                    <xforms:group id="group-mix">
+                        <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mix"/>
+                        <xforms:input id="input-driver-getMix" xforms:bind="bind-driver-getMix">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/getMix"/>
+                            <xforms:hint>The %mix for GET</xforms:hint>
+                            <xforms:help>Enter the %mix for GET</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-driver-putMix" xforms:bind="bind-driver-putMix">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/putMix"/>
+                            <xforms:hint>The %mix for PUT</xforms:hint>
+                            <xforms:help>Enter the %mix for PUT</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-driver-connectMix" xforms:bind="bind-driver-connectMix">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/connectMix"/>
+                            <xforms:hint>The %mix for Connect</xforms:hint>
+                            <xforms:help>Enter the %mix for Connect</xforms:help>
+                        </xforms:input>
+                    </xforms:group>
+                </xforms:case>
+            </xforms:switch>
+        </xforms:group>
+        <xforms:group id="group-buttons">
+            <xforms:trigger id="trigger-ok">
+                <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ok"/>
+                <xforms:action id="action-ok">
+                    <xforms:send id="send-debug" xforms:submission="submission-debug"/>
+                </xforms:action>
+            </xforms:trigger>
+            <xforms:trigger id="trigger-cancel">
+                <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/cancel"/>
+                <xforms:action id="action-cancel">
+                    <xforms:reset id="reset-cancel" xforms:model="benchmark-model"/>
+                    <xforms:toggle id="toggle-cancel" xforms:case="case-jvmConfig"/>
+                </xforms:action>
+            </xforms:trigger>
+        </xforms:group>
+    </body>
+</html>

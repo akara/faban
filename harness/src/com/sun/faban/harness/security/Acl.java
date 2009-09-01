@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Acl.java,v 1.5 2007/04/19 05:32:58 akara Exp $
+ * $Id: Acl.java,v 1.6 2009/07/21 22:54:49 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -272,7 +272,7 @@ public class Acl {
     }
 
     /**
-     * Merge analysis ACLs from source ACLs
+     * Merge analysis ACLs from source ACLs.
      * @param resources The resources, usually runs
      * @param targetResource The resource for the analysis
      */

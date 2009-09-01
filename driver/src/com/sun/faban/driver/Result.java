@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Result.java,v 1.5 2008/09/10 18:25:57 akara Exp $
+ * $Id: Result.java,v 1.7 2009/07/30 01:14:11 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -35,7 +35,8 @@ package com.sun.faban.driver;
 public abstract class Result {
 
     /**
-     * @return instance
+     * Obtains an instance of the Result object used for obtaining results.
+     * @return instance An instance of the Result object.
      */
     public static Result getInstance() {
         return com.sun.faban.driver.engine.Result.getInstance();
@@ -118,4 +119,88 @@ public abstract class Result {
      * @return The mix ratio of all operations during steady state.
      */ 
     public abstract double[] getOpsMix();
+
+    /**
+     * Obtains the average response time of a given operation. The unit of the
+     * response times is reflected by the response time unit setting in
+     * the @BenchmarkDriver annotation used to annotate the respective driver.
+     * This operation returns NaN if the operation has never been accessed.
+     * @param opsName The name of the operation to query
+     * @return The average response time of the operation during steady state
+     */
+    public abstract double getAvgResponse(String opsName);
+
+    /**
+     * Obtains the average response time of each operation. The unit of the
+     * response times is reflected by the response time unit setting in
+     * the @BenchmarkDriver annotation used to annotate the respective driver.
+     * Returns NaN for an operation if it has never been accessed.
+     * @return The average response time of all operations during steady state
+     */
+    public abstract double[] getAvgResponse();
+
+    /**
+     * Obtains the maximum response time of a given operation. The unit of the
+     * response times is reflected by the response time unit setting in
+     * the @BenchmarkDriver annotation used to annotate the respective driver.
+     * This operation returns NaN if the operation has never been accessed.
+     * @param opsName The name of the operation to query
+     * @return The maximum response time of the operation during steady state
+     */
+    public abstract double getMaxResponse(String opsName);
+
+    /**
+     * Obtains the maximum response time of each operation. The unit of the
+     * response times is reflected by the response time unit setting in
+     * the @BenchmarkDriver annotation used to annotate the respective driver.
+     * Returns NaN for an operation if it has never been accessed.
+     * @return The maximum response time of all operations during steady state
+     */
+    public abstract double[] getMaxResponse();
+
+    /**
+     * Obtains the 90th percentile of the response time for a given operation.
+     * The unit of the response times is reflected by the response time unit
+     * setting in the @BenchmarkDriver annotation used to annotate the
+     * respective driver. This operation returns NaN if the operation has
+     * never been accessed.
+     * @param opsName The name of the operation to query
+     * @return The 90th percentile of the response time of the operation
+     *         during steady state
+     */
+    public abstract double get90thPctResponse(String opsName);
+
+    /**
+     * Obtains the 90th percentile of the response time of each operation.
+     * The unit of the response times is reflected by the response time unit
+     * setting in the @BenchmarkDriver annotation used to annotate the
+     * respective driver. Returns NaN for an operation if it has never been
+     * accessed.
+     * @return The 90th percentile of the response time of all operations
+     *         during steady state
+     */
+    public abstract double[] get90thPctResponse();
+
+    /**
+     * Obtains the standard deviation of the response time for a given
+     * operation. The unit of the response times is reflected by the response
+     * time unit setting in the @BenchmarkDriver annotation used to annotate
+     * the respective driver. This operation returns NaN if the operation has
+     * never been accessed.
+     * @param opsName The name of the operation to query
+     * @return The standard deviation of the response time of the operation
+     *         during steady state
+     */
+    public abstract double getResponseSD(String opsName);
+
+    /**
+     * Obtains the standard deviation of the response time of each operation.
+     * The unit of the response times is reflected by the response time unit
+     * setting in the @BenchmarkDriver annotation used to annotate the
+     * respective driver.Returns NaN for an operation if it has never been
+     * accessed.
+     * @return The standard deviation of the response time of all operations
+     *         during steady state
+     */
+    public abstract double[] getResponseSD();
 }

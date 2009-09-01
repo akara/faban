@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileTransfer.java,v 1.3 2008/05/02 23:16:18 akara Exp $
+ * $Id: FileTransfer.java,v 1.5 2009/08/05 22:45:33 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -93,6 +93,13 @@ public class FileTransfer implements Externalizable {
         }
     }
 
+    /**
+     * Creates a file transfer object from a byte buffer.
+     * @param buffer The buffer
+     * @param offset The starting offset to use
+     * @param length The length of data to use, in bytes
+     * @param dest The destination file
+     */
     public FileTransfer(byte[] buffer, int offset, int length, String dest) {
         this.src = "";
         this.dest = dest;
@@ -197,6 +204,9 @@ public class FileTransfer implements Externalizable {
         src = (String) in.readObject();
         dest = (String) in.readObject();
         size = in.readLong();
+
+        // Convert destination file name to OS path name
+        dest = Utilities.convertPath(dest);
 
         // We need to ensure we read everything out in order not to
         // cause an rmi stream corruption, even if our file write bails.

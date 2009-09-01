@@ -19,7 +19,7 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: build.xml,v 1.24 2009/04/09 22:15:30 sheetalpatil Exp $
+* $Id: build.xml,v 1.28 2009/08/19 20:28:47 sheetalpatil Exp $
 *
 * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
 -->
@@ -28,7 +28,7 @@
     <property file="build.properties"/>
     <property name="jar.output" value="build/lib"/>
     <property name="lib.dir" value="lib"/>
-    <property name="docs.dir" value="${public.dir}/${faban.version}/docs"/>
+    <property name="docs.dir" value="${tmp.dir}/fabandocs"/>
     <tstamp>
         <format property="build.date" pattern="MMddyy"/>
     </tstamp>
@@ -52,10 +52,16 @@
 	    <ant dir="${workspace.dir}/driver"/>
 	    <ant dir="${workspace.dir}/harness"/>
         <antcall target="copy"/>
-        <ant dir="samples/web101"/>
-        <ant dir="samples/ftp101"/>
-        <ant dir="samples/fabanload"/>
-        <ant dir="samples/specweb2005"/>
+        <ant dir="samples/benchmarks/web101"/>
+        <ant dir="samples/benchmarks/ftp101"/>
+        <ant dir="samples/benchmarks/fabanload"/>
+        <ant dir="samples/benchmarks/specweb2005"/>
+        <ant dir="samples/services/ApacheHttpdService"/>
+        <ant dir="samples/services/GlassfishService"/>
+        <ant dir="samples/services/LighttpdService"/>
+        <ant dir="samples/services/MemcachedService"/>
+        <ant dir="samples/services/MysqlService"/>
+        <ant dir="samples/services/OracleService"/>
     </target>
 
     <target name="copy" unless="faban.bundled"
@@ -66,7 +72,7 @@
             overwrite="true" preservelastmodified="true"
             includeEmptyDirs="true" verbose="true"/>
         <mkdir dir="benchmarks"/>
-
+        <mkdir dir="services"/>
         <mkdir dir="bin"/>
         <copy todir="bin"
             overwrite="true" preservelastmodified="true"
@@ -114,39 +120,81 @@
 
         <mkdir dir="output"/>
 
-        <mkdir dir="samples/web101/lib"/>
-        <copy todir="samples/web101"
+        <mkdir dir="samples/benchmarks/web101/lib"/>
+        <copy todir="samples/benchmarks/web101"
             overwrite="true" preservelastmodified="true"
             includeEmptyDirs="true" verbose="true">
-            <fileset dir="${workspace.dir}/samples/web101"/>
+            <fileset dir="${workspace.dir}/samples/benchmarks/web101"/>
         </copy>
 
-        <mkdir dir="samples/ftp101/lib"/>
-        <copy todir="samples/ftp101"
+        <mkdir dir="samples/benchmarks/ftp101/lib"/>
+        <copy todir="samples/benchmarks/ftp101"
             overwrite="true" preservelastmodified="true"
             includeEmptyDirs="true" verbose="true">
-            <fileset dir="${workspace.dir}/samples/ftp101"/>
+            <fileset dir="${workspace.dir}/samples/benchmarks/ftp101"/>
         </copy>
 
-        <mkdir dir="samples/fabanload/lib"/>
-        <copy todir="samples/fabanload"
+        <mkdir dir="samples/benchmarks/fabanload/lib"/>
+        <copy todir="samples/benchmarks/fabanload"
             overwrite="true" preservelastmodified="true"
             includeEmptyDirs="true" verbose="true">
-            <fileset dir="${workspace.dir}/samples/fabanload"/>
+            <fileset dir="${workspace.dir}/samples/benchmarks/fabanload"/>
         </copy>
 
-        <mkdir dir="samples/fhb"/>
-        <copy todir="samples/fhb"
+        <mkdir dir="samples/benchmarks/fhb"/>
+        <copy todir="samples/benchmarks/fhb"
             overwrite="true" preservelastmodified="true"
             includeEmptyDirs="true" verbose="true">
-            <fileset dir="${workspace.dir}/samples/fhb"/>
+            <fileset dir="${workspace.dir}/samples/benchmarks/fhb"/>
         </copy>
 
-        <mkdir dir="samples/specweb2005/lib"/>
-        <copy todir="samples/specweb2005"
+        <mkdir dir="samples/benchmarks/specweb2005/lib"/>
+        <copy todir="samples/benchmarks/specweb2005"
             overwrite="true" preservelastmodified="true"
             includeEmptyDirs="true" verbose="true">
-            <fileset dir="${workspace.dir}/samples/specweb2005"/>
+            <fileset dir="${workspace.dir}/samples/benchmarks/specweb2005"/>
+        </copy>
+
+        <mkdir dir="samples/services/MysqlService/lib"/>
+        <copy todir="samples/services/MysqlService"
+            overwrite="true" preservelastmodified="true"
+            includeEmptyDirs="true" verbose="true">
+            <fileset dir="${workspace.dir}/samples/services/MysqlService"/>
+        </copy>
+
+        <mkdir dir="samples/services/ApacheHttpdService/lib"/>
+        <copy todir="samples/services/ApacheHttpdService"
+            overwrite="true" preservelastmodified="true"
+            includeEmptyDirs="true" verbose="true">
+            <fileset dir="${workspace.dir}/samples/services/ApacheHttpdService"/>
+        </copy>
+
+        <mkdir dir="samples/services/GlassfishService/lib"/>
+        <copy todir="samples/services/GlassfishService"
+            overwrite="true" preservelastmodified="true"
+            includeEmptyDirs="true" verbose="true">
+            <fileset dir="${workspace.dir}/samples/services/GlassfishService"/>
+        </copy>
+
+        <mkdir dir="samples/services/LighttpdService/lib"/>
+        <copy todir="samples/services/LighttpdService"
+            overwrite="true" preservelastmodified="true"
+            includeEmptyDirs="true" verbose="true">
+            <fileset dir="${workspace.dir}/samples/services/LighttpdService"/>
+        </copy>
+
+        <mkdir dir="samples/services/MemcachedService/lib"/>
+        <copy todir="samples/services/MemcachedService"
+            overwrite="true" preservelastmodified="true"
+            includeEmptyDirs="true" verbose="true">
+            <fileset dir="${workspace.dir}/samples/services/MemcachedService"/>
+        </copy>
+
+        <mkdir dir="samples/services/OracleService/lib"/>
+        <copy todir="samples/services/OracleService"
+            overwrite="true" preservelastmodified="true"
+            includeEmptyDirs="true" verbose="true">
+            <fileset dir="${workspace.dir}/samples/services/OracleService"/>
         </copy>
 
         <copy todir="master/common/endorsed"
@@ -154,8 +202,9 @@
             includeEmptyDirs="true" verbose="true">
             <fileset dir="${workspace.dir}/harness/lib" includes="dom3-*, xalan.jar"/>
         </copy>
-        
+
         <mkdir dir="master/temp"/>
+        <mkdir dir="master/logs"/>
 
         <copy file="${workspace.dir}/harness/deploy/context.xml"
             tofile="master/conf/Catalina/localhost/faban.xml"
@@ -190,14 +239,18 @@
         <patternset refid="agent.bin"/>
         <include name="bin/makeagent*"/>
         <include name="master/bin/*.sh"/>
-        <include name="samples/**/bin/**" unless="faban.bundled"/>
-        <include name="samples/**/sbin/**" unless="faban.bundled"/>
+        <include name="samples/benchmarks/**/bin/**" unless="faban.bundled"/>
+        <include name="samples/benchmarks/**/sbin/**" unless="faban.bundled"/>
+        <include name="samples/services/**/bin/**" unless="faban.bundled"/>
+        <include name="samples/services/**/sbin/**" unless="faban.bundled"/>
     </patternset>
 
     <patternset id="package.bin">
         <patternset refid="server.bin"/>
-        <include name="samples/**/bin/**" if="faban.bundled"/>
-        <include name="samples/**/sbin/**" if="faban.bundled"/>
+        <include name="samples/benchmarks/**/bin/**" if="faban.bundled"/>
+        <include name="samples/benchmarks/**/sbin/**" if="faban.bundled"/>
+        <include name="samples/services/**/bin/**" if="faban.bundled"/>
+        <include name="samples/services/**/sbin/**" if="faban.bundled"/>
     </patternset>
 
     <patternset id="package.excludes">
@@ -208,6 +261,8 @@
         <exclude name="bin/**"/>
         <exclude name="benchmarks/?*"/>
         <exclude name="benchmarks/?*/**"/>
+        <exclude name="services/?*"/>
+        <exclude name="services/?*/**"/>
         <exclude name="output/?*"/>
         <exclude name="output/?*/**"/>
         <exclude name="analysis/**"/>
@@ -225,11 +280,16 @@
         <exclude name="master/webapps/fenxi/**"/>
         <exclude name="master/work/Catalina/localhost/?*"/>
         <exclude name="master/work/Catalina/localhost/?*/**"/>
-        <exclude name="samples/**/bin/**"/>
-        <exclude name="samples/**/sbin/**"/>
-        <exclude name="samples/**/build/classes/?*"/>
-        <exclude name="samples/**/build/classes/?*/**"/>        
-        <exclude name="samples/**/build/lib/**"/>
+        <exclude name="samples/benchmarks/**/bin/**"/>
+        <exclude name="samples/benchmarks/**/sbin/**"/>
+        <exclude name="samples/benchmarks/**/build/classes/?*"/>
+        <exclude name="samples/benchmarks/**/build/classes/?*/**"/>
+        <exclude name="samples/benchmarks/**/build/lib/**"/>
+        <exclude name="samples/services/**/bin/**"/>
+        <exclude name="samples/services/**/sbin/**"/>
+        <exclude name="samples/services/**/build/classes/?*"/>
+        <exclude name="samples/services/**/build/classes/?*/**"/>
+        <exclude name="samples/services/**/build/lib/**"/>
     </patternset>
 
     <patternset id="server.excludes">
@@ -237,7 +297,8 @@
         <exclude name="*.zip" if="faban.bundled"/>
         <exclude name="ant/**" if="faban.bundled"/>
         <exclude name="lib/pkglists/**"/>
-        <exclude name="samples/**" if="faban.bundled"/>
+        <exclude name="samples/benchmarks/**" if="faban.bundled"/>
+        <exclude name="samples/services/**" if="faban.bundled"/>
     </patternset>
 
     <patternset id="agent.excludes">
@@ -250,8 +311,10 @@
         <exclude name="analysis/**"/>
         <exclude name="ant/**"/>
         <exclude name="benchmarks/**"/>
+        <exclude name="services/**"/>
         <exclude name="master/**"/>
-        <exclude name="samples/**"/>
+        <exclude name="samples/benchmarks/**"/>
+        <exclude name="samples/services/**"/>
         <exclude name="resources/**"/>
         <exclude name="config/harness.xml"/>
         <exclude name="config/runq/**"/>
@@ -311,7 +374,7 @@
             longfile="warn" compression="gzip">
             <tarfileset dir="." prefix="${package.name}" mode="755" dirmode="755">
                 <patternset refid="agent.bin"/>
-                <exclude name="bin/makeagent*"/>                
+                <exclude name="bin/makeagent*"/>
             </tarfileset>
             <tarfileset dir="." prefix="${package.name}">
                 <patternset refid="agent.excludes"/>
@@ -325,6 +388,7 @@
             <fileset dir="${workspace.dir}/harness/lib" includes="*.jar"/>
             <fileset dir="master/common/lib" includes="*.jar"/>
         </path>
+        <mkdir dir="${docs.dir}/api"/>
         <javadoc packagenames="com.sun.faban.**"
             destdir="${docs.dir}/api"
             classpathref="class.path"
@@ -389,30 +453,32 @@
                 <include name="master/webapps/fenxi/**"/>
                 <include name="master/work/Catalina/localhost/?*/**"/>
                 <include name="master/work/Catalina/localhost/?*"/>
-                <include name="samples/**/build/**"/>
+                <include name="samples/benchmarks/**/build/**"/>
+                <include name="samples/services/**/build/**"/>
             </fileset>
         </delete>
     </target>
-    
+
     <target name="clean-copies" depends="clean-master" unless="faban.bundled"
         description="Clean staging area from all files copied over from the components">
         <delete includeemptydirs="true">
             <fileset dir=".">
-                <include name="*.zip"/>                
+                <include name="*.zip"/>
                 <include name="ant/**"/>
                 <include name="bin/**"/>
                 <include name="config/**"/>
                 <include name="resources/**"/>
                 <include name="lib/**"/>
                 <exclude name="lib/**/pkglists/**"/>
-                <include name="samples/**"/>
+                <include name="samples/benchmarks/**"/>
+                <include name="samples/services/**"/>
                 <include name="master/common/endorsed/?*"/>
                 <include name="master/conf/Catalina/localhost/faban.xml"/>
                 <include name="master/webapps/faban.war"/>
             </fileset>
         </delete>
     </target>
-    
+
     <target name="clean-modules" depends="clean-copies" unless="faban.bundled"
         description="Clean all modules">
         <ant dir="${workspace.dir}/common" target="clean"/>

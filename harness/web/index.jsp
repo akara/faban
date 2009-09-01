@@ -19,7 +19,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: index.jsp,v 1.5 2009/02/28 18:03:50 akara Exp $
+ * $Id: index.jsp,v 1.6 2009/06/25 23:13:39 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -55,5 +55,6 @@
         <noframes>
             <p>This page requires frames, but your browser does not support them.</p>
         </noframes>
+    </frameset>
     </frameset>
 </html>

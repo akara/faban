@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: InterfaceProbe.java,v 1.3 2008/07/26 07:36:09 akara Exp $
+ * $Id: InterfaceProbe.java,v 1.6 2009/07/28 22:54:17 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -38,17 +38,21 @@ public class InterfaceProbe {
 
     Logger logger = Logger.getLogger(this.getClass().getName());
     ExecutorService threadPool = null;
-    public static final int TIMEOUT = 10000;
-    public static final int LOCAL_TIMEOUT = 5000;
+    static final int TIMEOUT = 10000;
+    static final int LOCAL_TIMEOUT = 5000;
 
     // Parallel probing is still buggy, especially for ICMP echo (root ping)
     // mode. So we'll not use it just yet. This seems like a JDK bug.
     // Once we get it working in all instances, we'll change this.
-    public static final int PARALLEL_THRESHOLD = Integer.MAX_VALUE;
+    static final int PARALLEL_THRESHOLD = Integer.MAX_VALUE;
 
     ArrayList<NetworkInterface> ifList;
     List<IFAddressInfo> ifAInfoList;
 
+    /**
+     * Unit tests the interface probe.
+     * @param args The commmand line arguments
+     */
     public static void main(String[] args) {
         try {
             ArrayList<String> hosts = new ArrayList<String>();
@@ -93,6 +97,10 @@ public class InterfaceProbe {
         byte[] netAddress;
     }
 
+    /**
+     * .
+     * @throws java.net.SocketException
+     */
     public InterfaceProbe() throws SocketException {
         Enumeration<NetworkInterface> interfaces =
                 NetworkInterface.getNetworkInterfaces();
@@ -101,11 +109,20 @@ public class InterfaceProbe {
         ifAInfoList = listIFAddressInfo(ifList);
     }
 
+    /**
+     * .
+     * @param executor
+     * @throws java.net.SocketException
+     */
     public InterfaceProbe(ExecutorService executor) throws SocketException {
         this();
         threadPool = executor;
     }
 
+    /**
+     * Sets the thread pool to be used for parallel probing.
+     * @param executor The thread pool
+     */
     public void setExecutorService(ExecutorService executor) {
         threadPool = executor;
     }
@@ -136,6 +153,13 @@ public class InterfaceProbe {
         return ifAInfos;
     }
 
+    /**
+     * Fills the interface maps identifying which interface is to be used
+     * to communicate to a particular host.
+     * @param hosts The host list
+     * @param ifMap The host to interface map to fill
+     * @return The host to interface map provided, filled in
+     */
     public Map<String, String> getIfMap(Collection<String> hosts,
                                         Map<String, String> ifMap) {
 
@@ -156,6 +180,11 @@ public class InterfaceProbe {
         return ifMap;
     }
 
+    /**
+     * Obtains the route list for a list of hosts.
+     * @param hosts The list of hosts
+     * @return the corresponding list of routes
+     */
     public List<Route> getRoutes(Collection<String> hosts) {
         ArrayList<Route> routes = new ArrayList<Route>();
         if (hosts.size() < PARALLEL_THRESHOLD) {

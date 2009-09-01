@@ -18,7 +18,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MasterState.java,v 1.1 2008/09/10 18:25:54 akara Exp $
+ * $Id: MasterState.java,v 1.2 2009/07/03 01:52:35 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -32,37 +32,27 @@ package com.sun.faban.driver.engine;
  */
 public enum MasterState {
 
-    /**
-     * Not Started
-     */
+    /** Not Started. */
     NOT_STARTED,
-    /**
-     * Configuring
-     */
+
+    /** Configuring. */
     CONFIGURING,
-    /**
-     * Starting
-     */
+
+    /** Starting. */
     STARTING,
-    /**
-     * Ramp up
-     */
+
+    /** Ramp up. */
     RAMPUP,
-    /**
-     * Steady State
-     */
+
+    /** Steady State. */
     STEADYSTATE,
-    /**
-     * Ramp down
-     */
+
+    /** Ramp down. */
     RAMPDOWN,
-    /**
-     * Results
-     */
+
+    /** Results. */
     RESULTS,
-    /**
-     * Aborted
-     */
-    ABORTED,
-   
+
+    /** Aborted. */
+    ABORTED   
 }

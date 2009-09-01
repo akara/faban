@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Timer.java,v 1.8 2009/03/15 07:26:13 akara Exp $
+ * $Id: Timer.java,v 1.9 2009/07/28 22:53:32 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -30,13 +30,14 @@ import java.util.Random;
 import java.util.logging.Logger;
 
 /**
- * This class has the functions to get timestamps
+ * Timer for all benchmark runs.
  */
 public class Timer implements Serializable {
-    /** The millisec epoch time of this benchmark */
+
+    /** The millisec epoch time of this benchmark. */
 	long epochMillis;
 
-    /** The nanosec epoch time of this benchmark */
+    /** The nanosec epoch time of this benchmark. */
     transient long epochNanos; // This has no meaning on a different system.
 
     transient long diffms; // The epoch difference, millisec part
@@ -492,6 +493,7 @@ public class Timer implements Serializable {
 
         /**
          * Constructs the calibrator.
+         * @param id An identifier for this calibrator
          * @param endTime The time to end the calibration, based on this timer
          */
         Calibrator(String id, long endTime) {

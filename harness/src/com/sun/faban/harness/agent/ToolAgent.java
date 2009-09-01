@@ -17,13 +17,17 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ToolAgent.java,v 1.3 2008/05/23 05:57:41 akara Exp $
+ * $Id: ToolAgent.java,v 1.9 2009/07/28 22:54:14 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.agent;
+import com.sun.faban.harness.tools.MasterToolContext;
+import java.io.IOException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.List;
+import java.util.Set;
 
 /**
  * The methods in this interface are the public face of 
@@ -39,57 +43,83 @@ public interface ToolAgent extends Remote {
 
     /**
      * This method configures the tools that must be run on
-     * this machine
-     * @param toolslist - each element in the array is the
+     * this machine.
+     * @param toollist - each element in the array is the
      * name of a tool and optional arguments, e.g "sar -u -c"
+     * @param osToolSet list of os tools
      * @param outDir output directory of the run
+     * @throws RemoteException, IOException
      */
-    void configure(String toolslist[], String outDir) throws RemoteException;
+    void configure(List<MasterToolContext> toollist, Set<String> osToolSet,
+            String outDir)
+            throws RemoteException, IOException;
 
+    /**
+     * This method is responsible for killing all tools.
+     * @throws java.rmi.RemoteException
+     */
     void kill() throws RemoteException;
 
     /**
-     * This method is responsible for starting all tools
+     * This method is responsible for starting all tools.
      * @param 	delay - time to delay before starting
      * @return 	true if tool started successfully
+     * @throws RemoteException
      */
     boolean start(int delay) throws RemoteException;
 	
     /**
-     * This method is responsible for starting all tools
+     * This method is responsible for starting all tools.
      * @return 	true if tool started successfully
      * @param 	delay - time to delay before starting
      * @param duration after which tools must be stopped
+     * @throws RemoteException
      */
     boolean start(int delay, int duration) throws RemoteException;
 
     /**
-     * Start only specified tools 
+     * Start only specified tools.
+     * @param 	delay - time to delay before starting
+     * @param 	tools - specific list of tools to start
+     * @return  true if all tools are started successfully, false otherwise
+     * @throws RemoteException A communication error occurred
      */
     boolean start(int delay, String[] tools)
-	throws RemoteException;
+	        throws RemoteException;
 
     /**
-     * Start only specified tools
-     * @param 	delay - time to delay before starting
+     * Start only specified tools for specific duration.
+     * @param delay - time to delay before starting
+     * @param tools - specific list of tools to start
      * @param duration after which tools must be stopped
+     * @return  true if all tools are started successfully, false otherwise
+     * @throws RemoteException A communication error occurred
      */
     boolean start(int delay, String[] tools, int duration)
-	throws RemoteException;
+	        throws RemoteException;
 
     /**
-     * This method is responsible for stopping the tools
+     * This method is responsible for stopping the tools.
+     * @throws RemoteException A communication error occurred
      */
     public void stop () throws RemoteException;
 
     /**
      * Stopping specific tools.
      * @param tools The tools to stop.
-     */ 
+     * @throws RemoteException A communication error occurred
+     */
     public void stop (String tools[]) throws RemoteException;
 
     /**
      * Waits for all tools to finish up.
+     * @throws RemoteException A communication error occurred
      */
     public void waitFor() throws RemoteException;
+
+    /**
+     * This method is responsible for post processing tools.
+     * @throws RemoteException A communication error occurred
+     */
+    public void postprocess() throws RemoteException;
 }

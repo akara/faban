@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Note: Some parameters have not yet been implemented -->
 <FabanHarness>
-    <security enabled="false">
+    <security enabled="true">
         <loginPrompt>User ID</loginPrompt>
         <loginHint>Enter your user id</loginHint>
         <passwordPrompt>Password</passwordPrompt>
@@ -61,8 +61,9 @@
         </host>
     </runDaemon>
     <repository>
-        <server enabled="true">http://faban.sfbay.sun.com:9980</server>
+        <server enabled="true">http://taxes.sfbay.sun.com:9980</server>
         <server enabled="false">http://faban.sunsource.net:9980</server>
+        <targetting enabled="true"></targetting>
     </repository>
     <logServer>  <!-- Don't touch this unless you really know what you're doing -->
         <port>9999</port>

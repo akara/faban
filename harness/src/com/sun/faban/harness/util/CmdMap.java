@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdMap.java,v 1.9 2008/04/04 22:09:27 akara Exp $
+ * $Id: CmdMap.java,v 1.13 2009/08/27 21:03:21 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -52,7 +52,7 @@ public class CmdMap {
     /**
      * Scans the bin directories and command map file and returns the command
      * map.
-     * @param benchName The name of the benchmark,
+     * @param resourceName The name of the benchmark,
      *                  null if the map is not benchmark-specific
      * @return The command map
      * @throws Exception Something went wrong obtaining the command map.
@@ -71,7 +71,7 @@ public class CmdMap {
         addExecMap(sbinDir, binMap, null);
 
         if (benchName != null)
-            addBenchMap(binMap, benchName);
+            addResourceMap(binMap, Config.BENCHMARK_DIR, benchName);
 
         mapPathExt(binMap);
 
@@ -94,8 +94,40 @@ public class CmdMap {
        return binMap;
     }
 
-    private static void addBenchMap(HashMap<String, List<String>> binMap,
-                                    String benchName) {
+    public static HashMap<String, List<String>> getServiceBinMap(
+                                    String serviceName) throws Exception {
+        HashMap<String, List<String>> binMap =
+                                        new HashMap<String, List<String>>();
+
+        if (serviceName != null)
+            addResourceMap(binMap, Config.SERVICE_DIR, serviceName);
+
+        mapPathExt(binMap);
+
+        addCmdMapFile(binMap);
+
+        // Dump the binMap for debugging
+        if (logger.isLoggable(Level.FINER)) {
+            StringBuilder b = new StringBuilder("Executable map for service ");
+            b.append(serviceName).append(":\n");
+            for (Map.Entry<String, List<String>> entry : binMap.entrySet()) {
+                b.append(entry.getKey());
+                b.append(" :");
+                List<String> l = entry.getValue();
+                for (String v : l) {
+                    b.append(' ').append(v);
+                }
+                b.append('\n');
+            }
+            logger.finer(b.toString());
+        }
+       return binMap;
+
+    }
+
+
+    private static void addResourceMap(HashMap<String, List<String>> binMap,
+                                       String baseDir, String resourceName) {
         // chmod is the way to make a file executable on Unix. Other platforms
         // like Win32 does not have it and uses a different mechanism. So
         // we'll run chmod only if it's there.
@@ -112,7 +144,7 @@ public class CmdMap {
             chmod.add(chmodCmd.getAbsolutePath());
             chmod.add("+x");
         }
-        File binDir = new File(Config.BENCHMARK_DIR + benchName + "/bin/");
+        File binDir = new File(baseDir + resourceName + "/bin/");
         boolean emptyList = addExecMap(binDir, binMap, chmod);
         File sbinDir = new File(binDir, Config.OS_DIR);
         emptyList = addExecMap(sbinDir, binMap, chmod) && emptyList;
@@ -134,7 +166,6 @@ public class CmdMap {
                            "Interrupted changing mode on bin files", e);
             }
     }
-
 
     private static boolean addExecMap(File binDir,
                                       HashMap<String, List<String>> binMap,
@@ -164,6 +195,12 @@ public class CmdMap {
      */
     public static String[] getPathExt() {
         String pathExt = System.getProperty("faban.pathext");
+
+        // Check the environment on a Windows system, in case
+        // the faban.pathext property is not set.
+        if (pathExt == null && File.separatorChar == '\\')
+            pathExt = System.getenv("PATHEXT");
+
         if (pathExt == null)
             return null;
         pathExt = pathExt.trim();
@@ -439,6 +476,12 @@ public class CmdMap {
         }
     }
 
+    /**
+     * Replace the first element of the command list with the relacement.
+     * The original list will likely grow.
+     * @param orig The original command list
+     * @param replacement The replacement for the first entry in the list
+     */
     public static void replaceFirst(List orig, List replacement) {
         ArrayList tmp = new ArrayList();
         tmp.addAll(orig);
@@ -449,6 +492,11 @@ public class CmdMap {
         }
     }
 
+    /**
+     * Main to test the command map.
+     * @param args The command line argument
+     * @throws Exception If the mapping shows any errors
+     */
     public static void main(String[] args) throws Exception {
         ArrayList<CmdDetail> cmdList = new ArrayList<CmdDetail>();
         HashMap<String, List<String>> binMap =

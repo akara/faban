@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.31 2008/12/05 22:02:14 sheetalpatil Exp $
+ * $Id: Config.java,v 1.36 2009/08/07 20:34:14 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -48,6 +48,10 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
+/**
+ * Central configuration object for the Faban harness. Fields are initialized
+ * as the harness is brought up and should never be changed.
+ */
 public class Config {
 
     // This field is a legal requirement and serves no other purpose.
@@ -105,96 +109,167 @@ public class Config {
             "des exportations et la liste de ressortissants sp\351cifiquement " +
             "d\351sign\351s, sont rigoureusement interdites.\n";
 
+    /** The harness name. */
     public static final String HARNESS_NAME = "Faban";
+
+    /** The harness version. */
     public static final String HARNESS_VERSION = "1.0";
 
+    /** The log file name. */
     public static final String LOG_FILE = "log.xml";
 
-    // The default logging port
+    /** The logging port. */
     public static int LOGGING_PORT = 9999;
 
-    // The default RMI port
+    /** The RMI registry port. */
     public static int RMI_PORT = 9998;
 
-    // The default Agent port
+    /** The agent daemon port. */
     public static int AGENT_PORT = 9981;
 
-    public static final String PROFILE_SIGNAL = "PROF";
-
-    // resultinfo contains a single line summary result
+    /** resultinfo contains a single line summary result. */
     public static final String RESULT_INFO = "resultinfo";
 
-    // Config of packages
-    public static final String ENGINE_PKG = "com.sun.faban.harness.engine.";
-    public static final String TOOLS_PKG = "com.sun.faban.harness.tools.";
-    public static final String BENCH_PKG = "com.sun.faban.harness.benchmarks.";
-
     // RMI related
+    /** Command agent name in registry. */
     public static final String CMD_AGENT = "CmdAgent";
+
+    /** File agent name in registry. */
     public static final String FILE_AGENT = "FileAgent";
+
+    /** Tool agent name in registry. */
     public static final String TOOL_AGENT = "ToolAgent";
 
     // Resource downloads
-    public static final String DOWNLOAD_PATH = "bench_downloads/";
+    /** Context path for benchmark downloads. */
+    public static final String BENCHMARK_DOWNLOAD_PATH = "bench_downloads/";
+
+    /** Context path for service downloads. */
+    public static final String SERVICE_DOWNLOAD_PATH = "service_downloads/";
 
 	// Universal Faban constants
+    /** The default priority. */
     public static final int DEFAULT_PRIORITY = 1;
+
+    /** The higher priority. */
     public static final int HIGHER_PRIORITY = 2;
 
-    public static final String XML_STATS_DIR = "xmlstats";
+    /** Path under result to store postprocessing results. */
+    public static final String POST_DIR = "post/";
 
+    /** Directory name containing architecture-specific files. */
     public static String ARCH_DIR;
+
+    /** Directory name containing OS-specific files. */
     public static String OS_DIR;
 
+    /** Temporary directory name. */
     public static String TMP_DIR;
+
     // File related
-    public static String FABAN_HOST; // The host name.
+    /** The current host name. */
+    public static String FABAN_HOST;
+
+    /** The faban installation directory. */
     public static String FABAN_HOME; // This is where Faban is installed
+
+    /** The web root context to access Faban. */
     public static String FABAN_ROOT; // This is the context root for Faban
+
+    /** The full URL used for accessing Faban from inside the rig. */
     public static String FABAN_URL; // The URL to access Faban
+
+    /** The Faban configuration directory. */
     public static String CONFIG_DIR;
+
+    /** The directory containing the run queue. */
     public static String RUNQ_DIR;
+
+    /** The output directory. */
     public static String OUT_DIR;
+
+    /** The directory containing analysis output. */
     public static String ANALYSIS_DIR;
-    public static String TAGDB_DIR;
+
+    /** The name of the sequence file. */
     public static String SEQUENCE_FILE;
 
     // Constants used by UserEnv
+    /** The directory containing the benchmark. */
     public static String BENCHMARK_DIR;
-    public static String BENCH_FILE;
-    public static String PROFILES_DIR;
 
-    // The URL to the context, initialized only on master process.
-    public static String CONTEXT_URL;
+    /** The directory containing services. */
+    public static String SERVICE_DIR;
+
+    /** The directory containing user profiles. */
+    public static String PROFILES_DIR;
 
     // space before and after string are required in next line
     // Constant used by engine.CmdService
+
+    /** The directory containing the binary files. */
     public static String BIN_DIR;
+
+    /** Directory containing jars and libraries. */
     public static String LIB_DIR;
 
+    /** The Faban configuration file. */
     public static String CONFIG_FILE;
 
+    /** The default log file. */
     public static String DEFAULT_LOG_FILE;
-    public static int LOG_VIEW_BUFFER_SIZE = 20; 
 
-    public static ExecutorService THREADPOOL;  // Generic thread pool.
+    /** The size of the log view, in entries. */
+    public static int LOG_VIEW_BUFFER_SIZE = 20;
+
+    /** Generic thread pool. */
+    public static ExecutorService THREADPOOL;
 
     // Configuration from the file
+    /** Whether or not security is enabled. */
     public static boolean SECURITY_ENABLED = false;
+
+    /** The login prompt. */
     public static String loginPrompt;
+
+    /** Tooltip help message for the login prompt. */
     public static String loginHint;
+
+    /** The password prompt. */
     public static String passwordPrompt;
+
+    /** Tooltip help message for the password prompt. */
     public static String passwordHint;
+
+    /**
+     * The login configuration. This includes information such as the provider.
+     */
     public static LoginConfiguration LOGIN_CONFIG = null;
+
+    /** The login principals. */
     public static Set<String> PRINCIPALS;
+
+    /** User name used for deploying benchmarks and services. */
     public static String DEPLOY_USER;
+
+    /** Password used for deploying benchmarks and services. */
     public static String DEPLOY_PASSWORD;
+
+    /** Submitter used when submitting runs through the FabanCLI. */
     public static String CLI_SUBMITTER;
+
+    /** Submitter password for the FabanCLI. */
     public static String SUBMIT_PASSWORD;
 
+    /** The mode of the run daemon in this configuration. */
     public static DaemonModes daemonMode;
+
+    /** Host names of the pollers. */
     public static HostInfo[] pollHosts;
+
+    /** URLs for Faban repositories, if enabled. */
     public static URL[] repositoryURLs = null;
+    public static boolean targetting = false;
 
     static {
         deriveConfig();
@@ -202,13 +277,41 @@ public class Config {
         readConfig();
     }
 
-    public enum DaemonModes { POLLER, POLLEE, LOCAL, DISABLED };
+    /**
+     * Enumeration for daemon modes.
+     */
+    public enum DaemonModes {
+        /** Poller mode. Also makes runs. */
+        POLLER,
 
+        /** Pollee proxy. Does not make runs. */
+        POLLEE,
+
+        /** Standard Faban master. Make runs, but no polling. */
+        LOCAL,
+
+        /** Repository. Runs are disabled. */
+        DISABLED
+    };
+
+    /**
+     * Host information structure.
+     */
     public static class HostInfo {
+
+        /** Host name. */
         public String name;
+
+        /** URL to access the host. */
         public URL url;
+
+        /** The key used for accessing this host. */
         public String key;
+
+        /** Proxy, if any, for accesing the host. */
         public String proxyHost;
+
+        /** The proxy port. */
         public int proxyPort;
     }
 
@@ -277,7 +380,6 @@ public class Config {
         LIB_DIR = FABAN_HOME + "lib" + File.separator;
         OUT_DIR = FABAN_HOME + "output" + File.separator;
         ANALYSIS_DIR = FABAN_HOME + "analysis" + File.separator;
-        TAGDB_DIR = FABAN_HOME + "tags" + File.separator;
         CONFIG_DIR = FABAN_HOME + "config" + File.separator;
         RUNQ_DIR = CONFIG_DIR  + "runq" + File.separator;
         SEQUENCE_FILE = CONFIG_DIR  + "sequence";
@@ -285,10 +387,10 @@ public class Config {
 
         // Constants used UserEnv
         BENCHMARK_DIR = FABAN_HOME + "benchmarks" + File.separator;
-        BENCH_FILE = CONFIG_DIR + "benchmarks.list";
+        SERVICE_DIR = FABAN_HOME + "services" + File.separator;
         PROFILES_DIR = CONFIG_DIR + "profiles" + File.separator;
 
-        String[] emptyDirs = { BENCHMARK_DIR, OUT_DIR, RUNQ_DIR, PROFILES_DIR,
+        String[] emptyDirs = { BENCHMARK_DIR, SERVICE_DIR, OUT_DIR, RUNQ_DIR, PROFILES_DIR,
                               FABAN_HOME + "logs",
                               FABAN_HOME + "master" + File.separator + "logs" };
         ensureDirs(emptyDirs);
@@ -461,6 +563,14 @@ public class Config {
                     }
                     repositoryURLs = new URL[serverList.size()];
                     repositoryURLs = serverList.toArray(repositoryURLs);
+                }
+
+                // Reading targetting config
+                Node t = (Node) xPath.evaluate(
+                        "repository/targetting[@enabled='true']", root,
+                        XPathConstants.NODE);
+                if (t != null) {
+                   targetting = true;
                 }
 
                 // Note: The logServer config is read by LogConfig, not here.

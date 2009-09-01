@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FabanNamespaceContext.java,v 1.2 2009/03/31 00:25:36 sheetalpatil Exp $
+ * $Id: FabanNamespaceContext.java,v 1.3 2009/07/02 20:26:40 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -52,6 +52,10 @@ public class FabanNamespaceContext implements NamespaceContext {
     LinkedHashMap<String, ArrayList<String>> prefixMap =
             new LinkedHashMap<String, ArrayList<String>>();
 
+    /**
+     * Constructs the Faban namespace context that contains all Faban
+     * namespaces to start with.
+     */
     public FabanNamespaceContext() {
         addNamespace(XMLConstants.XML_NS_URI, XMLConstants.XML_NS_PREFIX);
         addNamespace(XMLConstants.XMLNS_ATTRIBUTE_NS_URI,
@@ -59,7 +63,6 @@ public class FabanNamespaceContext implements NamespaceContext {
         addNamespace("http://faban.sunsource.net/ns/faban", "fa");
         addNamespace("http://faban.sunsource.net/ns/fabandriver","fd");
         addNamespace("http://faban.sunsource.net/ns/fabanharness", "fh");
-
     }
 
     /**

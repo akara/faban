@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunContext.java,v 1.13 2008/04/11 07:52:54 akara Exp $
+ * $Id: RunContext.java,v 1.15 2009/07/28 22:54:18 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -189,7 +189,8 @@ public class RunContext {
      * Execute a code block defined as a RemoteCallable on a remote host.
      * @param host The remote host
      * @param callable The callable defining the code block
-     * @return The result of the collable.
+     * @return The result of the callable
+     * @throws Exception An error occurred making the call
      */
     public static <V extends Serializable> V
                         exec(String host, RemoteCallable<V> callable)
@@ -203,6 +204,7 @@ public class RunContext {
      * @param hosts The remote hosts
      * @param callable The callable defining the code block
      * @return The result of the callable
+     * @throws Exception An error occurred making the call
      */
     public static <V extends Serializable> List<V>
                         exec(String[] hosts, RemoteCallable<V> callable)
@@ -246,7 +248,7 @@ public class RunContext {
      * @return The true host name
      */
     public static String getHostName(String host) {
-        return CmdService.getHandle().getHostTypes().getHostByAlias(host);
+        return CmdService.getHandle().getHostRoles().getHostByAlias(host);
     }
 
     /**
@@ -277,7 +279,7 @@ public class RunContext {
     }
 
     /**
-     * Deletes files o
+     * Deletes files on a target remote host.
      * @param hostName The remote host name
      * @param dir The file name
      * @param filter The file name filter

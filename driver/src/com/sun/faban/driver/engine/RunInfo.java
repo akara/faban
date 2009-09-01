@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunInfo.java,v 1.3 2009/04/01 22:03:29 akara Exp $
+ * $Id: RunInfo.java,v 1.5 2009/08/05 23:36:20 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -57,99 +57,93 @@ import com.sun.faban.driver.RunControl;
  * RunInfo
  * This class contains the run parameters used for the run.
  * They directly reflect the run configuration.
+ *
+ * sdo 10/17/08: Add support for https into driver template
  */
 public class RunInfo implements Serializable {
 
-    /**
-	 * SerialVersionUID
-	 */
 	private static final long serialVersionUID = 1L;
 	
-	/** FABANURI */
+	/** Namespace URI for Faban in general. */
 	public static final String FABANURI = "http://faban.sunsource.net/ns/faban";
-    /** DRIVERURI */
+
+    /** Namespace URI for the Faban driver. */
     public static final String DRIVERURI =
                                 "http://faban.sunsource.net/ns/fabandriver";
-    /**
-     * Results Directory
-     */
+    /** The results directory. */
     public String resultsDir;
     
-    /**
-     * Scale
-     */
+    /** Scale of the run. */
     public int scale = 1;
     
-    /**
-     * Audit
-     */
+    /** Whether audit is on or not. This is not used. */
     public boolean audit = false;
     
-    /**
-     * Run ID
-     */
+    /** The run ID. */
     public String runId;
     
-    /**
-     * Ramp Up, in seconds
-     */
+    /** Ramp Up, in seconds. */
     public int rampUp;
     
-    /**
-     * Ramp Down, in seconds
-     */
+    /** Ramp Down, in seconds. */
     public int rampDown;
     
-    /**
-     * Steady State, in seconds
-     */
+    /** Steady State, in seconds. */
     public int stdyState;
-    
+
+    /** Use varable load or not. */
     public boolean variableLoad = false;
+
+    /** Variable load input file. */
     public String variableLoadFile;
+
+    /** The load adjuster for variable load. */
     public VariableLoadHandler variableLoadHandler;
 
-    /**
-     * Simultaneous Start
-     */
+    /** Whether all threads start simultaneously. */
     public boolean simultaneousStart = false;
     
-    /**
-     * Parallel Agent Thread Start
-     */
+    /** Whether agents start in parallel. */
     public boolean parallelAgentThreadStart = false;
     
     /**
-     * milliseconds between thread start.
+     * Milliseconds between thread start.
      */
     public int msBetweenThreadStart = 0;
-    
   
-    /** benchStartTime */
+    /** The benchmark start time, relative to the timer. */
     public int benchStartTime = Integer.MAX_VALUE;
-    /** start */
+
+    /** The actual millisec start time. */
     public long start = Long.MAX_VALUE;	// benchStartTime in ms actual time
-    /** maxRunTime */
+
+    /** The maximum run time, used only for cycle runs. */
     public int maxRunTime = 6;  // 6 hrs
-    /** graphInterval */
+
+    /** The time interval for graphing. */
     public int graphInterval = 30; // 30 seconds
-    /** runtimeStatsEnabled */
+
+    /** Whether the runtime stats are enabled. */
     public boolean runtimeStatsEnabled = false;
-    /** runtimeStatsInterval */
+
+    /** Interval for runtime stats. */
     public int runtimeStatsInterval = 30;
-    /** driverConfig */
+
+    /** The current driver config object. */
     public DriverConfig driverConfig;
-    /** agentInfo */
+
+    /** The current agent information. */
     public AgentInfo agentInfo;
 
-    /** defBytes */
+    /** fhb bytes defining a class. */
     public byte[] defBytes;
             
     transient DriverConfig[] driverConfigs;
 
     private static transient ConfigurationReader reader;
     private static transient RunInfo instance;
-    /** logHandler */
+
+    /** The log handler. */
     public transient Handler logHandler;
 
     private RunInfo() {
@@ -276,46 +270,45 @@ public class RunInfo implements Serializable {
     public static class AgentInfo implements Serializable {
         
 		private static final long serialVersionUID = 1L;
-		/** agentNumber */
+		/** Agent number. */
 		public int agentNumber;
-        /** startThreadNumber */
+        /** Starting thread number. */
         public int startThreadNumber;
-        /** threads */
+        /** Number of threads. */
         public int threads;
-        /** agentScale */
+        /** Scale of the agent. */
         public double agentScale;
-        /** agentType */
+        /** Type of the agent. */
         public transient String agentType;
     }
 
     /**
-     * The {@link DriverConfig}
+     * The {@link DriverConfig} for a specific driver.
      */
     public static class DriverConfig extends BenchmarkDefinition.Driver {
         
-    	/**
-		 * SerialVersionUID
-		 */
 		private static final long serialVersionUID = 1L;
 		
 		/**
-		 * runControl
+		 * The reference to runControl.
 		 */
 		public RunControl runControl;
 		
-		/**
-		 * Number of agents
-		 */
+		/** Number of agents. */
         public int numAgents = -1; // Defaults to the actual number of agents.
-        /** numThreads */
+
+        /** Number of threads. */
         public int numThreads = -1; // Overrides the threadPerScale
-        int maxRunTime;
+
         int graphInterval;
-        /** runtimeStatsTarget */
+
+        /** Target for runtime stats, currently unused. */
         public String runtimeStatsTarget;
-        /** rootElement */
+
+        /** Root element of the configuration DOM tree. */
         public Element rootElement;
-        /** properties */
+
+        /** Property element of the configuration DOM tree. */
         public Element properties;
 
         DriverConfig(BenchmarkDefinition.Driver driverDef) {
@@ -361,15 +354,13 @@ public class RunInfo implements Serializable {
     }
 
     /**
-     * Description of new class
+     * Obtains the run configuration by reading the configuration file.
      *
      * @author Akara Sucharitakul
      */
     static class ConfigurationReader {
 
-        RunInfo runInfo;
         String configFileName;
-        Exception parseException = null;
         String definingClassName = null;
         Element rootElement;
         Object runConfigNode;
@@ -471,40 +462,21 @@ public class RunInfo implements Serializable {
         // Used to create the operation-specific information for various
         // types of requests
         private static abstract class RunInfoDefinition {
-            protected boolean isFile, doSubst, isBinary;
+            protected boolean doSubst;
+            protected boolean isBinary;
             protected String url;
             protected String data;
 
-            /**
-             * @param opNum
-             * @return
-             */
-            public abstract String getURL(int opNum);
+            abstract String getURL(int opNum);
             
-            /**
-             * @param opNum
-             * @return
-             * @throws Exception
-             */
-            public abstract String getPostRequest(int opNum) throws Exception;
+            abstract String doTiming(int opNum);
             
-            /**
-             * @param opNum
-             * @return
-             * @throws Exception
-             */
-            public abstract String getStatics(int opNum) throws Exception;
+            abstract String getPostRequest(int opNum) throws Exception;
+            
+            abstract String getStatics(int opNum) throws Exception;
 
-            /**
-             * @param isFile
-             * @param doSubst
-             * @param isBinary
-             * @param url
-             * @param data
-             */
-            public void init(boolean isFile, boolean doSubst, boolean isBinary,
+            public void init(boolean doSubst, boolean isBinary,
                              String url, String data) {
-                this.isFile = isFile;
                 this.doSubst = doSubst;
                 this.isBinary = isBinary;
                 this.url = url;
@@ -578,10 +550,7 @@ public class RunInfo implements Serializable {
         private static class RunInfoPostFileDefinition
                 extends RunInfoDefinition {
 
-            /**
-             * @see com.sun.faban.driver.engine.RunInfo.ConfigurationReader.RunInfoDefinition#getStatics(int)
-             */
-			public String getStatics(int opNum) throws Exception {
+			String getStatics(int opNum) throws Exception {
                 if (isBinary) {
                     FileInputStream fis = new FileInputStream(data);
                     byte[] b = new byte[fis.available()];
@@ -603,18 +572,18 @@ public class RunInfo implements Serializable {
 				}
             }
 
-            /**
-             * @see com.sun.faban.driver.engine.RunInfo.ConfigurationReader.RunInfoDefinition#getURL(int)
-             */
-			public String getURL(int opNum) {
+			String getURL(int opNum) {
                 return new StringBuilder("\"").append(url).
                         append("\"").toString();
             }
 
-            /**
-             * @see com.sun.faban.driver.engine.RunInfo.ConfigurationReader.RunInfoDefinition#getPostRequest(int)
-             */
-			public String getPostRequest(int opNum) throws Exception {
+            String doTiming(int i) {
+                if (url.startsWith("https"))
+                    return "ctx.recordTime();";
+                return "";
+            }
+
+			String getPostRequest(int opNum) throws Exception {
                 if (isBinary) {
                     return new StringBuilder(", post_data_").append(opNum).
                                                                     toString();
@@ -637,11 +606,8 @@ public class RunInfo implements Serializable {
 
         private static class RunInfoPostDataDefinition
                 extends RunInfoPostFileDefinition {
-            /**
-             * @see com.sun.faban.driver.engine.RunInfo.ConfigurationReader.RunInfoPostFileDefinition#getStatics(int)
-             */
             @Override
-			public String getStatics(int opNum) {
+			String getStatics(int opNum) {
                 if (isBinary) {
 					return makeBinaryStaticBlock(data.getBytes(), opNum);
 				} else if (!doSubst) {
@@ -651,11 +617,8 @@ public class RunInfo implements Serializable {
 				}
             }
 
-            /**
-             * @see com.sun.faban.driver.engine.RunInfo.ConfigurationReader.RunInfoPostFileDefinition#getPostRequest(int)
-             */
             @Override
-			public String getPostRequest(int opNum) throws Exception {
+			String getPostRequest(int opNum) throws Exception {
                 if (isBinary || !doSubst) {
 					return super.getPostRequest(opNum);
 				}
@@ -669,10 +632,8 @@ public class RunInfo implements Serializable {
         }
 
         private static class RunInfoGetDefinition extends RunInfoDefinition {
-            /**
-             * @see com.sun.faban.driver.engine.RunInfo.ConfigurationReader.RunInfoDefinition#getStatics(int)
-             */
-			public String getStatics(int opNum) {
+
+			String getStatics(int opNum) {
                 if (doSubst) {
 					return "";
 				}
@@ -687,26 +648,23 @@ public class RunInfo implements Serializable {
                 return sb.toString();
             }
 
-            /**
-             * @see com.sun.faban.driver.engine.RunInfo.ConfigurationReader.RunInfoDefinition#getURL(int)
-             */
-			public String getURL(int opNum) {
+			String getURL(int opNum) {
                 if (doSubst) {
                     String requestString = generateRandomData(data);
                     return new StringBuilder(
                             "new StringBuilder(\"").append(url).append("\")").
-                            append(requestString).append(".toString()").
-                            toString();
+                            append(requestString).append(".toString()").toString();
                 }  
-				
-                return "get_string_" + opNum;
-				
+                return new StringBuilder("get_string_").append(opNum).toString();
             }
 
-            /**
-             * @see com.sun.faban.driver.engine.RunInfo.ConfigurationReader.RunInfoDefinition#getPostRequest(int)
-             */
-			public String getPostRequest(int opNum) {
+			String doTiming(int i) {
+				if (url.startsWith("https"))
+					return "ctx.recordTime();";
+				return "";
+			}
+
+			String getPostRequest(int opNum) {
                 return "";
             }
         }
@@ -866,13 +824,17 @@ public class RunInfo implements Serializable {
                 } else {
 					rid = new RunInfoGetDefinition();
 				}
-                rid.init(isFile, doSubst, isBinary, url, requestString);
+                rid.init(doSubst, isBinary, url, requestString);
 
                 //Create the benchmark Operation annotation
                 StringBuilder bmop = new StringBuilder(
                         "@BenchmarkOperation(name = \"").append(operationName);
                 bmop.append("\", max90th=").append(max90th).append(
-                        ", timing = com.sun.faban.driver.Timing.AUTO");
+                        ", ");
+				if (url.startsWith("https"))
+					bmop.append("timing = com.sun.faban.driver.Timing.MANUAL");
+				else
+                    bmop.append("timing = com.sun.faban.driver.Timing.AUTO");
                 bmop.append(")");
 
                 String opTemplateClone =  new String(opTemplate);
@@ -889,6 +851,8 @@ public class RunInfo implements Serializable {
                         "@postRequest@", rid.getPostRequest(i));
                 opTemplateClone = opTemplateClone.replaceAll(
                         "@Statics@", rid.getStatics(i));
+				opTemplateClone = opTemplateClone.replaceAll(
+						"@doTiming@", rid.doTiming(i));
                 
                 operations.append(opTemplateClone);
                 

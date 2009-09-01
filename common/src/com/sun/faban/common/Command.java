@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Command.java,v 1.14 2009/01/28 19:17:21 akara Exp $
+ * $Id: Command.java,v 1.15 2009/07/02 20:26:40 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -39,18 +39,15 @@ public class Command implements Serializable {
 
     private static final long serialVersionUID = 20070523L;
 
-    /**
-     * Stream identifier for standard output.
-     */
+    /** Stream identifier for standard output. */
     public static final int STDOUT = 0;
 
-    /**
-     * Stream identifier for standard error output.
-     */
+    /** Stream identifier for standard error output. */
     public static final int STDERR = 1;
 
-
+    /** String array representing the stream names stdout and stderr. */
     public static final String[] STREAM_NAME = {"stdout", "stderr"};
+
     /**
      * Bulk logging of the stdout or stderr. All output is saved and logged
      * at once when the corresponding stream closes or reaches EOF.
@@ -224,6 +221,7 @@ public class Command implements Serializable {
     /**
      * Executes the command locally on this system. Please use CmdAgent.execute
      * instead to execute this command in a remote location.
+     * @return A handle to the executing command
      * @throws IOException Error dealing with the stdin, stdout, or stderr
      * @throws InterruptedException The execute thread got interrupted
      */
@@ -537,6 +535,11 @@ public class Command implements Serializable {
     }
 
     /* Main for testing the command facility */
+    /**
+     * Main is used for testing the command facility.
+     * This should be moved to JUnit soon.
+     * @param args The command line arguments
+     */
     public static void main(String[] args) {
         try {
             Command cmd = new Command("cat", "/etc/system");

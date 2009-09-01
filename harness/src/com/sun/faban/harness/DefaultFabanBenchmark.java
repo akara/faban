@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: DefaultFabanBenchmark.java,v 1.15 2009/03/15 07:22:19 akara Exp $
+ * $Id: DefaultFabanBenchmark.java,v 1.21 2009/08/06 20:54:45 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -40,15 +40,29 @@ import java.util.logging.Logger;
  * Benchmark interface directly in such cases.
  *
  * @author Akara Sucharitakul
+ * @deprecated Replaced by DefaultFabanBenchmark2, this class is provided for
+ *             backward compatibility and is to be removed in the future.
  */
-public class DefaultFabanBenchmark implements Benchmark {
+@Deprecated public class DefaultFabanBenchmark implements Benchmark {
 
     private Logger logger = Logger.getLogger(getClass().getName());;
+
+    /** The param repository. */
     protected ParamRepository params;
+
+    /** The agent list. */
     protected List<String> agents;
+
+    /** The agent hosts. */
     protected String[] agentHosts;
+
+    /** The map from host to agents. */
     protected Map<String, List<String>> hostAgents;
+
+    /** Environment to pass to agents when starting. */
     protected Map<String, List<String>> agentEnv;
+
+    /** Command handle to the master. */
     protected CommandHandle masterHandle;
 
     /**
@@ -188,7 +202,7 @@ public class DefaultFabanBenchmark implements Benchmark {
                         } else if (agents == minAgents) {
                             // If there is more than one least busy, pick
                             // the first one that was not previously assigned.
-                            if (leastBusyHost == previousHost)
+                            if (leastBusyHost.equals(previousHost))
                                 leastBusyHost = hostAgentsEntry.getKey();
                         }
                     }
@@ -258,7 +272,9 @@ public class DefaultFabanBenchmark implements Benchmark {
     }
 
     /**
-     * This method is responsible for starting the benchmark run
+     * This method is responsible for starting the benchmark run.
+     *
+     * @throws Exception if any error occurred.
      */
     public void start() throws Exception {
 
@@ -293,9 +309,15 @@ public class DefaultFabanBenchmark implements Benchmark {
                 }
                 logger.info("Starting " + agentType + "Agent[" + agentId +
                         "] on host " + hostName + '.');
+                
+                String masterIP = getMasterIP(hostName);
+                if (masterIP == null) {
+                    masterIP = getMasterIP();
+                }
+
                 Command agent = new Command("com.sun.faban.driver.engine." +
                         "AgentImpl", agentType, String.valueOf(agentId),
-                        getMasterIP());
+                        masterIP);
 
                 List<String> env = agentEnv.get(agentType);
                 if (env != null) {
@@ -358,7 +380,7 @@ public class DefaultFabanBenchmark implements Benchmark {
 
     /**
      * This method aborts the current benchmark run and is
-     * called when a user asks for a run to be killed
+     * called when a user asks for a run to be killed.
      *
      * @throws Exception if any error occurred.
      */

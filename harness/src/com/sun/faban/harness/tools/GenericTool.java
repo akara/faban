@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericTool.java,v 1.11 2008/05/23 23:24:46 akara Exp $
+ * $Id: GenericTool.java,v 1.14 2009/07/28 22:54:16 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -55,8 +55,9 @@ import java.util.logging.Logger;
  *
  * @author Ramesh Ramachandran
  * @see com.sun.faban.harness.tools.Tool
+ * @deprecated The GenericTool has been replaced by the CommandLineTool.
  */
-public class GenericTool implements Tool {
+@Deprecated public class GenericTool implements Tool {
 
     static final int NOT_STARTED = 0;
     static final int STARTED = 1;
@@ -72,11 +73,14 @@ public class GenericTool implements Tool {
     String path = null; // The path to the tool.
     CmdAgentImpl cmdAgent;
 
+    /** The timer used for scheduling the start of the tool. */
     protected Timer timer;
 
     Logger logger;
 
-    // GenericTool implementation
+    /**
+     * Constructs the GenericTool.
+     */
     public GenericTool(){
         logger = Logger.getLogger(this.getClass().getName());
     }
@@ -84,7 +88,14 @@ public class GenericTool implements Tool {
     /**
      * This is the method that should get the arguments to
      * call the tool with.
-     *
+     * @param tool The tool to start
+     * @param argList The tool arguments
+     * @param path The path, if any, to find the tool
+     * @param outDir The output directory
+     * @param host The host to run the tool
+     * @param masterhost The Faban master
+     * @param cmdAgent The command agent for running commands
+     * @param latch Latch set when tool is done
      */
     public void configure(String tool, List<String> argList, String path,
                           String outDir, String host, String masterhost,
@@ -105,6 +116,8 @@ public class GenericTool implements Tool {
         buildCmd(argList);
 
         logger.fine(toolName + " Configured with toolCmd " + this.toolCmd);
+
+        // configureMethod.invoke();
     }
 
     /**
@@ -138,6 +151,7 @@ public class GenericTool implements Tool {
      * delay + duration and then calls the stop().
      * @param delay int delay (sec) after which start should be called
      * @param duration int duration for which the tool needs to be run
+     * @return true if the tool is scheduled successfully
      */
 
     public boolean start(int delay, int duration) {
@@ -158,18 +172,21 @@ public class GenericTool implements Tool {
     /**
      * This method is responsible for starting up the tool utility.
      * @param delay int delay (sec) after which start should be called
+     * @return true if the tool is scheduled successfully
      */
-
     public boolean start(int delay) {
         TimerTask startTask = new TimerTask() {
             public void run() {
-                start();
+                start(); // startMethod.invoke();
             }
         };
         timer.schedule(startTask, delay * 1000);
         return true;
     }
 
+    /**
+     * Starts the tool.
+     */
     protected void start() {
         try {
             Command cmd = new Command(toolCmd);
@@ -226,7 +243,9 @@ public class GenericTool implements Tool {
             logger.warning("Tool not started but stop called for " + this.toolCmd);
     }
 
-
+    /**
+     * Transfers the tool output back to the master.
+     */
     protected void xferLog() {
         try {
             FileTransfer transfer = tool.fetchOutput(Command.STDOUT, outfile);
@@ -243,6 +262,9 @@ public class GenericTool implements Tool {
         }
     }
 
+    /**
+     * Finish up the tool.
+     */
     protected void finish() {
         if (!countedDown)
             latch.countDown();

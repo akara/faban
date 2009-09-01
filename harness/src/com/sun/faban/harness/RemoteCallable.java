@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RemoteCallable.java,v 1.1 2007/05/24 01:04:39 akara Exp $
+ * $Id: RemoteCallable.java,v 1.2 2009/08/05 23:50:13 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -27,6 +27,15 @@ import java.io.Serializable;
 
 /**
  * An interface used for executing a piece of code remotely.
+ * The class that implements this interface needs to be cautious about
+ * platform path differences. A path passed to this class to executed on a
+ * remote system with different OS styles, especially a Windows master and
+ * Unix agents, will need to be converted. This can be done by calling
+ * Utilities.convertPath from inside the implementation of the call method.
+ * The path conversion should be called no matter the actual platform. The
+ * path conversion call does nothing if no conversion is needed.
+ *  
+ * @see com.sun.faban.common.Utilities#convertPath(java.lang.String)
  */
 public interface RemoteCallable<V extends Serializable>
         extends Serializable {

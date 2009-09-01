@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ApacheHttpdService.java,v 1.6 2009/01/12 23:23:21 akara Exp $
+ * $Id: ApacheHttpdService.java,v 1.9 2009/08/05 23:50:10 akara Exp $
  *
  * Copyright 2007 Sun Microsystems Inc. All Rights Reserved
  */
@@ -26,6 +26,7 @@ package com.sun.faban.harness.engine;
 import com.sun.faban.common.Command;
 
 import com.sun.faban.common.CommandHandle;
+import com.sun.faban.common.Utilities;
 import com.sun.faban.harness.RemoteCallable;
 import com.sun.faban.harness.RunContext;
 import com.sun.faban.harness.WildcardFileFilter;
@@ -49,8 +50,9 @@ import java.util.logging.Logger;
  * perform these operations remotely using this Service.
  *
  * @author Shanti Subramanyam
+ * @deprecated
  */
-final public class ApacheHttpdService implements WebServerService {
+@Deprecated final public class ApacheHttpdService implements WebServerService {
 
     private static ApacheHttpdService service = null;
     private String[] myServers = new String[1];
@@ -102,7 +104,7 @@ final public class ApacheHttpdService implements WebServerService {
     }
 
     /**
-     * Start all apache servers on configured hosts
+     * Start all apache servers on configured hosts.
      * @return boolean true if start succeeded on all machines, else false
      */
     public boolean startServers() {
@@ -152,8 +154,11 @@ final public class ApacheHttpdService implements WebServerService {
                 Integer retVal = 0;
                 String msg = "resuming normal operations";
 
-                FileInputStream is = new FileInputStream(err);
-                BufferedReader bufR = new BufferedReader(new InputStreamReader(is));
+                // Ensure filenames are not impacted by path differences.
+                FileInputStream is = new FileInputStream(
+                        Utilities.convertPath(err));
+                BufferedReader bufR = new BufferedReader(
+                        new InputStreamReader(is));
 
                 // Just to make sure we don't wait for ever.
                 // We try to read the msg 120 times before we give up
@@ -212,7 +217,7 @@ final public class ApacheHttpdService implements WebServerService {
     }
 
     /**
-     * stop Servers
+     * Stop servers.
      * @return true if stop succeeded on all machines, else false
      */
     public boolean stopServers() {
@@ -265,8 +270,12 @@ final public class ApacheHttpdService implements WebServerService {
                 Integer retVal = 0;
                 // Read the log file to make sure the server has shutdown
                 String msg = "shutting down";
-                FileInputStream is = new FileInputStream(err);
-                BufferedReader bufR = new BufferedReader(new InputStreamReader(is));
+
+                // Ensure filenames are not impacted by path differences.
+                FileInputStream is = new FileInputStream(
+                        Utilities.convertPath(err));
+                BufferedReader bufR = new BufferedReader(
+                        new InputStreamReader(is));
 
                 // Just to make sure we don't wait for ever.
                 // We try to read the msg 60 times before we give up
@@ -301,8 +310,8 @@ final public class ApacheHttpdService implements WebServerService {
     }
 
     /**
-     * clear apache logs and session files
-	 * It assumes that session files are in /tmp/sess*
+     * Clear apache logs and session files.
+	 * It assumes that session files are in /tmp/sess*.
      * @return true if operation succeeded, else fail
      */
     public boolean clearLogs() {
@@ -351,7 +360,7 @@ final public class ApacheHttpdService implements WebServerService {
     }
 
     /**
-     * transfer log files
+     * Transfer the log files.
 	 * This method copies over the error_log to the run output directory
 	 * and keeps only the portion of the log relevant for this run
 	 * @param totalRunTime - the time in seconds for this run
@@ -402,21 +411,28 @@ final public class ApacheHttpdService implements WebServerService {
 
     }
 
+    /**
+     * Obtains the gregorian calendar representing the current time.
+     * @param hostName The host name to get the calendar from
+     * @return The calendar
+     * @throws Exception Error obtaining calendar
+     */
     public static GregorianCalendar getGregorianCalendar(
             String hostName)
             throws Exception {
-        return RunContext.exec(hostName, new RemoteCallable<GregorianCalendar>() {
+        return RunContext.exec(hostName,
+                new RemoteCallable<GregorianCalendar>() {
 
-            public GregorianCalendar call() {
-                return new GregorianCalendar();
-            }
-        });
+                    public GregorianCalendar call() {
+                        return new GregorianCalendar();
+                    }
+                });
     }
 
     /**
      *
-     * Kill all ApacheHttpd servers
-     * We simply stop them instead of doing a hard kill
+     * Kill all ApacheHttpd servers.
+     * We simply stop them instead of doing a hard kill.
      */
     public void kill() {
         stopServers();

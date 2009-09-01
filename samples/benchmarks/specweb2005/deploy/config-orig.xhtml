@@ -1,0 +1,892 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- $Id: config-orig.xhtml,v 1.1 2009/06/01 17:01:25 sheetalpatil Exp $ -->
+<html xmlns:xforms="http://www.w3.org/2002/xforms"
+      xmlns:fa="http://faban.sunsource.net/ns/faban"
+      xmlns:fh="http://faban.sunsource.net/ns/fabanharness">
+    <head>
+        <xforms:model id="benchmark-model">
+            <xforms:instance id="benchmark-instance" src="{benchmark.template}"/>
+            <xforms:submission xforms:action="schedule-run.jsp" xforms:replace="all" id="submission-debug" xforms:method="post"/>
+            <xforms:bind id="bind-specweb2005Benchmark" xforms:nodeset="/specweb2005Benchmark">
+                <xforms:bind id="bind-jvmConfig" xforms:nodeset="fh:jvmConfig">
+                    <xforms:bind id="bind-javaHome" xforms:nodeset="fh:javaHome"/>
+                    <xforms:bind id="bind-javaOptions" xforms:nodeset="fh:jvmOptions"/>
+                </xforms:bind>                
+                <xforms:bind id="bind-runConfig" xforms:nodeset="fa:runConfig">
+                    <xforms:bind id="bind-description" xforms:nodeset="fh:description"/>
+                    <xforms:bind id="bind-runConfig-hostConfig" xforms:nodeset="fa:hostConfig">
+                        <xforms:bind id="bind-hostPorts" xforms:nodeset="fa:hostPorts"/>
+                        <xforms:bind id="bind-agent-tools" xforms:nodeset="fh:tools"/>
+                    </xforms:bind>
+                    <xforms:bind id="bind-clientDir" xforms:nodeset="clientDir"/>
+                    <xforms:bind id="bind-sessions" xforms:nodeset="fa:scale" />
+                    <xforms:bind id="bind-runControl" xforms:nodeset="fa:runControl">
+                        <xforms:bind id="bind-steadyState" xforms:nodeset="fa:steadyState" xforms:type="positiveInteger"/>
+                        <xforms:bind id="bind-rampDown" xforms:nodeset="fa:rampDown" xforms:type="positiveInteger"/>
+                    </xforms:bind>
+                    <xforms:bind id="bind-testtype" xforms:nodeset="testtype"/>
+                    <xforms:bind id="bind-warmupSeconds" xforms:nodeset="warmupSeconds" xforms:type="positiveInteger"/>
+                    <xforms:bind id="bind-threadRampupSeconds" xforms:nodeset="threadRampupSeconds" xforms:type="positiveInteger"/>
+                    <xforms:bind id="bind-rampupSeconds" xforms:nodeset="rampupSeconds" xforms:type="positiveInteger"/>
+                    <xforms:bind id="bind-rampdownSeconds" xforms:nodeset="rampdownSeconds" xforms:type="positiveInteger"/>
+                    <xforms:bind id="bind-iterations" xforms:nodeset="iterations" xforms:type="positiveInteger"/>
+                </xforms:bind>
+                <xforms:bind id="bind-webserverConfig" xforms:nodeset="webserverConfig">
+                    <xforms:bind id="bind-webserver-hostConfig" xforms:nodeset="fa:hostConfig">
+                        <xforms:bind id="bind-webserver-host" xforms:nodeset="fa:host"/>
+                        <xforms:bind id="bind-webserver-tools" xforms:nodeset="fh:tools"/>
+                    </xforms:bind>
+                    <xforms:bind id="bind-server-wsConfig" xforms:nodeset="wsConfig">
+                        <xforms:bind id="bind-server-wsPort" xforms:nodeset="wsPort" xforms:type="positiveInteger"/>
+                        <xforms:bind id="bind-server-wsSSLport" xforms:nodeset="wsSSLport" xforms:type="positiveInteger"/>
+                    </xforms:bind>
+                </xforms:bind>
+                <xforms:bind id="bind-besimserverConfig" xforms:nodeset="besimserverConfig">
+                    <xforms:bind id="bind-besimserver-hostConfig" xforms:nodeset="fa:hostConfig">
+                        <xforms:bind id="bind-besimserver-host" xforms:nodeset="fa:host"/>
+                        <xforms:bind id="bind-besimserver-tools" xforms:nodeset="fh:tools"/>
+                    </xforms:bind>
+                    <xforms:bind id="bind-server-besimConfig" xforms:nodeset="besimConfig">
+                        <xforms:bind id="bind-besim-port" xforms:nodeset="port"/>
+                        <xforms:bind id="bind-besim-initScript" xforms:nodeset="initScript"/>
+                        <xforms:bind id="bind-besim-persistent" xforms:nodeset="persistent" xforms:type="nonNegativeInteger"/>
+                    </xforms:bind>
+                </xforms:bind>
+                <xforms:bind id="bind-supportParameters" xforms:nodeset="supportParameters">
+                    <xforms:bind id="bind-supportWorkloadDetail" xforms:nodeset="supportWorkloadDetail">
+                        <xforms:bind id="bind-dynScript" xforms:nodeset="dynScript" />
+                        <xforms:bind id="bind-initScript" xforms:nodeset="initScript" />
+                        <xforms:bind id="bind-imgPath" xforms:nodeset="imgPath" />
+                        <xforms:bind id="bind-dynScriptPath" xforms:nodeset="dynScriptPath" />
+                        <xforms:bind id="bind-downloadPath" xforms:nodeset="downloadPath" />
+                        <xforms:bind id="bind-paddingDir" xforms:nodeset="paddingDir" />
+                        <xforms:bind id="bind-downloadSubdirs" xforms:nodeset="downloadSubdirs" />
+                        <xforms:bind id="bind-baseSubdir" xforms:nodeset="baseSubdir" />
+                        <xforms:bind id="bind-firstSubdirNum" xforms:nodeset="firstSubdirNum" />
+                        <xforms:bind id="bind-dynScript0" xforms:nodeset="dynScript0" />
+                        <xforms:bind id="bind-dynScript1" xforms:nodeset="dynScript1" />
+                        <xforms:bind id="bind-dynScript2" xforms:nodeset="dynScript2" />
+                        <xforms:bind id="bind-dynScript3" xforms:nodeset="dynScript3" />
+                        <xforms:bind id="bind-dynScript4" xforms:nodeset="dynScript4" />
+                        <xforms:bind id="bind-dynScript5" xforms:nodeset="dynScript5" />
+                        <xforms:bind id="bind-dynScript6" xforms:nodeset="dynScript6" />
+                        <xforms:bind id="bind-bufSize" xforms:nodeset="bufSize" />
+                    </xforms:bind>
+                </xforms:bind>
+                <xforms:bind id="bind-bankingParameters" xforms:nodeset="bankingParameters">
+                    <xforms:bind id="bind-bankingWorkloadDetail" xforms:nodeset="bankingWorkloadDetail">
+                        <xforms:bind id="bind-bdynScript" xforms:nodeset="dynScript" />
+                        <xforms:bind id="bind-binitScript" xforms:nodeset="initScript" />
+                        <xforms:bind id="bind-bimgPath" xforms:nodeset="imgPath" />
+                        <xforms:bind id="bind-bdynScriptPath" xforms:nodeset="dynScriptPath" />
+                        <xforms:bind id="bind-bpaddingDir" xforms:nodeset="paddingDir" />
+                        <xforms:bind id="bind-bcheckImageDir" xforms:nodeset="checkImageDir" />
+                        <xforms:bind id="bind-bcheckImageSubdirs" xforms:nodeset="checkImageSubdirs" />
+                        <xforms:bind id="bind-bbaseSubdir" xforms:nodeset="baseSubdir" />
+                        <xforms:bind id="bind-bfirstSubdirNum" xforms:nodeset="firstSubdirNum" />
+                        <xforms:bind id="bind-buserNumLen" xforms:nodeset="userNumLen" />
+                        <xforms:bind id="bind-bcheckNumLen" xforms:nodeset="checkNumLen" />
+                        <xforms:bind id="bind-bcheckImageRelPath" xforms:nodeset="checkImageRelPath" />
+                        <xforms:bind id="bind-bdynScript0" xforms:nodeset="dynScript0" />
+                        <xforms:bind id="bind-bdynScript1" xforms:nodeset="dynScript1" />
+                        <xforms:bind id="bind-bdynScript2" xforms:nodeset="dynScript2" />
+                        <xforms:bind id="bind-bdynScript3" xforms:nodeset="dynScript3" />
+                        <xforms:bind id="bind-bdynScript4" xforms:nodeset="dynScript4" />
+                        <xforms:bind id="bind-bdynScript5" xforms:nodeset="dynScript5" />
+                        <xforms:bind id="bind-bdynScript6" xforms:nodeset="dynScript6" />
+                        <xforms:bind id="bind-bdynScript7" xforms:nodeset="dynScript7" />
+                        <xforms:bind id="bind-bdynScript8" xforms:nodeset="dynScript8" />
+                        <xforms:bind id="bind-bdynScript9" xforms:nodeset="dynScript9" />
+                        <xforms:bind id="bind-bdynScript10" xforms:nodeset="dynScript10" />
+                        <xforms:bind id="bind-bdynScript11" xforms:nodeset="dynScript11" />
+                        <xforms:bind id="bind-bdynScript12" xforms:nodeset="dynScript12" />
+                        <xforms:bind id="bind-bdynScript13" xforms:nodeset="dynScript13" />
+                        <xforms:bind id="bind-bdynScript14" xforms:nodeset="dynScript14" />
+                        <xforms:bind id="bind-bdynScript15" xforms:nodeset="dynScript15" />
+                        <xforms:bind id="bind-bdynScript16" xforms:nodeset="dynScript16" />
+                        <xforms:bind id="bind-bserverCertFile" xforms:nodeset="serverCertFile" />
+                        <xforms:bind id="bind-bserverCertPwd" xforms:nodeset="serverCertPwd" />
+                        <xforms:bind id="bind-bbufSize" xforms:nodeset="bufSize" />
+                        <xforms:bind id="bind-buseSSL" xforms:nodeset="useSSL" />
+                    </xforms:bind>
+                </xforms:bind>
+                <xforms:bind id="bind-ecommerceParameters" xforms:nodeset="ecommerceParameters">
+                    <xforms:bind id="bind-ecommerceWorkloadDetail" xforms:nodeset="ecommerceWorkloadDetail">
+                        <xforms:bind id="bind-edynScript" xforms:nodeset="dynScript" />
+                        <xforms:bind id="bind-einitScript" xforms:nodeset="initScript" />
+                        <xforms:bind id="bind-eimgPath" xforms:nodeset="imgPath" />
+                        <xforms:bind id="bind-edynScriptPath" xforms:nodeset="dynScriptPath" />
+                        <xforms:bind id="bind-epaddingDir" xforms:nodeset="paddingDir" />
+                        <xforms:bind id="bind-eproductlineNumLen" xforms:nodeset="productlineNumLen" />
+                        <xforms:bind id="bind-eproductImageRelPath" xforms:nodeset="productImageRelPath" />
+                        <xforms:bind id="bind-edirScaling" xforms:nodeset="dirScaling" />
+                        <xforms:bind id="bind-eproductsPerDir" xforms:nodeset="productsPerDir" />
+                        <xforms:bind id="bind-eproductImageSubdirs" xforms:nodeset="productImageSubdirs" />
+                        <xforms:bind id="bind-ebaseSubdir" xforms:nodeset="baseSubdir" />
+                        <xforms:bind id="bind-efirstSubdirNum" xforms:nodeset="firstSubdirNum" />
+                        <xforms:bind id="bind-edynScript0" xforms:nodeset="dynScript0" />
+                        <xforms:bind id="bind-edynScript1" xforms:nodeset="dynScript1" />
+                        <xforms:bind id="bind-edynScript2" xforms:nodeset="dynScript2" />
+                        <xforms:bind id="bind-edynScript3" xforms:nodeset="dynScript3" />
+                        <xforms:bind id="bind-edynScript4" xforms:nodeset="dynScript4" />
+                        <xforms:bind id="bind-edynScript5" xforms:nodeset="dynScript5" />
+                        <xforms:bind id="bind-edynScript6" xforms:nodeset="dynScript6" />
+                        <xforms:bind id="bind-edynScript7" xforms:nodeset="dynScript7" />
+                        <xforms:bind id="bind-edynScript8" xforms:nodeset="dynScript8" />
+                        <xforms:bind id="bind-edynScript9" xforms:nodeset="dynScript9" />
+                        <xforms:bind id="bind-edynScript10" xforms:nodeset="dynScript10" />
+                        <xforms:bind id="bind-edynScript11" xforms:nodeset="dynScript11" />
+                        <xforms:bind id="bind-edynScript12" xforms:nodeset="dynScript12" />
+                        <xforms:bind id="bind-edynScript13" xforms:nodeset="dynScript13" />
+                        <xforms:bind id="bind-eserverCertFile" xforms:nodeset="serverCertFile" />
+                        <xforms:bind id="bind-eserverCertPwd" xforms:nodeset="serverCertPwd" />
+                        <xforms:bind id="bind-ebufSize" xforms:nodeset="bufSize" />
+                        <xforms:bind id="bind-euseSSL" xforms:nodeset="useSSL" />
+                    </xforms:bind>
+                </xforms:bind>
+            </xforms:bind>
+        </xforms:model>
+        <xforms:model id="benchmark-labels">
+            <xforms:instance id="benchmark-label-names">
+                <labels>
+                    <benchmark>SpecWeb2005</benchmark>
+                    <runConfig>Driver</runConfig>
+                    <dbConfig>Database Configuration</dbConfig>
+                    <wsConfig>Web Server Configuration</wsConfig>
+                    <besimConfig>Besim Server Configuration</besimConfig>
+                    <description>Description</description>
+                    <javaOptions>JAVA Options</javaOptions>
+                    <javaHome>JAVA HOME</javaHome>                    
+                    <clientDir>SpecWeb2005 Client(jarfile) Location</clientDir>
+                    <sessions>Simultaneous Sessions</sessions>
+                    <testtype>Test Type</testtype>
+                    <banking>SPECweb_Banking</banking>
+                    <ecommerce>SPECweb_Ecommerce</ecommerce>
+                    <support>SPECweb_Support</support>
+                    <runControl>Run Control</runControl>
+                    <multipleRunControl>Multiple Run Control</multipleRunControl>
+                    <warmupSeconds>Warmup (sec)</warmupSeconds>
+                    <threadRampupSeconds>Thread Rampup (sec)</threadRampupSeconds>
+                    <threadRampdownSeconds>Thread Rampdown (sec)</threadRampdownSeconds>
+                    <runSeconds>Run Time (sec)</runSeconds>
+                    <rampupSeconds>Rampup (sec)</rampupSeconds>
+                    <rampdownSeconds>Rampdown (sec)</rampdownSeconds>
+                    <iterations>Iterations</iterations>
+                    <yes>Yes</yes>
+                    <no>No</no>
+                    <serverConfig>Server</serverConfig>
+                    <hostPorts>Clients</hostPorts>
+                    <port>Port</port>
+                    <tools>Tools</tools>
+                    <webServer>Web Server Host</webServer>
+                    <wsPort>Port</wsPort>
+                    <wsSSLport>SSL Port</wsSSLport>
+                    <besimServer>Besim Server Host</besimServer>
+                    <besimPort> Besim Port</besimPort>
+                    <besimInitScript>Besim Init Script</besimInitScript>
+                    <besimPersistent>Besim Persistent</besimPersistent>
+                    <supportParameters>Support</supportParameters>
+                    <supportWorkloadDetail>Support Workload Detail</supportWorkloadDetail>
+                    <supportScriptsDetail>Support Scripts Detail</supportScriptsDetail>
+                    <bankingParameters>Banking</bankingParameters>
+                    <bankingWorkloadDetail>Banking Workload Detail</bankingWorkloadDetail>
+                    <bankingScriptsDetail>Banking Scripts Detail</bankingScriptsDetail>
+                    <ecommerceParameters>Ecommerce</ecommerceParameters>
+                    <ecommerceWorkloadDetail>Ecommerce Workload Detail</ecommerceWorkloadDetail>
+                    <ecommerceScriptsDetail>Ecommerce Scripts Detail</ecommerceScriptsDetail>
+                    <dynScript>DYNAMIC_SCRIPT</dynScript>
+                    <initScript>INIT_SCRIPT</initScript>
+                    <imgPath>IMG_PATH</imgPath>
+                    <dynScriptPath>DYN_SCRIPT_PATH</dynScriptPath>
+                    <downloadPath>DOWNLOAD_PATH</downloadPath>
+                    <paddingDir>PADDING_DIR</paddingDir>
+                    <downloadSubdirs>DOWNLOAD_SUBDIRS</downloadSubdirs>
+                    <baseSubdir>BASE_SUBDIR_NAME</baseSubdir>
+                    <firstSubdirNum>FIRST_SUBDIR_NUM</firstSubdirNum>
+                    <bufSize>LG_BUF_SIZE</bufSize>
+                    <checkImageDir>CHECK_IMAGE_DIR</checkImageDir>
+                    <checkImageSubdirs>CHECK_IMAGE_SUBDIRS</checkImageSubdirs>
+                    <checkImageRelPath>CHECK_IMAGE_REL_PATH</checkImageRelPath>
+                    <userNumLen>USER_NUM_LEN</userNumLen>
+                    <checkNumLen>CHECK_NUM_LEN</checkNumLen>
+                    <serverCertFile>SERVER_CERTIFICATE_FILE</serverCertFile>
+                    <serverCertPwd>SERVER_CERTIFICATE_PWD</serverCertPwd>
+                    <productlineNumLen>PRODUCTLINE_NUM_LEN</productlineNumLen>
+                    <productImageRelPath>PRODUCT_IMAGE_REL_PATH</productImageRelPath>
+                    <dirScaling>DIRSCALING</dirScaling>
+                    <productsPerDir>PRODUCTS_PER_DIR</productsPerDir>
+                    <productImageSubdirs>PRODUCT_IMAGE_SUBDIRS</productImageSubdirs>
+                    <baseSubdir>BASE_SUBDIR_NAME</baseSubdir>
+                    <firstSubdirNum>FIRST_SUBDIR_NUM</firstSubdirNum>
+                    <dynScript0>DYN_SCRIPT_0</dynScript0>
+                    <dynScript1>DYN_SCRIPT_1</dynScript1>
+                    <dynScript2>DYN_SCRIPT_2</dynScript2>
+                    <dynScript3>DYN_SCRIPT_3</dynScript3>
+                    <dynScript4>DYN_SCRIPT_4</dynScript4>
+                    <dynScript5>DYN_SCRIPT_5</dynScript5>
+                    <dynScript6>DYN_SCRIPT_6</dynScript6>
+                    <dynScript7>DYN_SCRIPT_7</dynScript7>
+                    <dynScript8>DYN_SCRIPT_8</dynScript8>
+                    <dynScript9>DYN_SCRIPT_9</dynScript9>
+                    <dynScript10>DYN_SCRIPT_10</dynScript10>
+                    <dynScript11>DYN_SCRIPT_11</dynScript11>
+                    <dynScript12>DYN_SCRIPT_12</dynScript12>
+                    <dynScript13>DYN_SCRIPT_13</dynScript13>
+                    <dynScript14>DYN_SCRIPT_14</dynScript14>
+                    <dynScript15>DYN_SCRIPT_15</dynScript15>
+                    <dynScript16>DYN_SCRIPT_16</dynScript16>
+                    <ok>Ok</ok>
+                    <cancel>Cancel</cancel>
+                    <useSSL>Use SSL</useSSL>
+                    <onSSL>1</onSSL>
+                    <offSSL>0</offSSL>
+                </labels>
+            </xforms:instance>
+        </xforms:model>
+    </head>
+    <body>
+        <xforms:group id="group-tabsheet">
+            <xforms:trigger id="trigger-runConfig">
+                <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/runConfig"/>
+                <xforms:action id="action-runConfig">
+                    <xforms:revalidate xforms:model="benchmark-model" id="revalidate-runConfig"/>
+                    <xforms:toggle id="toggle-runConfig" xforms:case="case-runConfig"/>
+                </xforms:action>
+            </xforms:trigger>
+            <xforms:trigger id="trigger-serverConfig">
+                <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/serverConfig"/>
+                <xforms:action id="action-serverCofig">
+                    <xforms:revalidate xforms:model="benchmark-model" id="revalidate-serverConfig"/>
+                    <xforms:toggle id="toggle-serverConfig" xforms:case="case-serverConfig"/>
+                </xforms:action>
+            </xforms:trigger>
+            <xforms:trigger id="trigger-supportParameters">
+                <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/supportParameters"/>
+                <xforms:action id="action-supportParameters">
+                    <xforms:revalidate xforms:model="benchmark-model" id="revalidate-supportParameters"/>
+                    <xforms:toggle id="toggle-supportParameters" xforms:case="case-supportParameters"/>
+                </xforms:action>
+            </xforms:trigger>
+            <xforms:trigger id="trigger-bankingParameters">
+                <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/bankingParameters"/>
+                <xforms:action id="action-bankingParameters">
+                    <xforms:revalidate xforms:model="benchmark-model" id="revalidate-bankingParameters"/>
+                    <xforms:toggle id="toggle-bankingParameters" xforms:case="case-bankingParameters"/>
+                </xforms:action>
+            </xforms:trigger>
+            <xforms:trigger id="trigger-ecommerceParameters">
+                <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ecommerceParameters"/>
+                <xforms:action id="action-ecommerceParameters">
+                    <xforms:revalidate xforms:model="benchmark-model" id="revalidate-ecommerceParameters"/>
+                    <xforms:toggle id="toggle-ecommerceParameters" xforms:case="case-ecommerceParameters"/>
+                </xforms:action>
+            </xforms:trigger>
+            <xforms:switch id="switch">
+                <xforms:case id="case-runConfig">
+                    <xforms:group id="group-nogroup">
+                        <xforms:textarea id="input-description" xforms:bind="bind-description">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/description"/>
+                            <xforms:hint>Enter description of this run</xforms:hint>
+                        </xforms:textarea>
+                        <xforms:textarea id="input-hostPorts" xforms:bind="bind-hostPorts">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hostPorts"/>
+                            <xforms:hint>Enter client host[:port] pairs</xforms:hint>
+                        </xforms:textarea>
+                        <xforms:input id="input-javaHome" xforms:bind="bind-javaHome">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/javaHome"/>
+                            <xforms:hint>Enter the JVM Home </xforms:hint>
+                            <xforms:help>Enter the JVM Home </xforms:help>
+                        </xforms:input>
+                        <xforms:textarea id="input-javaOptions" xforms:bind="bind-javaOptions">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/javaOptions"/>
+                            <xforms:hint>Enter the JVM Options (No need to specify GC)</xforms:hint>
+                            <xforms:help>Enter the JVM Options (No need to specify GC)</xforms:help>
+                        </xforms:textarea>
+                        <xforms:input id="input-sessions" xforms:bind="bind-sessions">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/sessions"/>
+                            <xforms:hint>Enter number of Simultaneous Sessions</xforms:hint>
+                            <xforms:help>Enter number of Simultaneous Sessions</xforms:help>
+                        </xforms:input>
+                        <xforms:select1 id="select1-testtype" xforms:bind="bind-testtype">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/testtype"/>
+                            <xforms:choices>
+                                <xforms:item>
+                                    <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/banking"/>
+                                    <xforms:value>SPECweb_Banking</xforms:value>
+                                </xforms:item>
+                                <xforms:item>
+                                    <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ecommerce"/>
+                                    <xforms:value>SPECweb_Ecommerce</xforms:value>
+                                </xforms:item>
+                                <xforms:item>
+                                    <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/support"/>
+                                    <xforms:value>SPECweb_Support</xforms:value>
+                                </xforms:item>
+                            </xforms:choices>
+                            <xforms:hint>Select Test Type</xforms:hint>
+                            <xforms:help>Select Test Type</xforms:help>
+                        </xforms:select1>
+                        <xforms:input id="input-agent-tools" xforms:bind="bind-agent-tools">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/tools"/>
+                            <xforms:hint>Enter tool commands to collect statistics, separated by semi-colon</xforms:hint>
+                            <xforms:help>Enter tool commands to collect statistics, separated by semi-colon</xforms:help>
+                        </xforms:input>
+                        <xforms:textarea id="input-clientDir" xforms:bind="bind-clientDir">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/clientDir"/>
+                            <xforms:hint>Location where SPECweb2005 client is installed</xforms:hint>
+                            <xforms:help>Enter location where SPECweb2005 client is installed</xforms:help>
+                        </xforms:textarea>
+                    </xforms:group>
+                    <xforms:group id="group-runControl">
+                        <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/runControl"/>
+                        <!-- xforms:output xforms:bind="bind-unit"/-->
+                        <xforms:input id="input-warmupSeconds" xforms:bind="bind-warmupSeconds">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/warmupSeconds"/>
+                            <xforms:alert>Must be a positive integer</xforms:alert>
+                        </xforms:input>
+                        <xforms:input id="input-threadRampupSeconds" xforms:bind="bind-threadRampupSeconds">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/threadRampupSeconds"/>
+                            <xforms:alert>Must be a positive integer</xforms:alert>
+                        </xforms:input>
+                        <xforms:input id="input-runSeconds" xforms:bind="bind-steadyState">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/runSeconds"/>
+                            <xforms:alert>Must be a positive integer</xforms:alert>
+                        </xforms:input>
+                        <xforms:input id="input-threadRampdownSeconds" xforms:bind="bind-rampDown">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/threadRampdownSeconds"/>
+                            <xforms:alert>Must be a positive integer</xforms:alert>
+                        </xforms:input>
+                    </xforms:group>
+                    <xforms:group id="group-multipleRunControl">
+                        <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/multipleRunControl"/>
+                        <xforms:input id="input-iterations" xforms:bind="bind-iterations">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/iterations"/>
+                            <xforms:alert>Must be a positive integer</xforms:alert>
+                        </xforms:input>
+                        <xforms:input id="input-rampupSeconds" xforms:bind="bind-rampupSeconds">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/rampupSeconds"/>
+                            <xforms:alert>Must be a positive integer</xforms:alert>
+                        </xforms:input>
+                        <xforms:input id="input-rampdownSeconds" xforms:bind="bind-rampdownSeconds">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/rampdownSeconds"/>
+                            <xforms:alert>Must be a positive integer</xforms:alert>
+                        </xforms:input>
+                    </xforms:group>
+                </xforms:case>
+                <xforms:case id="case-serverConfig">
+                    <xforms:group id="group-wsConfig">
+                        <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/wsConfig"/>
+                        <xforms:input id="input-web-server" xforms:bind="bind-webserver-host">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/webServer"/>
+                            <xforms:hint>Web Server Host Name</xforms:hint>
+                            <xforms:help>Enter Web Server Host Name</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-ws-port" xforms:bind="bind-server-wsPort">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/wsPort"/>
+                            <xforms:hint>Web Server Port</xforms:hint>
+                            <xforms:help>Enter Web Server Port</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-ws-sslport" xforms:bind="bind-server-wsSSLport">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/wsSSLport"/>
+                            <xforms:hint>Web Server SSL-Port</xforms:hint>
+                            <xforms:help>Enter Web Server SSL-Port</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-webserver-tools" xforms:bind="bind-webserver-tools">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/tools"/>
+                            <xforms:hint>Enter tool commands to collect statistics, separated by semi-colon</xforms:hint>
+                            <xforms:help>Enter tool commands to collect statistics, separated by semi-colon</xforms:help>
+                        </xforms:input>
+                    </xforms:group>
+                    <xforms:group id="group-besimConfig">
+                        <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/besimConfig"/>
+                        <xforms:input id="input-besim-server" xforms:bind="bind-besimserver-host">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/besimServer"/>
+                            <xforms:hint>Besim Server Host Name</xforms:hint>
+                            <xforms:help>Enter Besim Server Host Name</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-besim-port" xforms:bind="bind-besim-port">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/besimPort"/>
+                            <xforms:hint>Besim Server Port</xforms:hint>
+                            <xforms:help>Enter Besim Server Port</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-besim-initScript" xforms:bind="bind-besim-initScript">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/besimInitScript"/>
+                            <xforms:hint>Besim Init Script</xforms:hint>
+                            <xforms:help>Enter Besim Init Script</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-besim-persistent" xforms:bind="bind-besim-persistent">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/besimPersistent"/>
+                            <xforms:hint>Besim Persistent (0/1)</xforms:hint>
+                            <xforms:help>Enter Besim Persistent</xforms:help>
+                            <xforms:alert>Persistent must be 0 or 1</xforms:alert>
+                        </xforms:input>
+                        <xforms:input id="input-besimserver-tools" xforms:bind="bind-besimserver-tools">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/tools"/>
+                            <xforms:hint>Enter tool commands to collect statistics, separated by semi-colon</xforms:hint>
+                            <xforms:help>Enter tool commands to collect statistics, separated by semi-colon</xforms:help>
+                        </xforms:input>
+                    </xforms:group>
+                </xforms:case>
+                <xforms:case id="case-supportParameters">
+                    <xforms:group id="group-supportWorloadDetail">
+                        <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/supportWorkloadDetail"/>
+                        <xforms:input id="input-dynScript" xforms:bind="bind-dynScript">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript"/>
+                            <xforms:hint>Enter the Dynamic script</xforms:hint>
+                            <xforms:help>Enter the Dynamic script</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-initScript" xforms:bind="bind-initScript">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/initScript"/>
+                            <xforms:hint>Enter the Initialization script</xforms:hint>
+                            <xforms:help>Enter the Initialization script</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-imgPath" xforms:bind="bind-imgPath">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/imgPath"/>
+                            <xforms:hint>Enter the image path</xforms:hint>
+                            <xforms:help>Enter the image path</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-dynScriptPath" xforms:bind="bind-dynScriptPath">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScriptPath"/>
+                            <xforms:hint>Enter the Dynamic script path</xforms:hint>
+                            <xforms:help>Enter the Dynamic script path</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-downloadPath" xforms:bind="bind-downloadPath">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/downloadPath"/>
+                            <xforms:hint>Enter the download path</xforms:hint>
+                            <xforms:help>Enter the download path</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-paddingDir" xforms:bind="bind-paddingDir">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/paddingDir"/>
+                            <xforms:hint>Enter the padding dir</xforms:hint>
+                            <xforms:help>Enter the padding dir</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-downloadSubdirs" xforms:bind="bind-downloadSubdirs">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/downloadSubdirs"/>
+                            <xforms:hint>Enter the Download subdirs</xforms:hint>
+                            <xforms:help>Enter the Download subdirs</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-baseSubdir" xforms:bind="bind-baseSubdir">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/baseSubdir"/>
+                            <xforms:hint>Enter the baseSubdir</xforms:hint>
+                            <xforms:help>Enter the baseSubdir</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-firstSubdirNum" xforms:bind="bind-firstSubdirNum">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/firstSubdirNum"/>
+                            <xforms:hint>Enter the firstSubdirNum</xforms:hint>
+                            <xforms:help>Enter the firstSubdirNum</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-bufSize" xforms:bind="bind-bufSize">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/bufSize"/>
+                            <xforms:hint>Enter the bufSize</xforms:hint>
+                            <xforms:help>Enter the bufSize</xforms:help>
+                        </xforms:input>
+                    </xforms:group>
+                    <xforms:group id="group-supportScriptsDetail">
+                        <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/supportScriptsDetail"/>
+                        <xforms:input id="input-dynScript0" xforms:bind="bind-dynScript0">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript0"/>
+                            <xforms:hint>Enter the dynScript0</xforms:hint>
+                            <xforms:help>Enter the dynScript0</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-dynScript1" xforms:bind="bind-dynScript1">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript1"/>
+                            <xforms:hint>Enter the dynScript1</xforms:hint>
+                            <xforms:help>Enter the dynScript1</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-dynScript2" xforms:bind="bind-dynScript2">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript2"/>
+                            <xforms:hint>Enter the dynScript2</xforms:hint>
+                            <xforms:help>Enter the dynScript2</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-dynScript3" xforms:bind="bind-dynScript3">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript3"/>
+                            <xforms:hint>Enter the dynScript3</xforms:hint>
+                            <xforms:help>Enter the dynScript3</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-dynScript4" xforms:bind="bind-dynScript4">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript4"/>
+                            <xforms:hint>Enter the dynScript4</xforms:hint>
+                            <xforms:help>Enter the dynScript4</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-dynScript5" xforms:bind="bind-dynScript5">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript5"/>
+                            <xforms:hint>Enter the dynScript5</xforms:hint>
+                            <xforms:help>Enter the dynScript5</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-dynScript6" xforms:bind="bind-dynScript6">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript6"/>
+                            <xforms:hint>Enter the dynScript6</xforms:hint>
+                            <xforms:help>Enter the dynScript6</xforms:help>
+                        </xforms:input>
+                    </xforms:group>
+                </xforms:case>
+                <xforms:case id="case-bankingParameters">
+                    <xforms:group id="group-bankingWorloadDetail">
+                        <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/bankingWorkloadDetail"/>
+                        <xforms:input id="input-bdynScript" xforms:bind="bind-bdynScript">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript"/>
+                            <xforms:hint>Enter the Dynamic script</xforms:hint>
+                            <xforms:help>Enter the Dynamic script</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-binitScript" xforms:bind="bind-binitScript">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/initScript"/>
+                            <xforms:hint>Enter the Initialization script</xforms:hint>
+                            <xforms:help>Enter the Initialization script</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-bimgPath" xforms:bind="bind-bimgPath">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/imgPath"/>
+                            <xforms:hint>Enter the image path</xforms:hint>
+                            <xforms:help>Enter the image path</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-bdynScriptPath" xforms:bind="bind-bdynScriptPath">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScriptPath"/>
+                            <xforms:hint>Enter the Dynamic script path</xforms:hint>
+                            <xforms:help>Enter the Dynamic script path</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-bpaddingDir" xforms:bind="bind-bpaddingDir">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/paddingDir"/>
+                            <xforms:hint>Enter the padding dir</xforms:hint>
+                            <xforms:help>Enter the padding dir</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-bcheckImageDir" xforms:bind="bind-bcheckImageDir">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/checkImageDir"/>
+                            <xforms:hint>Enter the check Image Dir</xforms:hint>
+                            <xforms:help>Enter the check Image Dir</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-bcheckImageSubdirs" xforms:bind="bind-bcheckImageSubdirs">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/checkImageSubdirs"/>
+                            <xforms:hint>Enter the checkImageSubdirs</xforms:hint>
+                            <xforms:help>Enter the checkImageSubdirs</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-bbaseSubdir" xforms:bind="bind-bbaseSubdir">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/baseSubdir"/>
+                            <xforms:hint>Enter the baseSubdirName</xforms:hint>
+                            <xforms:help>Enter the baseSubdirName</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-bfirstSubdirNum" xforms:bind="bind-bfirstSubdirNum">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/firstSubdirNum"/>
+                            <xforms:hint>Enter the firstSubdirNum</xforms:hint>
+                            <xforms:help>Enter the firstSubdirNum</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-buserNumLen" xforms:bind="bind-buserNumLen">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/userNumLen"/>
+                            <xforms:hint>Enter the userNumLen</xforms:hint>
+                            <xforms:help>Enter the userNumLen</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-bcheckNumLen" xforms:bind="bind-bcheckNumLen">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/checkNumLen"/>
+                            <xforms:hint>Enter the checkNumLen</xforms:hint>
+                            <xforms:help>Enter the checkNumLen</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-bcheckImageRelPath" xforms:bind="bind-bcheckImageRelPath">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/checkImageRelPath"/>
+                            <xforms:hint>Enter the checkImageRelPath</xforms:hint>
+                            <xforms:help>Enter the checkImageRelPath</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-bserverCertFile" xforms:bind="bind-bserverCertFile">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/serverCertFile"/>
+                            <xforms:hint>Enter the serverCertFile</xforms:hint>
+                            <xforms:help>Enter the serverCertFile</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-bserverCertPwd" xforms:bind="bind-bserverCertPwd">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/serverCertPwd"/>
+                            <xforms:hint>Enter the serverCertPwd</xforms:hint>
+                            <xforms:help>Enter the serverCertPwd</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-bbufSize" xforms:bind="bind-bbufSize">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/bufSize"/>
+                            <xforms:hint>Enter the bufSize</xforms:hint>
+                            <xforms:help>Enter the bufSize</xforms:help>
+                        </xforms:input>
+                        <xforms:select1 id="select1-buseSSL" xforms:bind="bind-buseSSL">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/useSSL"/>
+                            <xforms:choices>
+                                <xforms:item>
+                                    <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/onSSL"/>
+                                    <xforms:value>1</xforms:value>
+                                </xforms:item>
+                                <xforms:item>
+                                    <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/offSSL"/>
+                                    <xforms:value>0</xforms:value>
+                                </xforms:item>
+                            </xforms:choices>
+                            <xforms:hint>Select SSL (on | off)</xforms:hint>
+                            <xforms:help>Select SSL (on | off) </xforms:help>
+                        </xforms:select1>
+                    </xforms:group>
+                    <xforms:group id="group-bankingScriptsDetail">
+                        <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/bankingScriptsDetail"/>
+                        <xforms:input id="input-bdynScript0" xforms:bind="bind-bdynScript0">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript0"/>
+                            <xforms:hint>Enter the dynScript0</xforms:hint>
+                            <xforms:help>Enter the dynScript0</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-bdynScript1" xforms:bind="bind-bdynScript1">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript1"/>
+                            <xforms:hint>Enter the dynScript1</xforms:hint>
+                            <xforms:help>Enter the dynScript1</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-bdynScript2" xforms:bind="bind-bdynScript2">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript2"/>
+                            <xforms:hint>Enter the dynScript2</xforms:hint>
+                            <xforms:help>Enter the dynScript2</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-bdynScript3" xforms:bind="bind-bdynScript3">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript3"/>
+                            <xforms:hint>Enter the dynScript3</xforms:hint>
+                            <xforms:help>Enter the dynScript3</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-bdynScript4" xforms:bind="bind-bdynScript4">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript4"/>
+                            <xforms:hint>Enter the dynScript4</xforms:hint>
+                            <xforms:help>Enter the dynScript4</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-bdynScript5" xforms:bind="bind-bdynScript5">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript5"/>
+                            <xforms:hint>Enter the dynScript5</xforms:hint>
+                            <xforms:help>Enter the dynScript5</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-bdynScript6" xforms:bind="bind-bdynScript6">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript6"/>
+                            <xforms:hint>Enter the dynScript6</xforms:hint>
+                            <xforms:help>Enter the dynScript6</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-bdynScript7" xforms:bind="bind-bdynScript7">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript7"/>
+                            <xforms:hint>Enter the dynScript7</xforms:hint>
+                            <xforms:help>Enter the dynScript7</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-bdynScript8" xforms:bind="bind-bdynScript8">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript8"/>
+                            <xforms:hint>Enter the dynScript8</xforms:hint>
+                            <xforms:help>Enter the dynScript8</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-bdynScript9" xforms:bind="bind-bdynScript9">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript9"/>
+                            <xforms:hint>Enter the dynScript9</xforms:hint>
+                            <xforms:help>Enter the dynScript9</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-bdynScript10" xforms:bind="bind-bdynScript10">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript10"/>
+                            <xforms:hint>Enter the dynScript10</xforms:hint>
+                            <xforms:help>Enter the dynScript10</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-bdynScript11" xforms:bind="bind-bdynScript11">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript11"/>
+                            <xforms:hint>Enter the dynScript11</xforms:hint>
+                            <xforms:help>Enter the dynScript11</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-bdynScript12" xforms:bind="bind-bdynScript12">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript12"/>
+                            <xforms:hint>Enter the dynScript12</xforms:hint>
+                            <xforms:help>Enter the dynScript12</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-bdynScript13" xforms:bind="bind-bdynScript13">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript13"/>
+                            <xforms:hint>Enter the dynScript13</xforms:hint>
+                            <xforms:help>Enter the dynScript13</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-bdynScript14" xforms:bind="bind-bdynScript14">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript14"/>
+                            <xforms:hint>Enter the dynScript14</xforms:hint>
+                            <xforms:help>Enter the dynScript14</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-bdynScript15" xforms:bind="bind-bdynScript15">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript15"/>
+                            <xforms:hint>Enter the dynScript15</xforms:hint>
+                            <xforms:help>Enter the dynScript15</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-bdynScript16" xforms:bind="bind-bdynScript16">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript16"/>
+                            <xforms:hint>Enter the dynScript16</xforms:hint>
+                            <xforms:help>Enter the dynScript16</xforms:help>
+                        </xforms:input>
+                    </xforms:group>
+                </xforms:case>
+                <xforms:case id="case-ecommerceParameters">
+                    <xforms:group id="group-ecommerceWorloadDetail">
+                        <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ecommerceWorkloadDetail"/>
+                        <xforms:input id="input-edynScript" xforms:bind="bind-edynScript">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript"/>
+                            <xforms:hint>Enter the Dynamic script</xforms:hint>
+                            <xforms:help>Enter the Dynamic script</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-einitScript" xforms:bind="bind-einitScript">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/initScript"/>
+                            <xforms:hint>Enter the Initialization script</xforms:hint>
+                            <xforms:help>Enter the Initialization script</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-eimgPath" xforms:bind="bind-eimgPath">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/imgPath"/>
+                            <xforms:hint>Enter the image path</xforms:hint>
+                            <xforms:help>Enter the image path</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-edynScriptPath" xforms:bind="bind-edynScriptPath">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScriptPath"/>
+                            <xforms:hint>Enter the Dynamic script path</xforms:hint>
+                            <xforms:help>Enter the Dynamic script path</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-epaddingDir" xforms:bind="bind-epaddingDir">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/paddingDir"/>
+                            <xforms:hint>Enter the padding dir</xforms:hint>
+                            <xforms:help>Enter the padding dir</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-eproductlineNumLen" xforms:bind="bind-eproductlineNumLen">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/productlineNumLen"/>
+                            <xforms:hint>Enter the productlineNumLen</xforms:hint>
+                            <xforms:help>Enter the productlineNumLen</xforms:help>
+                        </xforms:input>
+                         <xforms:input id="input-eproductImageRelPath" xforms:bind="bind-eproductImageRelPath">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/productImageRelPath"/>
+                            <xforms:hint>Enter the productImageRelPath</xforms:hint>
+                            <xforms:help>Enter the productImageRelPath</xforms:help>
+                        </xforms:input>
+                         <xforms:input id="input-edirScaling" xforms:bind="bind-edirScaling">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dirScaling"/>
+                            <xforms:hint>Enter the dirScaling</xforms:hint>
+                            <xforms:help>Enter the dirScaling</xforms:help>
+                        </xforms:input>
+                         <xforms:input id="input-eproductsPerDir" xforms:bind="bind-eproductsPerDir">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/productsPerDir"/>
+                            <xforms:hint>Enter the productsPerDir</xforms:hint>
+                            <xforms:help>Enter the productsPerDir</xforms:help>
+                        </xforms:input>
+                         <xforms:input id="input-eproductImageSubdirs" xforms:bind="bind-eproductImageSubdirs">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/productImageSubdirs"/>
+                            <xforms:hint>Enter the productImageSubdirs</xforms:hint>
+                            <xforms:help>Enter the productImageSubdirs</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-ebaseSubdir" xforms:bind="bind-ebaseSubdir">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/baseSubdir"/>
+                            <xforms:hint>Enter the baseSubdir</xforms:hint>
+                            <xforms:help>Enter the baseSubdir</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-efirstSubdirNum" xforms:bind="bind-efirstSubdirNum">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/firstSubdirNum"/>
+                            <xforms:hint>Enter the firstSubdirNum</xforms:hint>
+                            <xforms:help>Enter the firstSubdirNum</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-eserverCertFile" xforms:bind="bind-eserverCertFile">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/serverCertFile"/>
+                            <xforms:hint>Enter the serverCertFile</xforms:hint>
+                            <xforms:help>Enter the serverCertFile</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-eserverCertPwd" xforms:bind="bind-eserverCertPwd">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/serverCertPwd"/>
+                            <xforms:hint>Enter the serverCertPwd</xforms:hint>
+                            <xforms:help>Enter the serverCertPwd</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-bufSize" xforms:bind="bind-bufSize">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/bufSize"/>
+                            <xforms:hint>Enter the bufSize</xforms:hint>
+                            <xforms:help>Enter the bufSize</xforms:help>
+                        </xforms:input>
+                        <xforms:select1 id="select1-euseSSL" xforms:bind="bind-euseSSL">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/useSSL"/>
+                            <xforms:choices>
+                                <xforms:item>
+                                    <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/onSSL"/>
+                                    <xforms:value>1</xforms:value>
+                                </xforms:item>
+                                <xforms:item>
+                                    <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/offSSL"/>
+                                    <xforms:value>0</xforms:value>
+                                </xforms:item>
+                            </xforms:choices>
+                            <xforms:hint>Select SSL (on | off)</xforms:hint>
+                            <xforms:help>Select SSL (on | off) </xforms:help>
+                        </xforms:select1>
+                    </xforms:group>
+                    <xforms:group id="group-ecommerceScriptsDetail">
+                        <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ecommerceScriptsDetail"/>
+                        <xforms:input id="input-edynScript0" xforms:bind="bind-edynScript0">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript0"/>
+                            <xforms:hint>Enter the dynScript0</xforms:hint>
+                            <xforms:help>Enter the dynScript0</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-edynScript1" xforms:bind="bind-edynScript1">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript1"/>
+                            <xforms:hint>Enter the dynScript1</xforms:hint>
+                            <xforms:help>Enter the dynScript1</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-edynScript2" xforms:bind="bind-edynScript2">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript2"/>
+                            <xforms:hint>Enter the dynScript2</xforms:hint>
+                            <xforms:help>Enter the dynScript2</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-edynScript3" xforms:bind="bind-edynScript3">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript3"/>
+                            <xforms:hint>Enter the dynScript3</xforms:hint>
+                            <xforms:help>Enter the dynScript3</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-edynScript4" xforms:bind="bind-edynScript4">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript4"/>
+                            <xforms:hint>Enter the dynScript4</xforms:hint>
+                            <xforms:help>Enter the dynScript4</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-edynScript5" xforms:bind="bind-edynScript5">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript5"/>
+                            <xforms:hint>Enter the dynScript5</xforms:hint>
+                            <xforms:help>Enter the dynScript5</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-edynScript6" xforms:bind="bind-edynScript6">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript6"/>
+                            <xforms:hint>Enter the dynScript6</xforms:hint>
+                            <xforms:help>Enter the dynScript6</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-edynScript7" xforms:bind="bind-edynScript7">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript7"/>
+                            <xforms:hint>Enter the dynScript7</xforms:hint>
+                            <xforms:help>Enter the dynScript7</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-edynScript8" xforms:bind="bind-edynScript8">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript8"/>
+                            <xforms:hint>Enter the dynScript8</xforms:hint>
+                            <xforms:help>Enter the dynScript8</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-edynScript9" xforms:bind="bind-edynScript9">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript9"/>
+                            <xforms:hint>Enter the dynScript9</xforms:hint>
+                            <xforms:help>Enter the dynScript9</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-edynScript10" xforms:bind="bind-edynScript10">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript10"/>
+                            <xforms:hint>Enter the dynScript10</xforms:hint>
+                            <xforms:help>Enter the dynScript10</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-edynScript11" xforms:bind="bind-edynScript11">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript11"/>
+                            <xforms:hint>Enter the dynScript11</xforms:hint>
+                            <xforms:help>Enter the dynScript11</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-edynScript12" xforms:bind="bind-edynScript12">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript12"/>
+                            <xforms:hint>Enter the dynScript12</xforms:hint>
+                            <xforms:help>Enter the dynScript12</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-edynScript13" xforms:bind="bind-edynScript13">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dynScript13"/>
+                            <xforms:hint>Enter the dynScript13</xforms:hint>
+                            <xforms:help>Enter the dynScript13</xforms:help>
+                        </xforms:input>
+                    </xforms:group>
+                </xforms:case>
+            </xforms:switch>
+        </xforms:group>
+        <xforms:group id="group-buttons">
+            <xforms:trigger id="trigger-ok">
+                <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ok"/>
+                <xforms:action id="action-ok">
+                    <xforms:send id="send-debug" xforms:submission="submission-debug"/>
+                </xforms:action>
+            </xforms:trigger>
+            <xforms:trigger id="trigger-cancel">
+                <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/cancel"/>
+                <xforms:action id="action-cancel">
+                    <xforms:reset id="reset-cancel" xforms:model="benchmark-model"/>
+                    <xforms:toggle id="toggle-cancel" xforms:case="case-runConfig"/>
+                </xforms:action>
+            </xforms:trigger>
+        </xforms:group>
+    </body>
+</html>

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: StringMatcher.java,v 1.2 2006/06/29 19:38:39 akara Exp $
+ * $Id: StringMatcher.java,v 1.3 2009/07/28 22:53:32 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -42,7 +42,7 @@ public class StringMatcher {
     }
 
     /**
-     * Matches the string to the candidates
+     * Matches the string to the candidates.
      * @param match object to match
      * @return index of the match in the candidate array or -1 if not found
      */

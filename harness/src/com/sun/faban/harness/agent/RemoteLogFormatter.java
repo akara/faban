@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RemoteLogFormatter.java,v 1.2 2006/06/29 19:38:40 akara Exp $
+ * $Id: RemoteLogFormatter.java,v 1.5 2009/07/28 22:54:13 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -28,9 +28,16 @@ import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 import java.util.logging.XMLFormatter;
 
+/**
+ * Formatter for formatting the logs to be sent to a log server.
+ * It adds a host name to the XML.
+ */
 public class RemoteLogFormatter extends XMLFormatter {
     private String ident;
 
+    /**
+     * Constructs the formatter.
+     */
     public RemoteLogFormatter() {
         super();
         StringBuffer sb = new StringBuffer("<record>\n  <host>");
@@ -46,9 +53,9 @@ public class RemoteLogFormatter extends XMLFormatter {
     }
 
     /**
-     *
-     * @param record
-     * @return return with the host added to the log record.
+     * Formats the log record to the remote log format.
+     * @param record The log record
+     * @return The log record with the host added to the log record.
      */
     public String format(LogRecord record) {
         String log = super.format(record);
@@ -59,18 +66,20 @@ public class RemoteLogFormatter extends XMLFormatter {
 
 
     /**
+     * Return the header string for a set of XML formatted records.
      *
-     * @param h
-     * @return return an empty string
+     * @param   h  The target handler (can be null)
+     * @return  an empty string
      */
     public String getHead(Handler h) {
         return "";
     }
 
     /**
+     * Return the tail string for a set of XML formatted records.
      *
-     * @param h
-     * @return return an empty string
+     * @param   h  The target handler (can be null)
+     * @return  an empty string
      */
     public String getTail(Handler h) {
         return "";

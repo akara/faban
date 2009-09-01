@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentSocketFactory.java,v 1.3 2007/10/12 01:32:10 akara Exp $
+ * $Id: AgentSocketFactory.java,v 1.5 2009/07/28 22:54:13 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -44,7 +44,7 @@ public class AgentSocketFactory extends RMISocketFactory implements RMIClientSoc
     RMISocketFactory rsf = RMISocketFactory.getDefaultSocketFactory();
 
     /**
-     * Constructor
+     * Constructor.
      *
      */
     AgentSocketFactory() {
@@ -83,10 +83,9 @@ public class AgentSocketFactory extends RMISocketFactory implements RMIClientSoc
      *
      * @param host - the destination host.
      * @param port - the port number to connect to.
-     *
      * @return Socket - returns a client socket representing this 
      *         connection.
-     *
+     * @throws IOException Error creating the socket
      * @see java.rmi.server.RMISocketFactory
      *
      */
@@ -103,8 +102,10 @@ public class AgentSocketFactory extends RMISocketFactory implements RMIClientSoc
      * This method just calls the superClass createServerSocket method
      * to create a ServerSocket.
      *
+     * @param port The port to bind
+     * @return The resulting server socket
+     * @throws IOException Error creating the socket
      * @see java.rmi.server.RMISocketFactory
-     *
      */
     public ServerSocket createServerSocket(int port) throws IOException {
         return rsf.createServerSocket(port);

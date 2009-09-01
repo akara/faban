@@ -1,0 +1,857 @@
+<?xml version='1.0' encoding='ISO-8859-1'?>
+<html xmlns:xforms='http://www.w3.org/2002/xforms'
+      xmlns:fa='http://faban.sunsource.net/ns/faban'
+      xmlns:fh='http://faban.sunsource.net/ns/fabanharness'
+      xmlns:fd='http://faban.sunsource.net/ns/fabandriver'>
+    <head>
+        <xforms:model id='benchmark-model'>
+            <xforms:instance id='benchmark-instance' src='{benchmark.template}'/>
+            <xforms:submission xforms:action='schedule-run.jsp' xforms:replace='all' id='submission-debug' xforms:method='post'/>
+            <xforms:bind id='bind-specweb2005Benchmark' xforms:nodeset='/specweb2005Benchmark'>
+	<xforms:bind id='bind-jvmConfig' xforms:nodeset='fh:jvmConfig'  >
+		<xforms:bind id='bind-jvmConfig-javaHome' xforms:nodeset='fh:javaHome'  >
+		</xforms:bind>
+		<xforms:bind id='bind-jvmConfig-jvmOptions' xforms:nodeset='fh:jvmOptions'  >
+		</xforms:bind>
+	</xforms:bind>
+	<xforms:bind id='bind-runConfig' xforms:nodeset='fa:runConfig'  >
+		<xforms:bind id='bind-runConfig-description' xforms:nodeset='fh:description'  >
+		</xforms:bind>
+		<xforms:bind id='bind-runConfig-hostConfig' xforms:nodeset='fa:hostConfig'  >
+			<xforms:bind id='bind-runConfig-hostConfig-hostPorts' xforms:nodeset='fa:hostPorts'  >
+			</xforms:bind>
+			<xforms:bind id='bind-runConfig-hostConfig-enabled' xforms:nodeset='fh:enabled'  >
+			</xforms:bind>
+			<xforms:bind id='bind-runConfig-hostConfig-cpus' xforms:nodeset='fh:cpus'  >
+			</xforms:bind>
+			<xforms:bind id='bind-runConfig-hostConfig-tools' xforms:nodeset='fh:tools'  >
+			</xforms:bind>
+			<xforms:bind id='bind-runConfig-hostConfig-userCommands' xforms:nodeset='fh:userCommands'  >
+			</xforms:bind>
+			<xforms:bind id='bind-runConfig-hostConfig-nodeid' xforms:nodeset='nodeid'  >
+			</xforms:bind>
+			<xforms:bind id='bind-runConfig-hostConfig-port' xforms:nodeset='port' xforms:type='positiveInteger'>
+			</xforms:bind>
+		</xforms:bind>
+		<xforms:bind id='bind-runConfig-clientDir' xforms:nodeset='clientDir'  >
+		</xforms:bind>
+		<xforms:bind id='bind-runConfig-scale' xforms:nodeset='fa:scale' xforms:type='positiveInteger'>
+		</xforms:bind>
+		<xforms:bind id='bind-runConfig-runControl' xforms:nodeset='fa:runControl'  >
+			<xforms:bind id='bind-runConfig-runControl-rampUp' xforms:nodeset='fa:rampUp'  >
+			</xforms:bind>
+			<xforms:bind id='bind-runConfig-runControl-steadyState' xforms:nodeset='fa:steadyState'  >
+			</xforms:bind>
+			<xforms:bind id='bind-runConfig-runControl-rampDown' xforms:nodeset='fa:rampDown'  >
+			</xforms:bind>
+		</xforms:bind>
+		<xforms:bind id='bind-runConfig-testtype' xforms:nodeset='testtype'  >
+		</xforms:bind>
+		<xforms:bind id='bind-runConfig-warmupSeconds' xforms:nodeset='warmupSeconds'  >
+		</xforms:bind>
+		<xforms:bind id='bind-runConfig-threadRampupSeconds' xforms:nodeset='threadRampupSeconds'  >
+		</xforms:bind>
+		<xforms:bind id='bind-runConfig-rampupSeconds' xforms:nodeset='rampupSeconds'  >
+		</xforms:bind>
+		<xforms:bind id='bind-runConfig-rampdownSeconds' xforms:nodeset='rampdownSeconds'  >
+		</xforms:bind>
+		<xforms:bind id='bind-runConfig-iterations' xforms:nodeset='iterations'  >
+		</xforms:bind>
+		<xforms:bind id='bind-runConfig-parConns' xforms:nodeset='parConns'  >
+		</xforms:bind>
+		<xforms:bind id='bind-runConfig-sleepTestIterations' xforms:nodeset='sleepTestIterations'  >
+		</xforms:bind>
+		<xforms:bind id='bind-runConfig-olRun' xforms:nodeset='olRun'  >
+		</xforms:bind>
+	</xforms:bind>
+	<xforms:bind id='bind-webserverConfig' xforms:nodeset='webserverConfig'  >
+		<xforms:bind id='bind-webserverConfig-hostConfig' xforms:nodeset='fa:hostConfig'  >
+			<xforms:bind id='bind-webserverConfig-hostConfig-host' xforms:nodeset='fa:host'  >
+			</xforms:bind>
+			<xforms:bind id='bind-webserverConfig-enabledConfig-enabled' xforms:nodeset='fh:enabled'  >
+			</xforms:bind>
+			<xforms:bind id='bind-webserverConfig-cpusConfig-cpus' xforms:nodeset='fh:cpus'  >
+			</xforms:bind>
+			<xforms:bind id='bind-webserverConfig-toolsConfig-tools' xforms:nodeset='fh:tools'  >
+			</xforms:bind>
+			<xforms:bind id='bind-webserverConfig-userCommandsConfig-userCommands' xforms:nodeset='fh:userCommands'  >
+			</xforms:bind>
+		</xforms:bind>
+		<xforms:bind id='bind-webserverConfig-wsConfig' xforms:nodeset='wsConfig'  >
+			<xforms:bind id='bind-webserverConfig-wsConfig-wsPort' xforms:nodeset='wsPort'  >
+			</xforms:bind>
+			<xforms:bind id='bind-webserverConfig-wsConfig-wsSSLport' xforms:nodeset='wsSSLport'  >
+			</xforms:bind>
+		</xforms:bind>
+	</xforms:bind>
+	<xforms:bind id='bind-besimserverConfig' xforms:nodeset='besimserverConfig'  >
+		<xforms:bind id='bind-besimserverConfig-hostConfig' xforms:nodeset='fa:hostConfig'  >
+			<xforms:bind id='bind-besimserverConfig-hostConfig-host' xforms:nodeset='fa:host'  >
+			</xforms:bind>
+			<xforms:bind id='bind-besimserverConfig-enabledConfig-enabled' xforms:nodeset='fh:enabled'  >
+			</xforms:bind>
+			<xforms:bind id='bind-besimserverConfig-cpusConfig-cpus' xforms:nodeset='fh:cpus'  >
+			</xforms:bind>
+			<xforms:bind id='bind-besimserverConfig-toolsConfig-tools' xforms:nodeset='fh:tools'  >
+			</xforms:bind>
+			<xforms:bind id='bind-besimserverConfig-userCommandsConfig-userCommands' xforms:nodeset='fh:userCommands'  >
+			</xforms:bind>
+		</xforms:bind>
+		<xforms:bind id='bind-besimserverConfig-besimConfig' xforms:nodeset='besimConfig'  >
+			<xforms:bind id='bind-besimserverConfig-besimConfig-port' xforms:nodeset='port' xforms:type='positiveInteger'>
+			</xforms:bind>
+			<xforms:bind id='bind-besimserverConfig-besimConfig-initScript' xforms:nodeset='initScript'  >
+			</xforms:bind>
+			<xforms:bind id='bind-besimserverConfig-besimConfig-persistent' xforms:nodeset='persistent'  >
+			</xforms:bind>
+		</xforms:bind>
+	</xforms:bind>
+	<xforms:bind id='bind-supportParameters' xforms:nodeset='supportParameters'  >
+		<xforms:bind id='bind-supportParameters-supportWorkloadDetail' xforms:nodeset='supportWorkloadDetail'  >
+			<xforms:bind id='bind-supportParameters-supportWorkloadDetail-dynScript' xforms:nodeset='dynScript'  >
+			</xforms:bind>
+			<xforms:bind id='bind-supportParameters-supportWorkloadDetail-initScript' xforms:nodeset='initScript'  >
+			</xforms:bind>
+			<xforms:bind id='bind-supportParameters-supportWorkloadDetail-imgPath' xforms:nodeset='imgPath'  >
+			</xforms:bind>
+			<xforms:bind id='bind-supportParameters-supportWorkloadDetail-dynScriptPath' xforms:nodeset='dynScriptPath'  >
+			</xforms:bind>
+			<xforms:bind id='bind-supportParameters-supportWorkloadDetail-downloadPath' xforms:nodeset='downloadPath'  >
+			</xforms:bind>
+			<xforms:bind id='bind-supportParameters-supportWorkloadDetail-paddingDir' xforms:nodeset='paddingDir'  >
+			</xforms:bind>
+			<xforms:bind id='bind-supportParameters-supportWorkloadDetail-downloadSubdirs' xforms:nodeset='downloadSubdirs'  >
+			</xforms:bind>
+			<xforms:bind id='bind-supportParameters-supportWorkloadDetail-baseSubdir' xforms:nodeset='baseSubdir'  >
+			</xforms:bind>
+			<xforms:bind id='bind-supportParameters-supportWorkloadDetail-firstSubdirNum' xforms:nodeset='firstSubdirNum'  >
+			</xforms:bind>
+			<xforms:bind id='bind-supportParameters-supportWorkloadDetail-dynScript0' xforms:nodeset='dynScript0'  >
+			</xforms:bind>
+			<xforms:bind id='bind-supportParameters-supportWorkloadDetail-dynScript1' xforms:nodeset='dynScript1'  >
+			</xforms:bind>
+			<xforms:bind id='bind-supportParameters-supportWorkloadDetail-dynScript2' xforms:nodeset='dynScript2'  >
+			</xforms:bind>
+			<xforms:bind id='bind-supportParameters-supportWorkloadDetail-dynScript3' xforms:nodeset='dynScript3'  >
+			</xforms:bind>
+			<xforms:bind id='bind-supportParameters-supportWorkloadDetail-dynScript4' xforms:nodeset='dynScript4'  >
+			</xforms:bind>
+			<xforms:bind id='bind-supportParameters-supportWorkloadDetail-dynScript5' xforms:nodeset='dynScript5'  >
+			</xforms:bind>
+			<xforms:bind id='bind-supportParameters-supportWorkloadDetail-dynScript6' xforms:nodeset='dynScript6'  >
+			</xforms:bind>
+			<xforms:bind id='bind-supportParameters-supportWorkloadDetail-bufSize' xforms:nodeset='bufSize'  >
+			</xforms:bind>
+		</xforms:bind>
+	</xforms:bind>
+	<xforms:bind id='bind-bankingParameters' xforms:nodeset='bankingParameters'  >
+		<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail' xforms:nodeset='bankingWorkloadDetail'  >
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-dynScript' xforms:nodeset='dynScript'  >
+			</xforms:bind>
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-initScript' xforms:nodeset='initScript'  >
+			</xforms:bind>
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-imgPath' xforms:nodeset='imgPath'  >
+			</xforms:bind>
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-dynScriptPath' xforms:nodeset='dynScriptPath'  >
+			</xforms:bind>
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-paddingDir' xforms:nodeset='paddingDir'  >
+			</xforms:bind>
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-checkImageDir' xforms:nodeset='checkImageDir'  >
+			</xforms:bind>
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-checkImageSubdirs' xforms:nodeset='checkImageSubdirs'  >
+			</xforms:bind>
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-baseSubdir' xforms:nodeset='baseSubdir'  >
+			</xforms:bind>
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-firstSubdirNum' xforms:nodeset='firstSubdirNum'  >
+			</xforms:bind>
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-userNumLen' xforms:nodeset='userNumLen'  >
+			</xforms:bind>
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-checkNumLen' xforms:nodeset='checkNumLen'  >
+			</xforms:bind>
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-checkImageRelPath' xforms:nodeset='checkImageRelPath'  >
+			</xforms:bind>
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-dynScript0' xforms:nodeset='dynScript0'  >
+			</xforms:bind>
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-dynScript1' xforms:nodeset='dynScript1'  >
+			</xforms:bind>
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-dynScript2' xforms:nodeset='dynScript2'  >
+			</xforms:bind>
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-dynScript3' xforms:nodeset='dynScript3'  >
+			</xforms:bind>
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-dynScript4' xforms:nodeset='dynScript4'  >
+			</xforms:bind>
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-dynScript5' xforms:nodeset='dynScript5'  >
+			</xforms:bind>
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-dynScript6' xforms:nodeset='dynScript6'  >
+			</xforms:bind>
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-dynScript7' xforms:nodeset='dynScript7'  >
+			</xforms:bind>
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-dynScript8' xforms:nodeset='dynScript8'  >
+			</xforms:bind>
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-dynScript9' xforms:nodeset='dynScript9'  >
+			</xforms:bind>
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-dynScript10' xforms:nodeset='dynScript10'  >
+			</xforms:bind>
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-dynScript11' xforms:nodeset='dynScript11'  >
+			</xforms:bind>
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-dynScript12' xforms:nodeset='dynScript12'  >
+			</xforms:bind>
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-dynScript13' xforms:nodeset='dynScript13'  >
+			</xforms:bind>
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-dynScript14' xforms:nodeset='dynScript14'  >
+			</xforms:bind>
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-dynScript15' xforms:nodeset='dynScript15'  >
+			</xforms:bind>
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-dynScript16' xforms:nodeset='dynScript16'  >
+			</xforms:bind>
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-serverCertFile' xforms:nodeset='serverCertFile'  >
+			</xforms:bind>
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-serverCertPwd' xforms:nodeset='serverCertPwd'  >
+			</xforms:bind>
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-bufSize' xforms:nodeset='bufSize'  >
+			</xforms:bind>
+			<xforms:bind id='bind-bankingParameters-bankingWorkloadDetail-useSSL' xforms:nodeset='useSSL'  >
+			</xforms:bind>
+		</xforms:bind>
+	</xforms:bind>
+	<xforms:bind id='bind-ecommerceParameters' xforms:nodeset='ecommerceParameters'  >
+		<xforms:bind id='bind-ecommerceParameters-ecommerceWorkloadDetail' xforms:nodeset='ecommerceWorkloadDetail'  >
+			<xforms:bind id='bind-ecommerceParameters-ecommerceWorkloadDetail-dynScript' xforms:nodeset='dynScript'  >
+			</xforms:bind>
+			<xforms:bind id='bind-ecommerceParameters-ecommerceWorkloadDetail-initScript' xforms:nodeset='initScript'  >
+			</xforms:bind>
+			<xforms:bind id='bind-ecommerceParameters-ecommerceWorkloadDetail-imgPath' xforms:nodeset='imgPath'  >
+			</xforms:bind>
+			<xforms:bind id='bind-ecommerceParameters-ecommerceWorkloadDetail-dynScriptPath' xforms:nodeset='dynScriptPath'  >
+			</xforms:bind>
+			<xforms:bind id='bind-ecommerceParameters-ecommerceWorkloadDetail-paddingDir' xforms:nodeset='paddingDir'  >
+			</xforms:bind>
+			<xforms:bind id='bind-ecommerceParameters-ecommerceWorkloadDetail-productlineNumLen' xforms:nodeset='productlineNumLen'  >
+			</xforms:bind>
+			<xforms:bind id='bind-ecommerceParameters-ecommerceWorkloadDetail-productImageRelPath' xforms:nodeset='productImageRelPath'  >
+			</xforms:bind>
+			<xforms:bind id='bind-ecommerceParameters-ecommerceWorkloadDetail-dirScaling' xforms:nodeset='dirScaling'  >
+			</xforms:bind>
+			<xforms:bind id='bind-ecommerceParameters-ecommerceWorkloadDetail-productsPerDir' xforms:nodeset='productsPerDir'  >
+			</xforms:bind>
+			<xforms:bind id='bind-ecommerceParameters-ecommerceWorkloadDetail-productImageSubdirs' xforms:nodeset='productImageSubdirs'  >
+			</xforms:bind>
+			<xforms:bind id='bind-ecommerceParameters-ecommerceWorkloadDetail-baseSubdir' xforms:nodeset='baseSubdir'  >
+			</xforms:bind>
+			<xforms:bind id='bind-ecommerceParameters-ecommerceWorkloadDetail-firstSubdirNum' xforms:nodeset='firstSubdirNum'  >
+			</xforms:bind>
+			<xforms:bind id='bind-ecommerceParameters-ecommerceWorkloadDetail-dynScript0' xforms:nodeset='dynScript0'  >
+			</xforms:bind>
+			<xforms:bind id='bind-ecommerceParameters-ecommerceWorkloadDetail-dynScript1' xforms:nodeset='dynScript1'  >
+			</xforms:bind>
+			<xforms:bind id='bind-ecommerceParameters-ecommerceWorkloadDetail-dynScript2' xforms:nodeset='dynScript2'  >
+			</xforms:bind>
+			<xforms:bind id='bind-ecommerceParameters-ecommerceWorkloadDetail-dynScript3' xforms:nodeset='dynScript3'  >
+			</xforms:bind>
+			<xforms:bind id='bind-ecommerceParameters-ecommerceWorkloadDetail-dynScript4' xforms:nodeset='dynScript4'  >
+			</xforms:bind>
+			<xforms:bind id='bind-ecommerceParameters-ecommerceWorkloadDetail-dynScript5' xforms:nodeset='dynScript5'  >
+			</xforms:bind>
+			<xforms:bind id='bind-ecommerceParameters-ecommerceWorkloadDetail-dynScript6' xforms:nodeset='dynScript6'  >
+			</xforms:bind>
+			<xforms:bind id='bind-ecommerceParameters-ecommerceWorkloadDetail-dynScript7' xforms:nodeset='dynScript7'  >
+			</xforms:bind>
+			<xforms:bind id='bind-ecommerceParameters-ecommerceWorkloadDetail-dynScript8' xforms:nodeset='dynScript8'  >
+			</xforms:bind>
+			<xforms:bind id='bind-ecommerceParameters-ecommerceWorkloadDetail-dynScript9' xforms:nodeset='dynScript9'  >
+			</xforms:bind>
+			<xforms:bind id='bind-ecommerceParameters-ecommerceWorkloadDetail-dynScript10' xforms:nodeset='dynScript10'  >
+			</xforms:bind>
+			<xforms:bind id='bind-ecommerceParameters-ecommerceWorkloadDetail-dynScript11' xforms:nodeset='dynScript11'  >
+			</xforms:bind>
+			<xforms:bind id='bind-ecommerceParameters-ecommerceWorkloadDetail-dynScript12' xforms:nodeset='dynScript12'  >
+			</xforms:bind>
+			<xforms:bind id='bind-ecommerceParameters-ecommerceWorkloadDetail-dynScript13' xforms:nodeset='dynScript13'  >
+			</xforms:bind>
+			<xforms:bind id='bind-ecommerceParameters-ecommerceWorkloadDetail-serverCertFile' xforms:nodeset='serverCertFile'  >
+			</xforms:bind>
+			<xforms:bind id='bind-ecommerceParameters-ecommerceWorkloadDetail-serverCertPwd' xforms:nodeset='serverCertPwd'  >
+			</xforms:bind>
+			<xforms:bind id='bind-ecommerceParameters-ecommerceWorkloadDetail-bufSize' xforms:nodeset='bufSize'  >
+			</xforms:bind>
+			<xforms:bind id='bind-ecommerceParameters-ecommerceWorkloadDetail-useSSL' xforms:nodeset='useSSL'  >
+			</xforms:bind>
+		</xforms:bind>
+	</xforms:bind>
+</xforms:bind>
+
+        </xforms:model>
+        <xforms:model id='benchmark-labels'>
+            <xforms:instance id='benchmark-label-names'>
+                <labels>
+                    <specweb2005Benchmark>Specweb2005 Benchmark</specweb2005Benchmark>
+<jvmConfig>Jvm Config</jvmConfig>
+<javaHome>Java Home</javaHome>
+<jvmOptions>Jvm Options</jvmOptions>
+<runConfig>Run Config</runConfig>
+<description>Description</description>
+<hostConfig>Host Config</hostConfig>
+<hostPorts>Host Ports</hostPorts>
+<enabled>Enabled</enabled>
+<cpus>Cpus</cpus>
+<tools>Tools</tools>
+<userCommands>User Commands</userCommands>
+<nodeid>Nodeid</nodeid>
+<port>Port</port>
+<clientDir>Client Dir</clientDir>
+<scale>Scale</scale>
+<runControl>Run Control</runControl>
+<rampUp>Ramp Up</rampUp>
+<steadyState>Steady State</steadyState>
+<rampDown>Ramp Down</rampDown>
+<testtype>Testtype</testtype>
+<warmupSeconds>Warmup Seconds</warmupSeconds>
+<threadRampupSeconds>Thread Rampup Seconds</threadRampupSeconds>
+<rampupSeconds>Rampup Seconds</rampupSeconds>
+<rampdownSeconds>Rampdown Seconds</rampdownSeconds>
+<iterations>Iterations</iterations>
+<parConns>Par Conns</parConns>
+<sleepTestIterations>Sleep Test Iterations</sleepTestIterations>
+<olRun>Ol Run</olRun>
+<webserverConfig>Webserver Config</webserverConfig>
+<host>Host</host>
+<wsConfig>Ws Config</wsConfig>
+<wsPort>Ws Port</wsPort>
+<wsSSLport>Ws S S Lport</wsSSLport>
+<besimserverConfig>Besimserver Config</besimserverConfig>
+<besimConfig>Besim Config</besimConfig>
+<initScript>Init Script</initScript>
+<persistent>Persistent</persistent>
+<supportParameters>Support Parameters</supportParameters>
+<supportWorkloadDetail>Support Workload Detail</supportWorkloadDetail>
+<dynScript>Dyn Script</dynScript>
+<imgPath>Img Path</imgPath>
+<dynScriptPath>Dyn Script Path</dynScriptPath>
+<downloadPath>Download Path</downloadPath>
+<paddingDir>Padding Dir</paddingDir>
+<downloadSubdirs>Download Subdirs</downloadSubdirs>
+<baseSubdir>Base Subdir</baseSubdir>
+<firstSubdirNum>First Subdir Num</firstSubdirNum>
+<dynScript0>Dyn Script0</dynScript0>
+<dynScript1>Dyn Script1</dynScript1>
+<dynScript2>Dyn Script2</dynScript2>
+<dynScript3>Dyn Script3</dynScript3>
+<dynScript4>Dyn Script4</dynScript4>
+<dynScript5>Dyn Script5</dynScript5>
+<dynScript6>Dyn Script6</dynScript6>
+<bufSize>Buf Size</bufSize>
+<bankingParameters>Banking Parameters</bankingParameters>
+<bankingWorkloadDetail>Banking Workload Detail</bankingWorkloadDetail>
+<checkImageDir>Check Image Dir</checkImageDir>
+<checkImageSubdirs>Check Image Subdirs</checkImageSubdirs>
+<userNumLen>User Num Len</userNumLen>
+<checkNumLen>Check Num Len</checkNumLen>
+<checkImageRelPath>Check Image Rel Path</checkImageRelPath>
+<dynScript7>Dyn Script7</dynScript7>
+<dynScript8>Dyn Script8</dynScript8>
+<dynScript9>Dyn Script9</dynScript9>
+<dynScript10>Dyn Script10</dynScript10>
+<dynScript11>Dyn Script11</dynScript11>
+<dynScript12>Dyn Script12</dynScript12>
+<dynScript13>Dyn Script13</dynScript13>
+<dynScript14>Dyn Script14</dynScript14>
+<dynScript15>Dyn Script15</dynScript15>
+<dynScript16>Dyn Script16</dynScript16>
+<serverCertFile>Server Cert File</serverCertFile>
+<serverCertPwd>Server Cert Pwd</serverCertPwd>
+<useSSL>Use S S L</useSSL>
+<ecommerceParameters>Ecommerce Parameters</ecommerceParameters>
+<ecommerceWorkloadDetail>Ecommerce Workload Detail</ecommerceWorkloadDetail>
+<productlineNumLen>Productline Num Len</productlineNumLen>
+<productImageRelPath>Product Image Rel Path</productImageRelPath>
+<dirScaling>Dir Scaling</dirScaling>
+<productsPerDir>Products Per Dir</productsPerDir>
+<productImageSubdirs>Product Image Subdirs</productImageSubdirs>
+
+                    <unit>Unit</unit>
+                    <time>Time (sec)</time>
+                    <cycles>Cycles</cycles>
+                    <yes>Yes</yes>
+                    <no>No</no>
+                    <ok>Ok</ok>
+                    <cancel>Cancel</cancel>
+                </labels>
+            </xforms:instance>
+        </xforms:model>
+    </head>
+    <body>
+        <xforms:group id="group-tabsheet">
+            <xforms:trigger id='trigger-jvmConfig'>
+	<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/jvmConfig'/>
+	<xforms:action id='action-jvmConfig'>
+		<xforms:revalidate xforms:model='benchmark-model' id='revalidate-jvmConfig'/>
+		<xforms:toggle id='toggle-jvmConfig' xforms:case='case-jvmConfig'/>
+	</xforms:action>
+</xforms:trigger>
+<xforms:trigger id='trigger-runConfig'>
+	<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/runConfig'/>
+	<xforms:action id='action-runConfig'>
+		<xforms:revalidate xforms:model='benchmark-model' id='revalidate-runConfig'/>
+		<xforms:toggle id='toggle-runConfig' xforms:case='case-runConfig'/>
+	</xforms:action>
+</xforms:trigger>
+<xforms:trigger id='trigger-webserverConfig'>
+	<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/webserverConfig'/>
+	<xforms:action id='action-webserverConfig'>
+		<xforms:revalidate xforms:model='benchmark-model' id='revalidate-webserverConfig'/>
+		<xforms:toggle id='toggle-webserverConfig' xforms:case='case-webserverConfig'/>
+	</xforms:action>
+</xforms:trigger>
+<xforms:trigger id='trigger-besimserverConfig'>
+	<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/besimserverConfig'/>
+	<xforms:action id='action-besimserverConfig'>
+		<xforms:revalidate xforms:model='benchmark-model' id='revalidate-besimserverConfig'/>
+		<xforms:toggle id='toggle-besimserverConfig' xforms:case='case-besimserverConfig'/>
+	</xforms:action>
+</xforms:trigger>
+<xforms:trigger id='trigger-supportParameters'>
+	<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/supportParameters'/>
+	<xforms:action id='action-supportParameters'>
+		<xforms:revalidate xforms:model='benchmark-model' id='revalidate-supportParameters'/>
+		<xforms:toggle id='toggle-supportParameters' xforms:case='case-supportParameters'/>
+	</xforms:action>
+</xforms:trigger>
+<xforms:trigger id='trigger-bankingParameters'>
+	<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/bankingParameters'/>
+	<xforms:action id='action-bankingParameters'>
+		<xforms:revalidate xforms:model='benchmark-model' id='revalidate-bankingParameters'/>
+		<xforms:toggle id='toggle-bankingParameters' xforms:case='case-bankingParameters'/>
+	</xforms:action>
+</xforms:trigger>
+<xforms:trigger id='trigger-ecommerceParameters'>
+	<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/ecommerceParameters'/>
+	<xforms:action id='action-ecommerceParameters'>
+		<xforms:revalidate xforms:model='benchmark-model' id='revalidate-ecommerceParameters'/>
+		<xforms:toggle id='toggle-ecommerceParameters' xforms:case='case-ecommerceParameters'/>
+	</xforms:action>
+</xforms:trigger>
+
+            <xforms:switch id="switch">
+                	<xforms:case id='case-jvmConfig'>
+		<xforms:group id='group-jvmConfig'>
+		<xforms:input id='input-jvmConfig-javaHome' xforms:bind='bind-jvmConfig-javaHome'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/javaHome'/>
+		</xforms:input>
+		<xforms:input id='input-jvmConfig-jvmOptions' xforms:bind='bind-jvmConfig-jvmOptions'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/jvmOptions'/>
+		</xforms:input>
+		</xforms:group>
+	</xforms:case>
+	<xforms:case id='case-runConfig'>
+		<xforms:group id='group-runConfig'>
+		<xforms:input id='input-runConfig-description' xforms:bind='bind-runConfig-description'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/description'/>
+		</xforms:input>
+
+			<xforms:input id='input-runConfig-hostConfig-hostPorts' xforms:bind='bind-runConfig-hostConfig-hostPorts'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/hostPorts'/>
+		</xforms:input>
+			<xforms:input id='input-runConfig-hostConfig-enabled' xforms:bind='bind-runConfig-hostConfig-enabled'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/enabled'/>
+		</xforms:input>
+			<xforms:input id='input-runConfig-hostConfig-cpus' xforms:bind='bind-runConfig-hostConfig-cpus'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/cpus'/>
+		</xforms:input>
+			<xforms:input id='input-runConfig-hostConfig-tools' xforms:bind='bind-runConfig-hostConfig-tools'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/tools'/>
+		</xforms:input>
+			<xforms:input id='input-runConfig-hostConfig-userCommands' xforms:bind='bind-runConfig-hostConfig-userCommands'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/userCommands'/>
+		</xforms:input>
+			<xforms:input id='input-runConfig-hostConfig-nodeid' xforms:bind='bind-runConfig-hostConfig-nodeid'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/nodeid'/>
+		</xforms:input>
+			<xforms:input id='input-runConfig-hostConfig-port' xforms:bind='bind-runConfig-hostConfig-port'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/port'/>
+		</xforms:input>
+
+		<xforms:input id='input-runConfig-clientDir' xforms:bind='bind-runConfig-clientDir'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/clientDir'/>
+		</xforms:input>
+		<xforms:input id='input-runConfig-scale' xforms:bind='bind-runConfig-scale'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/scale'/>
+		</xforms:input>
+
+			<xforms:input id='input-runConfig-runControl-rampUp' xforms:bind='bind-runConfig-runControl-rampUp'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/rampUp'/>
+		</xforms:input>
+			<xforms:input id='input-runConfig-runControl-steadyState' xforms:bind='bind-runConfig-runControl-steadyState'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/steadyState'/>
+		</xforms:input>
+			<xforms:input id='input-runConfig-runControl-rampDown' xforms:bind='bind-runConfig-runControl-rampDown'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/rampDown'/>
+		</xforms:input>
+
+		<xforms:input id='input-runConfig-testtype' xforms:bind='bind-runConfig-testtype'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/testtype'/>
+		</xforms:input>
+		<xforms:input id='input-runConfig-warmupSeconds' xforms:bind='bind-runConfig-warmupSeconds'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/warmupSeconds'/>
+		</xforms:input>
+		<xforms:input id='input-runConfig-threadRampupSeconds' xforms:bind='bind-runConfig-threadRampupSeconds'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/threadRampupSeconds'/>
+		</xforms:input>
+		<xforms:input id='input-runConfig-rampupSeconds' xforms:bind='bind-runConfig-rampupSeconds'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/rampupSeconds'/>
+		</xforms:input>
+		<xforms:input id='input-runConfig-rampdownSeconds' xforms:bind='bind-runConfig-rampdownSeconds'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/rampdownSeconds'/>
+		</xforms:input>
+		<xforms:input id='input-runConfig-iterations' xforms:bind='bind-runConfig-iterations'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/iterations'/>
+		</xforms:input>
+		<xforms:input id='input-runConfig-parConns' xforms:bind='bind-runConfig-parConns'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/parConns'/>
+		</xforms:input>
+		<xforms:input id='input-runConfig-sleepTestIterations' xforms:bind='bind-runConfig-sleepTestIterations'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/sleepTestIterations'/>
+		</xforms:input>
+		<xforms:input id='input-runConfig-olRun' xforms:bind='bind-runConfig-olRun'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/olRun'/>
+		</xforms:input>
+		</xforms:group>
+	</xforms:case>
+	<xforms:case id='case-webserverConfig'>
+		<xforms:group id='group-webserverConfig'>
+
+			<xforms:input id='input-webserverConfig-hostConfig-host' xforms:bind='bind-webserverConfig-hostConfig-host'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/host'/>
+		</xforms:input>
+			<xforms:input id='input-webserverConfig-enabledConfig-enabled' xforms:bind='bind-webserverConfig-enabledConfig-enabled'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/enabled'/>
+		</xforms:input>
+			<xforms:input id='input-webserverConfig-cpusConfig-cpus' xforms:bind='bind-webserverConfig-cpusConfig-cpus'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/cpus'/>
+		</xforms:input>
+			<xforms:input id='input-webserverConfig-toolsConfig-tools' xforms:bind='bind-webserverConfig-toolsConfig-tools'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/tools'/>
+		</xforms:input>
+			<xforms:input id='input-webserverConfig-userCommandsConfig-userCommands' xforms:bind='bind-webserverConfig-userCommandsConfig-userCommands'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/userCommands'/>
+		</xforms:input>
+
+
+			<xforms:input id='input-webserverConfig-wsConfig-wsPort' xforms:bind='bind-webserverConfig-wsConfig-wsPort'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/wsPort'/>
+		</xforms:input>
+			<xforms:input id='input-webserverConfig-wsConfig-wsSSLport' xforms:bind='bind-webserverConfig-wsConfig-wsSSLport'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/wsSSLport'/>
+		</xforms:input>
+
+		</xforms:group>
+	</xforms:case>
+	<xforms:case id='case-besimserverConfig'>
+		<xforms:group id='group-besimserverConfig'>
+
+			<xforms:input id='input-besimserverConfig-hostConfig-host' xforms:bind='bind-besimserverConfig-hostConfig-host'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/host'/>
+		</xforms:input>
+			<xforms:input id='input-besimserverConfig-enabledConfig-enabled' xforms:bind='bind-besimserverConfig-enabledConfig-enabled'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/enabled'/>
+		</xforms:input>
+			<xforms:input id='input-besimserverConfig-cpusConfig-cpus' xforms:bind='bind-besimserverConfig-cpusConfig-cpus'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/cpus'/>
+		</xforms:input>
+			<xforms:input id='input-besimserverConfig-toolsConfig-tools' xforms:bind='bind-besimserverConfig-toolsConfig-tools'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/tools'/>
+		</xforms:input>
+			<xforms:input id='input-besimserverConfig-userCommandsConfig-userCommands' xforms:bind='bind-besimserverConfig-userCommandsConfig-userCommands'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/userCommands'/>
+		</xforms:input>
+
+
+			<xforms:input id='input-besimserverConfig-besimConfig-port' xforms:bind='bind-besimserverConfig-besimConfig-port'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/port'/>
+		</xforms:input>
+			<xforms:input id='input-besimserverConfig-besimConfig-initScript' xforms:bind='bind-besimserverConfig-besimConfig-initScript'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/initScript'/>
+		</xforms:input>
+			<xforms:input id='input-besimserverConfig-besimConfig-persistent' xforms:bind='bind-besimserverConfig-besimConfig-persistent'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/persistent'/>
+		</xforms:input>
+
+		</xforms:group>
+	</xforms:case>
+	<xforms:case id='case-supportParameters'>
+		<xforms:group id='group-supportParameters'>
+
+			<xforms:input id='input-supportParameters-supportWorkloadDetail-dynScript' xforms:bind='bind-supportParameters-supportWorkloadDetail-dynScript'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript'/>
+		</xforms:input>
+			<xforms:input id='input-supportParameters-supportWorkloadDetail-initScript' xforms:bind='bind-supportParameters-supportWorkloadDetail-initScript'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/initScript'/>
+		</xforms:input>
+			<xforms:input id='input-supportParameters-supportWorkloadDetail-imgPath' xforms:bind='bind-supportParameters-supportWorkloadDetail-imgPath'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/imgPath'/>
+		</xforms:input>
+			<xforms:input id='input-supportParameters-supportWorkloadDetail-dynScriptPath' xforms:bind='bind-supportParameters-supportWorkloadDetail-dynScriptPath'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScriptPath'/>
+		</xforms:input>
+			<xforms:input id='input-supportParameters-supportWorkloadDetail-downloadPath' xforms:bind='bind-supportParameters-supportWorkloadDetail-downloadPath'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/downloadPath'/>
+		</xforms:input>
+			<xforms:input id='input-supportParameters-supportWorkloadDetail-paddingDir' xforms:bind='bind-supportParameters-supportWorkloadDetail-paddingDir'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/paddingDir'/>
+		</xforms:input>
+			<xforms:input id='input-supportParameters-supportWorkloadDetail-downloadSubdirs' xforms:bind='bind-supportParameters-supportWorkloadDetail-downloadSubdirs'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/downloadSubdirs'/>
+		</xforms:input>
+			<xforms:input id='input-supportParameters-supportWorkloadDetail-baseSubdir' xforms:bind='bind-supportParameters-supportWorkloadDetail-baseSubdir'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/baseSubdir'/>
+		</xforms:input>
+			<xforms:input id='input-supportParameters-supportWorkloadDetail-firstSubdirNum' xforms:bind='bind-supportParameters-supportWorkloadDetail-firstSubdirNum'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/firstSubdirNum'/>
+		</xforms:input>
+			<xforms:input id='input-supportParameters-supportWorkloadDetail-dynScript0' xforms:bind='bind-supportParameters-supportWorkloadDetail-dynScript0'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript0'/>
+		</xforms:input>
+			<xforms:input id='input-supportParameters-supportWorkloadDetail-dynScript1' xforms:bind='bind-supportParameters-supportWorkloadDetail-dynScript1'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript1'/>
+		</xforms:input>
+			<xforms:input id='input-supportParameters-supportWorkloadDetail-dynScript2' xforms:bind='bind-supportParameters-supportWorkloadDetail-dynScript2'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript2'/>
+		</xforms:input>
+			<xforms:input id='input-supportParameters-supportWorkloadDetail-dynScript3' xforms:bind='bind-supportParameters-supportWorkloadDetail-dynScript3'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript3'/>
+		</xforms:input>
+			<xforms:input id='input-supportParameters-supportWorkloadDetail-dynScript4' xforms:bind='bind-supportParameters-supportWorkloadDetail-dynScript4'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript4'/>
+		</xforms:input>
+			<xforms:input id='input-supportParameters-supportWorkloadDetail-dynScript5' xforms:bind='bind-supportParameters-supportWorkloadDetail-dynScript5'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript5'/>
+		</xforms:input>
+			<xforms:input id='input-supportParameters-supportWorkloadDetail-dynScript6' xforms:bind='bind-supportParameters-supportWorkloadDetail-dynScript6'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript6'/>
+		</xforms:input>
+			<xforms:input id='input-supportParameters-supportWorkloadDetail-bufSize' xforms:bind='bind-supportParameters-supportWorkloadDetail-bufSize'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/bufSize'/>
+		</xforms:input>
+
+		</xforms:group>
+	</xforms:case>
+	<xforms:case id='case-bankingParameters'>
+		<xforms:group id='group-bankingParameters'>
+
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-dynScript' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-dynScript'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript'/>
+		</xforms:input>
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-initScript' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-initScript'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/initScript'/>
+		</xforms:input>
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-imgPath' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-imgPath'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/imgPath'/>
+		</xforms:input>
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-dynScriptPath' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-dynScriptPath'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScriptPath'/>
+		</xforms:input>
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-paddingDir' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-paddingDir'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/paddingDir'/>
+		</xforms:input>
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-checkImageDir' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-checkImageDir'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/checkImageDir'/>
+		</xforms:input>
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-checkImageSubdirs' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-checkImageSubdirs'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/checkImageSubdirs'/>
+		</xforms:input>
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-baseSubdir' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-baseSubdir'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/baseSubdir'/>
+		</xforms:input>
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-firstSubdirNum' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-firstSubdirNum'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/firstSubdirNum'/>
+		</xforms:input>
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-userNumLen' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-userNumLen'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/userNumLen'/>
+		</xforms:input>
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-checkNumLen' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-checkNumLen'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/checkNumLen'/>
+		</xforms:input>
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-checkImageRelPath' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-checkImageRelPath'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/checkImageRelPath'/>
+		</xforms:input>
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-dynScript0' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-dynScript0'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript0'/>
+		</xforms:input>
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-dynScript1' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-dynScript1'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript1'/>
+		</xforms:input>
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-dynScript2' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-dynScript2'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript2'/>
+		</xforms:input>
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-dynScript3' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-dynScript3'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript3'/>
+		</xforms:input>
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-dynScript4' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-dynScript4'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript4'/>
+		</xforms:input>
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-dynScript5' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-dynScript5'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript5'/>
+		</xforms:input>
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-dynScript6' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-dynScript6'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript6'/>
+		</xforms:input>
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-dynScript7' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-dynScript7'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript7'/>
+		</xforms:input>
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-dynScript8' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-dynScript8'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript8'/>
+		</xforms:input>
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-dynScript9' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-dynScript9'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript9'/>
+		</xforms:input>
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-dynScript10' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-dynScript10'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript10'/>
+		</xforms:input>
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-dynScript11' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-dynScript11'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript11'/>
+		</xforms:input>
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-dynScript12' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-dynScript12'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript12'/>
+		</xforms:input>
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-dynScript13' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-dynScript13'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript13'/>
+		</xforms:input>
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-dynScript14' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-dynScript14'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript14'/>
+		</xforms:input>
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-dynScript15' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-dynScript15'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript15'/>
+		</xforms:input>
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-dynScript16' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-dynScript16'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript16'/>
+		</xforms:input>
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-serverCertFile' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-serverCertFile'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/serverCertFile'/>
+		</xforms:input>
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-serverCertPwd' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-serverCertPwd'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/serverCertPwd'/>
+		</xforms:input>
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-bufSize' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-bufSize'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/bufSize'/>
+		</xforms:input>
+			<xforms:input id='input-bankingParameters-bankingWorkloadDetail-useSSL' xforms:bind='bind-bankingParameters-bankingWorkloadDetail-useSSL'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/useSSL'/>
+		</xforms:input>
+
+		</xforms:group>
+	</xforms:case>
+	<xforms:case id='case-ecommerceParameters'>
+		<xforms:group id='group-ecommerceParameters'>
+
+			<xforms:input id='input-ecommerceParameters-ecommerceWorkloadDetail-dynScript' xforms:bind='bind-ecommerceParameters-ecommerceWorkloadDetail-dynScript'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript'/>
+		</xforms:input>
+			<xforms:input id='input-ecommerceParameters-ecommerceWorkloadDetail-initScript' xforms:bind='bind-ecommerceParameters-ecommerceWorkloadDetail-initScript'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/initScript'/>
+		</xforms:input>
+			<xforms:input id='input-ecommerceParameters-ecommerceWorkloadDetail-imgPath' xforms:bind='bind-ecommerceParameters-ecommerceWorkloadDetail-imgPath'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/imgPath'/>
+		</xforms:input>
+			<xforms:input id='input-ecommerceParameters-ecommerceWorkloadDetail-dynScriptPath' xforms:bind='bind-ecommerceParameters-ecommerceWorkloadDetail-dynScriptPath'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScriptPath'/>
+		</xforms:input>
+			<xforms:input id='input-ecommerceParameters-ecommerceWorkloadDetail-paddingDir' xforms:bind='bind-ecommerceParameters-ecommerceWorkloadDetail-paddingDir'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/paddingDir'/>
+		</xforms:input>
+			<xforms:input id='input-ecommerceParameters-ecommerceWorkloadDetail-productlineNumLen' xforms:bind='bind-ecommerceParameters-ecommerceWorkloadDetail-productlineNumLen'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/productlineNumLen'/>
+		</xforms:input>
+			<xforms:input id='input-ecommerceParameters-ecommerceWorkloadDetail-productImageRelPath' xforms:bind='bind-ecommerceParameters-ecommerceWorkloadDetail-productImageRelPath'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/productImageRelPath'/>
+		</xforms:input>
+			<xforms:input id='input-ecommerceParameters-ecommerceWorkloadDetail-dirScaling' xforms:bind='bind-ecommerceParameters-ecommerceWorkloadDetail-dirScaling'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dirScaling'/>
+		</xforms:input>
+			<xforms:input id='input-ecommerceParameters-ecommerceWorkloadDetail-productsPerDir' xforms:bind='bind-ecommerceParameters-ecommerceWorkloadDetail-productsPerDir'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/productsPerDir'/>
+		</xforms:input>
+			<xforms:input id='input-ecommerceParameters-ecommerceWorkloadDetail-productImageSubdirs' xforms:bind='bind-ecommerceParameters-ecommerceWorkloadDetail-productImageSubdirs'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/productImageSubdirs'/>
+		</xforms:input>
+			<xforms:input id='input-ecommerceParameters-ecommerceWorkloadDetail-baseSubdir' xforms:bind='bind-ecommerceParameters-ecommerceWorkloadDetail-baseSubdir'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/baseSubdir'/>
+		</xforms:input>
+			<xforms:input id='input-ecommerceParameters-ecommerceWorkloadDetail-firstSubdirNum' xforms:bind='bind-ecommerceParameters-ecommerceWorkloadDetail-firstSubdirNum'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/firstSubdirNum'/>
+		</xforms:input>
+			<xforms:input id='input-ecommerceParameters-ecommerceWorkloadDetail-dynScript0' xforms:bind='bind-ecommerceParameters-ecommerceWorkloadDetail-dynScript0'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript0'/>
+		</xforms:input>
+			<xforms:input id='input-ecommerceParameters-ecommerceWorkloadDetail-dynScript1' xforms:bind='bind-ecommerceParameters-ecommerceWorkloadDetail-dynScript1'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript1'/>
+		</xforms:input>
+			<xforms:input id='input-ecommerceParameters-ecommerceWorkloadDetail-dynScript2' xforms:bind='bind-ecommerceParameters-ecommerceWorkloadDetail-dynScript2'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript2'/>
+		</xforms:input>
+			<xforms:input id='input-ecommerceParameters-ecommerceWorkloadDetail-dynScript3' xforms:bind='bind-ecommerceParameters-ecommerceWorkloadDetail-dynScript3'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript3'/>
+		</xforms:input>
+			<xforms:input id='input-ecommerceParameters-ecommerceWorkloadDetail-dynScript4' xforms:bind='bind-ecommerceParameters-ecommerceWorkloadDetail-dynScript4'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript4'/>
+		</xforms:input>
+			<xforms:input id='input-ecommerceParameters-ecommerceWorkloadDetail-dynScript5' xforms:bind='bind-ecommerceParameters-ecommerceWorkloadDetail-dynScript5'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript5'/>
+		</xforms:input>
+			<xforms:input id='input-ecommerceParameters-ecommerceWorkloadDetail-dynScript6' xforms:bind='bind-ecommerceParameters-ecommerceWorkloadDetail-dynScript6'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript6'/>
+		</xforms:input>
+			<xforms:input id='input-ecommerceParameters-ecommerceWorkloadDetail-dynScript7' xforms:bind='bind-ecommerceParameters-ecommerceWorkloadDetail-dynScript7'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript7'/>
+		</xforms:input>
+			<xforms:input id='input-ecommerceParameters-ecommerceWorkloadDetail-dynScript8' xforms:bind='bind-ecommerceParameters-ecommerceWorkloadDetail-dynScript8'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript8'/>
+		</xforms:input>
+			<xforms:input id='input-ecommerceParameters-ecommerceWorkloadDetail-dynScript9' xforms:bind='bind-ecommerceParameters-ecommerceWorkloadDetail-dynScript9'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript9'/>
+		</xforms:input>
+			<xforms:input id='input-ecommerceParameters-ecommerceWorkloadDetail-dynScript10' xforms:bind='bind-ecommerceParameters-ecommerceWorkloadDetail-dynScript10'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript10'/>
+		</xforms:input>
+			<xforms:input id='input-ecommerceParameters-ecommerceWorkloadDetail-dynScript11' xforms:bind='bind-ecommerceParameters-ecommerceWorkloadDetail-dynScript11'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript11'/>
+		</xforms:input>
+			<xforms:input id='input-ecommerceParameters-ecommerceWorkloadDetail-dynScript12' xforms:bind='bind-ecommerceParameters-ecommerceWorkloadDetail-dynScript12'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript12'/>
+		</xforms:input>
+			<xforms:input id='input-ecommerceParameters-ecommerceWorkloadDetail-dynScript13' xforms:bind='bind-ecommerceParameters-ecommerceWorkloadDetail-dynScript13'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/dynScript13'/>
+		</xforms:input>
+			<xforms:input id='input-ecommerceParameters-ecommerceWorkloadDetail-serverCertFile' xforms:bind='bind-ecommerceParameters-ecommerceWorkloadDetail-serverCertFile'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/serverCertFile'/>
+		</xforms:input>
+			<xforms:input id='input-ecommerceParameters-ecommerceWorkloadDetail-serverCertPwd' xforms:bind='bind-ecommerceParameters-ecommerceWorkloadDetail-serverCertPwd'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/serverCertPwd'/>
+		</xforms:input>
+			<xforms:input id='input-ecommerceParameters-ecommerceWorkloadDetail-bufSize' xforms:bind='bind-ecommerceParameters-ecommerceWorkloadDetail-bufSize'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/bufSize'/>
+		</xforms:input>
+			<xforms:input id='input-ecommerceParameters-ecommerceWorkloadDetail-useSSL' xforms:bind='bind-ecommerceParameters-ecommerceWorkloadDetail-useSSL'>
+			<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/useSSL'/>
+		</xforms:input>
+
+		</xforms:group>
+	</xforms:case>
+
+            </xforms:switch>
+        </xforms:group>
+        <xforms:group id="group-buttons">
+            <xforms:trigger id="trigger-ok">
+                <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ok"/>
+                <xforms:action id="action-ok">
+                    <xforms:send id="send-debug" xforms:submission="submission-debug"/>
+                </xforms:action>
+            </xforms:trigger>
+            <xforms:trigger id="trigger-cancel">
+                <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/cancel"/>
+                <xforms:action id="action-cancel">
+                    <xforms:reset id="reset-cancel" xforms:model="benchmark-model"/>
+                    <xforms:toggle id="toggle-cancel" xforms:case="case-jvmConfig"/>
+                </xforms:action>
+            </xforms:trigger>
+        </xforms:group>
+    </body>
+</html>
