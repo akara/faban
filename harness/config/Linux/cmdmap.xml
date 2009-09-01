@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The command map file allows commands to run with a specific path
+     and specific prefix and releaves users from specifying all the detail.
+     These commands are used by Faban or user commands or tools specified
+     by the user.
+ -->
+<commands>
+    <command>
+        <name>rsh</name>
+        <exec>/usr/bin/ssh -n</exec>
+    </command>
+</commands>

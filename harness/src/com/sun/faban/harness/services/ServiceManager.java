@@ -309,13 +309,21 @@ public class ServiceManager {
                     properties = new Properties();
                     NodeList propsList = configNode.getChildNodes();
                     for (int k = 0; k < propsList.getLength(); k++) {
-                        if (propsList.item(k).getNodeType() == Node.ELEMENT_NODE) {
+                        if (propsList.item(k).getNodeType() ==
+                                Node.ELEMENT_NODE) {
                             Element propElement = (Element) propsList.item(k);
                             String key = propsList.item(k).getNodeName();
                             NodeList props = propElement.getChildNodes();
-                            String value = ((Node) props.item(0)).getNodeValue().
-                                            trim();
-                            properties.setProperty(key, value);
+                            int propValueLength = props.getLength();
+                            for (int l = 0; l < propValueLength; l++) {
+                                Node valueNode = (Node) props.item(l);
+                                if (valueNode.getNodeType() == Node.TEXT_NODE) {
+                                    String value =
+                                            valueNode.getNodeValue().trim();
+                                    properties.setProperty(key, value);
+                                    break;
+                                }
+                            }
                         }
                     }
                 }
