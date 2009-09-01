@@ -1,0 +1,41 @@
+#!/bin/sh
+
+if [ "$#" = "0" ] ; then
+    echo "Usage:\t$0 <-s> host1, host2, ..." >&2
+    echo "\t-s specifies use of scp and ssh instead of rcp and rsh" >&2
+    exit 1
+fi
+
+RCP="rcp"
+RSH="rsh -n"
+
+if [ "$1" = "-s" ] ; then
+    RCP="scp -B"
+    RSH="ssh -n"
+    shift
+fi
+
+BINDIR=`dirname $0`
+
+FABAN_HOME=`cd $BINDIR/.. > /dev/null 2>&1 && pwd`
+BASE_DIR=`cd $FABAN_HOME/.. > /dev/null 2>&1 && pwd`
+export FABAN_HOME BASE_DIR
+
+cd $BINDIR
+./makeagent
+
+if [ ! -f /tmp/faban-agent.tar.gz ] ; then
+    echo "Error: /tmp/faban-agent.tar.gz not created" >&2
+    exit 1
+fi
+
+for host in $*
+do
+    $RCP /tmp/faban-agent.tar.gz ${host}:/tmp && \
+    $RSH $host "(mkdir -p $BASE_DIR; cd $BASE_DIR && gunzip -c /tmp/faban-agent.tar.gz | tar xf -)";
+    if [ "$?" = "0" ] ; then
+        echo "Done $host";
+    else
+        echo "Error pushing agent to $host";
+    fi
+done

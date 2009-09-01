@@ -23,4 +23,9 @@ if not exist %JAVA% (
 
 set CLASSPATH=%FABAN_HOME%\lib\fabancommon.jar;%FABAN_HOME%\lib\fabanagents.jar;%FABAN_HOME%\lib\commons-httpclient-3.1.jar;%FABAN_HOME%\lib\commons-codec-1.2.jar;%FABAN_HOME%\lib\commons-logging.jar
 
-%JAVA% -client -Xmx4m -cp %CLASSPATH% -Dfaban.cli.command=%0 com.sun.faban.harness.util.CLI %*
+REM Use the client JVM if possible. It is much lighter weight, less threads, less memory
+REM and we do not need much performance for the agent.
+%JAVA% -client -version >NUL 2>&1
+if NOT ERRORLEVEL 1 set JAVA=%JAVA% -client
+
+%JAVA% -Xmx4m -cp %CLASSPATH% -Dfaban.cli.command=%0 com.sun.faban.harness.util.CLI %*

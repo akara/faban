@@ -24,8 +24,16 @@ else
     JAVA=$JAVA_HOME/bin/java
 fi
 
+# Check whether the java -client option is supported on this JVM. If so, use
+# the client JVM.  It is much lighter weight, less threads, less memory
+# and we do not need much performance for the agent.
+$JAVA -client -version >/dev/null 2>&1
+if [ "$?" = "0" ] ; then
+    JAVA="$JAVA -client"
+fi
+
 cd $FABAN_HOME
 
-$JAVA -client -cp master/common/lib/ant-launcher.jar \
+$JAVA -cp master/common/lib/ant-launcher.jar \
       -Dkit.dir=/tmp \
       org.apache.tools.ant.launch.Launcher package-agent

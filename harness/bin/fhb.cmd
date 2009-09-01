@@ -21,4 +21,9 @@ if not exist %JAVA% (
        goto :EOF
 )
 
-%JAVA% -client -Xmx2m -cp %FABAN_HOME%\lib\fabancommon.jar -Dfaban.cli.command=%0 -Dfabanshell.needJDK=true -Dfabanshell.exec=com.sun.faban.driver.util.FabanHTTPBench com.sun.faban.common.FabanShell %*
+REM Use the client JVM if possible. It is much lighter weight, less threads, less memory
+REM and we do not need much performance for the agent.
+%JAVA% -client -version >NUL 2>&1
+if NOT ERRORLEVEL 1 set JAVA=%JAVA% -client
+
+%JAVA% -Xmx2m -cp %FABAN_HOME%\lib\fabancommon.jar -Dfaban.cli.command=%0 -Dfabanshell.needJDK=true -Dfabanshell.exec=com.sun.faban.driver.util.FabanHTTPBench com.sun.faban.common.FabanShell %*

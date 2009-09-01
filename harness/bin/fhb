@@ -24,7 +24,15 @@ else
     JAVA=$JAVA_HOME/bin/java
 fi
 
-$JAVA -client -Xmx2m -cp "$FABAN_HOME"/lib/fabancommon.jar \
+# Check whether the java -client option is supported on this JVM. If so, use
+# the client JVM.  It is much lighter weight, less threads, less memory
+# and we do not need much performance for the agent.
+$JAVA -client -version >/dev/null 2>&1
+if [ "$?" = "0" ] ; then
+    JAVA="$JAVA -client"
+fi
+
+$JAVA -Xmx2m -cp "$FABAN_HOME"/lib/fabancommon.jar \
       -Dfaban.cli.command=$0 -Dfabanshell.needJDK=true \
       -Dfabanshell.exec=com.sun.faban.driver.util.FabanHTTPBench \
       com.sun.faban.common.FabanShell $*

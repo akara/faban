@@ -24,10 +24,18 @@ else
     JAVA=$JAVA_HOME/bin/java
 fi
 
+# Check whether the java -client option is supported on this JVM. If so, use
+# the client JVM.  It is much lighter weight, less threads, less memory
+# and we do not need much performance for the agent.
+$JAVA -client -version >/dev/null 2>&1
+if [ "$?" = "0" ] ; then
+    JAVA="$JAVA -client"
+fi
+
 CLASSPATH=$FABAN_HOME/lib/fabanagents.jar:$FABAN_HOME/lib/fabancommon.jar
 export CLASSPATH
 
-$JAVA -client -Xmx2m -cp "$CLASSPATH" \
+$JAVA -Xmx2m -cp "$CLASSPATH" \
       com.sun.faban.harness.tools.MemcacheStats $* &
 pid=$!
 
