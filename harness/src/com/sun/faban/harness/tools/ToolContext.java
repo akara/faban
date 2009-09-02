@@ -25,7 +25,6 @@ import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.services.ServiceContext;
-import com.sun.faban.harness.services.ServiceDescription;
 
 import java.io.IOException;
 import java.util.List;
@@ -39,6 +38,7 @@ public class ToolContext extends MasterToolContext {
     String localOutputFile =
             Config.TMP_DIR + getToolName() + ".out." + this.hashCode();
     ToolWrapper wrapper;
+    String toolPath = null;
 
     /**
      * Constructs the tool context.
@@ -51,6 +51,8 @@ public class ToolContext extends MasterToolContext {
                        ToolWrapper wrapper) {
         super(tool, ctx, desc);
         this.wrapper = wrapper;
+        if (ctx != null && "services".equals(ctx.desc.locationType))
+            toolPath = ctx.desc.location;
     }
 
     /**
@@ -123,15 +125,7 @@ public class ToolContext extends MasterToolContext {
      */
     public CommandHandle exec(Command cmd)
             throws IOException, InterruptedException {
-        if(getServiceContext() != null) {
-            ServiceDescription sd = getServiceContext().desc;
-            String fullPath = null;
-            if(sd != null)
-                fullPath = sd.locationType + '/' + sd.location;
-                return wrapper.cmdAgent.execute(cmd, fullPath);
-            } else {
-                return wrapper.cmdAgent.execute(cmd, null);
-        }
+        return wrapper.cmdAgent.execute(cmd, toolPath);
     }
 
     /**
@@ -163,19 +157,61 @@ public class ToolContext extends MasterToolContext {
         if (useOutput) {
             cmd.setStreamHandling(stream, Command.CAPTURE);
             cmd.setOutputFile(stream, localOutputFile);
-            if(getServiceContext() != null) {
-                ServiceDescription sd = getServiceContext().desc;
-                String fullPath = null;
-                if(sd != null)
-                    fullPath = sd.locationType + '/' + sd.location;
-                wrapper.outputHandle = wrapper.cmdAgent.execute(cmd, fullPath);
-            } else {
-                wrapper.outputHandle = wrapper.cmdAgent.execute(cmd, null);
-            }
+            wrapper.outputHandle = wrapper.cmdAgent.execute(cmd, toolPath);
             wrapper.outputStream = stream;
             return wrapper.outputHandle;
         } else {
-            return wrapper.cmdAgent.execute(cmd, null);
+            return wrapper.cmdAgent.execute(cmd, toolPath);
+        }
+    }
+
+
+    /**
+     * Executes a Java command. The tool always executes the command locally.
+     * @param cmd The command to execute
+     * @return The command handle to this command
+     * @throws IOException The command failed to execute
+     * @throws InterruptedException Interrupted waiting for the command
+     */
+    public CommandHandle java(Command cmd)
+            throws IOException, InterruptedException {
+        return wrapper.cmdAgent.execute(cmd, toolPath);
+    }
+
+    /**
+     * Executes a command, optionally use the stdout from this command as the
+     * tool output.
+     * @param cmd The command to execute
+     * @param useOutput Whether to use the output from this command
+     * @return The command handle to this command
+     * @throws IOException The command failed to execute
+     * @throws InterruptedException Interrupted waiting for the command
+     */
+    public CommandHandle java(Command cmd, boolean useOutput)
+            throws IOException, InterruptedException {
+        return java(cmd, useOutput, Command.STDOUT);
+    }
+
+    /**
+     * Executes a command, optionally use the stdout or stderr from this
+     * command as the tool output.
+     * @param cmd The command to execute
+     * @param useOutput Whether to use the output from this command
+     * @param stream The stream to use as the output, STDOUT or STDERR
+     * @return The command handle to this command
+     * @throws IOException The command failed to execute
+     * @throws InterruptedException Interrupted waiting for the command
+     */
+    public CommandHandle java(Command cmd, boolean useOutput, int stream)
+            throws IOException, InterruptedException {
+        if (useOutput) {
+            cmd.setStreamHandling(stream, Command.CAPTURE);
+            cmd.setOutputFile(stream, localOutputFile);
+            wrapper.outputHandle = wrapper.cmdAgent.java(cmd, toolPath);
+            wrapper.outputStream = stream;
+            return wrapper.outputHandle;
+        } else {
+            return wrapper.cmdAgent.java(cmd, toolPath);
         }
     }
 
