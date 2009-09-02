@@ -46,7 +46,8 @@ public interface CommandChecker {
     /**
      * Checks and completes the java command, if possible.
      * @param cmd The original command
+     * @param extClassPath The external class path.
      * @return The completed java command
      */
-    public List<String> checkJavaCommand(List<String> cmd);
+    public List<String> checkJavaCommand(List<String> cmd, List<String> extClassPath);
 }

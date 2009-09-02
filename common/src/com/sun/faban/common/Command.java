@@ -209,13 +209,15 @@ public class Command implements Serializable {
     * Called from the command agent to execute java allowing the agent to
     * ensure the java command will work in the agent environment.
     * @param checker The command checker
+    * @param extClassPath The extended classpath for the service/tool, if any
     * @return A handle to the executing command
     * @throws IOException Error dealing with the stdin, stdout, or stderr
     * @throws InterruptedException The execute thread got interrupted.
     */
-    public CommandHandle executeJava(CommandChecker checker)
+    public CommandHandle executeJava(CommandChecker checker,
+                                     List<String> extClassPath)
             throws IOException, InterruptedException {
-        command = checker.checkJavaCommand(command);
+        command = checker.checkJavaCommand(command, extClassPath);
         remote = true;
         return execute();
     }
