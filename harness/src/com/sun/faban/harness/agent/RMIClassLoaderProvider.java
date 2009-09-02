@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RMIClassLoaderProvider.java,v 1.2 2009/07/21 22:54:46 sheetalpatil Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -45,8 +45,12 @@ public class RMIClassLoaderProvider extends RMIClassLoaderSpi {
      */
     private String completeCodeBase(String codebase) {
         String[] classpath = null;
-        if (AgentBootstrap.cmd != null)
-            classpath = AgentBootstrap.cmd.baseClassPath;
+        if (AgentBootstrap.cmd != null) {
+            if (AgentBootstrap.cmd.allClassPath != null)
+                classpath = AgentBootstrap.cmd.allClassPath;
+            else
+                classpath = AgentBootstrap.cmd.baseClassPath;
+        }
         StringBuilder buffer = new StringBuilder();
         if (classpath != null) {
             for (String element : classpath) {

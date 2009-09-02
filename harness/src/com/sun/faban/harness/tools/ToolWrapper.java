@@ -74,7 +74,6 @@ public class ToolWrapper {
     String toolName;
     String path = null; // The path to the tool.
     CmdAgentImpl cmdAgent;
-    HashMap<String, HashMap<String, List<String>>> serviceBinMap;
 
     /** The timer used for scheduling the tools. */
     protected Timer timer;
@@ -232,12 +231,10 @@ public class ToolWrapper {
      * @param host The host the tool should run
      * @param cmdAgent The local command agent
      * @param latch The latch used for identifying tool completion
-     * @param serviceBinMap Command-path map obtained from CmdMap.getServiceBinMap
      * @throws java.lang.Exception If there is any error
      */
     public void configure(String toolName, String path, String outDir, String host,
-                          CmdAgentImpl cmdAgent, CountDownLatch latch,
-                          HashMap<String, HashMap<String, List<String>>> serviceBinMap)
+                          CmdAgentImpl cmdAgent, CountDownLatch latch)
                           throws Exception {
 
         // Prepare the context based on the params.
@@ -245,7 +242,6 @@ public class ToolWrapper {
         this.cmdAgent = cmdAgent;
         this.timer = cmdAgent.getTimer();
         this.latch = latch;
-        this.serviceBinMap = serviceBinMap;
 
         if (path != null)
             this.path = path;

@@ -937,106 +937,122 @@ final public class CmdService { 	// The final keyword prevents clones
     }
 
     /**
-     * Downloads files used by deploy images, especially services and tools
+     * Updates the paths in the local command agent.
+     * @param pathList The list of paths to download
+     */
+    public void updatePaths(List<String> pathList)
+            throws RemoteException {
+        findCmdAgent(master).updatePaths(pathList);
+    }
+
+    /**
+     * Downloads files used by deploy images, especially services and tools.
+     * The pathList contains a list of resources in the form type/resource.
      * @param machine The host name to initiate the download
      * @param pathList The list of paths to download
      */
-    public void downloadFiles(String machine, List<String> pathList) 
+    public void downloadServices(String machine, List<String> pathList)
             throws RemoteException {
-        findCmdAgent(machine).downloadFiles(pathList);
+        findCmdAgent(machine).downloadServices(pathList);
     }
 
     /**
      * Executes a command from the master's command agent.
      * @param c The command to be executed
+     * @param svcPath
      * @return  A handle to the command
      * @throws IOException Error communicating with resulting process
      * @throws InterruptedException Thread got interrupted waiting
      * @throws RemoteException If there is a communication error to the
      *                         remote agent
      */
-    public CommandHandle execute(Command c)
+    public CommandHandle execute(Command c, String svcPath)
             throws IOException, InterruptedException {
-        return execute(master, c);
+        return execute(master, c, svcPath);
     }
 
     /**
      * Executes a command from the remote command agent.
      * @param machine The target machine to execute the command
      * @param c The command to be executed
+     * @param svcPath The location of the invoking service, if any
      * @return  A handle to the command
      * @throws IOException Error communicating with resulting process
      * @throws InterruptedException Thread got interrupted waiting
      * @throws RemoteException If there is a communication error to the
      *                         remote agent
      */
-    public CommandHandle execute(String machine, Command c)
+    public CommandHandle execute(String machine, Command c, String svcPath)
             throws IOException, InterruptedException {
-        return findCmdAgent(machine).execute(c);
+        return findCmdAgent(machine).execute(c, svcPath);
     }
 
     /**
      * Executes a command from the remote command agent.
      * @param machines The target machines to execute the command
      * @param c The command to be executed
+     * @param svcPath The location of the invoking service, if any
      * @return  Handles to the command on each of the target machines
      * @throws IOException Error communicating with resulting process
      * @throws InterruptedException Thread got interrupted waiting
      * @throws RemoteException If there is a communication error to the
      *                         remote agent
      */
-    public CommandHandle[] execute(String[] machines, Command c)
+    public CommandHandle[] execute(String[] machines, Command c, String svcPath)
             throws IOException, InterruptedException {
         CommandHandle[] result = new CommandHandle[machines.length];
         for (int i = 0; i < machines.length; i++)
-            result[i] = findCmdAgent(machines[i]).execute(c);
+            result[i] = findCmdAgent(machines[i]).execute(c, svcPath);
         return result;
     }
 
     /**
      * Executes a java command from the master's command agent.
      * @param c The command to be executed
+     * @param svcPath The location of the invoking service, if any
      * @return  A handle to the command
      * @throws IOException Error communicating with resulting process
      * @throws InterruptedException Thread got interrupted waiting
      * @throws RemoteException If there is a communication error to the
      *                         remote agent
      */
-    public CommandHandle java(Command c)
+    public CommandHandle java(Command c, String svcPath)
             throws IOException, InterruptedException {
-        return java(master, c);
+        return java(master, c, svcPath);
     }
 
     /**
      * Executes a java command from the remote command agent.
      * @param machine The target machine to execute the command
      * @param c The command to be executed
+     * @param svcPath The location of the invoking service, if any
      * @return  A handle to the command
      * @throws IOException Error communicating with resulting process
      * @throws InterruptedException Thread got interrupted waiting
      * @throws RemoteException If there is a communication error to the
      *                         remote agent
      */
-    public CommandHandle java(String machine, Command c)
+    public CommandHandle java(String machine, Command c, String svcPath)
             throws IOException, InterruptedException {
-        return findCmdAgent(machine).java(c);
+        return findCmdAgent(machine).java(c, svcPath);
     }
 
     /**
      * Executes a java command from the remote command agent.
      * @param machines The target machines to execute the command
      * @param c The command to be executed
+     * @param svcPath The location of the invoking service, if any
      * @return  Handles to the command on each of the target machines
      * @throws IOException Error communicating with resulting process
      * @throws InterruptedException Thread got interrupted waiting
      * @throws RemoteException If there is a communication error to the
      *                         remote agent
      */
-    public CommandHandle[] java(String[] machines, Command c)
+    public CommandHandle[] java(String[] machines, Command c, String svcPath)
             throws IOException, InterruptedException {
         CommandHandle[] result = new CommandHandle[machines.length];
         for (int i = 0; i < machines.length; i++)
-            result[i] = findCmdAgent(machines[i]).java(c);
+            result[i] = findCmdAgent(machines[i]).java(c, svcPath);
         return result;
     }
 

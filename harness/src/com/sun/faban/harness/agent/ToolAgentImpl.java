@@ -28,7 +28,6 @@ import com.sun.faban.harness.tools.CommandLineTool;
 import com.sun.faban.harness.tools.MasterToolContext;
 import com.sun.faban.harness.tools.ToolDescription;
 import com.sun.faban.harness.tools.ToolWrapper;
-import com.sun.faban.harness.util.CmdMap;
 import com.sun.faban.harness.util.XMLReader;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -63,8 +62,6 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
     static String host;	// our current hostname
     Logger logger;
     CountDownLatch latch;
-    HashMap<String, HashMap<String, List<String>>> serviceBinMap =
-                                        new HashMap<String, HashMap<String, List<String>>>();
 
     /**
      * Constructor.
@@ -74,7 +71,6 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
         super();
         logger = Logger.getLogger(this.getClass().getName());
         host = CmdAgentImpl.getHost();
-        serviceBinMap = CmdAgentImpl.getServicesToolsBinMap();
         masterMachine = CmdAgentImpl.getMaster();
         logger.info("Started");
     }
@@ -159,7 +155,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
                     Class c = loader.loadClass(toolClass);
                     tools[i] = new ToolWrapper(c, ctx);
                     logger.fine("Trying to run tool " + c.getName());
-                    tools[i].configure(toolNames[i], path, outDir, host, CmdAgentImpl.getHandle(), latch, serviceBinMap);
+                    tools[i].configure(toolNames[i], path, outDir, host, CmdAgentImpl.getHandle(), latch);
                 } catch (ClassNotFoundException ce) {
                     logger.log(Level.WARNING, "Class " + toolClass + " not found");
                     latch.countDown();
@@ -173,7 +169,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
                         ctx.getToolParams().trim().length() > 0)) {
                 try {
                     tools[i] = new ToolWrapper(CommandLineTool.class, ctx);
-                    tools[i].configure(toolNames[i], path, outDir, host, CmdAgentImpl.getHandle(), latch, serviceBinMap);
+                    tools[i].configure(toolNames[i], path, outDir, host, CmdAgentImpl.getHandle(), latch);
                     logger.fine("Trying to run tool " + tools[i] + " using CommandLineTool.");
                 } catch (Exception ex) {
                     logger.log(Level.WARNING, "Cannot start CommandLineTool!", ex);

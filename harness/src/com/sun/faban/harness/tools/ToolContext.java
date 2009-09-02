@@ -25,11 +25,10 @@ import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.services.ServiceContext;
-
 import com.sun.faban.harness.services.ServiceDescription;
-import java.util.List;
+
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.List;
 
 /**
  * This class is a subclass of MasterToolContext.
@@ -126,14 +125,10 @@ public class ToolContext extends MasterToolContext {
             throws IOException, InterruptedException {
         if(getServiceContext() != null) {
             ServiceDescription sd = getServiceContext().desc;
-            String serviceName = null;
-            HashMap<String, List<String>> extMap = null;
+            String fullPath = null;
             if(sd != null)
-                serviceName = sd.id;
-            if(wrapper.serviceBinMap != null && serviceName != null)
-                extMap = wrapper.serviceBinMap.get(serviceName.toString());
-
-            return wrapper.cmdAgent.execute(cmd, extMap);
+                fullPath = sd.locationType + '/' + sd.location;
+                return wrapper.cmdAgent.execute(cmd, fullPath);
             } else {
                 return wrapper.cmdAgent.execute(cmd, null);
         }
@@ -170,20 +165,17 @@ public class ToolContext extends MasterToolContext {
             cmd.setOutputFile(stream, localOutputFile);
             if(getServiceContext() != null) {
                 ServiceDescription sd = getServiceContext().desc;
-                String serviceName = null;
-                HashMap<String, List<String>> extMap = null;
+                String fullPath = null;
                 if(sd != null)
-                    serviceName = sd.id;
-                if(wrapper.serviceBinMap != null && serviceName != null)
-                    extMap = wrapper.serviceBinMap.get(serviceName.toString());
-                wrapper.outputHandle = wrapper.cmdAgent.execute(cmd, extMap);
+                    fullPath = sd.locationType + '/' + sd.location;
+                wrapper.outputHandle = wrapper.cmdAgent.execute(cmd, fullPath);
             } else {
                 wrapper.outputHandle = wrapper.cmdAgent.execute(cmd, null);
             }
             wrapper.outputStream = stream;
             return wrapper.outputHandle;
         } else {
-            return wrapper.cmdAgent.execute(cmd);
+            return wrapper.cmdAgent.execute(cmd, null);
         }
     }
 

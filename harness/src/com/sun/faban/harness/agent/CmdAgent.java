@@ -73,33 +73,41 @@ public interface CmdAgent extends Remote {
     public void setLogLevel(String name, Level level) throws RemoteException;
 
     /**
+     * Updates the paths, usually in the local command agent.
+     * @param pathList The list of paths to download
+     */    
+    public void updatePaths(List<String> pathList) throws RemoteException;
+
+    /**
      * Downloads the files used by services and tools to 
      * the remote agent system.
      * @param pathList The list of service bundle paths
      * @throws java.rmi.RemoteException If there is an error downloading
      */
-    public void downloadFiles(List<String> pathList) throws RemoteException;
+    public void downloadServices(List<String> pathList) throws RemoteException;
 
 
     /**
      * Executes a command from the remote command agent.
      * @param c The command to be executed
+     * @param svcPath
      * @return  A handle to the command
      * @throws IOException Error communicating with resulting process
      * @throws InterruptedException Thread got interrupted waiting
      * @throws RemoteException If there is a communication error to the
      *                         remote agent
      */
-    public CommandHandle execute(Command c)
+    public CommandHandle execute(Command c, String svcPath)
             throws IOException, InterruptedException, RemoteException;
     /**
      * Executes a java command from the remote command agent.
      * @param c The command containing the main class
+     * @param svcPath
      * @return A handle to the command
      * @throws IOException Error communicating with resulting process
      * @throws InterruptedException Thread got interrupted waiting
      */
-    public CommandHandle java(Command c)
+    public CommandHandle java(Command c, String svcPath)
             throws IOException, InterruptedException, RemoteException;
 
     /**

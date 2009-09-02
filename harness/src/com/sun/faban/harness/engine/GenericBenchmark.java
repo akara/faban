@@ -434,7 +434,7 @@ public class GenericBenchmark {
         fenxi.setWorkingDirectory(Config.FABAN_HOME + "logs");
 
 		try {
-            CommandHandle handle = cmds.execute(fenxi);
+            CommandHandle handle = cmds.execute(fenxi, null);
             if (handle.exitValue() != 0)
                 logger.severe("FenXi process command " + fenxi + " Failed");
         } catch(Exception e) {

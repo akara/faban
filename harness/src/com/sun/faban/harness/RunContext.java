@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunContext.java,v 1.15 2009/07/28 22:54:18 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -115,7 +115,7 @@ public class RunContext {
      */
     public static CommandHandle exec(Command c)
             throws IOException, InterruptedException {
-        return CmdService.getHandle().execute(c);
+        return CmdService.getHandle().execute(c, null);
     }
 
     /**
@@ -128,7 +128,7 @@ public class RunContext {
      */
     public static CommandHandle exec(String host, Command c)
             throws IOException, InterruptedException {
-        return CmdService.getHandle().execute(host, c);
+        return CmdService.getHandle().execute(host, c, null);
     }
 
     /**
@@ -141,7 +141,7 @@ public class RunContext {
      */
     public static CommandHandle[] exec(String[] hosts, Command c)
             throws IOException, InterruptedException {
-        return CmdService.getHandle().execute(hosts, c);
+        return CmdService.getHandle().execute(hosts, c, null);
     }
 
     /**
@@ -154,7 +154,7 @@ public class RunContext {
      */
     public static CommandHandle java(Command java)
             throws IOException, InterruptedException {
-        return CmdService.getHandle().java(java);
+        return CmdService.getHandle().java(java, null);
     }
 
     /**
@@ -168,7 +168,7 @@ public class RunContext {
      */
     public static CommandHandle java(String host, Command java)
             throws IOException, InterruptedException {
-        return CmdService.getHandle().java(host, java);
+        return CmdService.getHandle().java(host, java, null);
     }
 
     /**
@@ -182,7 +182,7 @@ public class RunContext {
      */
     public static CommandHandle[] java(String[] hosts, Command java)
             throws IOException, InterruptedException {
-      return CmdService.getHandle().java(hosts, java);
+      return CmdService.getHandle().java(hosts, java, null);
     }
 
     /**

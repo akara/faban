@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: OracleTool.java,v 1.9 2009/07/28 22:54:16 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -246,7 +246,7 @@ import java.util.logging.Logger;
      */
     protected void start() {
         try {
-            tool = cmdAgent.execute(sqlplus);
+            tool = cmdAgent.execute(sqlplus, null);
             snapId = parseSnapId(tool.fetchOutput(Command.STDOUT));
             logger.finer("snapId: " + snapId);
             toolStatus = STARTED;
@@ -276,7 +276,7 @@ import java.util.logging.Logger;
 
         if (toolStatus == STARTED)
             try {
-                tool = cmdAgent.execute(sqlplus);
+                tool = cmdAgent.execute(sqlplus, null);
                 String snapId1 = parseSnapId(tool.fetchOutput(Command.STDOUT));
                 logger.finer("snapId1: " + snapId1);
                 // Prepare the input
@@ -285,7 +285,7 @@ import java.util.logging.Logger;
                        "exit\n";
                 sqlplus.setInput(stdin.getBytes());
                 sqlplus.setLogLevel(Command.STDOUT, Level.FINER);
-                tool = cmdAgent.execute(sqlplus);
+                tool = cmdAgent.execute(sqlplus, null);
                 toolStatus = STOPPED;
                 // xfer log file to master machine, log any errors
                 xferLog();

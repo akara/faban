@@ -68,12 +68,16 @@ public class CmdAgentImpl extends UnicastRemoteObject
     private final List<CommandHandle> handleList = Collections.synchronizedList(
                                                 new ArrayList<CommandHandle>());
 
-    private static HashMap<String, HashMap<String, List<String>>> servicesToolsBinMap =
+    private static HashMap<String, HashMap<String, List<String>>> servicesBinMap =
                            new HashMap<String, HashMap<String, List<String>>>();
+
+    private static HashMap<String, List<String>> servicesClassPath =
+                                            new HashMap<String, List<String>>();
 
     private Timer timer;
 
     String[] baseClassPath;
+    String[] allClassPath; // All class paths including all services class paths
     String libPath;
     Map<String, List<String>> binMap;
     private ArrayList<String> javaCmd;
@@ -126,10 +130,9 @@ public class CmdAgentImpl extends UnicastRemoteObject
 
     /**
      * Only Other Agents should access the command agent using this method.
-     * So the access is limited to package level.
      * @return this Command Agent
      */
-    static CmdAgentImpl getHandle() {
+    public static CmdAgentImpl getHandle() {
         return AgentBootstrap.cmd;
     }
 
@@ -155,48 +158,67 @@ public class CmdAgentImpl extends UnicastRemoteObject
     }
 
     /**
-     * Downloads the files used by services and tools to
-     * the remote agent system.
-     * @param pathList The list of service bundle paths
-     * @throws java.rmi.RemoteException If there is an error downloading
+     * Updates the paths, usually in the local command agent.
+     * @param pathList The list of paths to download
      */
-    public void downloadFiles(List<String> pathList) {
-        for(String path : pathList){          
+    public void updatePaths(List<String> pathList) {
+        ArrayList<String> allClassPathList = new ArrayList<String>();
+        for (String path : pathList)  {
             try {
-                new Download().loadService(path, AgentBootstrap.downloadURL);
-                if (servicesToolsBinMap.get(path) == null) {
-                    servicesToolsBinMap.put(path, CmdMap.getServiceBinMap(path));
+                if (servicesBinMap.get(path) == null) {
+                    servicesBinMap.put(path, CmdMap.getServiceBinMap(path));
                 }
             } catch (Exception ex) {
                 logger.log(Level.INFO, ex.getMessage() , ex);
             }
+
+            ArrayList<String> libList = new ArrayList<String>();
+            getClassPath(Config.SERVICE_DIR + path, libList);
+            if (libList.size() > 0) {
+                if (servicesClassPath.get(path) == null) {
+                    servicesClassPath.put(path, libList);
+                    allClassPathList.addAll(libList);
+                }
+            }
         }
+        for (String classPath : baseClassPath)
+            allClassPathList.add(classPath);
+
+        allClassPath = allClassPathList.toArray(
+                new String[allClassPathList.size()]);
     }
 
     /**
-     * Executes a command from the remote command agent.
-     *
-     * @param c The command to be executed
-     * @return A handle to the command
-     * @throws IOException
-     * @throws InterruptedException
+     * Downloads the files used by services and tools to
+     * the remote agent system.
+     * @param pathList The list of service bundle paths
      */
-    public CommandHandle execute(Command c)
-                 throws IOException, InterruptedException {
-       return execute(c, null);
+    public void downloadServices(List<String> pathList) {
+        for (String path : pathList)  {
+            try {
+                new Download().loadService(path, AgentBootstrap.downloadURL);
+            } catch (Exception ex) {
+                logger.log(Level.INFO, ex.getMessage() , ex);
+            }
+        }
+        updatePaths(pathList);
     }
 
     /**
      * Executes a command from the remote command agent.
      *
      * @param c The command to be executed
-     * @param extMap The external map, if any
+     * @param svcPath The service location, if any
      * @return A handle to the command
      * @throws IOException Error communicating with resulting process
      * @throws InterruptedException Thread got interrupted waiting
      */
-    public CommandHandle execute(Command c, Map<String, List<String>> extMap)
+    public CommandHandle execute(Command c, String svcPath)
                 throws IOException, InterruptedException {
+        Map<String, List<String>> extMap = null;
+        if (svcPath != null)
+            extMap = servicesBinMap.get(svcPath);
+
         c.register(handleList);
         try {
             return c.execute(this, extMap);
@@ -212,15 +234,20 @@ public class CmdAgentImpl extends UnicastRemoteObject
     /**
      * Executes a java command from the remote command agent.
      * @param c The command containing the main class
+     * @param svcPath
      * @return A handle to the command
      * @throws IOException Error communicating with resulting process
      * @throws InterruptedException Thread got interrupted waiting
      */
-    public CommandHandle java(Command c)
+    public CommandHandle java(Command c, String svcPath)
             throws IOException, InterruptedException {
+        List<String> extClassPath = null;
+        if (svcPath != null)
+            extClassPath = servicesClassPath.get(svcPath);
+
         c.register(handleList);
         try {
-            return c.executeJava(this);
+            return c.executeJava(this, extClassPath);
         } catch (IOException ex) {
             logger.log(Level.WARNING, ex.getMessage(), ex);
             throw ex;
@@ -396,14 +423,6 @@ public class CmdAgentImpl extends UnicastRemoteObject
     }
 
     /**
-     * Obtains the service/tools bin map.
-     * @return Registry
-     */
-    public static HashMap<String, HashMap<String, List<String>>> getServicesToolsBinMap() {
-        return servicesToolsBinMap;
-    }
-
-    /**
      * Obtains the hostname.
      * @return hostname
      */
@@ -482,9 +501,10 @@ public class CmdAgentImpl extends UnicastRemoteObject
      * Checks and completes the java command, if possible.
      *
      * @param cmd The original command
+     * @param extClassPath The extended classpath, if any
      * @return The completed java command
      */
-    public List<String> checkJavaCommand(List<String> cmd) {
+    public List<String> checkJavaCommand(List<String> cmd, List<String> extClassPath) {
 
         convertCommand(cmd);
 
@@ -510,6 +530,13 @@ public class CmdAgentImpl extends UnicastRemoteObject
                 buf.append(File.pathSeparator);
                 falseEnding = true;
             }
+            if (extClassPath != null) {
+                for (String pathElement : extClassPath) {
+                    buf.append(pathElement);
+                    buf.append(File.pathSeparator);
+                    falseEnding = true;
+                }
+            }
             for (String pathElement : baseClassPath) {
                 buf.append(pathElement);
                 buf.append(File.pathSeparator);
@@ -530,23 +557,22 @@ public class CmdAgentImpl extends UnicastRemoteObject
         return cmd;
     }
 
+    private static void getClassPath(String libDirPath,
+                                     ArrayList<String> libList) {
+        File libDir = new File(libDirPath);
+        if (libDir.isDirectory()) {
+            File[] libFiles = libDir.listFiles();
+            for (int i = 0; i < libFiles.length; i++)
+                if (libFiles[i].isFile())
+                    libList.add(libFiles[i].getAbsolutePath());
+        }
+    }
+
     private static String[] getBaseClassPath(String benchName) {
         // The benchmark-specific libs take precedence, add first to list
         ArrayList<String> libList = new ArrayList<String>();
-        File libDir = new File(Config.BENCHMARK_DIR + benchName + "/lib/");
-        if (libDir.exists() && libDir.isDirectory()) {
-            File[] libFiles = libDir.listFiles();
-            for (int i = 0; i < libFiles.length; i++)
-                if (libFiles[i].isFile())
-                    libList.add(libFiles[i].getAbsolutePath());
-        }
-        libDir = new File(Config.LIB_DIR);
-        if (libDir.exists() && libDir.isDirectory()) {
-            File[] libFiles = libDir.listFiles();
-            for (int i = 0; i < libFiles.length; i++)
-                if (libFiles[i].isFile())
-                    libList.add(libFiles[i].getAbsolutePath());
-        }
+        getClassPath(Config.BENCHMARK_DIR + benchName + "/lib/", libList);
+        getClassPath(Config.LIB_DIR, libList);
         String[] baseClassPath = new String[libList.size()];
         baseClassPath = libList.toArray(baseClassPath);
         return baseClassPath;

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Statit.java,v 1.6 2009/05/30 04:48:50 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -65,7 +65,7 @@ import java.util.logging.Level;
             c.setOutputFile(Command.STDOUT, logfile);
             try {
                 // Replace tool so that super.stop gets the output from -y instead.
-                tool = cmdAgent.execute(c);
+                tool = cmdAgent.execute(c, null);
                 // saveToolLogs(tool.getInputStream(), tool.getErrorStream());
                 toolStatus = STOPPED;
                 // xfer log file to master machine, log any errors

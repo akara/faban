@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Mysqlstats.java,v 1.5 2009/07/28 22:54:16 akara Exp $
+ * $Id$
  *
  * Copyright 2008 Sun Microsystems Inc. All Rights Reserved
  */
@@ -222,7 +222,7 @@ import java.util.logging.Logger;
     protected void start() {
         try {            
 		    mysql.setOutputFile(Command.STDOUT, logfile1);
-            tool = cmdAgent.execute(mysql);
+            tool = cmdAgent.execute(mysql, null);
             logger.log(Level.FINE, "Calling mysql show status at start");
             toolStatus = STARTED;
         } catch (IOException e) {
@@ -251,7 +251,7 @@ import java.util.logging.Logger;
             try {
 		        mysql.setOutputFile(Command.STDOUT, logfile2);
                 logger.log(Level.FINE, "Calling mysql show status at end of run");
-                tool = cmdAgent.execute(mysql);
+                tool = cmdAgent.execute(mysql, null);
                 toolStatus = STOPPED;
 
                 // Get the report from both snapshots
@@ -280,7 +280,7 @@ import java.util.logging.Logger;
         logger.log(Level.FINE, "Calling " + c);
 	    Command diffCommand = new Command(c);
 	    try {
-	        cmdAgent.execute(diffCommand);
+	        cmdAgent.execute(diffCommand, null);
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Error executing mysql_diff_status.sh", e);
         } catch (InterruptedException e) {

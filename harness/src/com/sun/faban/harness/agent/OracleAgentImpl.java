@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: OracleAgentImpl.java,v 1.5 2009/08/05 23:50:10 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */package com.sun.faban.harness.agent;
@@ -227,7 +227,7 @@ import java.util.logging.Logger;
         }
         try {
             Command c = new Command("/bin/chmod", "a+x", ORACLE_SCRIPT);
-            CommandHandle h = cmdAgent.execute(c);
+            CommandHandle h = cmdAgent.execute(c, null);
             int exitValue = h.exitValue();
             if (exitValue != 0) {
                 logger.severe("Could not change mode for "+ ORACLE_SCRIPT +
@@ -242,7 +242,7 @@ import java.util.logging.Logger;
         logger.fine("Executing command " + sqlCmd);
 
         Command c = new Command(ORACLE_SCRIPT);
-        CommandHandle h = cmdAgent.execute(c);
+        CommandHandle h = cmdAgent.execute(c, null);
         int exitValue = h.exitValue();
         boolean retVal;
         if (exitValue == 0) {
@@ -285,7 +285,7 @@ import java.util.logging.Logger;
 
         try {
             Command c = new Command("/bin/chmod", "a+x", ORACLE_SCRIPT);
-            CommandHandle h = cmdAgent.execute(c);
+            CommandHandle h = cmdAgent.execute(c, null);
             int exitValue = h.exitValue();
             if (exitValue != 0) {
                 logger.severe("Could not change mode for "+ ORACLE_SCRIPT +
@@ -300,7 +300,7 @@ import java.util.logging.Logger;
         logger.fine("Executing command " + cmd);
 
         Command c = new Command(ORACLE_SCRIPT);
-        CommandHandle h = cmdAgent.execute(c);
+        CommandHandle h = cmdAgent.execute(c, null);
         int exitValue = h.exitValue();
         boolean retVal;
         if (exitValue == 0) {
@@ -342,7 +342,7 @@ import java.util.logging.Logger;
         }
         try {
             Command c = new Command("/bin/chmod", "a+x", ORACLE_SCRIPT);
-            CommandHandle h = cmdAgent.execute(c);
+            CommandHandle h = cmdAgent.execute(c, null);
             int exitValue = h.exitValue();
             if (exitValue != 0) {
                 logger.severe("Could not change mode for "+ ORACLE_SCRIPT +
@@ -357,7 +357,7 @@ import java.util.logging.Logger;
         logger.fine("Executing command " + cmd);
 
         Command c = new Command(ORACLE_SCRIPT);
-        CommandHandle h = cmdAgent.execute(c);
+        CommandHandle h = cmdAgent.execute(c, null);
         int exitValue = h.exitValue();
         boolean retVal;
         if (exitValue == 0) {
@@ -380,7 +380,7 @@ import java.util.logging.Logger;
 
         Command cmd = new Command(oracleHome + "/bin/lsnrctl",  "status");
 
-        cmdAgent.execute(cmd);
+        cmdAgent.execute(cmd, null);
 
         return true;
 

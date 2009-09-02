@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ServerConfig.java,v 1.16 2009/08/05 23:50:10 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -130,7 +130,7 @@ class ServerConfig {
                                     new PrintStream(new FileOutputStream(f));
                     Command sysinfo = new Command("sysinfo");
                     sysinfo.setStreamHandling(Command.STDOUT, Command.CAPTURE);
-                    CommandHandle handle = cmds.execute(machine, sysinfo);
+                    CommandHandle handle = cmds.execute(machine, sysinfo, null);
                     byte[] info = handle.fetchOutput(Command.STDOUT);
 
                     // Write header and info to file.
@@ -145,7 +145,7 @@ class ServerConfig {
                         for (String cmdString : cmdStrings) {
                             Command c = new Command(cmdString);
                             c.setStreamHandling(Command.STDOUT, Command.CAPTURE);
-                            handle = cmds.execute(machine, c);
+                            handle = cmds.execute(machine, c, null);
                             info = handle.fetchOutput(Command.STDOUT);
                             if (info != null) {
                                 syslog.println(linesep);
@@ -239,12 +239,12 @@ class ServerConfig {
                     // to get the required number
                     Command cmd = new Command(Config.BIN_DIR + "fastsu", "/usr/sbin/psradm", "-a", "-n");
                     logger.config("Turning on all cpus on " + machines[j]);
-                    cmds.execute(machines[j], cmd);
+                    cmds.execute(machines[j], cmd, null);
 
                     cmd = new Command("/usr/sbin/psrinfo");
                     cmd.setStreamHandling(Command.STDOUT, Command.CAPTURE);
                     logger.fine("Getting cpus");
-                    CommandHandle handle = cmds.execute(machines[j], cmd);
+                    CommandHandle handle = cmds.execute(machines[j], cmd, null);
                     byte[] buffer = handle.fetchOutput(Command.STDOUT);
 
                     if (buffer != null) {
@@ -297,7 +297,7 @@ class ServerConfig {
                             logger.info("Off-lining CPUs with command: " +
                                     offlineCmd);
                             cmd = new Command(offlineCmd);
-                            cmds.execute(machines[j], cmd);
+                            cmds.execute(machines[j], cmd, null);
                         }
                     }
                     else {
@@ -376,7 +376,7 @@ class ServerConfig {
                 f.delete();
                 try {
                     syslog = new PrintStream(new FileOutputStream(f));
-                    handle = cmds.execute(machine, c);
+                    handle = cmds.execute(machine, c, null);
                     byte[] messages = handle.fetchOutput(Command.STDOUT);
                     syslog.println(linesep);
                     syslog.println("System messages during run from server " +

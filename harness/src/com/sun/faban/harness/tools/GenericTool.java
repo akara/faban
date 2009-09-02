@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: GenericTool.java,v 1.14 2009/07/28 22:54:16 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -193,7 +193,7 @@ import java.util.logging.Logger;
             cmd.setSynchronous(false);
             cmd.setStreamHandling(Command.STDOUT, Command.CAPTURE);
             cmd.setOutputFile(Command.STDOUT, logfile);
-            tool = cmdAgent.execute(cmd);
+            tool = cmdAgent.execute(cmd, null);
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Cannot start tool " + toolName, e);
             finish();

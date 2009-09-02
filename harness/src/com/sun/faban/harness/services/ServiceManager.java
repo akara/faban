@@ -370,9 +370,9 @@ public class ServiceManager {
                     String[] ctxHosts = ctx.getHosts();
                     for (String ctxHost : ctxHosts) {
                         if (hostDeploymentSet.add(new NameValuePair<String>(
-                                cmds.getHostName(ctxHost), fullLocation))) {
+                                cmds.getHostName(ctxHost), sd.location))) {
                             hostDeploymentList.add(new NameValuePair<String>(
-                                    ctxHost, fullLocation));
+                                    ctxHost, sd.location));
                         }
                     }
                 }
@@ -479,8 +479,9 @@ public class ServiceManager {
                     String locationType =
                             toolCtx.getToolDescription().getLocationType();
                     if ("services".equals(locationType)) {
-                        String fullLocation = locationType + '/' +
+                        String location =
                                 toolCtx.getToolDescription().getLocation();
+                        String fullLocation = locationType + '/' + location;
                         activeDeployments.add(fullLocation);
 
                         CmdService cmds = CmdService.getHandle();
@@ -488,9 +489,9 @@ public class ServiceManager {
                                 toolCtx.getToolServiceContext().getHosts();
                         for (String ctxHost : ctxHosts) {
                             if (hostDeploymentSet.add(new NameValuePair<String>(
-                                    cmds.getHostName(ctxHost), fullLocation))) {
-                                hostDeploymentList.add(new NameValuePair<String>(
-                                        ctxHost, fullLocation));
+                                    cmds.getHostName(ctxHost), location))) {
+                                hostDeploymentList.add(new NameValuePair<String>
+                                        (ctxHost, location));
                             }
                         }
                     }
@@ -589,8 +590,16 @@ public class ServiceManager {
         Set<Map.Entry<String, List<String>>> entrySet = downloadMap.entrySet();
         CmdService cmds = CmdService.getHandle();
         for (Map.Entry<String, List<String>> entry : entrySet) {
-            cmds.downloadFiles(entry.getKey(), entry.getValue());
+            cmds.downloadServices(entry.getKey(), entry.getValue());
         }
+
+        // Also update the paths on the local command agent.
+        ArrayList<String> activeServiceList = new ArrayList<String>();
+        for (String deployment : activeDeployments) {
+            if (deployment.startsWith("service/"))
+                activeServiceList.add(deployment.substring(8));
+        }
+        cmds.updatePaths(activeServiceList);
     }
 
     /**
