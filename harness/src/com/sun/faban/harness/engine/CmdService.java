@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdService.java,v 1.55 2009/08/05 23:50:10 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -934,6 +934,16 @@ final public class CmdService { 	// The final keyword prevents clones
             return machineName;
         }
         return retVal;
+    }
+
+    /**
+     * Downloads files used by deploy images, especially services and tools
+     * @param machine The host name to initiate the download
+     * @param pathList The list of paths to download
+     */
+    public void downloadFiles(String machine, List<String> pathList) 
+            throws RemoteException {
+        findCmdAgent(machine).downloadFiles(pathList);
     }
 
     /**
