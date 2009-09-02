@@ -183,7 +183,13 @@ public class ServiceContext implements Serializable {
 
 
     /**
-     * Executes a command on the master.
+     * Executes a command on the local host. If called in normal service code,
+     * it executes on the master. If called from the RemoteCallable.call(),
+     * it executes on the agent system running the RemoteCallable.
+     * This is the only exec signature you can call from a
+     * RemoteCallable.call(). All other exec signatures will throw a
+     * NullPointerException when run from inside RemoteCallable.call() on an
+     * agent system.
      * @param c The command to be executed
      * @return  A handle to the command
      * @throws java.io.IOException Error communicating with resulting process
@@ -226,7 +232,13 @@ public class ServiceContext implements Serializable {
     }
 
     /**
-     * Executes a java command on the master.
+     * Executes a java command on the local host. If called in normal service
+     * code, it executes on the master. If called from the
+     * RemoteCallable.call(), it executes on the agent system running the
+     * RemoteCallable. This is the only java signature you can call from a
+     * RemoteCallable.call(). All other java signatures will throw a
+     * NullPointerException when run from inside RemoteCallable.call() on an
+     * agent system.
      *
      * @param java The command to be executed
      * @return A handle to the command
@@ -235,7 +247,11 @@ public class ServiceContext implements Serializable {
      */
     public CommandHandle java(Command java)
             throws IOException, InterruptedException {
-        return CmdService.getHandle().java(java, servicePath);
+        CmdAgentImpl agent = CmdAgentImpl.getHandle();
+        if (agent != null) // Running on agent
+            return CmdAgentImpl.getHandle().java(java, servicePath);
+        else // Running on master
+            return CmdService.getHandle().java(java, servicePath);
     }
 
     /**
