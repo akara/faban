@@ -50,12 +50,6 @@ public class ServiceWrapper {
     Method startupMethod;
     Method shutdownMethod;
 
-    static final int NOT_STARTED = 0;
-    static final int STARTED = 1;
-    static final int STOPPED = 2;
-
-    int serviceStatus = NOT_STARTED;
-
     /**
      * Constructor.
      * @param serviceClass
@@ -74,7 +68,7 @@ public class ServiceWrapper {
                 if (clearLogsMethod == null) {
                     clearLogsMethod = method;
                 } else {
-                    logger.severe("Error: Multiple @ClearLogs methods.");
+                    logger.severe("Error: Multiple @Validate methods.");
                     //throw new Error ("Multiple @Validate methods.");
                 }
             }
@@ -174,7 +168,7 @@ public class ServiceWrapper {
      * Invokes service's method annotated by @ClearLogs.
      * @throws java.lang.Exception
      */
-    private void clearLogs() throws Exception {
+    void clearLogs() throws Exception {
         if (configured && clearLogsMethod != null) {
             try {
                 clearLogsMethod.invoke(service,new Object[] {});
@@ -239,7 +233,6 @@ public class ServiceWrapper {
                 throwSourceException(e);
             }
         }
-        serviceStatus = STARTED;
     }
 
     /**
@@ -247,16 +240,12 @@ public class ServiceWrapper {
      * @throws java.lang.Exception
      */
     void shutdown() throws Exception {
-        if (serviceStatus == STARTED && shutdownMethod != null) {
+        if (configured && shutdownMethod != null) {
             try {
-                shutdownMethod.invoke(service, new Object[]{});
-                serviceStatus = STOPPED;
-                logger.fine(ctx.desc.id + " Stopped ");
-                clearLogs();
-                logger.fine("Cleared Logs");
+                shutdownMethod.invoke(service,new Object[] {});
             } catch (InvocationTargetException e) {
                 throwSourceException(e);
             }
-        } 
+        }
     }
 }
