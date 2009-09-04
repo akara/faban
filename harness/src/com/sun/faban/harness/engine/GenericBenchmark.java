@@ -202,18 +202,7 @@ public class GenericBenchmark {
                 logger.log(Level.WARNING, "Error writing hosttypes file!", e);
             }
 
-            // Deal with the services.
-            serviceMgr = new ServiceManager(par, run);
-            logger.info("Got Service Manager Instance");
-            // transfer service configuration.
-            serviceMgr.configure();
-            logger.info("Executed services configure method");
-            // start services
-            serviceMgr.startup();
-            serviceMgr.getConfig();
-            logger.info("Executed services Startup method");
-
-            // Reading parameters used by ToolService
+            // Reading parameters needed for ToolService
             String s = par.getParameter("fa:runControl/fa:rampUp");
             if (s != null)
                 s = s.trim();
@@ -249,19 +238,13 @@ public class GenericBenchmark {
                     return;
                 }
                 if (stdyState <= 0) {
-                    logger.severe("Parameter steadyState must be more than zero.");
+                    logger.severe(
+                            "Parameter steadyState must be more than zero.");
                     return;
                 }
             }
-            // Initialize ToolService, call setup with cmds as parameter
-            logger.fine("Initializing Tool Service");
-            tools = ToolService.getHandle();
-            logger.finer("Got Tool Service Handle");
-            tools.init();
-            logger.finer("Tool Service Inited");
-            tools.setup(par, run.getOutDir(), serviceMgr);	// If Tools setup fails,
-                                                // we ignore it
-            logger.finer("Tool Service Set Up");
+
+
             // Now, process generic server parameters
             logger.fine("Processing Generic Parameters");
             server = new ServerConfig(run, par);
@@ -276,15 +259,42 @@ public class GenericBenchmark {
             logger.info("Gathering system configuration");
             server.get();
 
-            // Log parameters that were changed since last run.
-
-
-            // Configure benchmark
+            // Configure the benchmark before starting services
             try {
                 bmw.configure();
                 logger.fine("Configured benchmark " + benchDesc.name);
             } catch (Throwable t) {
                 logger.log(Level.SEVERE, "Run configuration failed!", t);
+                return;
+            }
+
+            // Deal with the services.
+            serviceMgr = new ServiceManager(par, run);
+            logger.info("Got Service Manager Instance");
+            // transfer service configuration.
+            serviceMgr.configure();
+            logger.info("Executed services configure method");
+            // start services
+            serviceMgr.startup();
+            serviceMgr.getConfig();
+            logger.info("Executed services Startup method");
+
+            // Initialize ToolService, call setup with cmds as parameter
+            logger.fine("Initializing Tool Service");
+            tools = ToolService.getHandle();
+            logger.finer("Got Tool Service Handle");
+            tools.init();
+            logger.finer("Tool Service Inited");
+            tools.setup(par, run.getOutDir(), serviceMgr);	// If Tools setup fails,
+                                                // we ignore it
+            logger.finer("Tool Service Set Up");
+
+            // Calling PreRun to prepare the data, etc.
+            try {
+                logger.fine("Calling PreRun for " + benchDesc.name);
+                bmw.preRun();
+            } catch (Throwable t) {
+                logger.log(Level.SEVERE, "PreRun failed!", t);
                 return;
             }
 
@@ -342,9 +352,10 @@ public class GenericBenchmark {
             try {
                 // Postprocessing may need tools output. So the postRun
                 // must be called after all tools and services are done.
+                logger.fine("Calling PostRun for " + benchDesc.name);
                 bmw.postRun();
             } catch (Throwable t) {
-                logger.log(Level.SEVERE, "Post run failed!", t);
+                logger.log(Level.SEVERE, "PostRun failed!", t);
                 return;
             }
 

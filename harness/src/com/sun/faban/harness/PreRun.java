@@ -27,10 +27,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation used for post-processing method in the benchmark class.
- * @author Sheetal Patil, Sun Microsystems.
+ * Annotation used for run preparation method in the benchmark class.
+ * @author Akara Sucharitakul
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface PostRun {
+public @interface PreRun {
 }

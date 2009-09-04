@@ -57,6 +57,19 @@ public class InterfaceBenchmarkWrapper extends BenchmarkWrapper {
     }
 
     /**
+     * Noop for the interface wrapper.
+     * This method if called for preparation of the benchmark run.
+     * The preRun is called after all services are available. So
+     * it can be used to load/reload data into a database, for example.
+     *
+     * @throws Exception if any error occurred.
+     */
+    @Override
+    void preRun() throws Exception {
+        // Noop.
+    }
+
+    /**
      * Invokes start on the benchmark class.
      * @throws Exception Indicating an error thrown by the benchmark class
      */

@@ -41,6 +41,7 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
     Object benchmark;
     Method validateMethod;
     Method configureMethod;
+    Method preRunMethod;
     Method startMethod;
     Method endMethod;
     Method postRunMethod;
@@ -69,6 +70,16 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
                 } else {
                     logger.severe("Error: Multiple @Configure methods.");
                     //throw new Error ("Multiple @Configure methods.");
+                }
+            }
+            if (method.getAnnotation(PreRun.class) != null) {
+                if (!conformsToSpec(method))
+                    continue;
+                if (preRunMethod == null) {
+                    preRunMethod = method;
+                } else {
+                    logger.severe("Error: Multiple @PreRun methods.");
+                    //throw new Error ("Multiple @PostRun methods.");
                 }
             }
             if (method.getAnnotation(StartRun.class) != null) {
@@ -161,6 +172,20 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
         if (configureMethod != null){
             try {
                 configureMethod.invoke(benchmark,new Object[] {});
+            } catch (InvocationTargetException e) {
+                throwSourceException(e);
+            }
+        }
+    }
+
+    /**
+     * Invokes a benchmark's method annotated by @PreRun.
+     * @throws java.lang.Exception
+     */
+    void preRun() throws Exception {
+        if (configureMethod != null){
+            try {
+                preRunMethod.invoke(benchmark,new Object[] {});
             } catch (InvocationTargetException e) {
                 throwSourceException(e);
             }

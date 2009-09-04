@@ -95,12 +95,22 @@ public abstract class BenchmarkWrapper {
 	 * This method is called to configure the specific benchmark run
 	 * Tasks done in this method include reading user parameters,
 	 * logging them and initializing various local variables.
+     * Configure has access to all remote facilities. Services are
+     * not yet started.
 	 *
      * @throws Exception if any error occurred.
 	 */
   	abstract void configure() throws Exception;
 
 	/**
+     * This method if called for preparation of the benchmark run.
+     * The preRun is called after all services are available. So
+     * it can be used to load/reload data into a database, for example.
+     * @throws Exception if any error occurred.
+     */
+    abstract void preRun() throws Exception;
+
+    /**
   	 * This method is responsible for starting the benchmark run.
      *
      * @throws Exception if any error occurred.
