@@ -21,27 +21,22 @@
  */
 package com.sun.services;
 
-import static com.sun.faban.harness.RunContext.*;
-
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
-import com.sun.faban.harness.Context;
-import com.sun.faban.harness.RemoteCallable;
-
-import com.sun.faban.harness.RunContext;
+import com.sun.faban.harness.*;
 import com.sun.faban.harness.services.ClearLogs;
-import com.sun.faban.harness.Configure;
 import com.sun.faban.harness.services.GetLogs;
 import com.sun.faban.harness.services.ServiceContext;
-import com.sun.faban.harness.Start;
-import com.sun.faban.harness.Stop;
+
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.GregorianCalendar;
-import java.util.Calendar;
-import java.text.SimpleDateFormat;
+
+import static com.sun.faban.harness.RunContext.*;
 
 /**
  *

@@ -26,22 +26,13 @@ package com.sun.services;
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
 import com.sun.faban.common.Utilities;
-import com.sun.faban.harness.RunContext;
-import com.sun.faban.harness.services.ServiceContext;
-import com.sun.faban.harness.Context;
-
-import com.sun.faban.harness.RemoteCallable;
-import com.sun.faban.harness.WildcardFileFilter;
+import com.sun.faban.harness.*;
 import com.sun.faban.harness.services.ClearLogs;
-import com.sun.faban.harness.Configure;
-import com.sun.faban.harness.Start;
-import com.sun.faban.harness.Stop;
+import com.sun.faban.harness.services.ServiceContext;
 import com.sun.faban.harness.util.FileHelper;
-import java.io.BufferedReader;
+
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -120,7 +111,7 @@ public class ApacheHttpdService {
     private static boolean checkServerStarted(String hostName, ServiceContext ctx) throws Exception {
         Integer val = 0;
         final String err = errlogFile;
-        final ServiceContext sctx = ctx;
+
         val = ctx.exec(hostName, new RemoteCallable<Integer>() {
 
             static final int RETRIES = 30;
