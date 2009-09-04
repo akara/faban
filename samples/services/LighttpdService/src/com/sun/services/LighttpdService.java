@@ -32,7 +32,7 @@ import com.sun.faban.harness.WildcardFileFilter;
 import com.sun.faban.harness.services.ClearLogs;
 import com.sun.faban.harness.Configure;
 import com.sun.faban.harness.services.GetLogs;
-import com.sun.faban.harness.Startup;
+import com.sun.faban.harness.Start;
 import com.sun.faban.harness.Stop;
 import java.io.BufferedReader;
 import java.io.File;
