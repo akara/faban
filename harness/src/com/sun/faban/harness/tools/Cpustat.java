@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Cpustat.java,v 1.15 2009/07/28 22:54:16 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,6 +25,8 @@ package com.sun.faban.harness.tools;
 
 import com.sun.faban.common.Command;
 
+import com.sun.faban.harness.Configure;
+import com.sun.faban.harness.Stop;
 import java.io.IOException;
 
 /**

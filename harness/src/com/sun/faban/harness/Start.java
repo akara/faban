@@ -19,7 +19,7 @@
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
-package com.sun.faban.harness.tools;
+package com.sun.faban.harness;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;

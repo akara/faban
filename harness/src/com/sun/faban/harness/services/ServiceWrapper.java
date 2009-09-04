@@ -22,8 +22,11 @@
 
 package com.sun.faban.harness.services;
 
+import com.sun.faban.harness.Configure;
 import com.sun.faban.harness.Context;
 
+import com.sun.faban.harness.Start;
+import com.sun.faban.harness.Stop;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -68,7 +71,7 @@ public class ServiceWrapper {
                 if (clearLogsMethod == null) {
                     clearLogsMethod = method;
                 } else {
-                    logger.severe("Error: Multiple @Validate methods.");
+                    logger.severe("Error: Multiple @ClearLogs methods.");
                     //throw new Error ("Multiple @Validate methods.");
                 }
             }
@@ -102,7 +105,7 @@ public class ServiceWrapper {
                     //throw new Error ("Multiple @End methods.");
                 }
             }
-            if (method.getAnnotation(Startup.class) != null) {
+            if (method.getAnnotation(Start.class) != null) {
                 if (!conformsToSpec(method))
                     continue;
                 if (startupMethod == null) {
@@ -112,7 +115,7 @@ public class ServiceWrapper {
                     //throw new Error ("Multiple @PostRun methods.");
                 }
             }
-            if (method.getAnnotation(Shutdown.class) != null) {
+            if (method.getAnnotation(Stop.class) != null) {
                 if (!conformsToSpec(method))
                     continue;
                 if (shutdownMethod == null) {

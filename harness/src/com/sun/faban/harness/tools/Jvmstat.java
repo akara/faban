@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Jvmstat.java,v 1.8 2009/07/21 22:54:47 sheetalpatil Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,6 +25,8 @@ package com.sun.faban.harness.tools;
 
 import com.sun.faban.common.Command;
 import com.sun.faban.common.Utilities;
+import com.sun.faban.harness.Configure;
+import com.sun.faban.harness.Start;
 import com.sun.faban.harness.agent.CmdAgentImpl;
 import com.sun.faban.harness.common.Config;
 
