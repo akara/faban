@@ -1,0 +1,62 @@
+#!/bin/bash
+# enicstat -	Get interface speed/duplex from ethtool; use with nicstat
+#
+# Copyright (c) 2009, Tim.Cook@sun.com
+#
+# nicstat is licensed under the Artistic License 2.0.  You can find
+# a copy of this license as LICENSE.txt included with the nicstat
+# distribution, or at http://www.perlfoundation.org/artistic_license_2_0
+
+BINDIR=`dirname $0`
+PROG=${0##*/}
+
+#-- Add /sbin to PATH, as that is where ethtool usually is
+export PATH=${PATH}:/sbin
+
+#-- Get list of interface names
+while read a b c
+do
+	case $a in
+	'Inter'* | 'face' ) ;;
+	*':'[0-9]* | *':' )
+		ifname=${a%:*}
+		interfaces="$interfaces $ifname"
+		;;
+	esac
+done < /proc/net/dev
+
+#-- Get speed/duplex of each interface using ethtool
+nl='
+'
+for if in $interfaces
+do
+	ifname=
+	speed=
+	duplex=
+	valid=false
+	settings=`ethtool "$if" 2>/dev/null`
+	x=${settings#Settings for }
+	ifname=${x%%:*}
+	x=${settings##*	Speed: }
+	case $x in
+	[1-9]*'Mb/s'* )
+		valid=true ;;
+	esac
+	speed=${x%%Mb/s$nl*}
+	x=${settings##*	Duplex: }
+	duplex=${x%%$nl*}
+	case $valid,$ifspeeds in
+	true, )
+		ifspeeds="${ifname}:$speed$duplex" ;;
+	true,* )
+		ifspeeds="$ifspeeds,${ifname}:$speed$duplex" ;;
+	esac
+done
+
+if [ -z "$ifspeeds" ]; then
+	echo "$PROG: warning: failed to obtain any interface speeds" >&2
+	exec $BINDIR/nicstat.bin "$@"
+fi
+
+#-- Run nicstat with what we got
+exec $BINDIR/nicstat.bin -S "$ifspeeds" "$@"
