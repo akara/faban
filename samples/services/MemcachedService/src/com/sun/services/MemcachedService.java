@@ -79,7 +79,7 @@ public class MemcachedService {
                 startCmd = new Command(memcachedStartCmd + " -p " +
                         myHostPort.value);
             } else {
-                startCmd = new Command(memcachedStartCmd + "-p " +
+                startCmd = new Command(memcachedStartCmd + " -p " +
                         DEFAULT_PORT);
             }
             startCmd.setLogLevel(Command.STDOUT, Level.INFO);
