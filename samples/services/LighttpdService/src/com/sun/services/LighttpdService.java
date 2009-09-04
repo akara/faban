@@ -64,7 +64,6 @@ public class LighttpdService {
     private CommandHandle[] ch = null;
 
     @Configure public void configure() {
-        myServers = new String[ctx.getUniqueHosts().length];
         myServers = ctx.getUniqueHosts();
         lightyCmd = ctx.getProperty("cmdPath");
         if (!lightyCmd.endsWith(File.separator))

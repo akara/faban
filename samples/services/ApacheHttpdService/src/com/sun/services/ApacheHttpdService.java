@@ -68,7 +68,6 @@ public class ApacheHttpdService {
      * Configures the service.
      */
     @Configure public void configure() {
-        myServers = new String[ctx.getUniqueHosts().length];
         myServers = ctx.getUniqueHosts();
         apacheCmd = ctx.getProperty("cmdPath");
         if (!apacheCmd.endsWith(" "))

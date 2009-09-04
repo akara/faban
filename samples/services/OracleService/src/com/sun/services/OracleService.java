@@ -59,7 +59,6 @@ public class OracleService {
 
     @Configure public void configure() {
         logger.info("Configuring oracle service ");
-        myServers = new String[ctx.getUniqueHosts().length];
         myServers = ctx.getUniqueHosts();
         oracleHome = ctx.getProperty("serverHome");
         oracleSid = ctx.getProperty("serverId");

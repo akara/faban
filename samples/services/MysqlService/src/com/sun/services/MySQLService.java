@@ -66,7 +66,6 @@ public class MySQLService {
      * Configures the MySQL service.
      */
     @Configure public void configure() {
-        myServers = new String[ctx.getUniqueHosts().length];
         logger.fine("Configuring mysql Started");
         myServers = ctx.getUniqueHosts();
         dbHome = ctx.getProperty("serverHome");

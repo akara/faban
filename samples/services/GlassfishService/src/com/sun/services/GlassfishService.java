@@ -67,7 +67,6 @@ public class GlassfishService {
      *
      */
      @Configure public void configure() {
-        myServers = new String[ctx.getUniqueHosts().length];
         myServers = ctx.getUniqueHosts();
         String logsDir = ctx.getProperty("logsDir");
         if (!logsDir.endsWith(File.separator))
