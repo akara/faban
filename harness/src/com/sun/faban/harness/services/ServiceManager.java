@@ -464,8 +464,8 @@ public class ServiceManager {
                                 toolCtx = new MasterToolContext(
                                         tool, ctx, toolDesc);
                             } else {
-                                //logger.info("No Tool Description for tool: " + tool);
-                                logger.fine("No Tool Description for tool: " + tool + " ,so it's a command line tool");
+                                logger.fine("No Tool Description for tool: " +
+                                        tool + " ,so it's a command line tool");
                                 toolCtx = new MasterToolContext(
                                         tool, ctx, null);
                             }
@@ -596,8 +596,8 @@ public class ServiceManager {
         // Also update the paths on the local command agent.
         ArrayList<String> activeServiceList = new ArrayList<String>();
         for (String deployment : activeDeployments) {
-            if (deployment.startsWith("service/"))
-                activeServiceList.add(deployment.substring(8));
+            if (deployment.startsWith("services/"))
+                activeServiceList.add(deployment.substring(9));
         }
         cmds.updatePaths(activeServiceList);
     }
@@ -666,7 +666,13 @@ public class ServiceManager {
                 } catch (Exception e) {
                     logger.log(Level.WARNING, "Failed to shutdown service " +
                             sw.ctx.desc.id, e);
-                }             
+                }
+                try {
+                    sw.clearLogs();
+                } catch (Exception e) {
+                    logger.log(Level.WARNING, "Failed to clear service logs " +
+                            "for service " + sw.ctx.desc.id, e);
+                }
             }
         }
 
