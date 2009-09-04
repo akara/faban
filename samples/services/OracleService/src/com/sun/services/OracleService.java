@@ -27,9 +27,9 @@ import com.sun.faban.harness.RunContext;
 import com.sun.faban.harness.services.ServiceContext;
 import com.sun.faban.harness.Context;
 
-import com.sun.faban.harness.services.Configure;
-import com.sun.faban.harness.services.Startup;
-import com.sun.faban.harness.services.Shutdown;
+import com.sun.faban.harness.Configure;
+import com.sun.faban.harness.Start;
+import com.sun.faban.harness.Stop;
 import java.io.File;
 
 import java.util.ArrayList;
@@ -59,6 +59,7 @@ public class OracleService {
 
     @Configure public void configure() {
         logger.info("Configuring oracle service ");
+        myServers = new String[ctx.getUniqueHosts().length];
         myServers = ctx.getUniqueHosts();
         oracleHome = ctx.getProperty("serverHome");
         oracleSid = ctx.getProperty("serverId");
@@ -86,7 +87,7 @@ public class OracleService {
 
     }
 
-    @Startup public void startup() {
+    @Start public void startup() {
         for (int i = 0; i < myServers.length; i++) {
             logger.info("Starting oracle on " + myServers[i]);
             Command startCmd = new Command(oracleStartCmd);
@@ -96,9 +97,9 @@ public class OracleService {
             try {
                 // Run the command in the background
                 if ( !checkServerStarted(i)) {
-                    serverHandles[i] = RunContext.exec(myServers[i], startCmd);
+                    serverHandles[i] = ctx.exec(myServers[i], startCmd);
                     logger.info("Completed Oracle server startup successfully on" + myServers[i]);
-                    //CommandHandle pid = RunContext.exec(myServers[i], new Command("pgrep ora_pmon"));
+                    //CommandHandle pid = ctx.exec(myServers[i], new Command("pgrep ora_pmon"));
                     //FileHelper.writeStringToFile(pid.fetchOutput(0).toString(), new File(oracleHome+myServers[i]+".pid"));
                 }
             } catch (Exception e) {
@@ -111,7 +112,7 @@ public class OracleService {
                 try {
                     // Run the command in the background
                     if (!checkListnerStarted(myServers[i])) {
-                        RunContext.exec(myServers[i], listerCmd);
+                        ctx.exec(myServers[i], listerCmd);
                         logger.info("Completed listner startup successfully on" + myServers[i]);
                     }
                 } catch (Exception e) {
@@ -122,7 +123,7 @@ public class OracleService {
         }       
     }
 
-    @Shutdown public void shutdown() throws Exception {
+    @Stop public void shutdown() throws Exception {
         for (int i = 0; i < myServers.length; i++) {
             String myServer = myServers[i];
             if (checkServerStarted(i)) {
@@ -144,7 +145,7 @@ public class OracleService {
 
     private boolean checkListnerStarted(String hostName) throws Exception {
         boolean started = false;
-        CommandHandle ch = RunContext.exec(hostName, new Command(oracleBin + "lsnrctl status"));
+        CommandHandle ch = ctx.exec(hostName, new Command(oracleBin + "lsnrctl status"));
         if (ch.fetchOutput(0) != null){
             started = true;
         }
@@ -156,7 +157,7 @@ public class OracleService {
         try {
             // First kill oracle
             Command stopCmd = new Command(oracleStopCmd);
-            RunContext.exec(serverId, stopCmd);
+            ctx.exec(serverId, stopCmd);
             logger.info("Oracle server stopped successfully on" + serverId);
         } catch (Exception ie) {
             logger.warning("Kill Oracle failed with " + ie.toString());
@@ -168,7 +169,7 @@ public class OracleService {
         logger.info("Stopping listner on" + serverId);
         try {
             Command stopCmd = new Command(oracleBin + "lsnrctl stop");
-            RunContext.exec(serverId, stopCmd);
+            ctx.exec(serverId, stopCmd);
             logger.info("Listner stopped successfully on" + serverId);
         } catch (Exception ie) {
             logger.warning("Kill listner failed with " + ie.toString());

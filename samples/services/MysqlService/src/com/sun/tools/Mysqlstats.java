@@ -26,10 +26,10 @@ package com.sun.tools;
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
 import com.sun.faban.harness.Context;
-import com.sun.faban.harness.tools.Configure;
+import com.sun.faban.harness.Configure;
 import com.sun.faban.harness.tools.Postprocess;
-import com.sun.faban.harness.tools.Start;
-import com.sun.faban.harness.tools.Stop;
+import com.sun.faban.harness.Start;
+import com.sun.faban.harness.Stop;
 
 import com.sun.faban.harness.tools.ToolContext;
 import java.io.File;

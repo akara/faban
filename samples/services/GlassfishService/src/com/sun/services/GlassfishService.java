@@ -30,11 +30,11 @@ import com.sun.faban.harness.RemoteCallable;
 
 import com.sun.faban.harness.RunContext;
 import com.sun.faban.harness.services.ClearLogs;
-import com.sun.faban.harness.services.Configure;
+import com.sun.faban.harness.Configure;
 import com.sun.faban.harness.services.GetLogs;
 import com.sun.faban.harness.services.ServiceContext;
-import com.sun.faban.harness.services.Startup;
-import com.sun.faban.harness.services.Shutdown;
+import com.sun.faban.harness.Start;
+import com.sun.faban.harness.Stop;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -57,7 +57,7 @@ public class GlassfishService {
 
     @Context public ServiceContext ctx;
     Logger logger = Logger.getLogger(GlassfishService.class.getName());
-    private String[] myServers = new String[1];
+    private String[] myServers;
     private static String asadminCmd,  errlogFile,  acclogFile;
 
 
@@ -67,6 +67,7 @@ public class GlassfishService {
      *
      */
      @Configure public void configure() {
+        myServers = new String[ctx.getUniqueHosts().length];
         myServers = ctx.getUniqueHosts();
         String logsDir = ctx.getProperty("logsDir");
         if (!logsDir.endsWith(File.separator))
@@ -86,7 +87,7 @@ public class GlassfishService {
     /**
      * Start all glassfish servers on configured hosts.
      */
-    @Startup public void startup() {
+    @Start public void startup() {
 
         Command startCmd = new Command(asadminCmd, "start-domain");       
 
@@ -94,13 +95,13 @@ public class GlassfishService {
             String server = myServers[i];
             try {
                 // Run the command in the foreground and wait for the start
-                RunContext.exec(server, startCmd);
+                ctx.exec(server, startCmd);
                 /*
                  * Read the log file to make sure the server has started.
                  * We do this by running the code block on the server via
                  * RemoteCallable
                  */
-                if (checkServerStarted(server)) {
+                if (checkServerStarted(server, ctx)) {
                     logger.fine("Completed GlassFish startup successfully on " + server);
                 } else {
                     logger.severe("Failed to start GlassFish on " + server);
@@ -118,9 +119,9 @@ public class GlassfishService {
     /*
 	 * Check if Glassfish server is started.
 	 */
-    private static boolean checkServerStarted(String hostName) throws Exception {
+    private static boolean checkServerStarted(String hostName, ServiceContext ctx) throws Exception {
         Command checkCmd = new Command(asadminCmd, "list-domains");     
-        CommandHandle handle = RunContext.exec(hostName, checkCmd);
+        CommandHandle handle = ctx.exec(hostName, checkCmd);
         byte[] output = handle.fetchOutput(Command.STDOUT);
         if (output != null) {
             String outStr = new String(output);
@@ -135,14 +136,14 @@ public class GlassfishService {
     /**
      * Stop Servers.
      */
-    @Shutdown public void shutdown() throws IOException, InterruptedException {
+    @Stop public void shutdown() throws IOException, InterruptedException {
         for (int i = 0; i < myServers.length; i++) {
             Integer retVal = 0;
             try {
                 Command stopCmd = new Command(asadminCmd, "stop-domain");
                
                 // Run the command in the foreground
-                CommandHandle ch = RunContext.exec(myServers[i], stopCmd);
+                CommandHandle ch = ctx.exec(myServers[i], stopCmd);
 
                 // Check if the server was even running before stop was issued
                 // If not running, asadmin will print that on stdout
@@ -155,7 +156,7 @@ public class GlassfishService {
                        continue;
                     }
                 }
-                retVal = checkServerStopped(myServers[i]);
+                retVal = checkServerStopped(myServers[i], ctx);
                 if (retVal == 0) {
                     logger.warning("GlassFish on " + myServers[i] +
                                         " is apparently still runnning");
@@ -171,9 +172,9 @@ public class GlassfishService {
     /*
 	 * Check if glassfish server is stopped.
 	 */
-    private static Integer checkServerStopped(String hostName) throws Exception {
+    private static Integer checkServerStopped(String hostName, ServiceContext ctx) throws Exception {
         Command checkCmd = new Command(asadminCmd, "list-domains");
-        CommandHandle handle = RunContext.exec(hostName, checkCmd);
+        CommandHandle handle = ctx.exec(hostName, checkCmd);
         byte[] output = handle.fetchOutput(Command.STDOUT);
         if (output != null) {
             String outStr = new String(output);

@@ -30,10 +30,10 @@ import com.sun.faban.harness.services.ServiceContext;
 import com.sun.faban.harness.Context;
 
 import com.sun.faban.harness.RemoteCallable;
-import com.sun.faban.harness.services.Configure;
+import com.sun.faban.harness.Configure;
 import com.sun.faban.harness.services.GetLogs;
-import com.sun.faban.harness.services.Startup;
-import com.sun.faban.harness.services.Shutdown;
+import com.sun.faban.harness.Start;
+import com.sun.faban.harness.Stop;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -80,7 +80,7 @@ public class MySQLService {
     /**
      * Starts up the MySQL instances.
      */
-    @Startup public void startup() {
+    @Start public void startup() {
         for (int i = 0; i < myServers.length; i++) {
             String pidFile = dataDir + myServers[i] + ".pid";
             logger.info("Starting mysql on " + myServers[i]);
@@ -91,7 +91,7 @@ public class MySQLService {
             startCmd.setSynchronous(false); // to run in bg
             try {
                 // Run the command in the background
-                RunContext.exec(myServers[i], startCmd);
+                ctx.exec(myServers[i], startCmd);
                 /*
                  * Make sure the server has started.
                  */
@@ -142,7 +142,7 @@ public class MySQLService {
      * @throws IOException Error executing the shutdown
      * @throws InterruptedException Interrupted waiting for the shutdown
      */
-    @Shutdown public void shutdown() throws IOException, InterruptedException {
+    @Stop public void shutdown() throws IOException, InterruptedException {
         for (int i = 0; i < myServers.length; i++) {
             String pidFile = dataDir + myServers[i] + ".pid";
             String myServer = myServers[i];
@@ -155,7 +155,7 @@ public class MySQLService {
                 try {
                     // First kill mysqld_safe
                     Command stopCmd = new Command("pkill mysqld_safe");
-                    CommandHandle ch = RunContext.exec(myServer, stopCmd);
+                    CommandHandle ch = ctx.exec(myServer, stopCmd);
 
                     // Get the pid from the pidFile
                     ByteArrayOutputStream bs = new ByteArrayOutputStream(10);
@@ -164,7 +164,7 @@ public class MySQLService {
 
                     stopCmd = new Command("kill " + pidString);
                     logger.fine("Attempting to kill mysqld pid " + pidString);
-                    ch = RunContext.exec(myServer, stopCmd);
+                    ch = ctx.exec(myServer, stopCmd);
                     logger.info("MySQL server stopped successfully on" + myServer);
                 } catch (Exception ie) {
                     logger.warning("Kill mysqld failed with " + ie.toString());
@@ -196,7 +196,7 @@ public class MySQLService {
 
             try {
                 // Now get the start and end times of the run
-                GregorianCalendar calendar = getGregorianCalendar(myServer);
+                GregorianCalendar calendar = getGregorianCalendar(myServer, ctx);
 
                 //format the end date
                 SimpleDateFormat df = new SimpleDateFormat("MMM,dd,HH:mm:ss");
@@ -209,7 +209,7 @@ public class MySQLService {
                 //parse the log file
                 Command parseCommand = new Command("mysql_trunc_err.sh " +
                         beginDate + " " + endDate + " " + outFile);
-                RunContext.exec(parseCommand);
+                ctx.exec(parseCommand);
 
             } catch (Exception e) {
 
@@ -229,9 +229,10 @@ public class MySQLService {
      * @return The calendar
      * @throws Exception Error obtaining calendar
      */
-    private static GregorianCalendar getGregorianCalendar(String hostName)
+    private static GregorianCalendar getGregorianCalendar(String hostName,
+            ServiceContext ctx)
             throws Exception {
-        return RunContext.exec(hostName, new RemoteCallable<GregorianCalendar>() {
+        return ctx.exec(hostName, new RemoteCallable<GregorianCalendar>() {
 
             public GregorianCalendar call() {
                 return new GregorianCalendar();

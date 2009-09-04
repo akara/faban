@@ -25,18 +25,23 @@ package com.sun.services;
 
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
+import com.sun.faban.common.Utilities;
 import com.sun.faban.harness.RunContext;
 import com.sun.faban.harness.services.ServiceContext;
 import com.sun.faban.harness.Context;
 
+import com.sun.faban.harness.RemoteCallable;
 import com.sun.faban.harness.WildcardFileFilter;
 import com.sun.faban.harness.services.ClearLogs;
-import com.sun.faban.harness.services.Configure;
-import com.sun.faban.harness.services.Startup;
-import com.sun.faban.harness.services.Shutdown;
+import com.sun.faban.harness.Configure;
+import com.sun.faban.harness.Start;
+import com.sun.faban.harness.Stop;
+import com.sun.faban.harness.util.FileHelper;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.rmi.RemoteException;
+import java.io.InputStreamReader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -54,8 +59,8 @@ public class ApacheHttpdService {
 
     /** Injected service context. */
     @Context public ServiceContext ctx;
-    private Logger logger = Logger.getLogger(ApacheHttpdService.class.getName());
-    private String[] myServers = new String[1];
+    private static Logger logger = Logger.getLogger(ApacheHttpdService.class.getName());
+    private String[] myServers;
     private static String apacheCmd,  errlogFile,  acclogFile;
     CommandHandle apacheHandles[];
 
@@ -63,6 +68,7 @@ public class ApacheHttpdService {
      * Configures the service.
      */
     @Configure public void configure() {
+        myServers = new String[ctx.getUniqueHosts().length];
         myServers = ctx.getUniqueHosts();
         apacheCmd = ctx.getProperty("cmdPath");
         if (!apacheCmd.endsWith(" "))
@@ -75,14 +81,13 @@ public class ApacheHttpdService {
         errlogFile = logsDir + "error_log";
         acclogFile = logsDir + "access_log";
         logger.info("ApacheHttpdService setup complete.");
-        apacheHandles = new CommandHandle[myServers.length];
     }
 
     
     /**
      * Starts up the Apache web server.
      */
-    @Startup public void startup() {
+    @Start public void startup() {
         String cmd = apacheCmd + "start";
         logger.info("Starting Apache Service with command = "+ cmd);
         Command startCmd = new Command(cmd);
@@ -92,12 +97,60 @@ public class ApacheHttpdService {
             String server = myServers[i];
             try {
                 // Run the command in the foreground and wait for the start
-                apacheHandles[i] = RunContext.exec(server, startCmd);
-                logger.info("Completed apache httpd server(s) startup successfully on "
-                        + server);
+                ctx.exec(server, startCmd);
+                /*
+                 * Read the log file to make sure the server has started.
+                 * We do this by running the code block on the server via
+                 * RemoteCallable
+                 */
+                if (checkServerStarted(server, ctx)) {
+                    logger.fine("Completed apache httpd server(s) startup successfully on " + server);
+                } else {
+                    logger.severe("Failed to find start message in " + errlogFile +
+                            " on " + server);
+                }
             } catch (Exception e) {
-                logger.log(Level.WARNING, "Failed to start apache server.", e);
+                logger.log(Level.WARNING, "Failed to start apache server on " + server, e);
             }
+        }
+    }
+
+    /*
+	 * Check if apache server started by looking in the error_log
+	 */
+    private static boolean checkServerStarted(String hostName, ServiceContext ctx) throws Exception {
+        Integer val = 0;
+        final String err = errlogFile;
+        final ServiceContext sctx = ctx;
+        val = ctx.exec(hostName, new RemoteCallable<Integer>() {
+
+            static final int RETRIES = 30;
+
+            public Integer call() throws Exception {
+                Integer retVal = 0;
+                String msg = "resuming normal operations";
+
+                // Ensure filenames are not impacted by path differences.
+                File errFile = new File(Utilities.convertPath(err));
+                for (int retry = 0;retry < RETRIES; retry++) {
+                    if (errFile.exists()) {
+                        if (FileHelper.hasString(errFile, msg)) {
+                            retVal = 1;
+                            break;
+                        } 
+                    }
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                    }
+                }
+                return retVal;
+            }
+        });
+        if (val == 1) {
+            return (true);
+        } else {
+            return (false);
         }
     }
 
@@ -106,26 +159,78 @@ public class ApacheHttpdService {
      * @throws IOException Error executing the shutdown
      * @throws InterruptedException Interrupted waiting for the shutdown
      */
-    @Shutdown public void shutdown() throws IOException, InterruptedException {
+    @Stop public void shutdown() throws IOException, InterruptedException {
         for (int i = 0; i < myServers.length; i++) {
-            if (apacheHandles[i] != null) {
                 //Try to Stop it.
                 try {
-                        String cmd = apacheCmd + "stop";
-                        Command stopCmd = new Command(cmd);
-                        stopCmd.setLogLevel(Command.STDOUT, Level.FINE);
-                        stopCmd.setLogLevel(Command.STDERR, Level.FINE);
+                    String cmd = apacheCmd + "stop";
+                    Command stopCmd = new Command(cmd);
+                    stopCmd.setLogLevel(Command.STDOUT, Level.FINE);
+                    stopCmd.setLogLevel(Command.STDERR, Level.FINE);
 
-                        // Run the command in the foreground
-                        RunContext.exec(myServers[i], stopCmd);
-                        apacheHandles[i].destroy();
-                } catch (RemoteException re) {
+                    // Run the command in the foreground
+                    CommandHandle ch = ctx.exec(myServers[i], stopCmd);
+                    // Check if the server was even running before stop was issued
+                    // If not running, apachectl will print that on stdout
+                    byte[] output = ch.fetchOutput(Command.STDOUT);
+
+                    if (output != null)
+                        if ((output.toString()).indexOf("not running") != -1) {
+                           continue;
+                        }
+
+                    if (checkServerStopped(myServers[i], ctx)) {
+                        logger.fine("Completed apache httpd server(s) shutdown successfully on " + myServers[i]);
+                        continue;
+                    } else {
+                        logger.severe("Failed to find start message in " + errlogFile +
+                                " on " + myServers[i]);
+                    }
+
+                } catch (Exception e) {
                         logger.log(Level.WARNING, "Failed to stop Apache httpd server" +
-                                myServers[i] + " with " + re.toString(), re);
+                                myServers[i] + " with " + e.toString(), e);
                 }                
-			}
         }
-        apacheHandles = null;
+    }
+
+    /*
+	 * Check if apache server stopped by scanning error_log
+	 */
+    private static boolean checkServerStopped(String hostName, ServiceContext ctx) throws Exception {
+        Integer val = 0;
+        final String err = errlogFile;
+        val = ctx.exec(hostName, new RemoteCallable<Integer>() {
+
+            static final int RETRIES = 30;
+
+            public Integer call() throws Exception {
+                Integer retVal = 0;
+                // Read the log file to make sure the server has shutdown
+                String msg = "shutting down";
+
+                // Ensure filenames are not impacted by path differences.
+                File errFile = new File(Utilities.convertPath(err));
+                for (int retry = 0;retry < RETRIES; retry++) {
+                    if (errFile.exists()) {
+                        if (FileHelper.hasString(errFile, msg)) {
+                            retVal = 1;
+                            break;
+                        }
+                    }
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                    }
+                }
+                return retVal;
+            }
+        });
+        if (val == 1) {
+            return (true);
+        } else {
+            return (false);
+        }
     }
 
     /**

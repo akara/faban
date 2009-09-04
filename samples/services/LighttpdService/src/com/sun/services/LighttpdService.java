@@ -30,10 +30,10 @@ import com.sun.faban.harness.Context;
 import com.sun.faban.harness.RemoteCallable;
 import com.sun.faban.harness.WildcardFileFilter;
 import com.sun.faban.harness.services.ClearLogs;
-import com.sun.faban.harness.services.Configure;
+import com.sun.faban.harness.Configure;
 import com.sun.faban.harness.services.GetLogs;
-import com.sun.faban.harness.services.Startup;
-import com.sun.faban.harness.services.Shutdown;
+import com.sun.faban.harness.Startup;
+import com.sun.faban.harness.Stop;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -59,11 +59,12 @@ public class LighttpdService {
 
     @Context public ServiceContext ctx;    
     private Logger logger = Logger.getLogger(LighttpdService.class.getName());
-    private String[] myServers = new String[1];
+    private String[] myServers;
     private static String lightyCmd,  errlogFile,  acclogFile, confFile, pidFile;
     private CommandHandle[] ch = null;
 
     @Configure public void configure() {
+        myServers = new String[ctx.getUniqueHosts().length];
         myServers = ctx.getUniqueHosts();
         lightyCmd = ctx.getProperty("cmdPath");
         if (!lightyCmd.endsWith(File.separator))
@@ -89,7 +90,7 @@ public class LighttpdService {
     }
 
     
-    @Startup public void startup() {
+    @Start public void startup() {
         String cmd = lightyCmd + "lighttpd";
         logger.info("Starting command = "  + cmd);
         Command startCmd = new Command(cmd, "-f", confFile);
@@ -101,7 +102,7 @@ public class LighttpdService {
             String server = myServers[i];
             try {
                 // Run the command in the foreground and wait for the start
-                ch[i] = RunContext.exec(server, startCmd);
+                ch[i] = ctx.exec(server, startCmd);
 
                 if (checkServerStarted(server)) {
                     logger.fine("Completed lightttpd startup successfully on " + server);
@@ -154,10 +155,10 @@ public class LighttpdService {
      * @return int pid
      * @throws Exception
      */
-    private static int getPid(String hostName) throws Exception {
+    private static int getPid(String hostName, ServiceContext ctx) throws Exception {
         int pid;
 
-        pid = RunContext.exec(hostName, new RemoteCallable<Integer>() {
+        pid = ctx.exec(hostName, new RemoteCallable<Integer>() {
             public Integer call() throws Exception {
                 String pidval;
 
@@ -171,13 +172,13 @@ public class LighttpdService {
         return (pid);
     }
 
-    @Shutdown public void shutdown() throws Exception {
+    @Stop public void shutdown() throws Exception {
         int pid = -1;
         for (String hostName : myServers) {
             if (RunContext.isFile(hostName, pidFile)) {
                 // we retrieve the pid value
                 try {
-                    pid = getPid(hostName);
+                    pid = getPid(hostName, ctx);
                     logger.fine("Found lighttpd pidvalue of " + pid + " on host " + hostName);
                 } catch (Exception ee) {
                     logger.log(Level.WARNING, "Failed to read lighttpd pidfile on " +
@@ -189,7 +190,7 @@ public class LighttpdService {
                 // Now kill the server
                 Command cmd = new Command("kill", String.valueOf(pid));
                 try {
-                    RunContext.exec(hostName, cmd);
+                    ctx.exec(hostName, cmd);
                     // Check if the server truly stopped
                     int attempts = 60;
                     boolean b = false;
@@ -275,7 +276,7 @@ public class LighttpdService {
 
             try {
                 // Now get the start and end times of the run
-                GregorianCalendar calendar = getGregorianCalendar(myServers[i]);
+                GregorianCalendar calendar = getGregorianCalendar(myServers[i], ctx);
 
                 //format the end date
                 SimpleDateFormat df = new SimpleDateFormat("MM,dd,HH:mm:ss");
@@ -288,7 +289,7 @@ public class LighttpdService {
                 //parse the log file				
                 Command parseCommand = new Command("lighttpd_trunc_errorlog.sh " +
                         beginDate + " " + endDate + " " + outFile);
-                RunContext.exec(parseCommand);
+                ctx.exec(parseCommand);
 
             } catch (Exception e) {
 
@@ -303,9 +304,9 @@ public class LighttpdService {
     }
 
     public static GregorianCalendar getGregorianCalendar(
-            String hostName)
+            String hostName, ServiceContext ctx)
             throws Exception {
-        return RunContext.exec(hostName, new RemoteCallable<GregorianCalendar>() {
+        return ctx.exec(hostName, new RemoteCallable<GregorianCalendar>() {
 
             public GregorianCalendar call() {
                 return new GregorianCalendar();

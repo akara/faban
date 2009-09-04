@@ -28,9 +28,9 @@ import com.sun.faban.harness.RunContext;
 import com.sun.faban.harness.services.ServiceContext;
 import com.sun.faban.harness.Context;
 
-import com.sun.faban.harness.services.Configure;
-import com.sun.faban.harness.services.Startup;
-import com.sun.faban.harness.services.Shutdown;
+import com.sun.faban.harness.Configure;
+import com.sun.faban.harness.Start;
+import com.sun.faban.harness.Stop;
 
 import java.rmi.RemoteException;
 import java.util.List;
@@ -70,7 +70,7 @@ public class MemcachedService {
 
     }
 
-    @Startup public void startup() {
+    @Start public void startup() {
         int i = 0;
         for (NameValuePair<Integer> myHostPort : myHostPorts) {
             logger.info("Starting memcached on " + myHostPort.name);
@@ -88,7 +88,7 @@ public class MemcachedService {
             startCmd.setSynchronous(false); // to run in bg
             try {
                 // Run the command in the background
-               memcacheHandles[i] = RunContext.exec(myHostPort.name, startCmd);
+               memcacheHandles[i] = ctx.exec(myHostPort.name, startCmd);
                logger.info("Completed memcached server startup successfully on "
                         + myHostPort.name);
             } catch (Exception e) {
@@ -99,7 +99,7 @@ public class MemcachedService {
         }
     }
 
-    @Shutdown public void shutdown() throws Exception {
+    @Stop public void shutdown() throws Exception {
         for (int i = 0; i < memcacheHandles.length; i++) {
             NameValuePair myHostPort = myHostPorts.get(i);
             if (memcacheHandles[i] != null) {
