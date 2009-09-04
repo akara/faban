@@ -221,7 +221,7 @@ public class FileHelper {
      * This method opens, traverses through the file and
      * finds the token, it will avoid comments when searching.
      * @param fileName The full pathname of the file
-     * @param token Token to serch for
+     * @param token Token to search for
      * @return true if found, false otherwise
      */
     public static boolean isInFile(String fileName, String token) {
@@ -615,6 +615,26 @@ public class FileHelper {
         return content;
     }
 
+    /**
+     * Checks a file whether it contains the given string.
+     * @param file The file
+     * @param string The string
+     * @return True if the string is found in the file, false otherwise
+     */
+    public static boolean hasString(File file, String string)
+            throws IOException {
+        boolean retVal = false;
+        BufferedReader bufR = new BufferedReader(new FileReader(file));
+        String s;
+        while ((s = bufR.readLine()) != null) {
+            if (s.indexOf(string) != -1) {
+                retVal = true;
+                break;
+            }
+        }
+        bufR.close();
+        return retVal;
+    }
     /**
      * Unit test the functionality.
      * @param args The command line arguments

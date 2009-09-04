@@ -113,6 +113,8 @@ public class CmdAgentImpl extends UnicastRemoteObject
         baseClassPath = getBaseClassPath(benchName);
         this.libPath = getLibPath(benchName, libPath);
         binMap = CmdMap.getCmdMap(benchName);
+        servicesBinMap = new HashMap<String, HashMap<String, List<String>>>();
+        servicesClassPath = new HashMap<String, List<String>>();
     }
 
     // CmdAgent implementation
