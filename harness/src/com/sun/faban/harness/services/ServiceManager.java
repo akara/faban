@@ -617,6 +617,7 @@ public class ServiceManager {
         for(ServiceWrapper sw : loadedServicesList){
             try {
                 sw.configure();
+                logger.info("Configured " + sw.ctx.desc.id + " service.");
             } catch (Exception e) {
                 logger.log(Level.WARNING, "Failed to configure service " +
                         sw.ctx.desc.id, e);
@@ -631,6 +632,7 @@ public class ServiceManager {
         for(ServiceWrapper sw : loadedServicesList){
             try {
                 sw.getConfig();
+                logger.fine("Got " + sw.ctx.desc.id + " service configuration.");
             } catch (Exception e) {
                 logger.log(Level.WARNING, "Failed to obtain service " +
                         "configuration for service " + sw.ctx.desc.id, e);
@@ -645,6 +647,7 @@ public class ServiceManager {
         for(ServiceWrapper sw : loadedServicesList){
             try {
                 sw.getLogs();
+                logger.info("Transfered " + sw.ctx.desc.id + " service logs.");
             } catch (Exception e) {
                 logger.log(Level.WARNING, "Failed to obtain service logs " +
                         "for service " + sw.ctx.desc.id, e);
@@ -663,6 +666,7 @@ public class ServiceManager {
             if (sw.ctx.restart) {
                 try {
                     sw.shutdown();
+                    logger.info("Stopped " + sw.ctx.desc.id + " service.");
                 } catch (Exception e) {
                     logger.log(Level.WARNING, "Failed to shutdown service " +
                             sw.ctx.desc.id, e);
@@ -670,6 +674,7 @@ public class ServiceManager {
             }
             try {
                 sw.clearLogs();
+                logger.info("Cleared " + sw.ctx.desc.id + " service logs.");
             } catch (Exception e) {
                 logger.log(Level.WARNING, "Failed to clear service logs " +
                         "for service " + sw.ctx.desc.id, e);
@@ -680,6 +685,7 @@ public class ServiceManager {
             if (sw.ctx.restart) {
                 try {
                     sw.startup();
+                    logger.info("Started " + sw.ctx.desc.id + " service.");
                 } catch (Exception e) {
                     logger.log(Level.WARNING, "Failed to startup service " +
                             sw.ctx.desc.id, e);
@@ -705,6 +711,7 @@ public class ServiceManager {
             if (sw.ctx.restart)
                 try {
                     sw.shutdown();
+                    logger.info("Stopped " + sw.ctx.desc.id + " service.");
                 } catch (Exception e) {
                     logger.log(Level.WARNING, "Failed to shutdown service " +
                             sw.ctx.desc.id, e);

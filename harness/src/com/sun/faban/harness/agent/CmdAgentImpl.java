@@ -287,7 +287,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
     public boolean startAgent(Class agentClass, String identifier) throws Exception {
         try {
             Remote agent = (Remote)agentClass.newInstance();
-            logger.info("Agent class " + agent.getClass().getName() + " created");
+            logger.fine("Agent class " + agent.getClass().getName() + " created");
             AgentBootstrap.registry.reregister(identifier, agent);
             logger.fine("Agent started and Registered as " + identifier);
         }catch(Exception e) {

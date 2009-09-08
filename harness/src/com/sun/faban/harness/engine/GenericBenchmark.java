@@ -270,14 +270,14 @@ public class GenericBenchmark {
 
             // Deal with the services.
             serviceMgr = new ServiceManager(par, run);
-            logger.info("Got Service Manager Instance");
+            logger.fine("Got Service Manager Instance");
             // transfer service configuration.
             serviceMgr.configure();
-            logger.info("Executed services configure method");
+            logger.fine("Executed services configure method");
             // start services
             serviceMgr.startup();
             serviceMgr.getConfig();
-            logger.info("Executed services Startup method");
+            logger.fine("Executed services Startup method");
 
             // Initialize ToolService, call setup with cmds as parameter
             logger.fine("Initializing Tool Service");
@@ -335,9 +335,9 @@ public class GenericBenchmark {
             // We only call stop here for benchmarks that do not have
             // a firm length, i.e. no steady state.
             if (s == null || s.length() == 0) {
-                logger.info("Stop called for tools");
+                logger.fine("Stop called for tools");
                 tools.stop();
-                logger.info("Stopped tools");
+                logger.fine("Stopped tools");
             }
 
             // Even if the run got killed, we can arrive here.

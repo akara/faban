@@ -39,7 +39,6 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -182,7 +181,7 @@ public class ToolWrapper {
                 throwSourceException(e);
             }
         }
-        logger.info("Configured tool " + toolName);
+        logger.fine("Configured tool " + toolName);
     }
 
     /**
@@ -202,12 +201,12 @@ public class ToolWrapper {
                     } catch (InvocationTargetException e) {
                         throwSourceException(e);
                     }
-                    logger.info("Postprocessed tool " + toolName);
+                    logger.fine("Postprocessed tool " + toolName);
                 }
                 // xfer log file to master machine, log any errors
                 xferLog();
-                logger.info("Transfered logs for tool " + toolName);
-                logger.fine(toolName + " Done ");
+                logger.fine("Transfered logs for tool " + toolName);
+                logger.info(toolName + " Done ");
             }
         } finally {
             finish();

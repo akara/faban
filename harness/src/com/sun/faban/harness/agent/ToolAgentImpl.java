@@ -72,7 +72,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
         logger = Logger.getLogger(this.getClass().getName());
         host = CmdAgentImpl.getHost();
         masterMachine = CmdAgentImpl.getMaster();
-        logger.info("Started");
+        logger.fine("Started processing tools");
     }
 
     /**
@@ -121,7 +121,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
         toolNames = new String[numTools];
         tools = new ToolWrapper[numTools];
 
-        logger.info("Processing tools");
+        logger.fine("Processing tools");
         latch = new CountDownLatch(toollist.size());
         
         for (int i=0; i<toollist.size(); i++) {
