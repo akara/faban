@@ -667,13 +667,13 @@ public class ServiceManager {
                     logger.log(Level.WARNING, "Failed to shutdown service " +
                             sw.ctx.desc.id, e);
                 }
-                try {
-                    sw.clearLogs();
-                } catch (Exception e) {
-                    logger.log(Level.WARNING, "Failed to clear service logs " +
-                            "for service " + sw.ctx.desc.id, e);
-                }
             }
+            try {
+                sw.clearLogs();
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Failed to clear service logs " +
+                        "for service " + sw.ctx.desc.id, e);
+            }            
         }
 
         for(ServiceWrapper sw : loadedServicesList){

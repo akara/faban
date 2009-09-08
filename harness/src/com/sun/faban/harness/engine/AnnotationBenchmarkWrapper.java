@@ -183,7 +183,7 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
      * @throws java.lang.Exception
      */
     void preRun() throws Exception {
-        if (configureMethod != null){
+        if (preRunMethod != null){
             try {
                 preRunMethod.invoke(benchmark,new Object[] {});
             } catch (InvocationTargetException e) {
