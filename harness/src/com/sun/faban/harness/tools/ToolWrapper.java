@@ -193,17 +193,17 @@ public class ToolWrapper {
         if (postprocessed)
             return;
         postprocessed = true;
-        logger.fine(toolName + " post-processing.");
         try {
-            if (toolStatus == STOPPED){
-                if (postprocessMethod != null)
+            if (toolStatus == STOPPED) {
+                if (postprocessMethod != null) {
+                    logger.fine(toolName + " post-processing.");
                     try {
                         postprocessMethod.invoke(this.tool,new Object[] {});
                     } catch (InvocationTargetException e) {
                         throwSourceException(e);
                     }
-
-                logger.info("Postprocessed tool " + toolName);
+                    logger.info("Postprocessed tool " + toolName);
+                }
                 // xfer log file to master machine, log any errors
                 xferLog();
                 logger.info("Transfered logs for tool " + toolName);
