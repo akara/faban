@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileAgent.java,v 1.9 2009/07/28 22:54:13 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -84,6 +84,14 @@ public interface FileAgent extends Remote {
      * @throws RemoteException A communications error occurred.
      */
     public boolean removeFile(String fileName) throws RemoteException;
+
+    /**
+     * Truncates a file to zero-length.
+     * @param fileName The pathname for the file
+     * @return Whether truncation succeeded
+     * @throws RemoteException An error occurred.
+     */
+    public boolean truncateFile(String fileName) throws RemoteException;
 
     /**
      * Remove files from a directory matched by the filter.

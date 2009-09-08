@@ -291,6 +291,16 @@ public class RunContext {
     }
 
     /**
+     * Truncates a file on a remote host.
+     * @param hostName The remote host name
+     * @param fileName The file name
+     * @return true if successful, false otherwise
+     */
+    public static boolean truncateFile(String hostName, String fileName) {
+        return CmdService.getHandle().truncate(hostName, fileName);
+    }
+
+    /**
      * Gets/copies a file from a remote host. If a relative path is given for
      * localFileName, the file will be placed in the current run output
      * directory.

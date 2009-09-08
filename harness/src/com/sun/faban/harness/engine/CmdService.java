@@ -1453,8 +1453,25 @@ final public class CmdService { 	// The final keyword prevents clones
             logger.log(Level.FINE, "Exception", ie);
             return false;
         }
-
     }
+    /**
+     * Truncates the file from the machine.
+     *
+     * @param srcmachine The machine name
+     * @param srcfile The file name
+     * @return true if the file has been deleted, false otherwise
+     */
+    public synchronized boolean truncate(String srcmachine, String srcfile) {
+        try {
+            return findFileAgent(srcmachine).truncateFile(srcfile);
+        } catch (Exception ie) {
+            logger.severe("CmdService: Could not truncate " + srcmachine +
+                    ":" + srcfile);
+            logger.log(Level.FINE, "Exception", ie);
+            return false;
+        }
+    }
+
 
     /**
      * Copy a file from one remote machine to a stream on the master.

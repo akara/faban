@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: FileAgentImpl.java,v 1.12 2009/08/05 23:50:10 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -202,6 +202,30 @@ public class FileAgentImpl extends UnicastRemoteObject
             return file.delete();
         }
         return false;
+    }
+
+    /**
+     * Truncates a file to zero-length.
+     *
+     * @param fileName The pathname for the file
+     * @return Whether truncation succeeded
+     */
+    public boolean truncateFile(String fileName) {
+        fileName = Utilities.convertPath(fileName);
+        File file = new File(fileName);
+        boolean retVal = false;
+
+        if (file.exists()) {
+            try {
+                RandomAccessFile raf = new RandomAccessFile(file, "rw");
+                raf.setLength(0);
+                raf.close();
+                retVal = true;
+            } catch (IOException e) {
+                // Do nothing, returns false
+            }
+        }
+        return retVal;
     }
 
     /**
