@@ -81,13 +81,13 @@ public class Mysqlstats {
         toolCmd.add("-B");
         toolCmd.add("-e");
         toolCmd.add("show global status;");
-        logger.info("Setting up mysql command: " + toolCmd);
+        logger.fine("Setting up mysql command: " + toolCmd);
         cmd = new Command(toolCmd);
         logfile = ctx.getOutputFile();
         // We need two intermediate files for the begin/end snapshots
 		logfile1 = logfile + "_1";
 		logfile2 = logfile + "_2";
-        logger.info(toolName + " Configured with toolCmd " + toolCmd);
+        logger.fine(toolName + " Configured with toolCmd " + toolCmd);
 
     }
 
@@ -97,12 +97,12 @@ public class Mysqlstats {
      * @throws InterruptedException Interrupted waiting for the stats commmand
      */
     @Start public void start() throws IOException, InterruptedException {
-        logger.info("Calling mysql show status at start");
+        logger.fine("Calling mysql show status at start");
         cmd.setOutputFile(Command.STDOUT, logfile1);
         cmd.setSynchronous(false);
 
         processRef = ctx.exec(cmd);
-        logger.info(toolName + " Started with Cmd = " + toolCmd + " in start method");
+        logger.fine(toolName + " Started with Cmd = " + toolCmd + " in start method");
     }
 
     /**
@@ -111,13 +111,13 @@ public class Mysqlstats {
     @Stop public void stop() {
         try {
             if(ctx.getToolStatus() == 1){
-                logger.info("Calling mysql show status at stop");
+                logger.fine("Calling mysql show status at stop");
                 cmd.setOutputFile(Command.STDOUT, logfile2);
                 cmd.setSynchronous(false);
                 processRef = ctx.exec(cmd);
-                logger.info(toolName + " Started with Cmd = " + toolCmd + " in stop method");
+                logger.fine(toolName + " Started with Cmd = " + toolCmd + " in stop method");
             }
-            logger.info("Stopping tool " + this.toolCmd);
+            logger.fine("Stopping tool " + this.toolCmd);
         } catch (IOException ex) {
             logger.log(Level.SEVERE, null, ex);
         } catch (InterruptedException ex) {
@@ -130,7 +130,7 @@ public class Mysqlstats {
      */
     @Postprocess public void getReport() {
 		String c = "mysql_diff_status.sh " + logfile1 + " " + logfile2 + " " + logfile;
-        logger.info("Calling " + c);
+        logger.fine("Calling " + c);
 	    Command diffCommand = new Command(c);
 	    try {
 	        ctx.exec(diffCommand);

@@ -288,7 +288,7 @@ public class MemcacheStats {
         String memCacheServers[] = new String[serverSet.size()];
         memCacheServers = serverSet.toArray(memCacheServers);
 
-        /*logger.info("Starting memcache stats");
+        /*logger.fine("Starting memcache stats");
 
         MemcacheStats memcacheStats = new MemcacheStats(memCacheServers, intervalTime/1000);
 
@@ -345,7 +345,7 @@ public class MemcacheStats {
     }
 
     @Start public void start() throws IOException {
-        logger.info("Starting memcache stats");
+        logger.fine("Starting memcache stats");
         // MemcacheStats memcacheStats = new MemcacheStats(memCacheServers, intervalTime/1000);
         cache = new StatsClient(memCacheServers);
 

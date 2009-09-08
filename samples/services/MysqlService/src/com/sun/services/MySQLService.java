@@ -73,7 +73,7 @@ public class MySQLService {
             dbHome = dbHome + File.separator;
         dataDir = dbHome + "data" + File.separator;
         mysqlCmd = dbHome + "bin" + File.separator + "mysqld_safe ";
-        logger.info("MysqlService Configure complete.");
+        logger.fine("MysqlService Configure complete.");
     }
 
     /**
@@ -82,7 +82,7 @@ public class MySQLService {
     @Start public void startup() {
         for (int i = 0; i < myServers.length; i++) {
             String pidFile = dataDir + myServers[i] + ".pid";
-            logger.info("Starting mysql on " + myServers[i]);
+            logger.fine("Starting mysql on " + myServers[i]);
             Command startCmd = new Command(mysqlCmd + "--user=mysql " +
                 "--datadir=" + dataDir + " --pid-file=" + pidFile);
             logger.fine("Starting mysql with: " + mysqlCmd);
@@ -98,7 +98,7 @@ public class MySQLService {
                     logger.severe("Failed to find MySQL pidfile " + pidFile +
                             " on " + myServers[i]);
                 }
-                logger.info("Completed MySQL server startup successfully on" + myServers[i]);
+                logger.fine("Completed MySQL server startup successfully on" + myServers[i]);
             } catch (Exception e) {
                 logger.log(Level.WARNING, "Failed to start MySQL server.", e);
             }
@@ -145,7 +145,7 @@ public class MySQLService {
         for (int i = 0; i < myServers.length; i++) {
             String pidFile = dataDir + myServers[i] + ".pid";
             String myServer = myServers[i];
-            logger.info("Stopping MySQL server on" + myServer);
+            logger.fine("Stopping MySQL server on" + myServer);
             boolean success;
             String pidString;
             // First check if server is up
@@ -164,7 +164,7 @@ public class MySQLService {
                     stopCmd = new Command("kill " + pidString);
                     logger.fine("Attempting to kill mysqld pid " + pidString);
                     ch = ctx.exec(myServer, stopCmd);
-                    logger.info("MySQL server stopped successfully on" + myServer);
+                    logger.fine("MySQL server stopped successfully on" + myServer);
                 } catch (Exception ie) {
                     logger.warning("Kill mysqld failed with " + ie.toString());
                     logger.log(Level.FINE, "kill mysqld Exception", ie);
@@ -185,7 +185,7 @@ public class MySQLService {
         int totalRunTime = Integer.parseInt(duration);
         for (int i = 0; i < myServers.length; i++) {
             String myServer = myServers[i];
-            String outFile = RunContext.getOutDir() + "mysql_err." + myServer;
+            String outFile = RunContext.getOutDir() + "mysql_err.log." + RunContext.getHostName(myServer);
             String errFile = dataDir + myServers[i] + ".err";
             // copy the error_log to the master
             if (!RunContext.getFile(myServer, errFile, outFile)) {

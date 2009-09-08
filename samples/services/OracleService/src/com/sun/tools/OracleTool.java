@@ -143,7 +143,7 @@ public abstract class OracleTool {
     @Start public void start() throws IOException, InterruptedException {
         processRef = ctx.exec(cmd);
         snapId = parseSnapId(processRef.fetchOutput(Command.STDOUT));
-        logger.info(toolName + " Started with Cmd = " + toolCmd);
+        logger.fine(toolName + " Started with Cmd = " + toolCmd);
     }
 
     @Stop public void stop() throws IOException {
@@ -157,7 +157,7 @@ public abstract class OracleTool {
                        "exit\n";
             cmd.setInput(stdin.getBytes());
             cmd.setLogLevel(Command.STDOUT, Level.FINER);
-            logger.info("Stopping tool " + this.toolCmd);
+            logger.fine("Stopping tool " + this.toolCmd);
             processRef = ctx.exec(cmd);
             processRef.destroy();
             processRef.waitFor(10000);

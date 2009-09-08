@@ -54,7 +54,7 @@ public class MemcachedService {
     CommandHandle memcacheHandles[];
 
     @Configure public void configure() {        
-        logger.info("Configuring memcached service ");
+        logger.fine("Configuring memcached service ");
         myHostPorts = ctx.getUniqueHostPorts();
         memcachedCmdPath = ctx.getProperty("cmdPath");
         memcachedMemSize = ctx.getProperty("serverMemSize");
@@ -64,14 +64,14 @@ public class MemcachedService {
         memcachedStartCmd = memcachedCmdPath + " -u mysql -m " +
                 memcachedMemSize;
         memcacheHandles = new CommandHandle[myHostPorts.size()];
-        logger.info("MemcachedService Configure complete.");
+        logger.fine("MemcachedService Configure complete.");
 
     }
 
     @Start public void startup() {
         int i = 0;
         for (NameValuePair<Integer> myHostPort : myHostPorts) {
-            logger.info("Starting memcached on " + myHostPort.name);
+            logger.fine("Starting memcached on " + myHostPort.name);
             Command startCmd;
             if (myHostPort.value != null) {
                 startCmd = new Command(memcachedStartCmd + " -p " +
@@ -87,7 +87,7 @@ public class MemcachedService {
             try {
                 // Run the command in the background
                memcacheHandles[i] = ctx.exec(myHostPort.name, startCmd);
-               logger.info("Completed memcached server startup successfully on "
+               logger.fine("Completed memcached server startup successfully on "
                         + myHostPort.name);
             } catch (Exception e) {
                logger.log(Level.WARNING, "Failed to start memcached on " +
@@ -98,8 +98,8 @@ public class MemcachedService {
     }
 
     @Stop public void shutdown() throws Exception {
-        for (int i = 0; i < memcacheHandles.length; i++) {
-            NameValuePair myHostPort = myHostPorts.get(i);
+        int i = 0;
+        for (NameValuePair<Integer> myHostPort : myHostPorts) {
             if (memcacheHandles[i] != null) {
                 try {
                     int exit = memcacheHandles[i].exitValue();
@@ -125,6 +125,7 @@ public class MemcachedService {
                     logger.log(Level.FINE, "Exception", re);
                 }
             }
+            ++i;
         }
     }
 }

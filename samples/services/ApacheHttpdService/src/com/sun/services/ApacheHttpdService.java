@@ -28,11 +28,15 @@ import com.sun.faban.common.CommandHandle;
 import com.sun.faban.common.Utilities;
 import com.sun.faban.harness.*;
 import com.sun.faban.harness.services.ClearLogs;
+import com.sun.faban.harness.services.GetLogs;
 import com.sun.faban.harness.services.ServiceContext;
 import com.sun.faban.harness.util.FileHelper;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -70,7 +74,7 @@ public class ApacheHttpdService {
 
         errlogFile = logsDir + "error_log";
         acclogFile = logsDir + "access_log";
-        logger.info("ApacheHttpdService setup complete.");
+        logger.fine("ApacheHttpdService setup complete.");
     }
 
     
@@ -79,7 +83,7 @@ public class ApacheHttpdService {
      */
     @Start public void startup() {
         String cmd = apacheCmd + "start";
-        logger.info("Starting Apache Service with command = "+ cmd);
+        logger.fine("Starting Apache Service with command = "+ cmd);
         Command startCmd = new Command(cmd);
         startCmd.setSynchronous(false); // to run in bg
  
@@ -172,10 +176,7 @@ public class ApacheHttpdService {
                     if (checkServerStopped(myServers[i], ctx)) {
                         logger.fine("Completed apache httpd server(s) shutdown successfully on " + myServers[i]);
                         continue;
-                    } else {
-                        logger.severe("Failed to find start message in " + errlogFile +
-                                " on " + myServers[i]);
-                    }
+                    } 
 
                 } catch (Exception e) {
                         logger.log(Level.WARNING, "Failed to stop Apache httpd server" +
@@ -265,5 +266,69 @@ public class ApacheHttpdService {
                 logger.log(Level.FINE, "Exception", e);
             }
         }
-    }   
+    }
+
+    /**
+     * Transfer log files.
+     * This method copies over the error_log to the run output directory
+     * and keeps only the portion of the log relevant for this run.
+     */
+    @GetLogs public void getLogs() {
+        String duration = ctx.getRunDuration();
+        int totalRunTime = Integer.parseInt(duration);
+        for (int i = 0; i < myServers.length; i++) {
+             String outFile = RunContext.getOutDir() + "httpd_err.log." +
+                             RunContext.getHostName(myServers[i]);
+
+            // copy the error_log to the master
+            if (!RunContext.getFile(myServers[i], errlogFile, outFile)) {
+                logger.warning("Could not copy " + errlogFile + " to " + outFile);
+                return;
+            }
+
+            try {
+                // Now get the start and end times of the run
+                GregorianCalendar calendar = getGregorianCalendar(myServers[i], ctx);
+
+                //format the end date
+                SimpleDateFormat df = new SimpleDateFormat("MMM,dd,HH:mm:ss");
+                String endDate = df.format(calendar.getTime());
+
+                calendar.add(Calendar.SECOND, (totalRunTime * (-1)));
+
+                String beginDate = df.format(calendar.getTime());
+
+                //parse the log file
+                Command parseCommand = new Command("apache_trunc_errorlog.sh " +
+                        beginDate + " " + endDate + " " + outFile);
+                ctx.exec(parseCommand);
+
+            } catch (Exception e) {
+
+                logger.log(Level.WARNING, "Failed to tranfer log of " +
+                        myServers[i] + '.', e);
+                logger.log(Level.FINE, "Exception", e);
+            }
+
+            logger.fine("XferLog Completed for " + myServers[i]);
+        }
+
+    }
+
+    /**
+     * Obtains the gregorian calendar representing the current time.
+     * @param hostName The host name to get the calendar from
+     * @return The calendar
+     * @throws Exception Error obtaining calendar
+     */
+    private static GregorianCalendar getGregorianCalendar(String hostName,
+            ServiceContext ctx)
+            throws Exception {
+        return ctx.exec(hostName, new RemoteCallable<GregorianCalendar>() {
+
+            public GregorianCalendar call() {
+                return new GregorianCalendar();
+            }
+        });
+    }
 }

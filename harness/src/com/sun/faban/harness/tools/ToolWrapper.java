@@ -182,6 +182,7 @@ public class ToolWrapper {
                 throwSourceException(e);
             }
         }
+        logger.info("Configured tool " + toolName);
     }
 
     /**
@@ -202,8 +203,10 @@ public class ToolWrapper {
                         throwSourceException(e);
                     }
 
+                logger.info("Postprocessed tool " + toolName);
                 // xfer log file to master machine, log any errors
                 xferLog();
+                logger.info("Transfered logs for tool " + toolName);
                 logger.fine(toolName + " Done ");
             }
         } finally {
@@ -224,6 +227,7 @@ public class ToolWrapper {
             }
         }
         toolStatus = STARTED;
+        logger.info("Started tool " + toolName);
     }
 
     /**
@@ -331,7 +335,7 @@ public class ToolWrapper {
                 
                 // saveToolLogs(tool.getInputStream(), tool.getErrorStream());
                 toolStatus = STOPPED;
-                logger.fine(toolName + " Stopped ");
+                logger.info("Stopped tool " + toolName);
         } else if (warn && toolStatus == NOT_STARTED)
             logger.warning("Tool not started but stop called for " + toolName);
     }

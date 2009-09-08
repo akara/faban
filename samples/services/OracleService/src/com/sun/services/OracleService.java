@@ -58,7 +58,7 @@ public class OracleService {
     CommandHandle listnerHandles[];
 
     @Configure public void configure() {
-        logger.info("Configuring oracle service ");
+        logger.fine("Configuring oracle service ");
         myServers = ctx.getUniqueHosts();
         oracleHome = ctx.getProperty("serverHome");
         oracleSid = ctx.getProperty("serverId");
@@ -78,7 +78,7 @@ public class OracleService {
         oracleStopCmd = oracleBin + "sqlplus /nolog <<EOT\nconnect " +
                 " / as sysdba\nshutdown" + "\nexit\nEOT";
         serverHandles = new CommandHandle[myServers.length];
-        logger.info("OracleService Configure complete.");
+        logger.fine("OracleService Configure complete.");
         String[] setEnv = {"ORACLE_SID="+oracleSid, "ORACLE_HOME=" + oracleHome,
                     "PATH=" + oracleBin, "LD_LIBRARY_PATH=" + oracleHome +"lib",
            "LD_LIBRARY_PATH_64="+oracleHome+"lib" + File.separator + "sparcv9"};
@@ -88,7 +88,7 @@ public class OracleService {
 
     @Start public void startup() {
         for (int i = 0; i < myServers.length; i++) {
-            logger.info("Starting oracle on " + myServers[i]);
+            logger.fine("Starting oracle on " + myServers[i]);
             Command startCmd = new Command(oracleStartCmd);
             startCmd.setEnvironment(env);
             logger.fine("Starting oracle with: " + oracleStartCmd);
@@ -97,7 +97,7 @@ public class OracleService {
                 // Run the command in the background
                 if ( !checkServerStarted(i)) {
                     serverHandles[i] = ctx.exec(myServers[i], startCmd);
-                    logger.info("Completed Oracle server startup successfully on" + myServers[i]);
+                    logger.fine("Completed Oracle server startup successfully on" + myServers[i]);
                     //CommandHandle pid = ctx.exec(myServers[i], new Command("pgrep ora_pmon"));
                     //FileHelper.writeStringToFile(pid.fetchOutput(0).toString(), new File(oracleHome+myServers[i]+".pid"));
                 }
@@ -105,14 +105,14 @@ public class OracleService {
                 logger.log(Level.WARNING, "Failed to start Oracle server.", e);
             }
             if(ctx.getProperty("includes").equalsIgnoreCase("true")) {
-                logger.info("Starting listner");
+                logger.fine("Starting listner");
                 Command listerCmd = new Command(oracleBin + "lsnrctl start");
                 listerCmd.setSynchronous(false); // to run in bg
                 try {
                     // Run the command in the background
                     if (!checkListnerStarted(myServers[i])) {
                         ctx.exec(myServers[i], listerCmd);
-                        logger.info("Completed listner startup successfully on" + myServers[i]);
+                        logger.fine("Completed listner startup successfully on" + myServers[i]);
                     }
                 } catch (Exception e) {
                     logger.log(Level.WARNING, "Failed to start listner.", e);
@@ -152,12 +152,12 @@ public class OracleService {
     }
 
     private void stopServer(String serverId){
-        logger.info("Stopping Oracle server on" + serverId);
+        logger.fine("Stopping Oracle server on" + serverId);
         try {
             // First kill oracle
             Command stopCmd = new Command(oracleStopCmd);
             ctx.exec(serverId, stopCmd);
-            logger.info("Oracle server stopped successfully on" + serverId);
+            logger.fine("Oracle server stopped successfully on" + serverId);
         } catch (Exception ie) {
             logger.warning("Kill Oracle failed with " + ie.toString());
             logger.log(Level.FINE, "kill Oracle Exception", ie);
@@ -165,11 +165,11 @@ public class OracleService {
     }
 
     private void stopListner(String serverId){
-        logger.info("Stopping listner on" + serverId);
+        logger.fine("Stopping listner on" + serverId);
         try {
             Command stopCmd = new Command(oracleBin + "lsnrctl stop");
             ctx.exec(serverId, stopCmd);
-            logger.info("Listner stopped successfully on" + serverId);
+            logger.fine("Listner stopped successfully on" + serverId);
         } catch (Exception ie) {
             logger.warning("Kill listner failed with " + ie.toString());
             logger.log(Level.FINE, "kill listner Exception", ie);

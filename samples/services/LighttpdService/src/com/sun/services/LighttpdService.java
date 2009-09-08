@@ -85,13 +85,13 @@ public class LighttpdService {
         acclogFile = logsDir + "access_log";
         confFile = confDir + File.separator + "lighttpd.conf";
         pidFile = pidDir + File.separator + "lighttpd.pid";
-        logger.info("LighttpdService Configure completed.");
+        logger.fine("LighttpdService Configure completed.");
     }
 
     
     @Start public void startup() {
         String cmd = lightyCmd + "lighttpd";
-        logger.info("Starting command = "  + cmd);
+        logger.fine("Starting command = "  + cmd);
         Command startCmd = new Command(cmd, "-f", confFile);
         startCmd.setLogLevel(Command.STDOUT, Level.FINE);
         startCmd.setLogLevel(Command.STDERR, Level.FINE);
@@ -114,7 +114,7 @@ public class LighttpdService {
                 logger.log(Level.FINE, "Exception", e);
             }
         }
-        logger.info("Completed lighttpd server(s) startup");
+        logger.fine("Completed lighttpd server(s) startup");
     }
 
     /*

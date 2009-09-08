@@ -75,7 +75,7 @@ public class GlassfishService {
         asadminCmd = asadminCmd + "asadmin";
         errlogFile = logsDir + "server.log";
         acclogFile = logsDir + "access";
-        logger.info("GlassfishService Configure completed.");
+        logger.fine("GlassfishService Configure completed.");
     }
 
     /**
@@ -107,7 +107,7 @@ public class GlassfishService {
                 logger.log(Level.FINE, "Exception", e);
             }
         }
-        logger.info("Completed GlassFish server(s) startup");
+        logger.fine("Completed GlassFish server(s) startup");
     }
 
     /*
