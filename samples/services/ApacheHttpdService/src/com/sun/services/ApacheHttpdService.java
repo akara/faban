@@ -56,7 +56,7 @@ public class ApacheHttpdService {
     @Context public ServiceContext ctx;
     private static Logger logger = Logger.getLogger(ApacheHttpdService.class.getName());
     private String[] myServers;
-    private static String apacheCmd,  errlogFile,  acclogFile;
+    private static String apacheCmd,  errlogFile,  acclogFile, tmpDir;
     CommandHandle apacheHandles[];
 
     /**
@@ -67,6 +67,12 @@ public class ApacheHttpdService {
         apacheCmd = ctx.getProperty("cmdPath");
         if (!apacheCmd.endsWith(" "))
             apacheCmd = apacheCmd + " ";
+
+        String tmpDir1 = ctx.getProperty("tmpDir");
+        if (tmpDir1.endsWith(File.separator))
+            tmpDir = tmpDir1.substring(0, tmpDir1.length() - File.separator.length());
+        else
+            tmpDir = tmpDir1;
 
         String logsDir = ctx.getProperty("logsDir");
         if (!logsDir.endsWith(File.separator))
@@ -246,14 +252,14 @@ public class ApacheHttpdService {
             logger.fine("Logs cleared for " + myServers[i]);
             try {
                 // Now delete the session files
-                if (RunContext.deleteFiles(myServers[i], "/tmp",
+                if (RunContext.deleteFiles(myServers[i], tmpDir,
                         new WildcardFileFilter("sess*")))
                     logger.fine("Deleted session files for " + myServers[i]);
                 else
                     logger.warning("Error deleting session files for " +
                             myServers[i]);
 
-                if (RunContext.deleteFiles(myServers[i], "/tmp",
+                if (RunContext.deleteFiles(myServers[i], tmpDir,
                         new WildcardFileFilter("php*")))
                     logger.fine("Deleted php temp files for " + myServers[i]);
                 else
