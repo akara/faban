@@ -28,6 +28,8 @@ import com.sun.faban.common.CommandHandle;
 import com.sun.faban.harness.engine.CmdService;
 import com.sun.faban.harness.engine.RunFacade;
 import com.sun.faban.harness.common.Config;
+import com.sun.faban.harness.util.ContextLocation;
+import com.sun.faban.harness.agent.CmdAgentImpl;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -107,7 +109,7 @@ public class RunContext {
     }
 
     /**
-     * Executes a command on the master.
+     * Executes a command on the local system.
      * @param c The command to be executed
      * @return  A handle to the command
      * @throws IOException Error communicating with resulting process
@@ -115,7 +117,11 @@ public class RunContext {
      */
     public static CommandHandle exec(Command c)
             throws IOException, InterruptedException {
-        return CmdService.getHandle().execute(c, null);
+        CmdAgentImpl agent = CmdAgentImpl.getHandle();
+        if (agent != null) // Running on agent
+            return agent.execute(c, ContextLocation.get());
+        else // Running on master
+            return CmdService.getHandle().execute(c, ContextLocation.get());
     }
 
     /**
@@ -128,7 +134,7 @@ public class RunContext {
      */
     public static CommandHandle exec(String host, Command c)
             throws IOException, InterruptedException {
-        return CmdService.getHandle().execute(host, c, null);
+        return CmdService.getHandle().execute(host, c, ContextLocation.get());
     }
 
     /**
@@ -141,11 +147,11 @@ public class RunContext {
      */
     public static CommandHandle[] exec(String[] hosts, Command c)
             throws IOException, InterruptedException {
-        return CmdService.getHandle().execute(hosts, c, null);
+        return CmdService.getHandle().execute(hosts, c, ContextLocation.get());
     }
 
     /**
-     * Executes a java command on the master.
+     * Executes a java command on the local system.
      *
      * @param java The command to be executed
      * @return A handle to the command
@@ -154,7 +160,11 @@ public class RunContext {
      */
     public static CommandHandle java(Command java)
             throws IOException, InterruptedException {
-        return CmdService.getHandle().java(java, null);
+        CmdAgentImpl agent = CmdAgentImpl.getHandle();
+        if (agent != null) // Running on agent
+            return agent.java(java, ContextLocation.get());
+        else // Running on master
+            return CmdService.getHandle().java(java, ContextLocation.get());
     }
 
     /**
@@ -168,7 +178,7 @@ public class RunContext {
      */
     public static CommandHandle java(String host, Command java)
             throws IOException, InterruptedException {
-        return CmdService.getHandle().java(host, java, null);
+        return CmdService.getHandle().java(host, java, ContextLocation.get());
     }
 
     /**
@@ -182,7 +192,7 @@ public class RunContext {
      */
     public static CommandHandle[] java(String[] hosts, Command java)
             throws IOException, InterruptedException {
-      return CmdService.getHandle().java(hosts, java, null);
+      return CmdService.getHandle().java(hosts, java, ContextLocation.get());
     }
 
     /**

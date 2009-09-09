@@ -27,6 +27,8 @@ import com.sun.faban.harness.Context;
 
 import com.sun.faban.harness.Start;
 import com.sun.faban.harness.Stop;
+import com.sun.faban.harness.util.ContextLocation;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -60,7 +62,6 @@ public class ServiceWrapper {
      * @throws java.lang.Exception
      */
     ServiceWrapper(Class serviceClass, ServiceContext ctx) throws Exception {
-        service = serviceClass.newInstance();
         this.ctx = ctx;
         Method[] methods = serviceClass.getMethods();
         for (Method method : methods) {
@@ -130,15 +131,22 @@ public class ServiceWrapper {
         Field[] fields = serviceClass.getFields();
         for (Field field : fields) {
             if (field.getType().equals(ServiceContext.class) &&
-                                (field.getAnnotation(Context.class) != null)) {
-                    if (ctxField == null)
-                        ctxField = field;
-                    else
-                        logger.warning("More than one valid @Context annotation.");
+                    (field.getAnnotation(Context.class) != null)) {
+                if (ctxField == null)
+                    ctxField = field;
+                else
+                    logger.warning(
+                            "More than one valid @Context annotation.");
             }
         }
-        if (ctxField != null)
-            ctxField.set(service, ctx);
+        ContextLocation.set(ctx.servicePath);
+        try {
+            service = serviceClass.newInstance();
+            if (ctxField != null)
+                ctxField.set(service, ctx);
+        } finally {
+            ContextLocation.set(null);
+        }
     }
 
     private boolean conformsToSpec(Method method) {
@@ -174,9 +182,12 @@ public class ServiceWrapper {
     void clearLogs() throws Exception {
         if (configured && clearLogsMethod != null) {
             try {
+                ContextLocation.set(ctx.servicePath);
                 clearLogsMethod.invoke(service,new Object[] {});
             } catch (InvocationTargetException e) {
                 throwSourceException(e);
+            } finally {
+                ContextLocation.set(null);
             }
         }
     }
@@ -188,9 +199,12 @@ public class ServiceWrapper {
     void configure() throws Exception {
         if (configureMethod != null) {
             try {
+                ContextLocation.set(ctx.servicePath);
                 configureMethod.invoke(service,new Object[] {});
             } catch (InvocationTargetException e) {
                 throwSourceException(e);
+            } finally {
+                ContextLocation.set(null);
             }
         }
         configured = true;
@@ -203,9 +217,12 @@ public class ServiceWrapper {
     void getConfig() throws Exception {
         if (configured && getConfigMethod != null) {
             try {
+                ContextLocation.set(ctx.servicePath);
                 getConfigMethod.invoke(service,new Object[] {});
             } catch (InvocationTargetException e) {
                 throwSourceException(e);
+            } finally {
+                ContextLocation.set(null);
             }
         }
     }
@@ -217,9 +234,12 @@ public class ServiceWrapper {
     void getLogs() throws Exception {
         if (configured && getLogsMethod != null) {
             try {
+                ContextLocation.set(ctx.servicePath);
                 getLogsMethod.invoke(service,new Object[] {});
             } catch (InvocationTargetException e) {
                 throwSourceException(e);
+            } finally {
+                ContextLocation.set(null);
             }
         }
     }
@@ -231,9 +251,12 @@ public class ServiceWrapper {
     void startup() throws Exception {
         if (configured && startupMethod != null) {
             try {
+                ContextLocation.set(ctx.servicePath);
                 startupMethod.invoke(service,new Object[] {});
             } catch (InvocationTargetException e) {
                 throwSourceException(e);
+            } finally {
+                ContextLocation.set(null);
             }
         }
     }
@@ -245,9 +268,12 @@ public class ServiceWrapper {
     void shutdown() throws Exception {
         if (configured && shutdownMethod != null) {
             try {
+                ContextLocation.set(ctx.servicePath);
                 shutdownMethod.invoke(service,new Object[] {});
             } catch (InvocationTargetException e) {
                 throwSourceException(e);
+            } finally {
+                ContextLocation.set(null);
             }
         }
     }

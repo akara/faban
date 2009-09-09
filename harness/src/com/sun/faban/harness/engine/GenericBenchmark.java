@@ -138,7 +138,7 @@ public class GenericBenchmark {
                 // Initialize CmdService
                 logger.fine("Initializing Command Service");
 
-                cmds = CmdService.getHandle();
+                cmds = new CmdService();
                 cmds.init();
 
                 // We need to place a marker into the Benchmark's META-INF

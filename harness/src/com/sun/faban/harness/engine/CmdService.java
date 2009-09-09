@@ -106,7 +106,7 @@ final public class CmdService { 	// The final keyword prevents clones
     private List<String> rsh,  agent;
     private HostRoles hostRoles;
 
-    private CmdService() {
+    CmdService() {
 
         try {
             master = (InetAddress.getLocalHost()).getHostName();
@@ -117,6 +117,7 @@ final public class CmdService { 	// The final keyword prevents clones
             logger.severe("CmdService <init> failed " + e);
             logger.log(Level.FINE, "Exception", e);
         }
+        cmds = this;
     }
 
     /**
@@ -126,9 +127,6 @@ final public class CmdService { 	// The final keyword prevents clones
      * @return reference to the single CmdService
      */
     public static CmdService getHandle() {
-        if (cmds == null) {
-            cmds = new CmdService();
-        }
         return cmds;
     }
 

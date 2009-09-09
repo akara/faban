@@ -117,20 +117,9 @@ public class ToolContext extends MasterToolContext {
     }
 
     /**
-     * Executes a command. The tool always executes the command locally.
-     * @param cmd The command to execute
-     * @return The command handle to this command
-     * @throws IOException The command failed to execute
-     * @throws InterruptedException Interrupted waiting for the command
-     */
-    public CommandHandle exec(Command cmd)
-            throws IOException, InterruptedException {
-        return wrapper.cmdAgent.execute(cmd, toolPath);
-    }
-
-    /**
      * Executes a command, optionally use the stdout from this command as the
-     * tool output.
+     * tool output. This is a convenience method for automatically setting
+     * the output. It otherwise has the same functionality as RunContext.exec().
      * @param cmd The command to execute
      * @param useOutput Whether to use the output from this command
      * @return The command handle to this command
@@ -144,7 +133,9 @@ public class ToolContext extends MasterToolContext {
 
     /**
      * Executes a command, optionally use the stdout or stderr from this
-     * command as the tool output.
+     * command as the tool output. This is a convenience method for
+     * automatically setting the output. It otherwise has the same
+     * functionality as RunContext.exec().
      * @param cmd The command to execute
      * @param useOutput Whether to use the output from this command
      * @param stream The stream to use as the output, STDOUT or STDERR
@@ -165,22 +156,10 @@ public class ToolContext extends MasterToolContext {
         }
     }
 
-
-    /**
-     * Executes a Java command. The tool always executes the command locally.
-     * @param cmd The command to execute
-     * @return The command handle to this command
-     * @throws IOException The command failed to execute
-     * @throws InterruptedException Interrupted waiting for the command
-     */
-    public CommandHandle java(Command cmd)
-            throws IOException, InterruptedException {
-        return wrapper.cmdAgent.execute(cmd, toolPath);
-    }
-
     /**
      * Executes a command, optionally use the stdout from this command as the
-     * tool output.
+     * tool output. This is a convenience method for automatically setting
+     * the output. It otherwise has the same functionality as RunContext.exec().
      * @param cmd The command to execute
      * @param useOutput Whether to use the output from this command
      * @return The command handle to this command
@@ -194,7 +173,9 @@ public class ToolContext extends MasterToolContext {
 
     /**
      * Executes a command, optionally use the stdout or stderr from this
-     * command as the tool output.
+     * command as the tool output. This is a convenience method for
+     * automatically setting the output. It otherwise has the same
+     * functionality as RunContext.exec().
      * @param cmd The command to execute
      * @param useOutput Whether to use the output from this command
      * @param stream The stream to use as the output, STDOUT or STDERR
