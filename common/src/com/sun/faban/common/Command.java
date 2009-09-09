@@ -292,7 +292,7 @@ public class Command implements Serializable {
         else
             forceFile[0] = true;
 
-        handle.processLogs(this);
+        handle.processLogs();
 
         if (inputFile != null && inputFile.length() > 0)
             input = CommandHandleImpl.readFile(inputFile);

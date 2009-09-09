@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CommandHandleImpl.java,v 1.12 2009/07/02 20:26:40 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -39,16 +39,8 @@ import java.util.logging.Logger;
  */
 public class CommandHandleImpl implements CommandHandle {
 
-    static ThreadLocal streamReaders = new ThreadLocal() {
-
-        protected Object initialValue() {
-            ReaderThread[] readers = new ReaderThread[2];
-            for (int i = 0; i < readers.length; i++) {
-                readers[i] = new ReaderThread(i);
-            }
-            return readers;
-        }
-    };
+    static ThreadLocal<ReaderThread[]> streamReaders =
+            new ThreadLocal<ReaderThread[]>();
 
     Command command;
 
@@ -97,8 +89,11 @@ public class CommandHandleImpl implements CommandHandle {
         command.process.waitFor();
         if (!command.daemon)
             // For non-daemon, wait another max 10 secs to clear the streams
-            for (int i = 0; i < readers.length; i++)
-                readers[i].waitFor(10000);
+            synchronized (this) {
+                for (int i = 0; i < readers.length; i++)
+                    if (readers[i] != null)
+                        readers[i].waitFor(10000);
+            }
     }
 
     /**
@@ -110,11 +105,15 @@ public class CommandHandleImpl implements CommandHandle {
         long t = System.currentTimeMillis();
         long dt = 0l;
         if (!command.daemon) {
-            for (int i = 0; i < readers.length; i++) {
-                readers[i].waitFor((int) (timeout - dt));
-                dt = System.currentTimeMillis() - t;
-                if (timeout <= dt)
-                    break;
+            synchronized (this) {
+                for (int i = 0; i < readers.length; i++) {
+                    if (readers[i] != null) {
+                        readers[i].waitFor((int) (timeout - dt));
+                        dt = System.currentTimeMillis() - t;
+                        if (timeout <= dt)
+                            break;
+                    }
+                }
             }
         }
     }
@@ -161,7 +160,12 @@ public class CommandHandleImpl implements CommandHandle {
         if (command.streamHandling[streamId] == Command.TRICKLE_LOG)
             throw new IllegalStateException("Output not available if " +
                     "StreamHandling is TRICKLE_LOG");
-        return readers[streamId].fetchOutput();
+        synchronized (this) {
+            if (readers[streamId] == null)
+                return readFile(command.outputFile[streamId]);
+            else
+                return readers[streamId].fetchOutput();
+        }
     }
 
     /**
@@ -179,8 +183,13 @@ public class CommandHandleImpl implements CommandHandle {
         if (command.streamHandling[streamId] == Command.TRICKLE_LOG)
             throw new IllegalStateException("Output not available if " +
                     "StreamHandling is TRICKLE_LOG");
-        return readers[streamId].fetchOutput(destFile);
+        synchronized (this) {
+            if (readers[streamId] == null)
+                return new FileTransfer(command.outputFile[streamId], destFile);
 
+            else
+                return readers[streamId].fetchOutput(destFile);
+        }
     }
 
     /**
@@ -188,17 +197,24 @@ public class CommandHandleImpl implements CommandHandle {
      * output streams.
      * @throws InterruptedException The wait was interrupted
      */
-    public void waitMatch() throws InterruptedException {
+    public synchronized void waitMatch() throws InterruptedException {
         for (int i = 0; i < readers.length; i++)
-            readers[i].waitMatch();
+            if (readers[i] != null)
+                readers[i].waitMatch();
     }
 
-    void processLogs(Command command) {
+    void processLogs() {
         ReaderThread[] readers = (ReaderThread[]) streamReaders.get();
+        if (readers == null) {
+            readers = new ReaderThread[2];
+            streamReaders.set(readers);
+        }
         for (int i = 0; i < readers.length; i++) {
-            while (!readers[i].read(command))
+            if (readers[i] == null)
+                readers[i] = new ReaderThread(i, this);
+            while (!readers[i].read(this))
                 // Thread is abandoned if read returns false. Create new.
-                readers[i] = new ReaderThread(i);
+                readers[i] = new ReaderThread(i, this);
             // Save the references to prevent loss due to abandonment.
             this.readers[i] = readers[i];
         }
@@ -213,7 +229,9 @@ public class CommandHandleImpl implements CommandHandle {
         int offset = 0;
         String outputFile = null;
         FileOutputStream outStream = null;
-        Command command = null;
+        Command command = null;  // command is set to null if it is done.
+        // handle is reset once the reader is reassigned to a new command.
+        CommandHandleImpl handle;
         String cmdString;
         boolean bufferOutput = Boolean.parseBoolean(
                             System.getProperty("faban.command.buffer", "true"));
@@ -221,8 +239,9 @@ public class CommandHandleImpl implements CommandHandle {
         boolean abandoned = false;
         static Logger logger = Logger.getLogger(ReaderThread.class.getName());
 
-        ReaderThread(int streamId) {
+        ReaderThread(int streamId, CommandHandleImpl handle) {
             this.streamId = streamId;
+            this.handle = handle;
             setDaemon(true);
             start();
         }
@@ -287,6 +306,7 @@ public class CommandHandleImpl implements CommandHandle {
                                 "from command " + command.command + '.', e);
                     } finally {
                         synchronized(this) {
+                            logger.fine(this + ": " + command + " terminated.");
                             command = null;
                             notify();
                         }                        
@@ -294,20 +314,29 @@ public class CommandHandleImpl implements CommandHandle {
             }
         }
 
-        synchronized boolean read(Command command) {
-            // If we start many things asynchronously, we may need to keep
-            // many threads. Threads that are not reusable are called
-            // abandoned threads.
-            if (this.command != null) {
-                abandoned = true;
-                logger.fine("Abandoning ReaderThread for " +
-                        Command.STREAM_NAME[streamId]);
-                return false;
+        boolean read(CommandHandleImpl handle) {
+            // Lock old outer object first before locking this.
+            // Same sequence avoids deadlocks.
+            synchronized (this.handle) {
+                synchronized (this) {
+                    // If we start many things asynchronously, we may need to
+                    // keep many threads. Threads that are not reusable are
+                    // called abandoned threads.
+                    if (command != null) {
+                        abandoned = true;
+                        logger.fine("Abandoning ReaderThread for " +
+                                Command.STREAM_NAME[streamId]);
+                        return false;
+                    }
+                    // Reassigning an old thread to a new handle
+                    // Set the old handle's reader to null to avoid confusion.
+                    this.handle.readers[streamId] = null;
+                    this.handle = handle;
+                    command = handle.command;
+                    notify();
+                    return true;
+                }
             }
-
-            this.command = command;
-            notify();
-            return true;
         }
 
         synchronized void waitFor() throws InterruptedException {
@@ -337,13 +366,14 @@ public class CommandHandleImpl implements CommandHandle {
         }
 
         private void capture() throws IOException {
-            logger.finest("Capturing " + Command.STREAM_NAME[streamId] +
-                          " of " + cmdString);
+            logger.fine(this + ": Capturing " + Command.STREAM_NAME[streamId] +
+                          " of " + command);
             // Re-initialize buffer.
             offset = 0;
 
             // Save the outputFile name for after command no longer exists.
             outputFile = command.outputFile[streamId];
+            logger.fine(this + ": Setting outputFile to " + outputFile);
             outStream = null;
             int length = command.stream[streamId].
                     read(buffer, offset, buffer.length);
@@ -430,8 +460,10 @@ public class CommandHandleImpl implements CommandHandle {
                 if (offset == 0) // Nothing read
                     return null;
                 transfer = new FileTransfer(buffer, 0, offset, destFile);
+                logger.fine(this + ": Constructing transfer from buffer to " + destFile);
             } else {
                 transfer = new FileTransfer(outputFile, destFile);
+                logger.fine(this + ": Constructing transfer " + outputFile + " -> " + destFile);
             }
             return transfer;
         }
