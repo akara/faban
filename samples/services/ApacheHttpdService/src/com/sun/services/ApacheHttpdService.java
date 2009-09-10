@@ -51,7 +51,8 @@ public class ApacheHttpdService {
 
     /** Injected service context. */
     @Context public ServiceContext ctx;
-    private static Logger logger = Logger.getLogger(ApacheHttpdService.class.getName());
+    private static Logger logger =
+            Logger.getLogger(ApacheHttpdService.class.getName());
     private String[] myServers;
     private static String apacheCmd,  errlogFile,  acclogFile, phpSessionDir;
     CommandHandle apacheHandles[];
@@ -67,7 +68,8 @@ public class ApacheHttpdService {
 
         String phpSessionDir1 = ctx.getProperty("phpSessionDir");
         if (phpSessionDir1.endsWith(File.separator))
-            phpSessionDir = phpSessionDir1.substring(0, phpSessionDir1.length() - File.separator.length());
+            phpSessionDir = phpSessionDir1.substring(0,
+                    phpSessionDir1.length() - File.separator.length());
         else
             phpSessionDir = phpSessionDir1;
 
@@ -100,14 +102,16 @@ public class ApacheHttpdService {
                  * We do this by running the code block on the server via
                  * RemoteCallable
                  */
-                if (checkServerStarted(server, ctx)) {
-                    logger.fine("Completed apache httpd server(s) startup successfully on " + server);
+                if (checkServerStarted(server)) {
+                    logger.fine("Completed apache httpd server(s) startup " +
+                            "successfully on " + server);
                 } else {
-                    logger.severe("Failed to find start message in " + errlogFile +
-                            " on " + server);
+                    logger.severe("Failed to find start message in " +
+                            errlogFile + " on " + server);
                 }
             } catch (Exception e) {
-                logger.log(Level.WARNING, "Failed to start apache server on " + server, e);
+                logger.log(Level.WARNING, "Failed to start apache server on " +
+                        server, e);
             }
         }
     }
@@ -115,7 +119,8 @@ public class ApacheHttpdService {
     /*
 	 * Check if apache server started by looking in the error_log
 	 */
-    private static boolean checkServerStarted(String hostName, ServiceContext ctx) throws Exception {
+    private static boolean checkServerStarted(String hostName)
+            throws Exception {
         Integer val = 0;
         final String err = errlogFile;
 
@@ -167,7 +172,7 @@ public class ApacheHttpdService {
 
                     // Run the command in the foreground
                     CommandHandle ch = RunContext.exec(myServers[i], stopCmd);
-                    // Check if the server was even running before stop was issued
+                    // Check if the server was running before stop was issued
                     // If not running, apachectl will print that on stdout
                     byte[] output = ch.fetchOutput(Command.STDOUT);
 
@@ -176,13 +181,15 @@ public class ApacheHttpdService {
                            continue;
                         }
 
-                    if (checkServerStopped(myServers[i], ctx)) {
-                        logger.fine("Completed apache httpd server(s) shutdown successfully on " + myServers[i]);
+                    if (checkServerStopped(myServers[i])) {
+                        logger.fine("Completed apache httpd server(s) " +
+                                "shutdown successfully on " + myServers[i]);
                         continue;
                     } 
 
                 } catch (Exception e) {
-                        logger.log(Level.WARNING, "Failed to stop Apache httpd server" +
+                        logger.log(Level.WARNING,
+                                "Failed to stop Apache httpd server" +
                                 myServers[i] + " with " + e.toString(), e);
                 }                
         }
@@ -191,7 +198,8 @@ public class ApacheHttpdService {
     /*
 	 * Check if apache server stopped by scanning error_log
 	 */
-    private static boolean checkServerStopped(String hostName, ServiceContext ctx) throws Exception {
+    private static boolean checkServerStopped(String hostName)
+            throws Exception {
         Integer val = 0;
         final String err = errlogFile;
         val = RunContext.exec(hostName, new RemoteCallable<Integer>() {
@@ -283,13 +291,12 @@ public class ApacheHttpdService {
 
             // copy the error_log to the master
             if (!RunContext.getFile(myServers[i], errlogFile, outFile)) {
-                logger.warning("Could not copy " + errlogFile + " to " + outFile);
+                logger.warning("Could not copy " + errlogFile + " to " +
+                        outFile);
                 return;
             }
             RunContext.truncateFile(myServers[i], errlogFile);
             logger.fine("XferLog Completed for " + myServers[i]);
         }
-
     }
-
 }
