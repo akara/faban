@@ -25,6 +25,7 @@ import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
 import com.sun.faban.harness.Context;
 import com.sun.faban.harness.Configure;
+import com.sun.faban.harness.RunContext;
 import com.sun.faban.harness.Start;
 import com.sun.faban.harness.Stop;
 
@@ -141,14 +142,14 @@ public abstract class OracleTool {
 
 
     @Start public void start() throws IOException, InterruptedException {
-        processRef = ctx.exec(cmd);
+        processRef = RunContext.exec(cmd);
         snapId = parseSnapId(processRef.fetchOutput(Command.STDOUT));
         logger.fine(toolName + " Started with Cmd = " + toolCmd);
     }
 
     @Stop public void stop() throws IOException {
         try {
-            processRef = ctx.exec(cmd);
+            processRef = RunContext.exec(cmd);
             String snapId1 = parseSnapId(processRef.fetchOutput(Command.STDOUT));
             logger.finer("snapId1: " + snapId1);
             // Prepare the input
@@ -158,7 +159,7 @@ public abstract class OracleTool {
             cmd.setInput(stdin.getBytes());
             cmd.setLogLevel(Command.STDOUT, Level.FINER);
             logger.fine("Stopping tool " + this.toolCmd);
-            processRef = ctx.exec(cmd);
+            processRef = RunContext.exec(cmd);
             processRef.destroy();
             processRef.waitFor(10000);
         } catch (InterruptedException ex) {

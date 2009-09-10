@@ -34,9 +34,6 @@ import com.sun.faban.harness.util.FileHelper;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -56,7 +53,7 @@ public class ApacheHttpdService {
     @Context public ServiceContext ctx;
     private static Logger logger = Logger.getLogger(ApacheHttpdService.class.getName());
     private String[] myServers;
-    private static String apacheCmd,  errlogFile,  acclogFile, tmpDir;
+    private static String apacheCmd,  errlogFile,  acclogFile, phpSessionDir;
     CommandHandle apacheHandles[];
 
     /**
@@ -68,11 +65,11 @@ public class ApacheHttpdService {
         if (!apacheCmd.endsWith(" "))
             apacheCmd = apacheCmd + " ";
 
-        String tmpDir1 = ctx.getProperty("tmpDir");
-        if (tmpDir1.endsWith(File.separator))
-            tmpDir = tmpDir1.substring(0, tmpDir1.length() - File.separator.length());
+        String phpSessionDir1 = ctx.getProperty("phpSessionDir");
+        if (phpSessionDir1.endsWith(File.separator))
+            phpSessionDir = phpSessionDir1.substring(0, phpSessionDir1.length() - File.separator.length());
         else
-            tmpDir = tmpDir1;
+            phpSessionDir = phpSessionDir1;
 
         String logsDir = ctx.getProperty("logsDir");
         if (!logsDir.endsWith(File.separator))
@@ -97,7 +94,7 @@ public class ApacheHttpdService {
             String server = myServers[i];
             try {
                 // Run the command in the foreground and wait for the start
-                ctx.exec(server, startCmd);
+                RunContext.exec(server, startCmd);
                 /*
                  * Read the log file to make sure the server has started.
                  * We do this by running the code block on the server via
@@ -122,7 +119,7 @@ public class ApacheHttpdService {
         Integer val = 0;
         final String err = errlogFile;
 
-        val = ctx.exec(hostName, new RemoteCallable<Integer>() {
+        val = RunContext.exec(hostName, new RemoteCallable<Integer>() {
 
             static final int RETRIES = 30;
 
@@ -169,7 +166,7 @@ public class ApacheHttpdService {
                     stopCmd.setLogLevel(Command.STDERR, Level.FINE);
 
                     // Run the command in the foreground
-                    CommandHandle ch = ctx.exec(myServers[i], stopCmd);
+                    CommandHandle ch = RunContext.exec(myServers[i], stopCmd);
                     // Check if the server was even running before stop was issued
                     // If not running, apachectl will print that on stdout
                     byte[] output = ch.fetchOutput(Command.STDOUT);
@@ -197,7 +194,7 @@ public class ApacheHttpdService {
     private static boolean checkServerStopped(String hostName, ServiceContext ctx) throws Exception {
         Integer val = 0;
         final String err = errlogFile;
-        val = ctx.exec(hostName, new RemoteCallable<Integer>() {
+        val = RunContext.exec(hostName, new RemoteCallable<Integer>() {
 
             static final int RETRIES = 30;
 
@@ -252,14 +249,14 @@ public class ApacheHttpdService {
             logger.fine("Logs cleared for " + myServers[i]);
             try {
                 // Now delete the session files
-                if (RunContext.deleteFiles(myServers[i], tmpDir,
+                if (RunContext.deleteFiles(myServers[i], phpSessionDir,
                         new WildcardFileFilter("sess*")))
                     logger.fine("Deleted session files for " + myServers[i]);
                 else
                     logger.warning("Error deleting session files for " +
                             myServers[i]);
 
-                if (RunContext.deleteFiles(myServers[i], tmpDir,
+                if (RunContext.deleteFiles(myServers[i], phpSessionDir,
                         new WildcardFileFilter("php*")))
                     logger.fine("Deleted php temp files for " + myServers[i]);
                 else
@@ -280,8 +277,6 @@ public class ApacheHttpdService {
      * and keeps only the portion of the log relevant for this run.
      */
     @GetLogs public void getLogs() {
-        String duration = ctx.getRunDuration();
-        int totalRunTime = Integer.parseInt(duration);
         for (int i = 0; i < myServers.length; i++) {
              String outFile = RunContext.getOutDir() + "httpd_err.log." +
                              RunContext.getHostName(myServers[i]);
@@ -291,50 +286,10 @@ public class ApacheHttpdService {
                 logger.warning("Could not copy " + errlogFile + " to " + outFile);
                 return;
             }
-
-            try {
-                // Now get the start and end times of the run
-                GregorianCalendar calendar = getGregorianCalendar(myServers[i], ctx);
-
-                //format the end date
-                SimpleDateFormat df = new SimpleDateFormat("MMM,dd,HH:mm:ss");
-                String endDate = df.format(calendar.getTime());
-
-                calendar.add(Calendar.SECOND, (totalRunTime * (-1)));
-
-                String beginDate = df.format(calendar.getTime());
-
-                //parse the log file
-                Command parseCommand = new Command("apache_trunc_errorlog.sh " +
-                        beginDate + " " + endDate + " " + outFile);
-                ctx.exec(parseCommand);
-
-            } catch (Exception e) {
-
-                logger.log(Level.WARNING, "Failed to tranfer log of " +
-                        myServers[i] + '.', e);
-                logger.log(Level.FINE, "Exception", e);
-            }
-
+            RunContext.truncateFile(myServers[i], errlogFile);
             logger.fine("XferLog Completed for " + myServers[i]);
         }
 
     }
 
-    /**
-     * Obtains the gregorian calendar representing the current time.
-     * @param hostName The host name to get the calendar from
-     * @return The calendar
-     * @throws Exception Error obtaining calendar
-     */
-    private static GregorianCalendar getGregorianCalendar(String hostName,
-            ServiceContext ctx)
-            throws Exception {
-        return ctx.exec(hostName, new RemoteCallable<GregorianCalendar>() {
-
-            public GregorianCalendar call() {
-                return new GregorianCalendar();
-            }
-        });
-    }
 }

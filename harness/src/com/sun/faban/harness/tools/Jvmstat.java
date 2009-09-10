@@ -26,16 +26,13 @@ package com.sun.faban.harness.tools;
 import com.sun.faban.common.Command;
 import com.sun.faban.common.Utilities;
 import com.sun.faban.harness.Configure;
+import com.sun.faban.harness.RunContext;
 import com.sun.faban.harness.Start;
-import com.sun.faban.harness.agent.CmdAgentImpl;
 import com.sun.faban.harness.common.Config;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.logging.Level;
 
 /**
  * Jvmstat is a wrapper for the jvmstat utility.
@@ -78,7 +75,7 @@ public class Jvmstat extends CommandLineTool {
         Command c = new Command(jvmCmd);
         c.setStreamHandling(Command.STDOUT, Command.CAPTURE);
         String result = null;
-        processRef = ctx.exec(c);
+        processRef = RunContext.exec(c);
         
         int startIdx = 0;
         int endIdx = result.indexOf('\n');

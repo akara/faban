@@ -26,6 +26,7 @@ import com.sun.faban.common.CommandHandle;
 import com.sun.faban.common.NameValuePair;
 import com.sun.faban.harness.Configure;
 import com.sun.faban.harness.Context;
+import com.sun.faban.harness.RunContext;
 import com.sun.faban.harness.Start;
 import com.sun.faban.harness.Stop;
 import com.sun.faban.harness.services.ServiceContext;
@@ -86,7 +87,7 @@ public class MemcachedService {
             startCmd.setSynchronous(false); // to run in bg
             try {
                 // Run the command in the background
-               memcacheHandles[i] = ctx.exec(myHostPort.name, startCmd);
+               memcacheHandles[i] = RunContext.exec(myHostPort.name, startCmd);
                logger.fine("Completed memcached server startup successfully on "
                         + myHostPort.name);
             } catch (Exception e) {

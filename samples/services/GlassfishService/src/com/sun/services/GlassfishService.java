@@ -30,9 +30,6 @@ import com.sun.faban.harness.services.ServiceContext;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -89,7 +86,7 @@ public class GlassfishService {
             String server = myServers[i];
             try {
                 // Run the command in the foreground and wait for the start
-                ctx.exec(server, startCmd);
+                RunContext.exec(server, startCmd);
                 /*
                  * Read the log file to make sure the server has started.
                  * We do this by running the code block on the server via
@@ -115,7 +112,7 @@ public class GlassfishService {
 	 */
     private static boolean checkServerStarted(String hostName, ServiceContext ctx) throws Exception {
         Command checkCmd = new Command(asadminCmd, "list-domains");     
-        CommandHandle handle = ctx.exec(hostName, checkCmd);
+        CommandHandle handle = RunContext.exec(hostName, checkCmd);
         byte[] output = handle.fetchOutput(Command.STDOUT);
         if (output != null) {
             String outStr = new String(output);
@@ -137,7 +134,7 @@ public class GlassfishService {
                 Command stopCmd = new Command(asadminCmd, "stop-domain");
                
                 // Run the command in the foreground
-                CommandHandle ch = ctx.exec(myServers[i], stopCmd);
+                CommandHandle ch = RunContext.exec(myServers[i], stopCmd);
 
                 // Check if the server was even running before stop was issued
                 // If not running, asadmin will print that on stdout
@@ -168,7 +165,7 @@ public class GlassfishService {
 	 */
     private static Integer checkServerStopped(String hostName, ServiceContext ctx) throws Exception {
         Command checkCmd = new Command(asadminCmd, "list-domains");
-        CommandHandle handle = ctx.exec(hostName, checkCmd);
+        CommandHandle handle = RunContext.exec(hostName, checkCmd);
         byte[] output = handle.fetchOutput(Command.STDOUT);
         if (output != null) {
             String outStr = new String(output);
@@ -212,8 +209,6 @@ public class GlassfishService {
      * Transfer log files
      */
     @GetLogs public void xferLogs() {
-        String duration = ctx.getRunDuration();
-        int totalRunTime = Integer.parseInt(duration);
         for (int i = 0; i < myServers.length; i++) {
             String outFile = getOutDir() + "server_log." +
                     getHostName(myServers[i]);
@@ -223,46 +218,9 @@ public class GlassfishService {
                 logger.warning("Could not copy " + errlogFile + " to " + outFile);
                 return;
             }
-
-
-            try {
-                // Now get the start and end times of the run
-                GregorianCalendar calendar = getGregorianCalendar(myServers[i]);
-
-                //format the end date
-                SimpleDateFormat df = new SimpleDateFormat("MMM,dd,HH:mm:ss");
-                String endDate = df.format(calendar.getTime());
-
-                calendar.add(Calendar.SECOND, (totalRunTime * -1));
-
-                String beginDate = df.format(calendar.getTime());
-
-                Command parseCommand = new Command("truncate_errorlog.sh",
-                        beginDate, endDate, outFile);
-                exec(parseCommand);
-
-            } catch (Exception e) {
-
-                logger.log(Level.WARNING, "Failed to tranfer log of " +
-                        myServers[i] + '.', e);
-            }
-
-            logger.fine("XferLog Completed for " + myServers[i]);
-
+            RunContext.truncateFile(myServers[i], errlogFile);
             logger.fine("XferLog Completed for " + myServers[i]);
         }
     }
-
-    public static GregorianCalendar getGregorianCalendar(
-            String hostName)
-            throws Exception {
-        return exec(hostName, new RemoteCallable<GregorianCalendar>() {
-
-            public GregorianCalendar call() {
-                return new GregorianCalendar();
-            }
-        });
-    }
-
 
 }

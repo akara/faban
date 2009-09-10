@@ -27,6 +27,7 @@
 
     <target name="init">
         <mkdir dir="${classes.dir}"/>
+        <mkdir dir="${lib.dir}"/>
     </target>
 
     <target name="compile" depends="init" description="Compiling all source files">

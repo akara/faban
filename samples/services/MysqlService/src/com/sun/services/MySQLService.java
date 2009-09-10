@@ -29,7 +29,6 @@ import com.sun.faban.harness.RunContext;
 import com.sun.faban.harness.services.ServiceContext;
 import com.sun.faban.harness.Context;
 
-import com.sun.faban.harness.RemoteCallable;
 import com.sun.faban.harness.Configure;
 import com.sun.faban.harness.services.GetLogs;
 import com.sun.faban.harness.Start;
@@ -37,9 +36,6 @@ import com.sun.faban.harness.Stop;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -90,7 +86,7 @@ public class MySQLService {
             startCmd.setSynchronous(false); // to run in bg
             try {
                 // Run the command in the background
-                ctx.exec(myServers[i], startCmd);
+                RunContext.exec(myServers[i], startCmd);
                 /*
                  * Make sure the server has started.
                  */
@@ -154,7 +150,7 @@ public class MySQLService {
                 try {
                     // First kill mysqld_safe
                     Command stopCmd = new Command("pkill mysqld_safe");
-                    CommandHandle ch = ctx.exec(myServer, stopCmd);
+                    CommandHandle ch = RunContext.exec(myServer, stopCmd);
 
                     // Get the pid from the pidFile
                     ByteArrayOutputStream bs = new ByteArrayOutputStream(10);
@@ -163,7 +159,7 @@ public class MySQLService {
 
                     stopCmd = new Command("kill " + pidString);
                     logger.fine("Attempting to kill mysqld pid " + pidString);
-                    ch = ctx.exec(myServer, stopCmd);
+                    ch = RunContext.exec(myServer, stopCmd);
                     logger.fine("MySQL server stopped successfully on" + myServer);
                 } catch (Exception ie) {
                     logger.warning("Kill mysqld failed with " + ie.toString());
@@ -181,8 +177,6 @@ public class MySQLService {
      * TODO: Modify code for mysql date/time format
      */
     @GetLogs public void getLogs() {
-        String duration = ctx.getRunDuration();
-        int totalRunTime = Integer.parseInt(duration);
         for (int i = 0; i < myServers.length; i++) {
             String myServer = myServers[i];
             String outFile = RunContext.getOutDir() + "mysql_err.log." + RunContext.getHostName(myServer);
@@ -191,52 +185,10 @@ public class MySQLService {
             if (!RunContext.getFile(myServer, errFile, outFile)) {
                 logger.warning("Could not copy " + errFile + " to " + outFile);
                 return;
-            }
-
-            try {
-                // Now get the start and end times of the run
-                GregorianCalendar calendar = getGregorianCalendar(myServer, ctx);
-
-                //format the end date
-                SimpleDateFormat df = new SimpleDateFormat("MMM,dd,HH:mm:ss");
-                String endDate = df.format(calendar.getTime());
-
-                calendar.add(Calendar.SECOND, (totalRunTime * (-1)));
-
-                String beginDate = df.format(calendar.getTime());
-
-                //parse the log file
-                Command parseCommand = new Command("mysql_trunc_err.sh " +
-                        beginDate + " " + endDate + " " + outFile);
-                ctx.exec(parseCommand);
-
-            } catch (Exception e) {
-
-                logger.log(Level.WARNING, "Failed to tranfer log of " +
-                        myServer + '.', e);
-                logger.log(Level.FINE, "Exception", e);
-            }
-
+            }           
+            RunContext.truncateFile(myServer, errFile);
             logger.fine("XferLog Completed for " + myServer);
         }
 
-    }
-
-    /**
-     * Obtains the gregorian calendar representing the current time.
-     * @param hostName The host name to get the calendar from
-     * @return The calendar
-     * @throws Exception Error obtaining calendar
-     */
-    private static GregorianCalendar getGregorianCalendar(String hostName,
-            ServiceContext ctx)
-            throws Exception {
-        return ctx.exec(hostName, new RemoteCallable<GregorianCalendar>() {
-
-            public GregorianCalendar call() {
-                return new GregorianCalendar();
-            }
-        });
-    }
-   
+    }   
 }

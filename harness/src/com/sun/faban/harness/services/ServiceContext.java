@@ -22,16 +22,11 @@
 package com.sun.faban.harness.services;
 
 import com.sun.faban.common.NameValuePair;
-import com.sun.faban.common.CommandHandle;
-import com.sun.faban.common.Command;
 import com.sun.faban.harness.ConfigurationException;
 import com.sun.faban.harness.ParamRepository;
-import com.sun.faban.harness.RemoteCallable;
-import com.sun.faban.harness.agent.CmdAgentImpl;
 import com.sun.faban.harness.engine.CmdService;
 
 import java.io.Serializable;
-import java.io.IOException;
 import java.util.*;
 
 import org.w3c.dom.Element;
@@ -181,131 +176,4 @@ public class ServiceContext implements Serializable {
         return steadyState;
     }
 
-
-    /**
-     * Executes a command on the local host. If called in normal service code,
-     * it executes on the master. If called from the RemoteCallable.call(),
-     * it executes on the agent system running the RemoteCallable.
-     * This is the only exec signature you can call from a
-     * RemoteCallable.call(). All other exec signatures will throw a
-     * NullPointerException when run from inside RemoteCallable.call() on an
-     * agent system.
-     * @param c The command to be executed
-     * @return  A handle to the command
-     * @throws java.io.IOException Error communicating with resulting process
-     * @throws InterruptedException Thread got interrupted waiting
-     */
-    public CommandHandle exec(Command c)
-            throws IOException, InterruptedException {
-        CmdAgentImpl agent = CmdAgentImpl.getHandle();
-        if (agent != null) // Running on agent
-            return CmdAgentImpl.getHandle().execute(c, servicePath);
-        else // Running on master
-            return CmdService.getHandle().execute(c, servicePath);
-
-    }
-
-    /**
-     * Executes a command on a remote host.
-     * @param host The target machine to execute the command
-     * @param c The command to be executed
-     * @return A handle to the command
-     * @throws IOException Error communicating with resulting process
-     * @throws InterruptedException Thread got interrupted waiting
-     */
-    public CommandHandle exec(String host, Command c)
-            throws IOException, InterruptedException {
-        return CmdService.getHandle().execute(host, c, servicePath);
-    }
-
-    /**
-     * Executes a command on a set of remote hosts.
-     * @param hosts The target machines to execute the command
-     * @param c The command to be executed
-     * @return Handles to the command on each of the target machines
-     * @throws IOException Error communicating with resulting process
-     * @throws InterruptedException Thread got interrupted waiting
-     */
-    public CommandHandle[] exec(String[] hosts, Command c)
-            throws IOException, InterruptedException {
-        return CmdService.getHandle().execute(hosts, c, servicePath);
-    }
-
-    /**
-     * Executes a java command on the local host. If called in normal service
-     * code, it executes on the master. If called from the
-     * RemoteCallable.call(), it executes on the agent system running the
-     * RemoteCallable. This is the only java signature you can call from a
-     * RemoteCallable.call(). All other java signatures will throw a
-     * NullPointerException when run from inside RemoteCallable.call() on an
-     * agent system.
-     *
-     * @param java The command to be executed
-     * @return A handle to the command
-     * @throws java.io.IOException  Error communicating with resulting process
-     * @throws InterruptedException Thread got interrupted waiting
-     */
-    public CommandHandle java(Command java)
-            throws IOException, InterruptedException {
-        CmdAgentImpl agent = CmdAgentImpl.getHandle();
-        if (agent != null) // Running on agent
-            return CmdAgentImpl.getHandle().java(java, servicePath);
-        else // Running on master
-            return CmdService.getHandle().java(java, servicePath);
-    }
-
-    /**
-     * Executes a java command on a remote host.
-     *
-     * @param host The target machine to execute the command
-     * @param java The command to be executed
-     * @return A handle to the command
-     * @throws java.io.IOException  Error communicating with resulting process
-     * @throws InterruptedException Thread got interrupted waiting
-     */
-    public CommandHandle java(String host, Command java)
-            throws IOException, InterruptedException {
-        return CmdService.getHandle().java(host, java, servicePath);
-    }
-
-    /**
-     * Executes a java command on a set of remote hosts.
-     *
-     * @param hosts The target machines to execute the command
-     * @param java  The command to be executed
-     * @return Handles to the command on each of the target machines
-     * @throws java.io.IOException  Error communicating with resulting process
-     * @throws InterruptedException Thread got interrupted waiting
-     */
-    public CommandHandle[] java(String[] hosts, Command java)
-            throws IOException, InterruptedException {
-      return CmdService.getHandle().java(hosts, java, servicePath);
-    }
-
-    /**
-     * Execute a code block defined as a RemoteCallable on a remote host.
-     * @param host The remote host
-     * @param callable The callable defining the code block
-     * @return The result of the callable
-     * @throws Exception An error occurred making the call
-     */
-    public <V extends Serializable> V
-                        exec(String host, RemoteCallable<V> callable)
-            throws Exception {
-        return CmdService.getHandle().execute(host, callable);
-    }
-
-    /**
-     * Execute a code block defined as a RemoteCallable on a set of
-     * remote hosts.
-     * @param hosts The remote hosts
-     * @param callable The callable defining the code block
-     * @return The result of the callable
-     * @throws Exception An error occurred making the call
-     */
-    public <V extends Serializable> List<V>
-                        exec(String[] hosts, RemoteCallable<V> callable)
-            throws Exception {
-        return CmdService.getHandle().execute(hosts, callable);
-    }
 }

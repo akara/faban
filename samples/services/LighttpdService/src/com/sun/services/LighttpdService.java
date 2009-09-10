@@ -38,9 +38,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -101,7 +98,7 @@ public class LighttpdService {
             String server = myServers[i];
             try {
                 // Run the command in the foreground and wait for the start
-                ch[i] = ctx.exec(server, startCmd);
+                ch[i] = RunContext.exec(server, startCmd);
 
                 if (checkServerStarted(server)) {
                     logger.fine("Completed lightttpd startup successfully on " + server);
@@ -157,7 +154,7 @@ public class LighttpdService {
     private static int getPid(String hostName, ServiceContext ctx) throws Exception {
         int pid;
 
-        pid = ctx.exec(hostName, new RemoteCallable<Integer>() {
+        pid = RunContext.exec(hostName, new RemoteCallable<Integer>() {
             public Integer call() throws Exception {
                 String pidval;
 
@@ -189,7 +186,7 @@ public class LighttpdService {
                 // Now kill the server
                 Command cmd = new Command("kill", String.valueOf(pid));
                 try {
-                    ctx.exec(hostName, cmd);
+                    RunContext.exec(hostName, cmd);
                     // Check if the server truly stopped
                     int attempts = 60;
                     boolean b = false;
@@ -261,8 +258,6 @@ public class LighttpdService {
 	 * and keeps only the portion of the log relevant for this run
      */
     @GetLogs public void xferLogs() {
-        String duration = ctx.getRunDuration();
-        int totalRunTime = Integer.parseInt(duration);
         for (int i = 0; i < myServers.length; i++) {
             String outFile = RunContext.getOutDir() + "httpd_err.log." +
                              RunContext.getHostName(myServers[i]);
@@ -272,45 +267,10 @@ public class LighttpdService {
                 logger.warning("Could not copy " + errlogFile + " to " + outFile);
                 return;
             }
-
-            try {
-                // Now get the start and end times of the run
-                GregorianCalendar calendar = getGregorianCalendar(myServers[i], ctx);
-
-                //format the end date
-                SimpleDateFormat df = new SimpleDateFormat("MM,dd,HH:mm:ss");
-                String endDate = df.format(calendar.getTime());
-
-                calendar.add(Calendar.SECOND, (totalRunTime * (-1)));
-
-                String beginDate = df.format(calendar.getTime());
-
-                //parse the log file				
-                Command parseCommand = new Command("lighttpd_trunc_errorlog.sh " +
-                        beginDate + " " + endDate + " " + outFile);
-                ctx.exec(parseCommand);
-
-            } catch (Exception e) {
-
-                logger.log(Level.WARNING, "Failed to tranfer log of " +
-                        myServers[i] + '.', e);
-                logger.log(Level.FINE, "Exception", e);
-            }
-
+            RunContext.truncateFile(myServers[i], errlogFile);
             logger.fine("XferLog Completed for " + myServers[i]);
         }
 
-    }
-
-    public static GregorianCalendar getGregorianCalendar(
-            String hostName, ServiceContext ctx)
-            throws Exception {
-        return ctx.exec(hostName, new RemoteCallable<GregorianCalendar>() {
-
-            public GregorianCalendar call() {
-                return new GregorianCalendar();
-            }
-        });
     }
 
 }

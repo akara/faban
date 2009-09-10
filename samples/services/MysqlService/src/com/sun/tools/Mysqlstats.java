@@ -27,6 +27,7 @@ import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
 import com.sun.faban.harness.Context;
 import com.sun.faban.harness.Configure;
+import com.sun.faban.harness.RunContext;
 import com.sun.faban.harness.tools.Postprocess;
 import com.sun.faban.harness.Start;
 import com.sun.faban.harness.Stop;
@@ -101,7 +102,7 @@ public class Mysqlstats {
         cmd.setOutputFile(Command.STDOUT, logfile1);
         cmd.setSynchronous(false);
 
-        processRef = ctx.exec(cmd);
+        processRef = RunContext.exec(cmd);
         logger.fine(toolName + " Started with Cmd = " + toolCmd + " in start method");
     }
 
@@ -114,7 +115,7 @@ public class Mysqlstats {
                 logger.fine("Calling mysql show status at stop");
                 cmd.setOutputFile(Command.STDOUT, logfile2);
                 cmd.setSynchronous(false);
-                processRef = ctx.exec(cmd);
+                processRef = RunContext.exec(cmd);
                 logger.fine(toolName + " Started with Cmd = " + toolCmd + " in stop method");
             }
             logger.fine("Stopping tool " + this.toolCmd);
@@ -133,7 +134,7 @@ public class Mysqlstats {
         logger.fine("Calling " + c);
 	    Command diffCommand = new Command(c);
 	    try {
-	        ctx.exec(diffCommand);
+	        RunContext.exec(diffCommand);
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Error executing mysql_diff_status.sh", e);
         } catch (InterruptedException e) {
