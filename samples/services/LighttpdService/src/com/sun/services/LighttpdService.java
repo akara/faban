@@ -54,12 +54,16 @@ import java.util.logging.Logger;
 
 public class LighttpdService {
 
-    @Context public ServiceContext ctx;    
+    /** Injected context. */
+    @Context public ServiceContext ctx;
     private Logger logger = Logger.getLogger(LighttpdService.class.getName());
     private String[] myServers;
     private static String lightyCmd,  errlogFile,  acclogFile, confFile, pidFile;
     private CommandHandle[] ch = null;
 
+    /**
+     * Configures the LighttpdService.
+     */
     @Configure public void configure() {
         myServers = ctx.getUniqueHosts();
         lightyCmd = ctx.getProperty("cmdPath");
@@ -85,7 +89,9 @@ public class LighttpdService {
         logger.fine("LighttpdService Configure completed.");
     }
 
-    
+    /**
+     * Starts up the Lighttpd servers.
+     */
     @Start public void startup() {
         String cmd = lightyCmd + "lighttpd";
         logger.fine("Starting command = "  + cmd);
@@ -169,7 +175,10 @@ public class LighttpdService {
         return (pid);
     }
 
-    @Stop public void shutdown() throws Exception {
+    /**
+     * Shuts down the Lighttpd servers.
+     */
+    @Stop public void shutdown() {
         int pid = -1;
         for (String hostName : myServers) {
             if (RunContext.isFile(hostName, pidFile)) {
@@ -220,9 +229,8 @@ public class LighttpdService {
     }
 
     /**
-     * clear server logs and session files
-	 * clears access log, error log, pidfile and session files
-     * It assumes that session files are in /tmp/sess*
+	 * Clears access log, error log, pidfile and session files.
+     * It assumes that session files are in /tmp/sess*.
      */
     @ClearLogs public void clearLogs() {
         for (int i = 0; i < myServers.length; i++) {
@@ -257,9 +265,9 @@ public class LighttpdService {
     }
 
     /**
-     * transfer log files
+     * Transfer the log files.
 	 * This method copies over the error log to the run output directory
-	 * and keeps only the portion of the log relevant for this run
+	 * and keeps only the portion of the log relevant for this run.
      */
     @GetLogs public void xferLogs() {
         for (int i = 0; i < myServers.length; i++) {

@@ -47,7 +47,8 @@ import java.util.logging.Logger;
  */
 
 public class OracleService {
-    
+
+    /** Injected service context. */
     @Context public ServiceContext ctx;
     Logger logger = Logger.getLogger(OracleService.class.getName());
     String oracleHome,  myServers[], oracleSid;
@@ -57,6 +58,9 @@ public class OracleService {
     CommandHandle serverHandles[];
     CommandHandle listnerHandles[];
 
+    /**
+     * Configures this Oracle service.
+     */
     @Configure public void configure() {
         logger.fine("Configuring oracle service ");
         myServers = ctx.getUniqueHosts();
@@ -86,6 +90,9 @@ public class OracleService {
 
     }
 
+    /**
+     * Starts up the Oracle instances.
+     */
     @Start public void startup() {
         for (int i = 0; i < myServers.length; i++) {
             logger.fine("Starting oracle on " + myServers[i]);
@@ -97,9 +104,8 @@ public class OracleService {
                 // Run the command in the background
                 if ( !checkServerStarted(i)) {
                     serverHandles[i] = RunContext.exec(myServers[i], startCmd);
-                    logger.fine("Completed Oracle server startup successfully on" + myServers[i]);
-                    //CommandHandle pid = RunContext.exec(myServers[i], new Command("pgrep ora_pmon"));
-                    //FileHelper.writeStringToFile(pid.fetchOutput(0).toString(), new File(oracleHome+myServers[i]+".pid"));
+                    logger.fine("Completed Oracle server startup " +
+                            "successfully on" + myServers[i]);
                 }
             } catch (Exception e) {
                 logger.log(Level.WARNING, "Failed to start Oracle server.", e);
@@ -112,7 +118,8 @@ public class OracleService {
                     // Run the command in the background
                     if (!checkListnerStarted(myServers[i])) {
                         RunContext.exec(myServers[i], listerCmd);
-                        logger.fine("Completed listner startup successfully on" + myServers[i]);
+                        logger.fine("Completed listner startup successfully on"
+                                + myServers[i]);
                     }
                 } catch (Exception e) {
                     logger.log(Level.WARNING, "Failed to start listner.", e);
@@ -122,6 +129,10 @@ public class OracleService {
         }       
     }
 
+    /**
+     * Shuts down the Oracle instances.
+     * @throws Exception Error shutting down the instances
+     */
     @Stop public void shutdown() throws Exception {
         for (int i = 0; i < myServers.length; i++) {
             String myServer = myServers[i];

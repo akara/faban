@@ -937,6 +937,8 @@ final public class CmdService { 	// The final keyword prevents clones
     /**
      * Updates the paths in the local command agent.
      * @param pathList The list of paths to download
+     * @throws RemoteException If there is a communication error to the
+     *                         remote agent
      */
     public void updatePaths(List<String> pathList)
             throws RemoteException {
@@ -948,6 +950,8 @@ final public class CmdService { 	// The final keyword prevents clones
      * The pathList contains a list of resources in the form type/resource.
      * @param machine The host name to initiate the download
      * @param pathList The list of paths to download
+     * @throws RemoteException If there is a communication error to the
+     *                         remote agent
      */
     public void downloadServices(String machine, List<String> pathList)
             throws RemoteException {

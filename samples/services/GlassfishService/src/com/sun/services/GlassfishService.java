@@ -29,7 +29,6 @@ import com.sun.faban.harness.services.GetLogs;
 import com.sun.faban.harness.services.ServiceContext;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -47,6 +46,7 @@ import static com.sun.faban.harness.RunContext.*;
  */
 public class GlassfishService {
 
+    /** The injected context. */
     @Context public ServiceContext ctx;
     Logger logger = Logger.getLogger(GlassfishService.class.getName());
     private String[] myServers;
@@ -127,9 +127,9 @@ public class GlassfishService {
     }
 
     /**
-     * Stop Servers.
+     * Shuts down the Glassfish servers.
      */
-    @Stop public void shutdown() throws IOException, InterruptedException {
+    @Stop public void shutdown() {
         for (int i = 0; i < myServers.length; i++) {
             Integer retVal = 0;
             try {
@@ -181,7 +181,7 @@ public class GlassfishService {
     }
 
     /**
-     * clear glassfish logs and session files
+     * Clear glassfish logs and session files.
 	 * It assumes that session files are in /tmp/sess*
      * @return true if operation succeeded, else fail
      */
@@ -209,7 +209,7 @@ public class GlassfishService {
     }
 
     /**
-     * Transfer log files
+     * Transfer log files.
      */
     @GetLogs public void xferLogs() {
         for (int i = 0; i < myServers.length; i++) {

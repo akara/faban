@@ -59,6 +59,7 @@ public class ServiceContext implements Serializable {
      * @param par The parameter repository
      * @param roleElement The top level element defining the role
      * @param properties The service configuration properties
+     * @param restart Whether the server should be restarted or not
      * @throws com.sun.faban.harness.ConfigurationException
      */
     ServiceContext(ServiceDescription desc, ParamRepository par, 

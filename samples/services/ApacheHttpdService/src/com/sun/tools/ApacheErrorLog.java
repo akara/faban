@@ -26,24 +26,21 @@ package com.sun.tools;
 import com.sun.faban.common.Command;
 import com.sun.faban.harness.Configure;
 import com.sun.faban.harness.Context;
-import com.sun.faban.harness.tools.Postprocess;
 import com.sun.faban.harness.Start;
 import com.sun.faban.harness.Stop;
+import com.sun.faban.harness.tools.Postprocess;
 import com.sun.faban.harness.tools.ToolContext;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
-import java.util.logging.Logger;
 
 /**
  * ApacheErrorLog implements a tool used for gathering the statistics from a
  * MySQL instance.
  */
 public class ApacheErrorLog {
-
-    private static Logger logger =
-            Logger.getLogger(ApacheErrorLog.class.getName());
 
     /** The injected tool context. */
     @Context public ToolContext ctx;
@@ -54,8 +51,6 @@ public class ApacheErrorLog {
 
     /**
      * Configures the ApacheErrorLog.
-     * @throws IOException Cannot execute the needed command
-     * @throws InterruptedException Interrupted waiting for the stats commmand
      */
     @Configure public void config() {
         String logsDir = ctx.getServiceProperty("logsDir");
@@ -64,21 +59,17 @@ public class ApacheErrorLog {
         errlogFile = logsDir + "error_log";
     }
 
-     /**
+    /**
      * Starts the ApacheErrorLog.
-     * @throws IOException Cannot execute the needed command
-     * @throws InterruptedException Interrupted waiting for the stats commmand
      */
-    @Start public void start() throws IOException, InterruptedException {
+    @Start public void start() {
         beginDate = df.format(calendar.getTime());
     }
 
     /**
      * Stops the ApacheErrorLog.
-     * @throws IOException Cannot execute the needed command
-     * @throws InterruptedException Interrupted waiting for the stats commmand
      */
-    @Stop public void stop() throws IOException, InterruptedException {
+    @Stop public void stop() {
         endDate = df.format(calendar.getTime());
     }
 
@@ -95,5 +86,4 @@ public class ApacheErrorLog {
                 beginDate + " " + endDate + " " + ctx.getOutputFile());
         ctx.exec(parseCommand, true);
     }
-
 }

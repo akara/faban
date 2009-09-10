@@ -61,6 +61,8 @@ public class MemcacheStats {
     TextTable outputTextTable = null;
     int interval;
     private SimpleDateFormat df = new SimpleDateFormat("HH:mm:ss");
+
+    /** Injected tool context. */
     @Context public ToolContext ctx;
     Command cmd;
     CommandHandle processRef;
@@ -73,8 +75,9 @@ public class MemcacheStats {
 	 * This constructor creates a memcache client with a pool of servers.
      * This is for standalone invocation from main.
      * 
-     * @param servers -  name of servers running memcached
-	 * @param interval - interval in secs for stats collection
+     * @param servers Name of servers running memcached
+	 * @param interval Interval in secs for stats collection
+     * @throws IOException Error communicating with memcached
      */
     public MemcacheStats(String servers[], int interval) throws IOException {
         this.interval = interval;
@@ -303,6 +306,10 @@ public class MemcacheStats {
             return;
         }*/
     }
+
+    /**
+     * Configures this MemcacheStats tool.
+     */
     @Configure public void configure() {
         LinkedHashSet<String> serverSet = new LinkedHashSet<String>();
         List<String> toolArgs = ctx.getToolArgs();
@@ -344,6 +351,10 @@ public class MemcacheStats {
         // store interval/1000 and host ports in field interval and ports.
     }
 
+    /**
+     * Starts monitoring the memcached instances.
+     * @throws IOException Error communicating with memcached
+     */
     @Start public void start() throws IOException {
         logger.fine("Starting memcache stats");
         // MemcacheStats memcacheStats = new MemcacheStats(memCacheServers, intervalTime/1000);
@@ -362,6 +373,9 @@ public class MemcacheStats {
         }
     }
 
+    /**
+     * Stops monitoring the memcached instances.
+     */
     @Stop public void stop() {
         timer.cancel();
         out.flush();
@@ -393,7 +407,8 @@ public class MemcacheStats {
 
         /**
          * Constructs the client for all given servers.
-         * @param servers host:port pairs for the server.
+         * @param servers host:port pairs for the server
+         * @throws IOException Error communicating with memcached
          */
         public StatsClient(String[] servers) throws IOException {
             connections = new ArrayList<StatsConnection>(servers.length);
@@ -412,8 +427,9 @@ public class MemcacheStats {
         }
 
         /**
-         * Constructs the client for the given servers on the local system
-         * @param ports The list of ports.
+         * Constructs the client for the given servers on the local system.
+         * @param ports The list of ports
+         * @throws IOException Error communicating to memcached
          */
         public StatsClient(ArrayList<Integer> ports) throws IOException {
             connections = new ArrayList<StatsConnection>(ports.size());

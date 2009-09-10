@@ -45,7 +45,8 @@ import java.util.logging.Logger;
  */
 
 public class MemcachedService {
-    
+
+    /** Injected service context. */
     @Context public ServiceContext ctx;
     Logger logger = Logger.getLogger(MemcachedService.class.getName());
     String memcachedCmdPath,  myServers[];
@@ -54,7 +55,10 @@ public class MemcachedService {
     private static final int DEFAULT_PORT = 11211;  // default port
     CommandHandle memcacheHandles[];
 
-    @Configure public void configure() {        
+    /**
+     * Configures this MemcachedService.
+     */
+    @Configure public void configure() {
         logger.fine("Configuring memcached service ");
         myHostPorts = ctx.getUniqueHostPorts();
         memcachedCmdPath = ctx.getProperty("cmdPath");
@@ -69,6 +73,9 @@ public class MemcachedService {
 
     }
 
+    /**
+     * Starts the memcached instances.
+     */
     @Start public void startup() {
         int i = 0;
         for (NameValuePair<Integer> myHostPort : myHostPorts) {
@@ -98,7 +105,10 @@ public class MemcachedService {
         }
     }
 
-    @Stop public void shutdown() throws Exception {
+    /**
+     * Stops the memcached instances.
+     */ 
+    @Stop public void shutdown() {
         int i = 0;
         for (NameValuePair<Integer> myHostPort : myHostPorts) {
             if (memcacheHandles[i] != null) {

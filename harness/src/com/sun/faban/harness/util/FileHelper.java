@@ -620,6 +620,7 @@ public class FileHelper {
      * @param file The file
      * @param string The string
      * @return True if the string is found in the file, false otherwise
+     * @throws IOException Problem reading the file
      */
     public static boolean hasString(File file, String string)
             throws IOException {

@@ -9,7 +9,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
- *
+ * Unit tests for the Utilities class.
  * @author akara
  */
 public class UtilitiesTest {

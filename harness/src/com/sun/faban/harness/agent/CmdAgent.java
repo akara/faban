@@ -75,6 +75,7 @@ public interface CmdAgent extends Remote {
     /**
      * Updates the paths, usually in the local command agent.
      * @param pathList The list of paths to download
+     * @throws RemoteException If there is an error updating the paths
      */    
     public void updatePaths(List<String> pathList) throws RemoteException;
 
@@ -82,7 +83,7 @@ public interface CmdAgent extends Remote {
      * Downloads the files used by services and tools to 
      * the remote agent system.
      * @param pathList The list of service bundle paths
-     * @throws java.rmi.RemoteException If there is an error downloading
+     * @throws RemoteException If there is an error downloading
      */
     public void downloadServices(List<String> pathList) throws RemoteException;
 

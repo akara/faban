@@ -50,6 +50,7 @@ public abstract class OracleTool {
     private static Logger logger =
             Logger.getLogger(OracleTool.class.getName());
 
+    /** Injected tool context. */
     @Context public ToolContext ctx;
     Command cmd;
     CommandHandle processRef;
@@ -141,12 +142,21 @@ public abstract class OracleTool {
                                                String outputFile);
 
 
+    /**
+     * Starts up a Oracle DB monitoring tool.
+     * @throws IOException Error executing tool
+     * @throws InterruptedException Monitoring tool interrupted
+     */
     @Start public void start() throws IOException, InterruptedException {
         processRef = RunContext.exec(cmd);
         snapId = parseSnapId(processRef.fetchOutput(Command.STDOUT));
         logger.fine(toolName + " Started with Cmd = " + toolCmd);
     }
 
+    /**
+     * Stops the Oracle DB monitoring tool.
+     * @throws IOException Error stopping tool
+     */
     @Stop public void stop() throws IOException {
         try {
             processRef = RunContext.exec(cmd);
@@ -169,4 +179,3 @@ public abstract class OracleTool {
         }
     }
 }
-
