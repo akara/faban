@@ -92,8 +92,9 @@ public class GlassfishService {
                  * We do this by running the code block on the server via
                  * RemoteCallable
                  */
-                if (checkServerStarted(server, ctx)) {
-                    logger.fine("Completed GlassFish startup successfully on " + server);
+                if (checkServerStarted(server)) {
+                    logger.fine("Completed GlassFish startup successfully on " +
+                            server);
                 } else {
                     logger.severe("Failed to start GlassFish on " + server);
                 }
@@ -110,7 +111,8 @@ public class GlassfishService {
     /*
 	 * Check if Glassfish server is started.
 	 */
-    private static boolean checkServerStarted(String hostName, ServiceContext ctx) throws Exception {
+    private static boolean checkServerStarted(String hostName)
+            throws Exception {
         Command checkCmd = new Command(asadminCmd, "list-domains");     
         CommandHandle handle = RunContext.exec(hostName, checkCmd);
         byte[] output = handle.fetchOutput(Command.STDOUT);
@@ -147,7 +149,7 @@ public class GlassfishService {
                        continue;
                     }
                 }
-                retVal = checkServerStopped(myServers[i], ctx);
+                retVal = checkServerStopped(myServers[i]);
                 if (retVal == 0) {
                     logger.warning("GlassFish on " + myServers[i] +
                                         " is apparently still runnning");
@@ -163,7 +165,8 @@ public class GlassfishService {
     /*
 	 * Check if glassfish server is stopped.
 	 */
-    private static Integer checkServerStopped(String hostName, ServiceContext ctx) throws Exception {
+    private static Integer checkServerStopped(String hostName)
+            throws Exception {
         Command checkCmd = new Command(asadminCmd, "list-domains");
         CommandHandle handle = RunContext.exec(hostName, checkCmd);
         byte[] output = handle.fetchOutput(Command.STDOUT);
@@ -215,7 +218,8 @@ public class GlassfishService {
 
             // copy the error_log to the master
             if (!getFile(myServers[i], errlogFile, outFile)) {
-                logger.warning("Could not copy " + errlogFile + " to " + outFile);
+                logger.warning("Could not copy " + errlogFile + " to " +
+                        outFile);
                 return;
             }
             RunContext.truncateFile(myServers[i], errlogFile);

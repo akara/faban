@@ -151,7 +151,7 @@ public class LighttpdService {
      * @return int pid
      * @throws Exception
      */
-    private static int getPid(String hostName, ServiceContext ctx) throws Exception {
+    private static int getPid(String hostName) throws Exception {
         int pid;
 
         pid = RunContext.exec(hostName, new RemoteCallable<Integer>() {
@@ -159,7 +159,8 @@ public class LighttpdService {
                 String pidval;
 
                 FileInputStream is = new FileInputStream(pidFile);
-                BufferedReader bufR = new BufferedReader(new InputStreamReader(is));
+                BufferedReader bufR =
+                        new BufferedReader(new InputStreamReader(is));
                 pidval = bufR.readLine();
                 bufR.close();
                 return (Integer.parseInt(pidval));
@@ -174,10 +175,12 @@ public class LighttpdService {
             if (RunContext.isFile(hostName, pidFile)) {
                 // we retrieve the pid value
                 try {
-                    pid = getPid(hostName, ctx);
-                    logger.fine("Found lighttpd pidvalue of " + pid + " on host " + hostName);
+                    pid = getPid(hostName);
+                    logger.fine("Found lighttpd pidvalue of " + pid +
+                            " on host " + hostName);
                 } catch (Exception ee) {
-                    logger.log(Level.WARNING, "Failed to read lighttpd pidfile on " +
+                    logger.log(Level.WARNING,
+                            "Failed to read lighttpd pidfile on " +
                             hostName + " with " + ee);
                     logger.log(Level.FINE, "Exception", ee);
                 }
@@ -205,7 +208,8 @@ public class LighttpdService {
                         }
                     }
                     if ( !b) {
-                        logger.severe("Cannot kill lighttpd pid " + pid + " on " + hostName);
+                        logger.severe("Cannot kill lighttpd pid " + pid +
+                                " on " + hostName);
                     }
                 } catch (Exception e) {
                     logger.severe("kill " + pid + " failed on " + hostName);
@@ -264,7 +268,8 @@ public class LighttpdService {
 
             // copy the error_log to the master
             if (!RunContext.getFile(myServers[i], errlogFile, outFile)) {
-                logger.warning("Could not copy " + errlogFile + " to " + outFile);
+                logger.warning("Could not copy " + errlogFile + " to " +
+                        outFile);
                 return;
             }
             RunContext.truncateFile(myServers[i], errlogFile);
