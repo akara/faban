@@ -41,7 +41,6 @@ import java.util.ArrayList;
  * </ul>
  *
  * @author Ramesh Ramachandran
- * @see GenericTool
  * @see com.sun.faban.harness.tools.Tool
  */
 public class Jvmstat extends CommandLineTool {
