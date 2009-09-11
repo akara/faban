@@ -114,10 +114,12 @@ public interface CmdAgent extends Remote {
     /**
      * Executes the RemoteCallable on the target instance.
      * @param callable The callable to execute
+     * @param contextLocation The context location of the invoker
      * @return The type specified at creation of the callable.
      * @throws Exception Any exception from the callable
      */
-    public <V extends Serializable> V exec(RemoteCallable<V> callable) 
+    public <V extends Serializable> V exec(RemoteCallable<V> callable,
+                                           String contextLocation)
             throws Exception;
 
     /**

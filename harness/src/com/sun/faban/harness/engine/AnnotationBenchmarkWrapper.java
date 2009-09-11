@@ -22,10 +22,9 @@
 package com.sun.faban.harness.engine;
 
 import com.sun.faban.harness.*;
+import com.sun.faban.harness.util.Invoker;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -48,12 +47,11 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
     Method killMethod;
 
     AnnotationBenchmarkWrapper(Class benchmarkClass) throws Exception {
-        benchmark = benchmarkClass.newInstance();
         Method[] methods = benchmarkClass.getMethods();
         for (Method method : methods) {
             // Check annotation.
             if (method.getAnnotation(Validate.class) != null) {
-                if (!conformsToSpec(method))
+                if (!Invoker.isVoidNoArg(method))
                     continue;
                 if (validateMethod == null) {
                     validateMethod = method;
@@ -63,7 +61,7 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
                 }
             }
             if (method.getAnnotation(Configure.class) != null) {
-                if (!conformsToSpec(method))
+                if (!Invoker.isVoidNoArg(method))
                     continue;
                 if (configureMethod == null) {
                     configureMethod = method;
@@ -73,7 +71,7 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
                 }
             }
             if (method.getAnnotation(PreRun.class) != null) {
-                if (!conformsToSpec(method))
+                if (!Invoker.isVoidNoArg(method))
                     continue;
                 if (preRunMethod == null) {
                     preRunMethod = method;
@@ -83,7 +81,7 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
                 }
             }
             if (method.getAnnotation(StartRun.class) != null) {
-                if (!conformsToSpec(method))
+                if (!Invoker.isVoidNoArg(method))
                     continue;
                 if (startMethod == null) {
                     startMethod = method;
@@ -93,7 +91,7 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
                 }
             }
             if (method.getAnnotation(EndRun.class) != null) {
-                if (!conformsToSpec(method))
+                if (!Invoker.isVoidNoArg(method))
                     continue;
                 if (endMethod == null) {
                     endMethod = method;
@@ -103,7 +101,7 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
                 }
             }
             if (method.getAnnotation(PostRun.class) != null) {
-                if (!conformsToSpec(method))
+                if (!Invoker.isVoidNoArg(method))
                     continue;
                 if (postRunMethod == null) {
                     postRunMethod = method;
@@ -113,7 +111,7 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
                 }
             }
             if (method.getAnnotation(KillRun.class) != null) {
-                if (!conformsToSpec(method))
+                if (!Invoker.isVoidNoArg(method))
                     continue;
                 if (killMethod == null) {
                     killMethod = method;
@@ -122,32 +120,12 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
                     //throw new Error ("Multiple @Kill methods.");
                 }
             }
+            try {
+                benchmark = benchmarkClass.newInstance();
+            } catch (InstantiationException e) {
+                Invoker.throwSourceException(e);
+            }
         }
-    }
-
-    private boolean conformsToSpec(Method method) {
-            boolean retval= true;
-            // Is it a noarg method?
-            if (method.getParameterTypes().length > 0) {
-                logger.warning("Method has arguments");
-                retval = false;
-            }
-            // Is it a void method?
-            if (!method.getReturnType().equals(Void.TYPE)) {
-                logger.warning("Method is not of type Void");
-                retval = false;
-            }
-            return retval;
-    }
-    private void throwSourceException(InvocationTargetException e)
-                throws Exception {
-            Throwable t = e.getCause();
-            if (t instanceof Exception) {
-                logger.log(Level.WARNING, t.getMessage(), t);
-                throw (Exception) t;
-            } else {
-                throw e;
-            }
     }
 
     /**
@@ -155,13 +133,7 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
      * @throws java.lang.Exception
      */
     void validate() throws Exception {
-        if (validateMethod != null){
-            try {
-                validateMethod.invoke(benchmark,new Object[] {});
-            } catch (InvocationTargetException e) {
-                throwSourceException(e);
-            }
-        }
+        Invoker.invoke(benchmark, validateMethod);
     }
 
     /**
@@ -169,13 +141,7 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
      * @throws java.lang.Exception
      */
     void configure() throws Exception {
-        if (configureMethod != null){
-            try {
-                configureMethod.invoke(benchmark,new Object[] {});
-            } catch (InvocationTargetException e) {
-                throwSourceException(e);
-            }
-        }
+        Invoker.invoke(benchmark, configureMethod);
     }
 
     /**
@@ -183,13 +149,7 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
      * @throws java.lang.Exception
      */
     void preRun() throws Exception {
-        if (preRunMethod != null){
-            try {
-                preRunMethod.invoke(benchmark,new Object[] {});
-            } catch (InvocationTargetException e) {
-                throwSourceException(e);
-            }
-        }
+        Invoker.invoke(benchmark, preRunMethod);
     }
 
     /**
@@ -197,13 +157,7 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
      * @throws java.lang.Exception
      */
     void start() throws Exception {
-        if (startMethod != null){
-            try {
-                startMethod.invoke(benchmark,new Object[] {});
-            } catch (InvocationTargetException e) {
-                throwSourceException(e);
-            }
-        }
+        Invoker.invoke(benchmark, startMethod);
     }
 
     /**
@@ -211,13 +165,7 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
      * @throws java.lang.Exception
      */
     void end() throws Exception {
-        if (endMethod != null){
-            try {
-                endMethod.invoke(benchmark,new Object[] {});
-            } catch (InvocationTargetException e) {
-                throwSourceException(e);
-            }
-        }
+        Invoker.invoke(benchmark, endMethod);
     }
 
     /**
@@ -225,13 +173,7 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
      * @throws java.lang.Exception
      */
     void postRun() throws Exception {
-        if (postRunMethod != null){
-            try {
-                postRunMethod.invoke(benchmark,new Object[] {});
-            } catch (InvocationTargetException e) {
-                throwSourceException(e);
-            }
-        }
+        Invoker.invoke(benchmark, postRunMethod);
     }
 
     /**
@@ -239,13 +181,6 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
      * @throws java.lang.Exception
      */
     void kill() throws Exception {
-        if (killMethod != null){
-            try {
-                killMethod.invoke(benchmark,new Object[] {});
-            } catch (InvocationTargetException e) {
-                throwSourceException(e);
-            }
-        }
+        Invoker.invoke(benchmark, killMethod);
     }
-
 }

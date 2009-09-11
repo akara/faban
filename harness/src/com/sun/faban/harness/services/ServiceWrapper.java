@@ -24,15 +24,12 @@ package com.sun.faban.harness.services;
 
 import com.sun.faban.harness.Configure;
 import com.sun.faban.harness.Context;
-
 import com.sun.faban.harness.Start;
 import com.sun.faban.harness.Stop;
-import com.sun.faban.harness.util.ContextLocation;
+import com.sun.faban.harness.util.Invoker;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -56,10 +53,10 @@ public class ServiceWrapper {
     Method shutdownMethod;
 
     /**
-     * Constructor.
-     * @param serviceClass
-     * @param ctx
-     * @throws java.lang.Exception
+     * Constructs a service wrapper.
+     * @param serviceClass The service class
+     * @param ctx The service context
+     * @throws Exception Error creating the service wrapper
      */
     ServiceWrapper(Class serviceClass, ServiceContext ctx) throws Exception {
         this.ctx = ctx;
@@ -67,7 +64,7 @@ public class ServiceWrapper {
         for (Method method : methods) {
             // Check annotation.
             if (method.getAnnotation(ClearLogs.class) != null) {
-                if (!conformsToSpec(method))
+                if (!Invoker.isVoidNoArg(method))
                     continue;
                 if (clearLogsMethod == null) {
                     clearLogsMethod = method;
@@ -77,7 +74,7 @@ public class ServiceWrapper {
                 }
             }
             if (method.getAnnotation(Configure.class) != null) {
-                if (!conformsToSpec(method))
+                if (!Invoker.isVoidNoArg(method))
                     continue;
                 if (configureMethod == null) {
                     configureMethod = method;
@@ -87,7 +84,7 @@ public class ServiceWrapper {
                 }
             }
             if (method.getAnnotation(GetConfig.class) != null) {
-                if (!conformsToSpec(method))
+                if (!Invoker.isVoidNoArg(method))
                     continue;
                 if (getConfigMethod == null) {
                     getConfigMethod = method;
@@ -97,7 +94,7 @@ public class ServiceWrapper {
                 }
             }
             if (method.getAnnotation(GetLogs.class) != null) {
-                if (!conformsToSpec(method))
+                if (!Invoker.isVoidNoArg(method))
                     continue;
                 if (getLogsMethod == null) {
                     getLogsMethod = method;
@@ -107,7 +104,7 @@ public class ServiceWrapper {
                 }
             }
             if (method.getAnnotation(Start.class) != null) {
-                if (!conformsToSpec(method))
+                if (!Invoker.isVoidNoArg(method))
                     continue;
                 if (startupMethod == null) {
                     startupMethod = method;
@@ -117,7 +114,7 @@ public class ServiceWrapper {
                 }
             }
             if (method.getAnnotation(Stop.class) != null) {
-                if (!conformsToSpec(method))
+                if (!Invoker.isVoidNoArg(method))
                     continue;
                 if (shutdownMethod == null) {
                     shutdownMethod = method;
@@ -139,40 +136,16 @@ public class ServiceWrapper {
                             "More than one valid @Context annotation.");
             }
         }
-        ContextLocation.set(ctx.servicePath);
+        Invoker.setContextLocation(ctx.servicePath);
         try {
             service = serviceClass.newInstance();
             if (ctxField != null)
                 ctxField.set(service, ctx);
+        } catch (InstantiationException e) {
+            Invoker.throwSourceException(e);
         } finally {
-            ContextLocation.set(null);
+            Invoker.setContextLocation(null);
         }
-    }
-
-    private boolean conformsToSpec(Method method) {
-            boolean retval= true;
-            // Is it a noarg method?
-            if (method.getParameterTypes().length > 0) {
-                logger.warning("Method has arguments");
-                retval = false;
-            }
-            // Is it a void method?
-            if (!method.getReturnType().equals(Void.TYPE)) {
-                logger.warning("Method is not of type Void");
-                retval = false;
-            }
-            return retval;
-    }
-
-    private void throwSourceException(InvocationTargetException e)
-                throws Exception {
-            Throwable t = e.getCause();
-            if (t instanceof Exception) {
-                logger.log(Level.WARNING, t.getMessage(), t);
-                throw (Exception) t;
-            } else {
-                throw e;
-            }
     }
 
     /**
@@ -180,16 +153,8 @@ public class ServiceWrapper {
      * @throws java.lang.Exception
      */
     void clearLogs() throws Exception {
-        if (configured && clearLogsMethod != null) {
-            try {
-                ContextLocation.set(ctx.servicePath);
-                clearLogsMethod.invoke(service,new Object[] {});
-            } catch (InvocationTargetException e) {
-                throwSourceException(e);
-            } finally {
-                ContextLocation.set(null);
-            }
-        }
+        if (configured)
+            Invoker.invoke(service, clearLogsMethod, ctx.servicePath);
     }
 
     /**
@@ -197,16 +162,7 @@ public class ServiceWrapper {
      * @throws java.lang.Exception
      */
     void configure() throws Exception {
-        if (configureMethod != null) {
-            try {
-                ContextLocation.set(ctx.servicePath);
-                configureMethod.invoke(service,new Object[] {});
-            } catch (InvocationTargetException e) {
-                throwSourceException(e);
-            } finally {
-                ContextLocation.set(null);
-            }
-        }
+        Invoker.invoke(service, configureMethod, ctx.servicePath);
         configured = true;
     }
 
@@ -215,16 +171,8 @@ public class ServiceWrapper {
      * @throws java.lang.Exception
      */
     void getConfig() throws Exception {
-        if (configured && getConfigMethod != null) {
-            try {
-                ContextLocation.set(ctx.servicePath);
-                getConfigMethod.invoke(service,new Object[] {});
-            } catch (InvocationTargetException e) {
-                throwSourceException(e);
-            } finally {
-                ContextLocation.set(null);
-            }
-        }
+        if (configured)
+            Invoker.invoke(service, getConfigMethod, ctx.servicePath);
     }
 
    /**
@@ -232,16 +180,8 @@ public class ServiceWrapper {
      * @throws java.lang.Exception
      */
     void getLogs() throws Exception {
-        if (configured && getLogsMethod != null) {
-            try {
-                ContextLocation.set(ctx.servicePath);
-                getLogsMethod.invoke(service,new Object[] {});
-            } catch (InvocationTargetException e) {
-                throwSourceException(e);
-            } finally {
-                ContextLocation.set(null);
-            }
-        }
+        if (configured)
+            Invoker.invoke(service, getLogsMethod, ctx.servicePath);
     }
 
     /**
@@ -249,16 +189,8 @@ public class ServiceWrapper {
      * @throws java.lang.Exception
      */
     void startup() throws Exception {
-        if (configured && startupMethod != null) {
-            try {
-                ContextLocation.set(ctx.servicePath);
-                startupMethod.invoke(service,new Object[] {});
-            } catch (InvocationTargetException e) {
-                throwSourceException(e);
-            } finally {
-                ContextLocation.set(null);
-            }
-        }
+        if (configured)
+            Invoker.invoke(service, startupMethod, ctx.servicePath);
     }
 
     /**
@@ -266,15 +198,7 @@ public class ServiceWrapper {
      * @throws java.lang.Exception
      */
     void shutdown() throws Exception {
-        if (configured && shutdownMethod != null) {
-            try {
-                ContextLocation.set(ctx.servicePath);
-                shutdownMethod.invoke(service,new Object[] {});
-            } catch (InvocationTargetException e) {
-                throwSourceException(e);
-            } finally {
-                ContextLocation.set(null);
-            }
-        }
+        if (configured)
+            Invoker.invoke(service, shutdownMethod, ctx.servicePath);
     }
 }

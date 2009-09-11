@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RemoteCallable.java,v 1.2 2009/08/05 23:50:13 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -26,14 +26,18 @@ package com.sun.faban.harness;
 import java.io.Serializable;
 
 /**
- * An interface used for executing a piece of code remotely.
- * The class that implements this interface needs to be cautious about
+ * An interface used for executing a piece of code remotely.<br>
+ * Notes:<ul>
+ * <li>The class that implements this interface needs to be cautious about
  * platform path differences. A path passed to this class to executed on a
  * remote system with different OS styles, especially a Windows master and
  * Unix agents, will need to be converted. This can be done by calling
  * Utilities.convertPath from inside the implementation of the call method.
  * The path conversion should be called no matter the actual platform. The
- * path conversion call does nothing if no conversion is needed.
+ * path conversion call does nothing if no conversion is needed.<br></li>
+ * <li>The only RunContext methods available to the code block are the local
+ * exec and java calls. All other calls to RunContext will result in a
+ * NullPointerException.</li></ul>
  *  
  * @see com.sun.faban.common.Utilities#convertPath(java.lang.String)
  */
@@ -42,7 +46,9 @@ public interface RemoteCallable<V extends Serializable>
 
     /**
      * Computes a result, or throws an exception if unable to do so.
-     *
+     * Note that The only RunContext methods available to the call
+     * implementation are the local exec and java calls. All other
+     * calls to RunContext will result in a NullPointerException.
      * @return computed result
      * @throws Exception if unable to compute a result
      */

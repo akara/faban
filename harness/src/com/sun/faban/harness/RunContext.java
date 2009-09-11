@@ -28,7 +28,7 @@ import com.sun.faban.common.CommandHandle;
 import com.sun.faban.harness.engine.CmdService;
 import com.sun.faban.harness.engine.RunFacade;
 import com.sun.faban.harness.common.Config;
-import com.sun.faban.harness.util.ContextLocation;
+import com.sun.faban.harness.util.Invoker;
 import com.sun.faban.harness.agent.CmdAgentImpl;
 
 import java.io.IOException;
@@ -40,7 +40,12 @@ import java.util.List;
 /**
  * The RunContext provides callbacks into the harness and the run environment.
  * All methods are static and it is suitable for static imports making calls
- * much shorter and easier.
+ * much shorter and easier. RunContext calls are available during a run on the
+ * master. With exception to two methods, calling RunContext methods from tools
+ * or inside RemoteCallable.call() will result in a NullPointerException.
+ * The two methods callable from the agent are the local versions of
+ * RunContext.exec() and RunContext.java(). These are the signatures without
+ * a host name.
  *
  * @author Akara Sucharitakul
  */
@@ -109,7 +114,8 @@ public class RunContext {
     }
 
     /**
-     * Executes a command on the local system.
+     * Executes a command on the local system. This is one of the two
+     * methods callable from tools and RemoteCallable.call().
      * @param c The command to be executed
      * @return  A handle to the command
      * @throws IOException Error communicating with resulting process
@@ -119,9 +125,10 @@ public class RunContext {
             throws IOException, InterruptedException {
         CmdAgentImpl agent = CmdAgentImpl.getHandle();
         if (agent != null) // Running on agent
-            return agent.execute(c, ContextLocation.get());
+            return agent.execute(c, Invoker.getContextLocation());
         else // Running on master
-            return CmdService.getHandle().execute(c, ContextLocation.get());
+            return CmdService.getHandle().execute(c,
+                    Invoker.getContextLocation());
     }
 
     /**
@@ -134,7 +141,8 @@ public class RunContext {
      */
     public static CommandHandle exec(String host, Command c)
             throws IOException, InterruptedException {
-        return CmdService.getHandle().execute(host, c, ContextLocation.get());
+        return CmdService.getHandle().execute(host, c,
+                Invoker.getContextLocation());
     }
 
     /**
@@ -147,12 +155,13 @@ public class RunContext {
      */
     public static CommandHandle[] exec(String[] hosts, Command c)
             throws IOException, InterruptedException {
-        return CmdService.getHandle().execute(hosts, c, ContextLocation.get());
+        return CmdService.getHandle().execute(hosts, c,
+                Invoker.getContextLocation());
     }
 
     /**
-     * Executes a java command on the local system.
-     *
+     * Executes a java command on the local system.  This is one of the two
+     * methods callable from tools and RemoteCallable.call(). 
      * @param java The command to be executed
      * @return A handle to the command
      * @throws java.io.IOException  Error communicating with resulting process
@@ -162,9 +171,10 @@ public class RunContext {
             throws IOException, InterruptedException {
         CmdAgentImpl agent = CmdAgentImpl.getHandle();
         if (agent != null) // Running on agent
-            return agent.java(java, ContextLocation.get());
+            return agent.java(java, Invoker.getContextLocation());
         else // Running on master
-            return CmdService.getHandle().java(java, ContextLocation.get());
+            return CmdService.getHandle().java(java,
+                    Invoker.getContextLocation());
     }
 
     /**
@@ -178,7 +188,8 @@ public class RunContext {
      */
     public static CommandHandle java(String host, Command java)
             throws IOException, InterruptedException {
-        return CmdService.getHandle().java(host, java, ContextLocation.get());
+        return CmdService.getHandle().java(host, java,
+                Invoker.getContextLocation());
     }
 
     /**
@@ -192,11 +203,15 @@ public class RunContext {
      */
     public static CommandHandle[] java(String[] hosts, Command java)
             throws IOException, InterruptedException {
-      return CmdService.getHandle().java(hosts, java, ContextLocation.get());
+      return CmdService.getHandle().java(hosts, java,
+              Invoker.getContextLocation());
     }
 
     /**
      * Execute a code block defined as a RemoteCallable on a remote host.
+     * The only RunContext methods available to the code block are the local
+     * exec and java calls. All other calls to RunContext will result in a
+     * NullPointerException.
      * @param host The remote host
      * @param callable The callable defining the code block
      * @return The result of the callable
@@ -205,12 +220,15 @@ public class RunContext {
     public static <V extends Serializable> V
                         exec(String host, RemoteCallable<V> callable)
             throws Exception {
-        return CmdService.getHandle().execute(host, callable);
+        return CmdService.getHandle().execute(host, callable,
+                Invoker.getContextLocation());
     }
 
     /**
      * Execute a code block defined as a RemoteCallable on a set of
-     * remote hosts.
+     * remote hosts. The only RunContext methods available to the code block
+     * are the local exec and java calls. All other calls to RunContext will
+     * result in a NullPointerException.
      * @param hosts The remote hosts
      * @param callable The callable defining the code block
      * @return The result of the callable
@@ -219,7 +237,8 @@ public class RunContext {
     public static <V extends Serializable> List<V>
                         exec(String[] hosts, RemoteCallable<V> callable)
             throws Exception {
-        return CmdService.getHandle().execute(hosts, callable);
+        return CmdService.getHandle().execute(hosts, callable,
+                Invoker.getContextLocation());
     }
 
     /**

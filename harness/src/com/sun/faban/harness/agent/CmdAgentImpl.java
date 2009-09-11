@@ -27,6 +27,7 @@ import com.sun.faban.common.*;
 import com.sun.faban.harness.RemoteCallable;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.util.CmdMap;
+import com.sun.faban.harness.util.Invoker;
 
 import java.io.*;
 import java.rmi.Remote;
@@ -263,17 +264,21 @@ public class CmdAgentImpl extends UnicastRemoteObject
      * Executes the RemoteCallable on the target instance.
      *
      * @param callable The callable to execute
+     * @param contextLocation The context location of the invoker
      * @return The type specified at creation of the callable.
      * @throws Exception Any exception from the callable
      */
-    public <V extends Serializable> V exec(RemoteCallable<V> callable)
+    public <V extends Serializable> V exec(RemoteCallable<V> callable,
+                                           String contextLocation)
             throws Exception {
-
+        Invoker.setContextLocation(contextLocation);
         try {
             return callable.call();
         } catch (Exception ex) {
             logger.log(Level.WARNING, ex.getMessage(), ex);
             throw ex;
+        } finally {
+            Invoker.setContextLocation(null);
         }
     }
 

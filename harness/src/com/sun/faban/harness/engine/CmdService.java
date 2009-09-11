@@ -1062,29 +1062,33 @@ final public class CmdService { 	// The final keyword prevents clones
      * Executes a job in a remote command agent.
      * @param machine The host to execute the command
      * @param callable The job
+     * @param svcPath The location of the invoking service, if any
      * @return The return value of the job
      * @throws Exception An error occured executing the remote job
      */
-    public <V extends Serializable> V
-            execute(String machine, RemoteCallable<V> callable)
+    public <V extends Serializable> V execute(String machine,
+                                              RemoteCallable<V> callable,
+                                              String svcPath)
             throws Exception {
-        return findCmdAgent(machine).exec(callable);
+        return findCmdAgent(machine).exec(callable, svcPath);
     }
 
     /**
      * Executes a job on remote command agents on a list of systems.
      * @param machines The host names to execute the job
      * @param callable The job
+     * @param svcPath The location of the invoking service, if any
      * @return The return values of the job, in sequence
      * @throws Exception An error occurred executing the job
      */
-    public <V extends Serializable> List<V>
-            execute(String[] machines, RemoteCallable<V> callable)
+    public <V extends Serializable> List<V> execute(String[] machines,
+                                                    RemoteCallable<V> callable,
+                                                    String svcPath)
             throws Exception {
 
         ArrayList<V> rl = new ArrayList<V>();
         for (int i = 0; i < machines.length; i++)
-            rl.add(findCmdAgent(machines[i]).exec(callable));
+            rl.add(findCmdAgent(machines[i]).exec(callable, svcPath));
         return rl;
     }
 

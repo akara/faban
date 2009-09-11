@@ -33,12 +33,11 @@ import com.sun.faban.harness.Stop;
 import com.sun.faban.harness.agent.CmdAgentImpl;
 import com.sun.faban.harness.agent.FileAgent;
 import com.sun.faban.harness.common.Config;
-import com.sun.faban.harness.util.ContextLocation;
+import com.sun.faban.harness.util.Invoker;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -94,7 +93,7 @@ public class ToolWrapper {
         for (Method method : methods) {
             // Check annotation.
             if (method.getAnnotation(Start.class) != null) {
-                if (!conformsToSpec(method))
+                if (!Invoker.isVoidNoArg(method))
                     continue;
                 if (startMethod == null) {
                     startMethod = method;
@@ -104,7 +103,7 @@ public class ToolWrapper {
                 }
             }
             if (method.getAnnotation(Stop.class) != null) {
-                if (!conformsToSpec(method))
+                if (!Invoker.isVoidNoArg(method))
                     continue;
                 if (stopMethod == null) {
                     stopMethod = method;
@@ -113,7 +112,7 @@ public class ToolWrapper {
                 }
             }
             if (method.getAnnotation(Configure.class) != null) {
-                if (!conformsToSpec(method))
+                if (!Invoker.isVoidNoArg(method))
                     continue;
                 if (configureMethod == null) {
                     configureMethod = method;
@@ -123,7 +122,7 @@ public class ToolWrapper {
                 }
             }
             if (method.getAnnotation(Postprocess.class) != null) {
-                if (!conformsToSpec(method))
+                if (!Invoker.isVoidNoArg(method))
                     continue;
                 if (postprocessMethod == null) {
                     postprocessMethod = method;
@@ -148,52 +147,20 @@ public class ToolWrapper {
                                 ": More than one valid @Context annotation.");
             }
         }
-        ContextLocation.set(tc.toolPath);
+        Invoker.setContextLocation(tc.toolPath);
         try {
             tool = toolClass.newInstance();
             if (ctxField != null)
                 ctxField.set(tool, tc);
+        } catch (InstantiationException e) {
+            Invoker.throwSourceException(e);
         } finally {
-            ContextLocation.set(null);
+            Invoker.setContextLocation(null);
         }
-    }
-
-    private boolean conformsToSpec(Method method) {
-            boolean retval= true;
-            // Is it a noarg method?
-            if (method.getParameterTypes().length > 0) {
-                logger.warning(toolName + ": Method has arguments");
-                retval = false;
-            }
-            // Is it a void method?
-            if (!method.getReturnType().equals(Void.TYPE)) {
-                logger.warning(toolName + ": Method is not of type Void");
-                retval = false;
-            }
-            return retval;
-    }
-    private void throwSourceException(InvocationTargetException e)
-                throws Exception {
-            Throwable t = e.getCause();
-            if (t instanceof Exception) {
-                logger.log(Level.WARNING, toolName + ": " + t.getMessage(), t);
-                throw (Exception) t;
-            } else {
-                throw e;
-            }
     }
 
     private void configure() throws Exception {
-        if (configureMethod != null) {
-            ContextLocation.set(tc.toolPath);
-            try {
-                configureMethod.invoke(tool,new Object[] {});
-            } catch (InvocationTargetException e) {
-                throwSourceException(e);
-            } finally {
-                ContextLocation.set(null);
-            }
-        }
+        Invoker.invoke(tool, configureMethod, tc.toolPath);
         logger.fine("Configured tool " + toolName);
     }
 
@@ -209,14 +176,7 @@ public class ToolWrapper {
             if (toolStatus == STOPPED) {
                 if (postprocessMethod != null) {
                     logger.fine(toolName + " post-processing.");
-                    ContextLocation.set(tc.toolPath);
-                    try {
-                        postprocessMethod.invoke(this.tool,new Object[] {});
-                    } catch (InvocationTargetException e) {
-                        throwSourceException(e);
-                    } finally {
-                        ContextLocation.set(null);
-                    }
+                    Invoker.invoke(tool, postprocessMethod, tc.toolPath);
                     logger.fine("Postprocessed tool " + toolName);
                 }
                 // xfer log file to master machine, log any errors
@@ -234,16 +194,7 @@ public class ToolWrapper {
      * @throws java.lang.Exception
      */
     private void start() throws Exception {
-        if (startMethod != null) {
-            ContextLocation.set(tc.toolPath);
-            try {
-                startMethod.invoke(tool,new Object[] {});
-            } catch (InvocationTargetException e) {
-                throwSourceException(e);
-            } finally {
-                ContextLocation.set(null);
-            }
-        }
+        Invoker.invoke(tool, startMethod, tc.toolPath);
         toolStatus = STARTED;
         logger.info("Started tool " + toolName);
     }
@@ -351,11 +302,11 @@ public class ToolWrapper {
      */
     protected void stop(boolean warn) throws Exception{
         if (toolStatus == STARTED){
-            ContextLocation.set(tc.toolPath);
+            Invoker.setContextLocation(tc.toolPath);
             try {
                 stopMethod.invoke(this.tool,new Object[] {});
             } finally {
-                ContextLocation.set(null);
+                Invoker.setContextLocation(null);
             }
             // saveToolLogs(tool.getInputStream(), tool.getErrorStream());
                 toolStatus = STOPPED;
