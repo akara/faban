@@ -70,7 +70,7 @@ public class FileTransfer implements Externalizable {
             throw new FileNotFoundException("File " +
                     srcFile.getAbsolutePath() + " does not exist.");
         transferSize = srcFile.length();
-        if (transferSize <= 0)
+        if (transferSize < 0)
             throw new IOException(srcFile.getAbsolutePath() +
                     ": Invalid file size of " + transferSize);
 
