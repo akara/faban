@@ -43,7 +43,7 @@ public class Invoker {
 
     /**
      * Throws the source exception or error of an exception.
-     * @param e The source exception
+     * @param e The exception
      * @throws Exception The source exception.
      */
     public static void throwSourceException(Exception e)
