@@ -372,7 +372,8 @@ public class GenericBenchmark {
             logger.log(Level.SEVERE,
                     "Unexpected Exception processing benchmark.", t);
         } finally { // Ensure we kill the processes in any case.
-            serviceMgr.shutdown();
+            if (serviceMgr != null)
+                serviceMgr.shutdown();
             postProcess();
             _kill();
             // We need to place a marker into the Benchmark's META-INF directory

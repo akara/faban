@@ -142,7 +142,7 @@ public class ServiceWrapper {
             if (ctxField != null)
                 ctxField.set(service, ctx);
         } catch (InstantiationException e) {
-            Invoker.throwSourceException(e);
+            Invoker.throwCauseException(e);
         } finally {
             Invoker.setContextLocation(null);
         }

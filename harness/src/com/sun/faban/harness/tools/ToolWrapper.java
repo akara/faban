@@ -153,7 +153,7 @@ public class ToolWrapper {
             if (ctxField != null)
                 ctxField.set(tool, tc);
         } catch (InstantiationException e) {
-            Invoker.throwSourceException(e);
+            Invoker.throwCauseException(e);
         } finally {
             Invoker.setContextLocation(null);
         }

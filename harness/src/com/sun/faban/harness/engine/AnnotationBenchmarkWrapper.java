@@ -123,7 +123,7 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
             try {
                 benchmark = benchmarkClass.newInstance();
             } catch (InstantiationException e) {
-                Invoker.throwSourceException(e);
+                Invoker.throwCauseException(e);
             }
         }
     }

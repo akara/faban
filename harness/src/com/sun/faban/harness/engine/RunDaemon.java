@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunDaemon.java,v 1.33 2009/07/28 22:54:15 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -252,101 +252,111 @@ public class RunDaemon implements Runnable {
         logger.info("RunDaemon Thread Started");
         // THE loop
         while (keepRunning) {
-            // Wait if  the runDaemonThread is temporarily suspended.
-            synchronized (runDaemonThread) {
-                if(suspended) {
-                    try {
-                        logger.info("RunDaemon Thread suspended");
-                        runDaemonThread.wait();
+            try {
+                // Wait if  the runDaemonThread is temporarily suspended.
+                synchronized (runDaemonThread) {
+                    if(suspended) {
+                        try {
+                            logger.info("RunDaemon Thread suspended");
+                            runDaemonThread.wait();
+                        }
+                        catch (InterruptedException ie) {
+                            logger.severe("RunDaemon Thread interrupted.");
+                        }
+                        // Go back and check if still suspended or got killed.
+                        continue;
                     }
-                    catch (InterruptedException ie) {
-                        logger.severe("RunDaemon Thread interrupted.");
+                }
+
+                Run run = null;
+                String runId = null;
+
+                // Poll other hosts in poller mode. Otherwise skip this block.
+                if (Config.daemonMode == Config.DaemonModes.POLLER) {
+                    NameValuePair<Long> nextLocal = nextRunAge(Long.MIN_VALUE);
+                    long runAge = -1;
+                    if (nextLocal != null) {
+                        runId = nextLocal.name;
+                        runAge = nextLocal.value;
                     }
-                    // Go back and check if still suspended or got killed.
-                    continue;
-                }
-            }
+                    File tmpRunDir = null;
+                    while ((tmpRunDir = RunRetriever.pollRun(runAge)) != null)
+                        try {
+                            run = fetchRemoteRun(tmpRunDir);
+                            if (run == null)
+                                logger.warning("Fetched null remote run");
+                            break;
 
-            Run run = null;
-            String runId = null;
-
-            // Poll other hosts in poller mode. Otherwise skip this block.
-            if (Config.daemonMode == Config.DaemonModes.POLLER) {
-                NameValuePair<Long> nextLocal = nextRunAge(Long.MIN_VALUE);
-                long runAge = -1;
-                if (nextLocal != null) {
-                    runId = nextLocal.name;
-                    runAge = nextLocal.value;
+                        } catch (RunEntryException e) {
+                            continue; // If we got a bad run, try polling again
+                        }
+                    if (run == null && nextLocal == null) {
+                        // No local run or remote run...
+                        runqLock.waitForSignal(10000);
+                        continue;
+                    }
                 }
-                File tmpRunDir = null;
-                while ((tmpRunDir = RunRetriever.pollRun(runAge)) != null)
+
+                boolean remoteRun = true;
+                if (run == null)
                     try {
-                        run = fetchRemoteRun(tmpRunDir);
-                        if (run == null)
-                            logger.warning("Fetched null remote run");
-                        break;
-
+                        try {
+                            // runId null if not poller.
+                            run = fetchNextRun(runId);
+                        } catch (IOException ex) {
+                            Logger.getLogger(RunDaemon.class.getName()).log(
+                                    Level.SEVERE,
+                                    "IOException fetching remote run.", ex);
+                        } catch (ClassNotFoundException ex) {
+                            Logger.getLogger(RunDaemon.class.getName()).log(
+                                    Level.SEVERE, "ClassNotFoundException " +
+                                    "fetching remote run.", ex);
+                        }
+                        remoteRun = false;
                     } catch (RunEntryException e) {
-                        continue; // If we got a bad run, try polling again
+                        // If there is a run entry issue, just skip to the next
+                        // run immediately.
+                        continue;
                     }
-                if (run == null && nextLocal == null) { // No local run or remote run...
+                if (run == null) {
                     runqLock.waitForSignal(10000);
                     continue;
                 }
+
+                String benchName = run.getBenchmarkName();
+                String runDir = run.getOutDir();
+
+                // Redirect the log to runOutDir/log.xml
+                String logFile = runDir + File.separator + Config.LOG_FILE;
+                redirectLog(logFile, null);
+
+                logger.info("Starting " + benchName + " run using " + runDir);
+
+                // instantiate, start running the benchmark
+                currRun = run;
+                gb = new GenericBenchmark(currRun);
+                gb.start();
+
+                // We could have done the uploads in GenericBenchmark.
+                // But we fetched the remote run here, so we should return it
+                // here, too!
+                if (remoteRun)
+                    try {
+                        RunUploader.uploadIfOrigin(run.getRunId());
+                    } catch (IOException e) {
+                        logger.log(Level.WARNING, "Run upload failed!", e);
+                    }
+
+                logger.info(benchName + " Completed/Terminated");
+                gb = null;
+
+                // Redirect the log back to faban.log.xml
+                // and limit the log file size to 100K.
+                redirectLog(Config.DEFAULT_LOG_FILE, "102400");
+            } catch (Throwable t) { // We won't let this loop exit.
+                logger.log(Level.SEVERE, "Uncaught throwable in benchmark run.",
+                        t);
             }
-
-            boolean remoteRun = true;
-            if (run == null)
-                try {
-                try {
-                    run = fetchNextRun(runId); // runId null if not poller.
-                } catch (IOException ex) {
-                    Logger.getLogger(RunDaemon.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (ClassNotFoundException ex) {
-                    Logger.getLogger(RunDaemon.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                    remoteRun = false;
-                } catch (RunEntryException e) {
-                    // If there is a run entry issue, just skip to the next run
-                    // immediately.
-                    continue;
-                }
-
-            if (run == null) {
-                runqLock.waitForSignal(10000);
-                continue;
-            }
-
-            String benchName = run.getBenchmarkName();
-            String runDir = run.getOutDir();
-
-            // Redirect the log to runOutDir/log.xml
-            String logFile = runDir + File.separator + Config.LOG_FILE;
-            redirectLog(logFile, null);
-
-            logger.info("Starting " + benchName + " run using " + runDir);
-
-            // instantiate, start running the benchmark
-            currRun = run;
-            gb = new GenericBenchmark(currRun);
-            gb.start();
-
-            // We could have done the uploads in GenericBenchmark.
-            // But we fetched the remote run here, so we should return it
-            // here, too!
-            if (remoteRun)
-                try {
-                    RunUploader.uploadIfOrigin(run.getRunId());
-                } catch (IOException e) {
-                    logger.log(Level.WARNING, "Run upload failed!", e);
-                }
-
-            logger.info(benchName + " Completed/Terminated");
-            gb = null;
-
-            // Redirect the log back to faban.log.xml
-            // and limit the log file size to 100K.
-            redirectLog(Config.DEFAULT_LOG_FILE, "102400");
         }
         logger.fine("RunDaemon Thread is Exiting");
     }

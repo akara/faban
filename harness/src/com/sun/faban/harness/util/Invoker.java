@@ -42,29 +42,23 @@ public class Invoker {
     private static final Object[] NO_ARGS = new Object[0];
 
     /**
-     * Throws the source exception or error of an exception.
+     * Throws the cause of an exception.
      * @param e The exception
-     * @throws Exception The source exception.
+     * @throws Exception The cause
      */
-    public static void throwSourceException(Exception e)
+    public static void throwCauseException(Exception e)
             throws Exception {
-        Throwable t = e;
-        for (;;) {
-            Throwable tt = t.getCause();
-            if (tt == null) {
-                logger.log(Level.WARNING, t.getMessage(), t);
-                if (t instanceof Exception) {
-                    throw (Exception) t;
-                } else if (t instanceof Error) {
-                    throw (Error) t;
-                } else {
-                    logger.log(Level.WARNING, e.getClass().getName() +
-                            " with cause of unknown type.", t);
-                    throw e;
-                }
-            } else {
-                t = tt;
-            }
+        Throwable t = e.getCause();
+        if (t == null) {
+            throw e;
+        } else if (t instanceof Exception) {
+            throw (Exception) t;
+        } else if (t instanceof Error) {
+            throw (Error) t;
+        } else {
+            logger.log(Level.WARNING, e.getClass().getName() +
+                    " with cause of unknown type.", t);
+            throw e;
         }
     }
 
@@ -103,7 +97,7 @@ public class Invoker {
             try {
                 m.invoke(o, NO_ARGS);
             } catch (InvocationTargetException e) {
-                throwSourceException(e);
+                throwCauseException(e);
             } finally {
                 setContextLocation(null);
             }
@@ -123,7 +117,7 @@ public class Invoker {
             try {
                 m.invoke(o, NO_ARGS);
             } catch (InvocationTargetException e) {
-                throwSourceException(e);
+                throwCauseException(e);
             }
         }
     }
