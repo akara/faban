@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunResult.java,v 1.11 2009/09/16 21:58:44 sheetalpatil Exp $
+ * $Id: RunResult.java,v 1.12 2009/09/16 22:48:59 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -687,23 +687,6 @@ public class RunResult {
         return table;
     }
 
-    private static String getRunsForTarget(String tags)
-            throws IOException {
-        TagEngine tagEngine;
-        try {
-            tagEngine = TagEngine.getInstance();
-        } catch (ClassNotFoundException ex) {
-            logger.log(Level.SEVERE, "Cannot find tag engine class", ex);
-            throw new IOException("Cannot find tag engine class", ex);
-        }
-        Set<String> runIds = tagEngine.search(tags);
-        StringBuilder runs = new StringBuilder();
-        for (String runid : runIds) {
-            runs.append(" <a href=/resultframe.jsp?runId=" + runid + "&result=summary.xml>" + runid + "</a>");
-        }
-        return runs.toString();
-    }
-
     private static HashMap<String, String> getAchievedMetricForTarget(String tags)
             throws IOException {
         HashMap<String, String> achievedMetricMap = new HashMap<String, String>();
@@ -844,73 +827,75 @@ public class RunResult {
             row[8] = target.yellow;
         }
 
-        SortDirection enumValForDirection = table.getSortDirection().valueOf(sortDirection);
+        SortDirection enumValForDirection = SortDirection.valueOf(sortDirection);
         table.sort(column, enumValForDirection);
         return table;
     }
 
+    /**
+     * Obtains a list of targets currently in the system.
+     * @return The list of targets or an empty list if none available
+     * @throws IOException Error accessing targets file
+     */
     public static ArrayList<Target> getTargetList() throws IOException{
         ArrayList<Target> targetList = new ArrayList<Target>();
         File targetFile = new File(Config.CONFIG_DIR, "targets.xml");
-        if (!targetFile.createNewFile() && targetFile.length() > 0) {
+        if (targetFile.exists() && targetFile.length() > 0) {
             //Use the XMLReader and locate the <passed> elements
             XMLReader reader = new XMLReader(targetFile.
                     getAbsolutePath());
             if (reader != null) {
-                    NodeList targets = reader.getNodeListForTagName("target");
-                    if(targets.getLength() > 0) {
-                        for (int i = 0; i < targets.getLength(); i++) {
-                            Target tg = new Target();
-                            Node targetNode = targets.item(i);
-                            if (targetNode.getNodeType() != Node.ELEMENT_NODE) {
-                                continue;
-                            }
-                            Element se = (Element) targetNode;
-                            NodeList targetNodeChildNodes = targetNode.getChildNodes();
-                            int len = targetNodeChildNodes.getLength();
-                            for (int k = 0; k < len; k++) {
-                                if (targetNodeChildNodes.item(k).getNodeType() ==
-                                        Node.ELEMENT_NODE) {
-
-                                     if (targetNodeChildNodes.item(k).getNodeName().equals("name")){
-                                         tg.name = reader.getValue("name", se);
-                                     }
-                                     if (targetNodeChildNodes.item(k).getNodeName().equals("owner")){
-                                         tg.owner = reader.getValue("owner", se);
-                                     }
-                                     if (targetNodeChildNodes.item(k).getNodeName().equals("tags")){
-                                         tg.tags = reader.getValue("tags", se);
-                                     }
-                                     if (targetNodeChildNodes.item(k).getNodeName().equals("metric")){
-                                         tg.metric = reader.getValue("metric", se);
-                                     }
-                                     if (targetNodeChildNodes.item(k).getNodeName().equals("metricunit")){
-                                         tg.metricunit = reader.getValue("metricunit", se);
-                                     }
-                                     if (targetNodeChildNodes.item(k).getNodeName().equals("red")){
-                                         tg.red = reader.getValue("red", se);
-                                     }
-                                     if (targetNodeChildNodes.item(k).getNodeName().equals("orange")){
-                                         tg.orange = reader.getValue("orange", se);
-                                     }
-                                     if (targetNodeChildNodes.item(k).getNodeName().equals("yellow")){
-                                         tg.yellow = reader.getValue("yellow", se);
-                                     }
-
+                NodeList targets = reader.getNodeListForTagName("target");
+                int targetCount;
+                if((targetCount = targets.getLength()) > 0) {
+                    for (int i = 0; i < targetCount; i++) {
+                        Target tg = new Target();
+                        Node targetNode = targets.item(i);
+                        if (targetNode.getNodeType() != Node.ELEMENT_NODE) {
+                            continue;
+                        }
+                        Element se = (Element) targetNode;
+                        NodeList targetNodeChildNodes =
+                                                    targetNode.getChildNodes();
+                        int len = targetNodeChildNodes.getLength();
+                        for (int k = 0; k < len; k++) {
+                            if (targetNodeChildNodes.item(k).getNodeType() ==
+                                    Node.ELEMENT_NODE) {
+                                String nodeName = targetNodeChildNodes.item(k).
+                                                    getNodeName();
+                                if ("name".equals(nodeName)) {
+                                    tg.name = reader.getValue("name", se);
+                                } else if ("owner".equals(nodeName)) {
+                                    tg.owner = reader.getValue("owner", se);
+                                } else if ("tags".equals(nodeName)) {
+                                    tg.tags = reader.getValue("tags", se);
+                                } else if ("metric".equals(nodeName)) {
+                                    tg.metric = reader.getValue("metric", se);
+                                } else if ("metricunit".equals(nodeName)) {
+                                    tg.metricunit = reader.getValue(
+                                            "metricunit", se);
+                                } else if ("red".equals(nodeName)) {
+                                    tg.red = reader.getValue("red", se);
+                                } else if ("orange".equals(nodeName)) {
+                                    tg.orange = reader.getValue("orange", se);
+                                } else if ("yellow".equals(nodeName)) {
+                                    tg.yellow = reader.getValue("yellow", se);
                                 }
                             }
-                            HashMap<String, String> achievedMetricMap = getAchievedMetricForTarget(tg.tags);
-                            tg.achievedMetric = achievedMetricMap.get("metric");
-                            tg.achievedMetricunit = achievedMetricMap.get("metricunit");
-                            Double status = ((Double.parseDouble(tg.achievedMetric)/Double.parseDouble(tg.metric)) * 100);
-                            tg.status = status.toString();
-                            targetList.add(tg);
-                            targetMap.put(tg.name.toString(), tg);
                         }
+                        HashMap<String, String> achievedMetricMap =
+                                getAchievedMetricForTarget(tg.tags);
+                        tg.achievedMetric = achievedMetricMap.get("metric");
+                        tg.achievedMetricunit =
+                                achievedMetricMap.get("metricunit");
+                        Double status = ((Double.parseDouble(tg.achievedMetric)/
+                                          Double.parseDouble(tg.metric)) * 100);
+                        tg.status = status.toString();
+                        targetList.add(tg);
+                        targetMap.put(tg.name.toString(), tg);
                     }
+                }
             }
-        }else{
-            FileHelper.writeStringToFile("<?xml version='1.0' encoding='UTF-8'?><targets></targets>", targetFile);
         }
         return targetList;
     }
