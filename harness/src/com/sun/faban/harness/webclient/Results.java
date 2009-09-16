@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Results.java,v 1.12 2009/08/27 19:55:02 sheetalpatil Exp $
+ * $Id: Results.java,v 1.13 2009/09/16 21:58:44 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -279,6 +279,9 @@ public class Results {
         if(targetSearch == true){
             targetList = RunResult.getTargetListForTarget(target);
             req.setAttribute("targetInSearch", target);
+            if(targetList.isEmpty()) {
+                req.setAttribute("answer", "<span style=color:red; font-size: 14px>There are no targets for search key " + target + "</span>" );
+            }
             /*if(targetSearch == true && user == null){
                 targetList = RunResult.getTargetListForTarget(target);
                 req.setAttribute("targetInSearch", target);
@@ -295,16 +298,25 @@ public class Results {
                 viewMy = "disable";
                 viewAll = "null";
                 targetList = RunResult.getTargetList();
+                if(targetList.isEmpty()){
+                    req.setAttribute("answer", "<span style=color:green; font-size: 14px>Targets " +
+                    "are not defined. Currently, the list is empty.</span>" );
+                }
             }
         }else{
             viewAll = "null";
             targetList = RunResult.getTargetList();
+            if(targetList.isEmpty()){
+                    req.setAttribute("answer", "<span style=color:green; font-size: 14px>Targets " +
+                    "are not defined. Currently, the list is empty.</span>" );
+            }
         }
-
-        if (col >= 0 && col < 5){
-                targetTable = RunResult.generateTargetTable(targetList, col, sortDirection.trim());
-        }else{
-                targetTable = RunResult.generateTargetTable(targetList, 0, "DESCENDING");
+        if(targetList.size() > 0) {
+            if (col >= 0 && col < 5){
+                    targetTable = RunResult.generateTargetTable(targetList, col, sortDirection.trim());
+            }else{
+                    targetTable = RunResult.generateTargetTable(targetList, 0, "DESCENDING");
+            }
         }
         req.setAttribute("viewMy", viewMy);
         req.setAttribute("viewAll", viewAll);

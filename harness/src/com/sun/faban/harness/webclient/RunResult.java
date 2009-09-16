@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunResult.java,v 1.10 2009/08/18 17:42:30 sheetalpatil Exp $
+ * $Id: RunResult.java,v 1.11 2009/09/16 21:58:44 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -852,61 +852,65 @@ public class RunResult {
     public static ArrayList<Target> getTargetList() throws IOException{
         ArrayList<Target> targetList = new ArrayList<Target>();
         File targetFile = new File(Config.CONFIG_DIR, "targets.xml");
-        if (targetFile.exists() && targetFile.length() > 0) {
+        if (!targetFile.createNewFile() && targetFile.length() > 0) {
             //Use the XMLReader and locate the <passed> elements
             XMLReader reader = new XMLReader(targetFile.
                     getAbsolutePath());
             if (reader != null) {
                     NodeList targets = reader.getNodeListForTagName("target");
-                    for (int i = 0; i < targets.getLength(); i++) {
-                        Target tg = new Target();
-                        Node targetNode = targets.item(i);
-                        if (targetNode.getNodeType() != Node.ELEMENT_NODE) {
-                            continue;
-                        }
-                        Element se = (Element) targetNode;
-                        NodeList targetNodeChildNodes = targetNode.getChildNodes();
-                        int len = targetNodeChildNodes.getLength();                      
-                        for (int k = 0; k < len; k++) {
-                            if (targetNodeChildNodes.item(k).getNodeType() ==
-                                    Node.ELEMENT_NODE) {
-                                
-                                 if (targetNodeChildNodes.item(k).getNodeName().equals("name")){
-                                     tg.name = reader.getValue("name", se);
-                                 }
-                                 if (targetNodeChildNodes.item(k).getNodeName().equals("owner")){
-                                     tg.owner = reader.getValue("owner", se);
-                                 }
-                                 if (targetNodeChildNodes.item(k).getNodeName().equals("tags")){
-                                     tg.tags = reader.getValue("tags", se);
-                                 }
-                                 if (targetNodeChildNodes.item(k).getNodeName().equals("metric")){
-                                     tg.metric = reader.getValue("metric", se);
-                                 }
-                                 if (targetNodeChildNodes.item(k).getNodeName().equals("metricunit")){
-                                     tg.metricunit = reader.getValue("metricunit", se);
-                                 }
-                                 if (targetNodeChildNodes.item(k).getNodeName().equals("red")){
-                                     tg.red = reader.getValue("red", se);
-                                 }
-                                 if (targetNodeChildNodes.item(k).getNodeName().equals("orange")){
-                                     tg.orange = reader.getValue("orange", se);
-                                 }
-                                 if (targetNodeChildNodes.item(k).getNodeName().equals("yellow")){
-                                     tg.yellow = reader.getValue("yellow", se);
-                                 }
-
+                    if(targets.getLength() > 0) {
+                        for (int i = 0; i < targets.getLength(); i++) {
+                            Target tg = new Target();
+                            Node targetNode = targets.item(i);
+                            if (targetNode.getNodeType() != Node.ELEMENT_NODE) {
+                                continue;
                             }
+                            Element se = (Element) targetNode;
+                            NodeList targetNodeChildNodes = targetNode.getChildNodes();
+                            int len = targetNodeChildNodes.getLength();
+                            for (int k = 0; k < len; k++) {
+                                if (targetNodeChildNodes.item(k).getNodeType() ==
+                                        Node.ELEMENT_NODE) {
+
+                                     if (targetNodeChildNodes.item(k).getNodeName().equals("name")){
+                                         tg.name = reader.getValue("name", se);
+                                     }
+                                     if (targetNodeChildNodes.item(k).getNodeName().equals("owner")){
+                                         tg.owner = reader.getValue("owner", se);
+                                     }
+                                     if (targetNodeChildNodes.item(k).getNodeName().equals("tags")){
+                                         tg.tags = reader.getValue("tags", se);
+                                     }
+                                     if (targetNodeChildNodes.item(k).getNodeName().equals("metric")){
+                                         tg.metric = reader.getValue("metric", se);
+                                     }
+                                     if (targetNodeChildNodes.item(k).getNodeName().equals("metricunit")){
+                                         tg.metricunit = reader.getValue("metricunit", se);
+                                     }
+                                     if (targetNodeChildNodes.item(k).getNodeName().equals("red")){
+                                         tg.red = reader.getValue("red", se);
+                                     }
+                                     if (targetNodeChildNodes.item(k).getNodeName().equals("orange")){
+                                         tg.orange = reader.getValue("orange", se);
+                                     }
+                                     if (targetNodeChildNodes.item(k).getNodeName().equals("yellow")){
+                                         tg.yellow = reader.getValue("yellow", se);
+                                     }
+
+                                }
+                            }
+                            HashMap<String, String> achievedMetricMap = getAchievedMetricForTarget(tg.tags);
+                            tg.achievedMetric = achievedMetricMap.get("metric");
+                            tg.achievedMetricunit = achievedMetricMap.get("metricunit");
+                            Double status = ((Double.parseDouble(tg.achievedMetric)/Double.parseDouble(tg.metric)) * 100);
+                            tg.status = status.toString();
+                            targetList.add(tg);
+                            targetMap.put(tg.name.toString(), tg);
                         }
-                        HashMap<String, String> achievedMetricMap = getAchievedMetricForTarget(tg.tags);
-                        tg.achievedMetric = achievedMetricMap.get("metric");
-                        tg.achievedMetricunit = achievedMetricMap.get("metricunit");
-                        Double status = ((Double.parseDouble(tg.achievedMetric)/Double.parseDouble(tg.metric)) * 100);
-                        tg.status = status.toString();
-                        targetList.add(tg);
-                        targetMap.put(tg.name.toString(), tg);
                     }
             }
+        }else{
+            FileHelper.writeStringToFile("<?xml version='1.0' encoding='UTF-8'?><targets></targets>", targetFile);
         }
         return targetList;
     }
