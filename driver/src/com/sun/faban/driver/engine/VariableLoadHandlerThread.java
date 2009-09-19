@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: VariableLoadHandlerThread.java,v 1.3 2009/07/28 22:53:31 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -45,23 +45,24 @@ public class VariableLoadHandlerThread extends Thread {
 	
 	public void run() {
 		try {
-			logger.log(Level.INFO, "Variable load controller thread started!");
-			/*
-			long currentTime = agent.timer.getTime();
-			long timeDifference = agent.runInfo.benchStartTime - currentTime;
-			logger.info("Current time: " + currentTime + " runInfo.start: " + agent.runInfo.start + "benchStartTime: " + agent.runInfo.benchStartTime);
-			if(timeDifference >= 0) {
-				logger.info("Run hasn't started yet! Variable load controller sleeping for " + timeDifference + " milliseconds.");
-				sleep(timeDifference);
-			}
-			*/
+			logger.log(Level.INFO, "Variable load controller started!");
+
+            agent.timeSetLatch.await();
+
+            // By now the time is set. Wake up at start of steady state.
+            agent.loadSwitchTime = agent.startTime +
+                            agent.runInfo.rampUp * 1000000000l;
+            agent.timer.wakeupAt(agent.loadSwitchTime);
+
+
 			while(agent.runInfo.variableLoadHandler.hasNext()) {
-				VariableLoadHandler.VariableLoad load = agent.runInfo.variableLoadHandler.next();
-				logger.log(Level.INFO, "Variable load controller thread advanced!");
-				agent.timeToRunFor = load.runTime;
+				VariableLoadHandler.VariableLoad load =
+                        agent.runInfo.variableLoadHandler.next();
 				agent.runningThreads = load.threadCount;
-				logger.log(Level.INFO, "Variable load controller thread sleeping for " + load.runTime + " seconds. Setting for " + load.threadCount + " active threads.");
-				sleep(load.runTime * 1000);
+                agent.loadSwitchTime += load.runTime * 1000000000l;
+                logger.log(Level.INFO, "Active threads: " + load.threadCount +
+                                       " next " + load.runTime + " seconds.");
+                agent.timer.wakeupAt(agent.loadSwitchTime);
 			}
 		} catch(InterruptedException e) {
 			logger.log(Level.FINE, e.getMessage(), e);

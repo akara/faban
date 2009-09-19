@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: AgentImpl.java,v 1.11 2009/08/05 23:36:20 akara Exp $
+ * $Id$
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -79,8 +79,13 @@ public class AgentImpl extends UnicastRemoteObject
     private boolean runAborted = false;
     StatsCollector statsCollector;
 
-    int timeToRunFor = 1;
-    int runningThreads = 0;
+    // Time to wake up and switch the number of active threads.
+    volatile long loadSwitchTime = 1l;
+    // Running threads at given load level.
+    // All threads should run at start.
+    volatile int runningThreads = Integer.MAX_VALUE;
+
+
     VariableLoadHandlerThread threadController;
     private long earliestStartTime = Long.MIN_VALUE;
 
@@ -329,10 +334,10 @@ public class AgentImpl extends UnicastRemoteObject
                         numThreads + " driver threads.");
 			}
             if (runInfo.variableLoad) {
-              runInfo.variableLoadHandler =
-                      new VariableLoadHandler(runInfo.variableLoadFile);
-              threadController = new VariableLoadHandlerThread(this);
-              threadController.run();
+                runInfo.variableLoadHandler =
+                        new VariableLoadHandler(runInfo.variableLoadFile);
+                threadController = new VariableLoadHandlerThread(this);
+                threadController.start();
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, e.getMessage(), e);
