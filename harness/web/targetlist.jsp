@@ -47,7 +47,6 @@
     String targetInSearch = (String)request.getAttribute("targetInSearch");
     String sortDirection = "DESCENDING";
     int rows;
-    if (targetTable != null && (rows = targetTable.rows()) > 0) {
     %>
 <html>
     <head>
@@ -92,7 +91,9 @@
               <% if(answer != null) { %>
                     <%=answer%>
                     <br><br>
-              <% } %>
+              <% }
+    if (targetTable != null && (rows = targetTable.rows()) > 0) {
+    %>
 
               <table BORDER=0 CELLPADDING=4 CELLSPACING=3 width="90%" align="center" style="padding:2px; border: 2px solid #cccccc;">
               <tbody>
@@ -182,13 +183,7 @@
      <br/>
      <br/>
     <%
-    } else {
-    %>
-            <br/>
-            <center><b>There are no targets</b></center>
-            <br/>
-    <%
-    }
+    } 
     %>
     </body>
 </html>

@@ -17,15 +17,13 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Results.java,v 1.12 2009/08/27 19:55:02 sheetalpatil Exp $
+ * $Id: Results.java,v 1.14 2009/09/16 22:48:59 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.webclient;
 
-import com.sun.faban.common.SortDirection;
 import com.sun.faban.common.SortableTableModel;
-import com.sun.faban.harness.ParamRepository;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.RunId;
 import com.sun.faban.harness.engine.RunQ;
@@ -34,6 +32,13 @@ import com.sun.faban.harness.util.FileHelper;
 import com.sun.faban.harness.util.XMLReader;
 import com.sun.faban.harness.webclient.RunResult.FeedRecord;
 import com.sun.faban.harness.webclient.RunResult.Target;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -41,13 +46,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.StringTokenizer;
-import java.util.logging.Logger;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
  * Controller handling actions from the result list screen.
@@ -87,6 +85,13 @@ public class Results {
                     "</target>\n</targets>";
 
         File targetFile = new File(Config.CONFIG_DIR, "targets.xml");
+
+        if (!targetFile.exists() || targetFile.length() == 0) {
+            FileHelper.writeStringToFile(
+                    "<?xml version='1.0' encoding='UTF-8'?><targets></targets>",
+                    targetFile);
+        }
+
         XMLReader reader = new XMLReader(targetFile.getAbsolutePath());
         boolean found = false;
         if (reader != null) {
@@ -279,6 +284,9 @@ public class Results {
         if(targetSearch == true){
             targetList = RunResult.getTargetListForTarget(target);
             req.setAttribute("targetInSearch", target);
+            if(targetList.isEmpty()) {
+                req.setAttribute("answer", "<span style=color:red; font-size: 14px>There are no targets for search key " + target + "</span>" );
+            }
             /*if(targetSearch == true && user == null){
                 targetList = RunResult.getTargetListForTarget(target);
                 req.setAttribute("targetInSearch", target);
@@ -295,16 +303,25 @@ public class Results {
                 viewMy = "disable";
                 viewAll = "null";
                 targetList = RunResult.getTargetList();
+                if(targetList.isEmpty()){
+                    req.setAttribute("answer", "<span style=color:green; font-size: 14px>Targets " +
+                    "are not defined. Currently, the list is empty.</span>" );
+                }
             }
         }else{
             viewAll = "null";
             targetList = RunResult.getTargetList();
+            if(targetList.isEmpty()){
+                    req.setAttribute("answer", "<span style=color:green; font-size: 14px>Targets " +
+                    "are not defined. Currently, the list is empty.</span>" );
+            }
         }
-
-        if (col >= 0 && col < 5){
-                targetTable = RunResult.generateTargetTable(targetList, col, sortDirection.trim());
-        }else{
-                targetTable = RunResult.generateTargetTable(targetList, 0, "DESCENDING");
+        if(targetList.size() > 0) {
+            if (col >= 0 && col < 5){
+                    targetTable = RunResult.generateTargetTable(targetList, col, sortDirection.trim());
+            }else{
+                    targetTable = RunResult.generateTargetTable(targetList, 0, "DESCENDING");
+            }
         }
         req.setAttribute("viewMy", viewMy);
         req.setAttribute("viewAll", viewAll);

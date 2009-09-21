@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ApacheHttpdService.java,v 1.2 2009/07/28 22:54:56 akara Exp $
+ * $Id: ApacheHttpdService.java,v 1.4 2009/09/16 00:27:05 sheetalpatil Exp $
  *
  * Copyright 2008 Sun Microsystems Inc. All Rights Reserved
  */
@@ -25,18 +25,15 @@ package com.sun.services;
 
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
-import com.sun.faban.harness.RunContext;
-import com.sun.faban.harness.services.ServiceContext;
-import com.sun.faban.harness.Context;
-
-import com.sun.faban.harness.WildcardFileFilter;
+import com.sun.faban.common.Utilities;
+import com.sun.faban.harness.*;
 import com.sun.faban.harness.services.ClearLogs;
-import com.sun.faban.harness.services.Configure;
-import com.sun.faban.harness.services.Startup;
-import com.sun.faban.harness.services.Shutdown;
+import com.sun.faban.harness.services.GetLogs;
+import com.sun.faban.harness.services.ServiceContext;
+import com.sun.faban.harness.util.FileHelper;
+
 import java.io.File;
 import java.io.IOException;
-import java.rmi.RemoteException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -54,19 +51,27 @@ public class ApacheHttpdService {
 
     /** Injected service context. */
     @Context public ServiceContext ctx;
-    private Logger logger = Logger.getLogger(ApacheHttpdService.class.getName());
-    private String[] myServers = new String[1];
-    private static String apacheCmd,  errlogFile,  acclogFile;
+    private static Logger logger =
+            Logger.getLogger(ApacheHttpdService.class.getName());
+    private String[] myServers;
+    private static String apacheCmd,  errlogFile,  acclogFile, phpSessionDir, phpiniFile;
     CommandHandle apacheHandles[];
 
     /**
      * Configures the service.
      */
     @Configure public void configure() {
-        myServers = ctx.getHosts();
+        myServers = ctx.getUniqueHosts();
         apacheCmd = ctx.getProperty("cmdPath");
         if (!apacheCmd.endsWith(" "))
             apacheCmd = apacheCmd + " ";
+
+        String phpSessionDir1 = ctx.getProperty("phpSessionDir");
+        if (phpSessionDir1.endsWith(File.separator))
+            phpSessionDir = phpSessionDir1.substring(0,
+                    phpSessionDir1.length() - File.separator.length());
+        else
+            phpSessionDir = phpSessionDir1;
 
         String logsDir = ctx.getProperty("logsDir");
         if (!logsDir.endsWith(File.separator))
@@ -74,17 +79,17 @@ public class ApacheHttpdService {
 
         errlogFile = logsDir + "error_log";
         acclogFile = logsDir + "access_log";
-        logger.info("ApacheHttpdService setup complete.");
-        apacheHandles = new CommandHandle[myServers.length];
+        phpiniFile = ctx.getProperty("phpiniFilePath");
+        logger.fine("ApacheHttpdService setup complete.");
     }
 
     
     /**
      * Starts up the Apache web server.
      */
-    @Startup public void startup() {
+    @Start public void startup() {
         String cmd = apacheCmd + "start";
-        logger.info("Starting Apache Service with command = "+ cmd);
+        logger.fine("Starting Apache Service with command = "+ cmd);
         Command startCmd = new Command(cmd);
         startCmd.setSynchronous(false); // to run in bg
  
@@ -92,12 +97,63 @@ public class ApacheHttpdService {
             String server = myServers[i];
             try {
                 // Run the command in the foreground and wait for the start
-                apacheHandles[i] = RunContext.exec(server, startCmd);
-                logger.info("Completed apache httpd server(s) startup successfully on "
-                        + server);
+                RunContext.exec(server, startCmd);
+                /*
+                 * Read the log file to make sure the server has started.
+                 * We do this by running the code block on the server via
+                 * RemoteCallable
+                 */
+                if (checkServerStarted(server)) {
+                    logger.fine("Completed apache httpd server(s) startup " +
+                            "successfully on " + server);
+                } else {
+                    logger.severe("Failed to find start message in " +
+                            errlogFile + " on " + server);
+                }
             } catch (Exception e) {
-                logger.log(Level.WARNING, "Failed to start apache server.", e);
+                logger.log(Level.WARNING, "Failed to start apache server on " +
+                        server, e);
             }
+        }
+    }
+
+    /*
+	 * Check if apache server started by looking in the error_log
+	 */
+    private static boolean checkServerStarted(String hostName)
+            throws Exception {
+        Integer val = 0;
+        final String err = errlogFile;
+
+        val = RunContext.exec(hostName, new RemoteCallable<Integer>() {
+
+            static final int RETRIES = 30;
+
+            public Integer call() throws Exception {
+                Integer retVal = 0;
+                String msg = "resuming normal operations";
+
+                // Ensure filenames are not impacted by path differences.
+                File errFile = new File(Utilities.convertPath(err));
+                for (int retry = 0;retry < RETRIES; retry++) {
+                    if (errFile.exists()) {
+                        if (FileHelper.hasString(errFile, msg)) {
+                            retVal = 1;
+                            break;
+                        } 
+                    }
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                    }
+                }
+                return retVal;
+            }
+        });
+        if (val == 1) {
+            return (true);
+        } else {
+            return (false);
         }
     }
 
@@ -106,26 +162,78 @@ public class ApacheHttpdService {
      * @throws IOException Error executing the shutdown
      * @throws InterruptedException Interrupted waiting for the shutdown
      */
-    @Shutdown public void shutdown() throws IOException, InterruptedException {
+    @Stop public void shutdown() throws IOException, InterruptedException {
         for (int i = 0; i < myServers.length; i++) {
-            if (apacheHandles[i] != null) {
                 //Try to Stop it.
                 try {
-                        String cmd = apacheCmd + "stop";
-                        Command stopCmd = new Command(cmd);
-                        stopCmd.setLogLevel(Command.STDOUT, Level.FINE);
-                        stopCmd.setLogLevel(Command.STDERR, Level.FINE);
+                    String cmd = apacheCmd + "stop";
+                    Command stopCmd = new Command(cmd);
+                    stopCmd.setLogLevel(Command.STDOUT, Level.FINE);
+                    stopCmd.setLogLevel(Command.STDERR, Level.FINE);
 
-                        // Run the command in the foreground
-                        RunContext.exec(myServers[i], stopCmd);
-                        apacheHandles[i].destroy();
-                } catch (RemoteException re) {
-                        logger.log(Level.WARNING, "Failed to stop Apache httpd server" +
-                                myServers[i] + " with " + re.toString(), re);
+                    // Run the command in the foreground
+                    CommandHandle ch = RunContext.exec(myServers[i], stopCmd);
+                    // Check if the server was running before stop was issued
+                    // If not running, apachectl will print that on stdout
+                    byte[] output = ch.fetchOutput(Command.STDOUT);
+
+                    if (output != null)
+                        if ((output.toString()).indexOf("not running") != -1) {
+                           continue;
+                        }
+
+                    if (checkServerStopped(myServers[i])) {
+                        logger.fine("Completed apache httpd server(s) " +
+                                "shutdown successfully on " + myServers[i]);
+                        continue;
+                    } 
+
+                } catch (Exception e) {
+                        logger.log(Level.WARNING,
+                                "Failed to stop Apache httpd server" +
+                                myServers[i] + " with " + e.toString(), e);
                 }                
-			}
         }
-        apacheHandles = null;
+    }
+
+    /*
+	 * Check if apache server stopped by scanning error_log
+	 */
+    private static boolean checkServerStopped(String hostName)
+            throws Exception {
+        Integer val = 0;
+        final String err = errlogFile;
+        val = RunContext.exec(hostName, new RemoteCallable<Integer>() {
+
+            static final int RETRIES = 30;
+
+            public Integer call() throws Exception {
+                Integer retVal = 0;
+                // Read the log file to make sure the server has shutdown
+                String msg = "shutting down";
+
+                // Ensure filenames are not impacted by path differences.
+                File errFile = new File(Utilities.convertPath(err));
+                for (int retry = 0;retry < RETRIES; retry++) {
+                    if (errFile.exists()) {
+                        if (FileHelper.hasString(errFile, msg)) {
+                            retVal = 1;
+                            break;
+                        }
+                    }
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                    }
+                }
+                return retVal;
+            }
+        });
+        if (val == 1) {
+            return (true);
+        } else {
+            return (false);
+        }
     }
 
     /**
@@ -150,14 +258,14 @@ public class ApacheHttpdService {
             logger.fine("Logs cleared for " + myServers[i]);
             try {
                 // Now delete the session files
-                if (RunContext.deleteFiles(myServers[i], "/tmp",
+                if (RunContext.deleteFiles(myServers[i], phpSessionDir,
                         new WildcardFileFilter("sess*")))
                     logger.fine("Deleted session files for " + myServers[i]);
                 else
                     logger.warning("Error deleting session files for " +
                             myServers[i]);
 
-                if (RunContext.deleteFiles(myServers[i], "/tmp",
+                if (RunContext.deleteFiles(myServers[i], phpSessionDir,
                         new WildcardFileFilter("php*")))
                     logger.fine("Deleted php temp files for " + myServers[i]);
                 else
@@ -170,5 +278,31 @@ public class ApacheHttpdService {
                 logger.log(Level.FINE, "Exception", e);
             }
         }
-    }   
+    }
+
+    /**
+     * Transfer log files.
+     * This method copies over the error_log to the run output directory
+     * and keeps only the portion of the log relevant for this run.
+     */
+    @GetLogs public void getLogs() {
+        for (int i = 0; i < myServers.length; i++) {
+            String outErorrFile = RunContext.getOutDir() + "httpd_err.log." +
+                             RunContext.getHostName(myServers[i]);
+            String outPhpiniFile = RunContext.getOutDir() + "phpini.log." +
+                             RunContext.getHostName(myServers[i]);
+
+            // copy the php.ini to the master
+            if (!RunContext.getFile(myServers[i], phpiniFile, outPhpiniFile)) {
+                logger.warning("Could not copy " + phpiniFile + " to " + outPhpiniFile);
+            }
+            // copy the error_log to the master
+            if (!RunContext.getFile(myServers[i], errlogFile, outErorrFile)) {
+                logger.warning("Could not copy " + errlogFile + " to " + outErorrFile);
+                return;
+            }
+            RunContext.truncateFile(myServers[i], errlogFile);
+            logger.fine("XferLog Completed for " + myServers[i]);
+        }
+    }
 }

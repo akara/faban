@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: CmdMap.java,v 1.13 2009/08/27 21:03:21 sheetalpatil Exp $
+ * $Id: CmdMap.java,v 1.15 2009/09/15 21:35:49 akara Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -52,7 +52,7 @@ public class CmdMap {
     /**
      * Scans the bin directories and command map file and returns the command
      * map.
-     * @param resourceName The name of the benchmark,
+     * @param benchName The name of the benchmark,
      *                  null if the map is not benchmark-specific
      * @return The command map
      * @throws Exception Something went wrong obtaining the command map.
@@ -94,6 +94,12 @@ public class CmdMap {
        return binMap;
     }
 
+    /**
+     * Obtains the command map for a service/tool deployment.
+     * @param serviceName The name of the service
+     * @return The command map, if applicable, for that service
+     * @throws Exception Something went wrong obtaining the command map.
+     */
     public static HashMap<String, List<String>> getServiceBinMap(
                                     String serviceName) throws Exception {
         HashMap<String, List<String>> binMap =

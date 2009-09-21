@@ -17,25 +17,28 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
+ * $Id: ToolWrapper.java,v 1.12 2009/09/15 19:36:06 akara Exp $
+ *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
 
 package com.sun.faban.harness.tools;
 
-import com.sun.faban.common.FileTransfer;
 import com.sun.faban.common.CommandHandle;
+import com.sun.faban.common.FileTransfer;
+import com.sun.faban.harness.Configure;
 import com.sun.faban.harness.Context;
+import com.sun.faban.harness.Start;
+import com.sun.faban.harness.Stop;
 import com.sun.faban.harness.agent.CmdAgentImpl;
 import com.sun.faban.harness.agent.FileAgent;
 import com.sun.faban.harness.common.Config;
+import com.sun.faban.harness.util.Invoker;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CountDownLatch;
@@ -72,7 +75,6 @@ public class ToolWrapper {
     String toolName;
     String path = null; // The path to the tool.
     CmdAgentImpl cmdAgent;
-    HashMap<String, HashMap<String, List<String>>> serviceBinMap;
 
     /** The timer used for scheduling the tools. */
     protected Timer timer;
@@ -85,51 +87,55 @@ public class ToolWrapper {
      * @param ctx
      * @throws java.lang.Exception
      */
-    public ToolWrapper(Class toolClass, MasterToolContext ctx) throws Exception {
-        tool = toolClass.newInstance();
+    public ToolWrapper(Class toolClass, MasterToolContext ctx)
+            throws Exception {
         Method[] methods = toolClass.getMethods();
         for (Method method : methods) {
             // Check annotation.
             if (method.getAnnotation(Start.class) != null) {
-                if (!conformsToSpec(method))
+                if (!Invoker.isVoidNoArg(method))
                     continue;
                 if (startMethod == null) {
                     startMethod = method;
                 } else {
-                    logger.severe("Error: Multiple @Start methods.");
+                    logger.severe(toolName +
+                            " Error: Multiple @Start methods.");
                 }
             }
             if (method.getAnnotation(Stop.class) != null) {
-                if (!conformsToSpec(method))
+                if (!Invoker.isVoidNoArg(method))
                     continue;
                 if (stopMethod == null) {
                     stopMethod = method;
                 } else {
-                    logger.severe("Error: Multiple @Stop methods.");
+                    logger.severe(toolName + " Error: Multiple @Stop methods.");
                 }
             }
             if (method.getAnnotation(Configure.class) != null) {
-                if (!conformsToSpec(method))
+                if (!Invoker.isVoidNoArg(method))
                     continue;
                 if (configureMethod == null) {
                     configureMethod = method;
                 } else {
-                    logger.severe("Error: Multiple @Configure methods.");
+                    logger.severe(toolName +
+                            " Error: Multiple @Configure methods.");
                 }
             }
             if (method.getAnnotation(Postprocess.class) != null) {
-                if (!conformsToSpec(method))
+                if (!Invoker.isVoidNoArg(method))
                     continue;
                 if (postprocessMethod == null) {
                     postprocessMethod = method;
                 } else {
-                    logger.severe("Error: Multiple @PostProcess methods.");
+                    logger.severe(toolName +
+                            " Error: Multiple @PostProcess methods.");
                 }
             }
         }
 
         Field ctxField = null;
-        tc = new ToolContext(ctx.getTool(), ctx.getToolServiceContext(), ctx.getToolDescription(), this);
+        tc = new ToolContext(ctx.getTool(), ctx.getToolServiceContext(),
+                ctx.getToolDescription(), this);
         Field[] fields = toolClass.getFields();
         for (Field field : fields) {
             if (field.getType().equals(ToolContext.class) &&
@@ -137,47 +143,25 @@ public class ToolWrapper {
                     if (ctxField == null)
                         ctxField = field;
                     else
-                        logger.warning("More than one valid @Context annotation.");
+                        logger.warning(toolName +
+                                ": More than one valid @Context annotation.");
             }
         }
-        if (ctxField != null)
-            ctxField.set(tool, tc);
-
-    }
-
-    private boolean conformsToSpec(Method method) {
-            boolean retval= true;
-            // Is it a noarg method?
-            if (method.getParameterTypes().length > 0) {
-                logger.warning("Method has arguments");
-                retval = false;
-            }
-            // Is it a void method?
-            if (!method.getReturnType().equals(Void.TYPE)) {
-                logger.warning("Method is not of type Void");
-                retval = false;
-            }
-            return retval;
-    }
-    private void throwSourceException(InvocationTargetException e)
-                throws Exception {
-            Throwable t = e.getCause();
-            if (t instanceof Exception) {
-                logger.log(Level.WARNING, t.getMessage(), t);
-                throw (Exception) t;
-            } else {
-                throw e;
-            }
+        Invoker.setContextLocation(tc.toolPath);
+        try {
+            tool = toolClass.newInstance();
+            if (ctxField != null)
+                ctxField.set(tool, tc);
+        } catch (InstantiationException e) {
+            Invoker.throwCauseException(e);
+        } finally {
+            Invoker.setContextLocation(null);
+        }
     }
 
     private void configure() throws Exception {
-        if (configureMethod != null){
-            try {
-                configureMethod.invoke(tool,new Object[] {});
-            } catch (InvocationTargetException e) {
-                throwSourceException(e);
-            }
-        }
+        Invoker.invoke(tool, configureMethod, tc.toolPath);
+        logger.fine("Configured tool " + toolName);
     }
 
     /**
@@ -188,19 +172,17 @@ public class ToolWrapper {
         if (postprocessed)
             return;
         postprocessed = true;
-        logger.fine(toolName + " post-processing.");
         try {
-            if (toolStatus == STOPPED){
-                if (postprocessMethod != null)
-                    try {
-                        postprocessMethod.invoke(this.tool,new Object[] {});
-                    } catch (InvocationTargetException e) {
-                        throwSourceException(e);
-                    }
-
+            if (toolStatus == STOPPED) {
+                if (postprocessMethod != null) {
+                    logger.fine(toolName + " post-processing.");
+                    Invoker.invoke(tool, postprocessMethod, tc.toolPath);
+                    logger.fine("Postprocessed tool " + toolName);
+                }
                 // xfer log file to master machine, log any errors
                 xferLog();
-                logger.fine(toolName + " Done ");
+                logger.fine("Transfered logs for tool " + toolName);
+                logger.info(toolName + " Done ");
             }
         } finally {
             finish();
@@ -212,37 +194,31 @@ public class ToolWrapper {
      * @throws java.lang.Exception
      */
     private void start() throws Exception {
-        if (startMethod != null){
-            try {
-                startMethod.invoke(tool,new Object[] {});
-            } catch (InvocationTargetException e) {
-                throwSourceException(e);
-            }
-        }
+        Invoker.invoke(tool, startMethod, tc.toolPath);
         toolStatus = STARTED;
+        logger.info("Started tool " + toolName);
     }
 
     /**
      * This method is responsible for configuring a tool.
-     * @param toolName
-     * @param path
-     * @param outDir
-     * @param host
-     * @param cmdAgent
-     * @param latch
-     * @throws java.lang.Exception
+     * @param toolName The name of the tool.
+     * @param path The path to start the command
+     * @param outDir The tool output directory
+     * @param host The host the tool should run
+     * @param cmdAgent The local command agent
+     * @param latch The latch used for identifying tool completion
+     * @throws java.lang.Exception If there is any error
      */
-    public void configure(String toolName, String path, String outDir, String host,
-                          CmdAgentImpl cmdAgent, CountDownLatch latch,
-                          HashMap<String, HashMap<String, List<String>>> serviceBinMap)
-                          throws Exception {
+    public void configure(String toolName, String path, String outDir,
+                          String host, CmdAgentImpl cmdAgent,
+                          CountDownLatch latch)
+            throws Exception {
 
         // Prepare the context based on the params.
         this.toolName = toolName;
         this.cmdAgent = cmdAgent;
         this.timer = cmdAgent.getTimer();
         this.latch = latch;
-        this.serviceBinMap = serviceBinMap;
 
         if (path != null)
             this.path = path;
@@ -263,7 +239,8 @@ public class ToolWrapper {
                 try {
                     start();
                 } catch (Exception ex) {
-                    logger.log(Level.SEVERE, null, ex);
+                    logger.log(Level.SEVERE, toolName + ": " + ex.getMessage(),
+                            ex);
                 }
             }
         };
@@ -295,7 +272,7 @@ public class ToolWrapper {
                 // the other tools' stops are called first.
                 timer.schedule(new PostprocessTask(), 500);
             } catch (Exception ex) {
-                logger.log(Level.SEVERE, ex.getMessage(), ex);
+                logger.log(Level.SEVERE, toolName + ": " + ex.getMessage(), ex);
             }
         }
     }
@@ -305,7 +282,7 @@ public class ToolWrapper {
             try {
                 postprocess();
             } catch (Exception ex) {
-                logger.log(Level.SEVERE, ex.getMessage(), ex);
+                logger.log(Level.SEVERE, toolName + ": " + ex.getMessage(), ex);
             }
         }
     }
@@ -325,11 +302,15 @@ public class ToolWrapper {
      */
     protected void stop(boolean warn) throws Exception{
         if (toolStatus == STARTED){
-            stopMethod.invoke(this.tool,new Object[] {});
-                
-                // saveToolLogs(tool.getInputStream(), tool.getErrorStream());
+            Invoker.setContextLocation(tc.toolPath);
+            try {
+                stopMethod.invoke(this.tool,new Object[] {});
+            } finally {
+                Invoker.setContextLocation(null);
+            }
+            // saveToolLogs(tool.getInputStream(), tool.getErrorStream());
                 toolStatus = STOPPED;
-                logger.fine(toolName + " Stopped ");
+                logger.info("Stopped tool " + toolName);
         } else if (warn && toolStatus == NOT_STARTED)
             logger.warning("Tool not started but stop called for " + toolName);
     }
@@ -341,7 +322,8 @@ public class ToolWrapper {
     protected void xferLog() {
         String logfile = tc.getOutputFile();
         if (!new File(logfile).exists()) {
-            logger.info("Transfer file " + logfile + " not found.");
+            logger.warning(toolName + ": Transfer file " + logfile +
+                    " not found.");
             return;
         }
         try {
@@ -351,7 +333,8 @@ public class ToolWrapper {
             } else {
                 transfer = new FileTransfer(logfile, outfile);
             }
-            logger.fine("Transferring log from " + logfile + " to " + outfile);
+            logger.fine(toolName + ": Transferring log from " + logfile +
+                    " to " + outfile);
 
             // Use FileAgent on master machine to copy log
             if (transfer != null) {
@@ -359,10 +342,11 @@ public class ToolWrapper {
                 FileAgent fa =
                         (FileAgent) CmdAgentImpl.getRegistry().getService(s);
                 if (fa.push(transfer) != transfer.getSize())
-                    logger.info("Invalid transfer size");
+                    logger.info(toolName + ": Invalid transfer size");
             }
         } catch (IOException e) {
-            logger.log(Level.INFO, "Error transferring " + logfile, e);
+            logger.log(Level.INFO, toolName + ": Error transferring " +
+                    logfile, e);
         }
     }
 

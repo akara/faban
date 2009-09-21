@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ToolAgentImpl.java,v 1.14 2009/08/27 21:03:21 sheetalpatil Exp $
+ * $Id: ToolAgentImpl.java,v 1.16 2009/09/15 20:53:03 sheetalpatil Exp $
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
@@ -28,7 +28,6 @@ import com.sun.faban.harness.tools.CommandLineTool;
 import com.sun.faban.harness.tools.MasterToolContext;
 import com.sun.faban.harness.tools.ToolDescription;
 import com.sun.faban.harness.tools.ToolWrapper;
-import com.sun.faban.harness.util.CmdMap;
 import com.sun.faban.harness.util.XMLReader;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -63,8 +62,6 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
     static String host;	// our current hostname
     Logger logger;
     CountDownLatch latch;
-    HashMap<String, HashMap<String, List<String>>> serviceBinMap =
-                                        new HashMap<String, HashMap<String, List<String>>>();
 
     /**
      * Constructor.
@@ -75,7 +72,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
         logger = Logger.getLogger(this.getClass().getName());
         host = CmdAgentImpl.getHost();
         masterMachine = CmdAgentImpl.getMaster();
-        logger.info("Started");
+        logger.fine("Started processing tools");
     }
 
     /**
@@ -124,13 +121,8 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
         toolNames = new String[numTools];
         tools = new ToolWrapper[numTools];
 
-        logger.info("Processing tools");
+        logger.fine("Processing tools");
         latch = new CountDownLatch(toollist.size());
-        try {
-        downloadTools(toollist);
-        } catch (Exception ex) {
-            Logger.getLogger(ToolAgentImpl.class.getName()).log(Level.SEVERE, null, ex);
-        }
         
         for (int i=0; i<toollist.size(); i++) {
             MasterToolContext ctx = toollist.get(i);
@@ -163,7 +155,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
                     Class c = loader.loadClass(toolClass);
                     tools[i] = new ToolWrapper(c, ctx);
                     logger.fine("Trying to run tool " + c.getName());
-                    tools[i].configure(toolNames[i], path, outDir, host, CmdAgentImpl.getHandle(), latch, serviceBinMap);
+                    tools[i].configure(toolNames[i], path, outDir, host, CmdAgentImpl.getHandle(), latch);
                 } catch (ClassNotFoundException ce) {
                     logger.log(Level.WARNING, "Class " + toolClass + " not found");
                     latch.countDown();
@@ -177,7 +169,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
                         ctx.getToolParams().trim().length() > 0)) {
                 try {
                     tools[i] = new ToolWrapper(CommandLineTool.class, ctx);
-                    tools[i].configure(toolNames[i], path, outDir, host, CmdAgentImpl.getHandle(), latch, serviceBinMap);
+                    tools[i].configure(toolNames[i], path, outDir, host, CmdAgentImpl.getHandle(), latch);
                     logger.fine("Trying to run tool " + tools[i] + " using CommandLineTool.");
                 } catch (Exception ex) {
                     logger.log(Level.WARNING, "Cannot start CommandLineTool!", ex);
@@ -372,32 +364,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
      */
     public void unreferenced() {
         kill();
-    }
-
-    /**
-     * Downloads the tools.
-     * @param toollist list of tool contexts
-     * @throws java.io.IOException
-     */
-    private void downloadTools(List<MasterToolContext> toollist) throws IOException, Exception {
-        LinkedHashSet<ToolDescription> downloads = new LinkedHashSet<ToolDescription>();
-        for (int i=0; i < toollist.size(); i++) {
-            MasterToolContext ctx = toollist.get(i);
-            ToolDescription toolDesc = ctx.getToolDescription();
-            if (toolDesc != null)
-                downloads.add(toolDesc);
-        }
-
-        for(ToolDescription desc : downloads){
-            if (desc.getLocationType() != null && "services".equals(desc.getLocationType())){
-                new Download().loadService(desc.getLocation(),
-                                            AgentBootstrap.downloadURL);
-                if(serviceBinMap.get(desc.getServiceName()) == null){
-                    serviceBinMap.put(desc.getServiceName(), CmdMap.getServiceBinMap(desc.getServiceName()));
-        }
-    }
-        }
-    }
+    } 
 
     /**
      * Obtains the OS toolsets.

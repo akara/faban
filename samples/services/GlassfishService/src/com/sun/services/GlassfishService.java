@@ -21,27 +21,18 @@
  */
 package com.sun.services;
 
-import static com.sun.faban.harness.RunContext.*;
-
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
-import com.sun.faban.harness.Context;
-import com.sun.faban.harness.RemoteCallable;
-
-import com.sun.faban.harness.RunContext;
+import com.sun.faban.harness.*;
 import com.sun.faban.harness.services.ClearLogs;
-import com.sun.faban.harness.services.Configure;
 import com.sun.faban.harness.services.GetLogs;
 import com.sun.faban.harness.services.ServiceContext;
-import com.sun.faban.harness.services.Startup;
-import com.sun.faban.harness.services.Shutdown;
+
 import java.io.File;
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.GregorianCalendar;
-import java.util.Calendar;
-import java.text.SimpleDateFormat;
+
+import static com.sun.faban.harness.RunContext.*;
 
 /**
  *
@@ -55,10 +46,11 @@ import java.text.SimpleDateFormat;
  */
 public class GlassfishService {
 
+    /** The injected context. */
     @Context public ServiceContext ctx;
     Logger logger = Logger.getLogger(GlassfishService.class.getName());
-    private String[] myServers = new String[1];
-    private static String asadminCmd,  errlogFile,  acclogFile;
+    private String[] myServers;
+    private static String asadminCmd, errlogFile, confFile;
 
 
     /**
@@ -67,29 +59,31 @@ public class GlassfishService {
      *
      */
      @Configure public void configure() {
-        myServers = ctx.getHosts();
+        myServers = ctx.getUniqueHosts();
         String logsDir = ctx.getProperty("logsDir");
         if (!logsDir.endsWith(File.separator))
             logsDir = logsDir + File.separator;
+        errlogFile = logsDir + "server.log";
 
         asadminCmd = ctx.getProperty("cmdPath");
         if (!asadminCmd.endsWith(File.separator))
             asadminCmd = asadminCmd + File.separator;
-
-
         asadminCmd = asadminCmd + "asadmin";
-        errlogFile = logsDir + "server.log";
-        acclogFile = logsDir + "access";
-        logger.info("GlassfishService Configure completed.");
+
+        confFile = ctx.getProperty("configDir");
+        if (!confFile.endsWith(File.separator))
+            confFile = confFile + File.separator;
+        confFile = confFile + "domain.xml";
+
+        logger.fine("GlassfishService Configure completed.");
     }
 
     /**
-     * Start all glassfish servers on configured hosts
-     * @return boolean true if start succeeded on all machines, else false
+     * Start all glassfish servers on configured hosts.
      */
-    @Startup public void startup() {
+    @Start public void startup() {
 
-        Command startCmd = new Command(asadminCmd, "start-domain");       
+        Command startCmd = new Command(asadminCmd, "start-domain");
 
         for (int i = 0; i < myServers.length; i++) {
             String server = myServers[i];
@@ -102,7 +96,8 @@ public class GlassfishService {
                  * RemoteCallable
                  */
                 if (checkServerStarted(server)) {
-                    logger.fine("Completed GlassFish startup successfully on " + server);
+                    logger.fine("Completed GlassFish startup successfully on " +
+                            server);
                 } else {
                     logger.severe("Failed to start GlassFish on " + server);
                 }
@@ -113,14 +108,16 @@ public class GlassfishService {
                 logger.log(Level.FINE, "Exception", e);
             }
         }
-        logger.info("Completed GlassFish server(s) startup");
+        logger.fine("Completed GlassFish server(s) startup");
     }
 
     /*
 	 * Check if Glassfish server is started.
 	 */
-    private static boolean checkServerStarted(String hostName) throws Exception {
+    private static boolean checkServerStarted(String hostName)
+            throws Exception {
         Command checkCmd = new Command(asadminCmd, "list-domains");     
+		checkCmd.setStreamHandling(Command.STDOUT, Command.CAPTURE);
         CommandHandle handle = RunContext.exec(hostName, checkCmd);
         byte[] output = handle.fetchOutput(Command.STDOUT);
         if (output != null) {
@@ -134,14 +131,14 @@ public class GlassfishService {
     }
 
     /**
-     * stop Servers
-     * @return true if stop succeeded on all machines, else false
+     * Shuts down the Glassfish servers.
      */
-    @Shutdown public void shutdown() throws IOException, InterruptedException {
+    @Stop public void shutdown() {
         for (int i = 0; i < myServers.length; i++) {
             Integer retVal = 0;
             try {
                 Command stopCmd = new Command(asadminCmd, "stop-domain");
+				stopCmd.setStreamHandling(Command.STDOUT, Command.CAPTURE);
                
                 // Run the command in the foreground
                 CommandHandle ch = RunContext.exec(myServers[i], stopCmd);
@@ -173,7 +170,8 @@ public class GlassfishService {
     /*
 	 * Check if glassfish server is stopped.
 	 */
-    private static Integer checkServerStopped(String hostName) throws Exception {
+    private static Integer checkServerStopped(String hostName)
+            throws Exception {
         Command checkCmd = new Command(asadminCmd, "list-domains");
         CommandHandle handle = RunContext.exec(hostName, checkCmd);
         byte[] output = handle.fetchOutput(Command.STDOUT);
@@ -188,91 +186,52 @@ public class GlassfishService {
     }
 
     /**
-     * clear glassfish logs and session files
+     * Clear glassfish logs and session files.
 	 * It assumes that session files are in /tmp/sess*
      * @return true if operation succeeded, else fail
      */
-    @ClearLogs public boolean clearLogs() {
+    @ClearLogs public void clearLogs() {
 
         for (int i = 0; i < myServers.length; i++) {
             if (isFile(myServers[i], errlogFile)) {
                 if (!deleteFile(myServers[i], errlogFile)) {
                     logger.log(Level.WARNING, "Delete of " + errlogFile +
                             " failed on " + myServers[i]);
-                    return (false);
-                }
-            }
-            if (isFile(myServers[i], acclogFile)) {
-                if (!deleteFile(myServers[i], acclogFile)) {
-                    logger.log(Level.WARNING, "Delete of " + acclogFile +
-                            " failed on " + myServers[i]);
-                    return (false);
+                    return;
                 }
             }
 
             logger.fine("Logs cleared for " + myServers[i]);
         }
-        return (true);
+        return;
     }
 
     /**
-     * transfer log files
-	 * This method copies over the error_log to the run output directory
-	 * and keeps only the portion of the log relevant for this run
-	 * @param totalRunTime - the time in seconds for this run
+     * Transfer log files.
      */
     @GetLogs public void xferLogs() {
-        String duration = ctx.getRunDuration();
-        int totalRunTime = Integer.parseInt(duration);
         for (int i = 0; i < myServers.length; i++) {
-            String outFile = getOutDir() + "server_log." +
+            String outFile = getOutDir() + "glassfish.log." +
                     getHostName(myServers[i]);
 
             // copy the error_log to the master
             if (!getFile(myServers[i], errlogFile, outFile)) {
-                logger.warning("Could not copy " + errlogFile + " to " + outFile);
+                logger.warning("Could not copy " + errlogFile + " to " +
+                        outFile);
                 return;
             }
+            RunContext.truncateFile(myServers[i], errlogFile);
 
-
-            try {
-                // Now get the start and end times of the run
-                GregorianCalendar calendar = getGregorianCalendar(myServers[i]);
-
-                //format the end date
-                SimpleDateFormat df = new SimpleDateFormat("MMM,dd,HH:mm:ss");
-                String endDate = df.format(calendar.getTime());
-
-                calendar.add(Calendar.SECOND, (totalRunTime * -1));
-
-                String beginDate = df.format(calendar.getTime());
-
-                Command parseCommand = new Command("truncate_errorlog.sh",
-                        beginDate, endDate, outFile);
-                exec(parseCommand);
-
-            } catch (Exception e) {
-
-                logger.log(Level.WARNING, "Failed to tranfer log of " +
-                        myServers[i] + '.', e);
+			// copy the domain.xml
+			outFile = getOutDir() + "domain.xml.log." +
+                    getHostName(myServers[i]);
+            if (!getFile(myServers[i], confFile, outFile)) {
+                logger.warning("Could not copy " + confFile + " to " +
+                        outFile);
+                return;
             }
-
-            logger.fine("XferLog Completed for " + myServers[i]);
-
             logger.fine("XferLog Completed for " + myServers[i]);
         }
     }
-
-    public static GregorianCalendar getGregorianCalendar(
-            String hostName)
-            throws Exception {
-        return exec(hostName, new RemoteCallable<GregorianCalendar>() {
-
-            public GregorianCalendar call() {
-                return new GregorianCalendar();
-            }
-        });
-    }
-
 
 }
