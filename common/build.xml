@@ -19,9 +19,9 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: build.xml,v 1.4 2009/06/23 16:48:30 akara Exp $
+* $Id$
 *
-* Copyright 2005 Sun Microsystems Inc. All Rights Reserved
+* Copyright 2005-2009 Sun Microsystems Inc. All Rights Reserved
 -->
 <project name="Faban Common Facilities" default="fabancommon.jar">
 
