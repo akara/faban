@@ -17,9 +17,9 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: ApacheHttpdService.java,v 1.9 2009/08/05 23:50:10 akara Exp $
+ * $Id$
  *
- * Copyright 2007 Sun Microsystems Inc. All Rights Reserved
+ * Copyright 2007-2009 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.engine;
 

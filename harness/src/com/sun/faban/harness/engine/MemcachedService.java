@@ -17,9 +17,9 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: MemcachedService.java,v 1.5 2009/07/28 22:54:15 akara Exp $
+ * $Id$
  *
- * Copyright 2007 Sun Microsystems Inc. All Rights Reserved
+ * Copyright 2007-2009 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.engine;
 
