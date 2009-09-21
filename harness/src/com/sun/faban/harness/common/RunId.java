@@ -17,9 +17,9 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunId.java,v 1.6 2008/12/05 22:02:14 sheetalpatil Exp $
+ * $Id$
  *
- * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
+ * Copyright 2005-2009 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.common;
 

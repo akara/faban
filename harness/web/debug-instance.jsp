@@ -19,9 +19,9 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: debug-instance.jsp,v 1.3 2009/02/28 18:03:49 akara Exp $
+ * $Id$
  *
- * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
+ * Copyright 2005-2009 Sun Microsystems Inc. All Rights Reserved
  */
 -->
 <%@ page import="com.sun.faban.harness.common.Config,

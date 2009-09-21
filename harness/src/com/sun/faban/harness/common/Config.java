@@ -17,9 +17,9 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Config.java,v 1.36 2009/08/07 20:34:14 sheetalpatil Exp $
+ * $Id$
  *
- * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
+ * Copyright 2005-2009 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.common;
 
@@ -56,8 +56,9 @@ public class Config {
 
     // This field is a legal requirement and serves no other purpose.
     static final String COPYRIGHT =
-            "Copyright \251 2006 Sun Microsystems, Inc., 4150 Network Circle, " +
-            "Santa Clara, California 95054, U.S.A. All rights reserved.\n" +
+            "Copyright \251 2006-2009 Sun Microsystems, Inc., 4150 Network " +
+            "Circle, Santa Clara, California 95054, U.S.A. All rights" +
+            "reserved.\n" +
             "U.S. Government Rights - Commercial software.  Government users " +
             "are subject to the Sun Microsystems, Inc. standard license " +
             "agreement and applicable provisions of the FAR and its " +
@@ -80,8 +81,8 @@ public class Config {
             "denied persons and specially designated nationals lists is " +
             "strictly prohibited.\n" +
             "\n" +
-            "Copyright \251 2006 Sun Microsystems, Inc., 4150 Network Circle, " +
-            "Santa Clara, California 95054, Etats-Unis. Tous droits " +
+            "Copyright \251 2006-2009 Sun Microsystems, Inc., 4150 Network " +
+            "Circle, Santa Clara, California 95054, Etats-Unis. Tous droits " +
             "r\351serv\351s.\n" +
             "L'utilisation est soumise aux termes de la Licence.\n" +
             "Cette distribution peut comprendre des composants " +
@@ -269,7 +270,6 @@ public class Config {
 
     /** URLs for Faban repositories, if enabled. */
     public static URL[] repositoryURLs = null;
-    public static boolean targetting = false;
 
     static {
         deriveConfig();
@@ -563,14 +563,6 @@ public class Config {
                     }
                     repositoryURLs = new URL[serverList.size()];
                     repositoryURLs = serverList.toArray(repositoryURLs);
-                }
-
-                // Reading targetting config
-                Node t = (Node) xPath.evaluate(
-                        "repository/targetting[@enabled='true']", root,
-                        XPathConstants.NODE);
-                if (t != null) {
-                   targetting = true;
                 }
 
                 // Note: The logServer config is read by LogConfig, not here.

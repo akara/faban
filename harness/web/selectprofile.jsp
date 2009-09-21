@@ -19,9 +19,9 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: selectprofile.jsp,v 1.17 2009/03/20 16:49:27 akara Exp $
+ * $Id$
  *
- * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
+ * Copyright 2005-2009 Sun Microsystems Inc. All Rights Reserved
  */
 -->
 <%@ page language="java" import="java.util.Map,

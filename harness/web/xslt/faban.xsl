@@ -85,7 +85,7 @@
                 </xsl:for-each>
                 <td class="filler-tab">
                     <a href="http://pae.sfbay/external/jeap/projects/faban/">
-                        <xsl:value-of disable-output-escaping="yes" select="'&amp;copy;'"/> 2004 Faban
+                        <xsl:value-of disable-output-escaping="yes" select="'&amp;copy;'"/> 2005-2009 Faban
                     </a>
                 </td>
             </tr>

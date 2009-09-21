@@ -19,9 +19,9 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: resultlist.jsp,v 1.24 2009/06/23 21:35:58 sheetalpatil Exp $
+ * $Id$
  *
- * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
+ * Copyright 2005-2009 Sun Microsystems Inc. All Rights Reserved
  */
 -->
     <%@ page language="java" import="com.sun.faban.harness.webclient.RunResult,

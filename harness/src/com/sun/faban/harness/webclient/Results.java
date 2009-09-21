@@ -17,35 +17,27 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: Results.java,v 1.14 2009/09/16 22:48:59 akara Exp $
+ * $Id$
  *
- * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
+ * Copyright 2005-2009 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.webclient;
 
+import com.sun.faban.common.SortDirection;
 import com.sun.faban.common.SortableTableModel;
-import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.RunId;
 import com.sun.faban.harness.engine.RunQ;
 import com.sun.faban.harness.security.AccessController;
-import com.sun.faban.harness.util.FileHelper;
-import com.sun.faban.harness.util.XMLReader;
 import com.sun.faban.harness.webclient.RunResult.FeedRecord;
-import com.sun.faban.harness.webclient.RunResult.Target;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 /**
  * Controller handling actions from the result list screen.
@@ -55,149 +47,6 @@ public class Results {
     private static SimpleDateFormat formatOrig =
             new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 
-    /**
-     * Add/Edit the target to target.xml file
-     * @param req
-     * @param resp
-     * @return String
-     * @throws java.io.IOException
-     */
-    public String addEditTarget(HttpServletRequest req, HttpServletResponse resp)
-            throws IOException, Exception {
-        String targetname = req.getParameter("targetname");
-        String targetowner = req.getParameter("targetowner");
-        String targetmetric = req.getParameter("targetmetric");
-        String targetmetricunit = req.getParameter("targetmetricunit");
-        String targetcolorred = req.getParameter("targetcolorred");
-        String targetcolororange = req.getParameter("targetcolororange");
-        String targetcoloryellow = req.getParameter("targetcoloryellow");
-        String targettags = req.getParameter("targettags");
-        String flag = req.getParameter("flag");
-        String add = "<target>\n" +
-                            "<name>" + targetname +"</name>\n" +
-                            "<owner>" + targetowner +"</owner>\n" +
-                            "<metric>" + targetmetric +"</metric>\n" +
-                            "<metricunit>" + targetmetricunit +"</metricunit>\n" +
-                            "<tags>" + targettags +"</tags>\n" +
-                            "<red>" + targetcolorred +"</red>\n" +
-                            "<orange>" + targetcolororange +"</orange>\n" +
-                            "<yellow>" + targetcoloryellow +"</yellow>\n" +
-                    "</target>\n</targets>";
-
-        File targetFile = new File(Config.CONFIG_DIR, "targets.xml");
-
-        if (!targetFile.exists() || targetFile.length() == 0) {
-            FileHelper.writeStringToFile(
-                    "<?xml version='1.0' encoding='UTF-8'?><targets></targets>",
-                    targetFile);
-        }
-
-        XMLReader reader = new XMLReader(targetFile.getAbsolutePath());
-        boolean found = false;
-        if (reader != null) {
-            List<String> list = reader.getValues("name");
-            if(list.contains(targetname)){
-                found = true;
-            }
-        }
-        if (targetFile.exists() && targetFile.length() > 0) {
-            if (flag.equals("add")) {                
-                if(found == false){
-                    FileHelper.tokenReplace(targetFile.getAbsolutePath(),
-                            "</targets>", add, null);
-                    req.setAttribute("answer", "<span style=color:#00cc00; font-size: 14px>Target " + targetname +
-                            " added Successfully!!</span>" );
-                }else{
-                    req.setAttribute("answer", "<span style=color:red; font-size: 14px>Sorry, target " + targetname +
-                            " already exists, please try different name.</span>" );
-                }
-            }else if (flag.equals("edit") || flag.equals("delete")) {
-                if (found == true) {
-                    NodeList targetnodes = reader.getTopLevelElements();
-                    for(int i = 0; i < targetnodes.getLength(); i++){
-                        Node e = targetnodes.item(i);
-                        if(targetnodes.item(i).getNodeType() ==
-                                Node.ELEMENT_NODE ) {
-                            NodeList targetchildnodes =
-                                    targetnodes.item(i).getChildNodes();
-                            for(int j = 0; j < targetchildnodes.getLength(); j++){
-                                if(targetchildnodes.item(j).getNodeType() ==
-                                        Node.ELEMENT_NODE) {
-                                    //Node e = targetnodes.item(i);
-                                    String nodename =
-                                            targetchildnodes.item(j).getNodeName();
-                                    String nodeval = reader.getValue("name", e);
-                                    if(nodename == null || !nodename.equals("name")
-                                       || nodeval == null || !nodeval.equals(targetname)){
-                                        continue;
-                                    }else if (nodename != null &&
-                                            nodename.equals("name") &&
-                                            nodeval != null &&
-                                            nodeval.equals(targetname)) {
-                                        if(flag.equals("edit")){
-                                            editTargetNode(e, reader, targetowner,
-                                                    targetmetric, targetmetricunit, targettags,
-                                                    targetcolorred, targetcolororange,
-                                                    targetcoloryellow);
-                                            req.setAttribute("answer", "<span style=color:#00cc00; font-size: 14px>Target " +
-                                                    targetname + " edited Successfully!!</span>" );
-                                        }else if(flag.equals("delete")){
-                                            deleteTargetNode(e, e.getParentNode(),
-                                                    reader);
-                                            req.setAttribute("answer", "<span style=color:#00cc00; font-size: 14px>Target " +
-                                                    targetname + " deleted Successfully!!</span>" );
-                                        }
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }                   
-                }else{
-                    req.setAttribute("answer", "<span style=color:red; font-size: 14px>Sorry, could not find target " +
-                            targetname + " for editing.</span>" );
-                }
-            }
-        }        
-        return targetlist(req,resp);
-    }
-
-    private void editTargetNode(Node target, XMLReader reader,
-            String targetowner, String targetmetric, String targetmetricunit, 
-            String targettags, String targetcolorred, String targetcolororange,
-            String targetcoloryellow ) throws Exception {
-        //String paramFileName = Config.CONFIG_DIR + "targets.xml";
-        //ParamRepository param = new ParamRepository(paramFileName, false);
-
-        NodeList targetchildnodes = target.getChildNodes();
-        for (int j = 0; j < targetchildnodes.getLength(); j++) {
-            if (targetchildnodes.item(j).getNodeType() == Node.ELEMENT_NODE) {
-                Element e = (Element) targetchildnodes.item(j);
-                if (e.getNodeName().equals("owner")){
-                    reader.replaceValue(e, targetowner);
-                }else if (e.getNodeName().equals("metric")){
-                    reader.replaceValue(e, targetmetric);
-                }else if (e.getNodeName().equals("metricunit")){
-                    reader.replaceValue(e, targetmetricunit);
-                }else if (e.getNodeName().equals("tags")){
-                    reader.replaceValue(e, targettags);
-                }else if (e.getNodeName().equals("red")){
-                    reader.replaceValue(e, targetcolorred);
-                }else if (e.getNodeName().equals("orange")){
-                    reader.replaceValue(e, targetcolororange);
-                }else if (e.getNodeName().equals("yellow")){
-                    reader.replaceValue(e, targetcoloryellow);
-                }
-
-            }
-        }
-        reader.save(null);
-    }
-
-    private void deleteTargetNode(Node target, Node parent, XMLReader reader ) throws Exception {
-        reader.deleteNode(target, parent);
-        reader.save(null);
-    }
     /**
      * Obtains the resultlist table.
      * @param req
@@ -249,84 +98,6 @@ public class Results {
         req.setAttribute("feedURL", feedURL );
         req.setAttribute("table.model", resultTable);
         return "/resultlist.jsp";
-    }
-
-    /**
-     * Obtains the resultlist table.
-     * @param req
-     * @param resp
-     * @return String
-     * @throws java.io.IOException
-     */
-    public String targetlist(HttpServletRequest req, HttpServletResponse resp)
-            throws IOException {
-        ArrayList<Target> targetList = new ArrayList<Target>();
-        int col = -1;
-        UserEnv usrEnv = getUserEnv(req);
-        String user = usrEnv.getUser();
-        String target = req.getParameter("inputtarget");
-        String sortColumn = req.getParameter("sortColumn");
-        String sortDirection = req.getParameter("sortDirection");
-        String viewAll = req.getParameter("viewAll");
-        String viewMy = req.getParameter("viewMy");
-        if (sortColumn != null && !"".equals(sortColumn)) {
-            col = Integer.parseInt(sortColumn);
-        }
-        SortableTableModel targetTable = null;
-        boolean targetSearch = false;
-        if (target != null && !"".equals(target)) {
-            target = target.trim();
-            if (target.length() > 0) {
-                targetSearch = true;
-            }
-        }
-
-        if(targetSearch == true){
-            targetList = RunResult.getTargetListForTarget(target);
-            req.setAttribute("targetInSearch", target);
-            if(targetList.isEmpty()) {
-                req.setAttribute("answer", "<span style=color:red; font-size: 14px>There are no targets for search key " + target + "</span>" );
-            }
-            /*if(targetSearch == true && user == null){
-                targetList = RunResult.getTargetListForTarget(target);
-                req.setAttribute("targetInSearch", target);
-            }else if(targetSearch == true && user != null){
-            targetList = RunResult.getTargetListForUserWithTg(target, user);
-            if(targetList.isEmpty()){
-                viewAll = "null";
-                targetList = RunResult.getTargetListForTarget(target);
-            }
-            req.setAttribute("targetInSearch", target);}*/
-        }else if(targetSearch == false && user != null && !viewAll.equals("null")){
-            targetList = RunResult.getTargetListForUser(user);
-            if(targetList.isEmpty()){
-                viewMy = "disable";
-                viewAll = "null";
-                targetList = RunResult.getTargetList();
-                if(targetList.isEmpty()){
-                    req.setAttribute("answer", "<span style=color:green; font-size: 14px>Targets " +
-                    "are not defined. Currently, the list is empty.</span>" );
-                }
-            }
-        }else{
-            viewAll = "null";
-            targetList = RunResult.getTargetList();
-            if(targetList.isEmpty()){
-                    req.setAttribute("answer", "<span style=color:green; font-size: 14px>Targets " +
-                    "are not defined. Currently, the list is empty.</span>" );
-            }
-        }
-        if(targetList.size() > 0) {
-            if (col >= 0 && col < 5){
-                    targetTable = RunResult.generateTargetTable(targetList, col, sortDirection.trim());
-            }else{
-                    targetTable = RunResult.generateTargetTable(targetList, 0, "DESCENDING");
-            }
-        }
-        req.setAttribute("viewMy", viewMy);
-        req.setAttribute("viewAll", viewAll);
-        req.setAttribute("table.model", targetTable);
-        return "/targetlist.jsp";
     }
 
     /**

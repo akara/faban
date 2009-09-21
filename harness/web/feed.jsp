@@ -20,9 +20,9 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: feed.jsp,v 1.1 2009/02/28 04:34:17 akara Exp $
+ * $Id$
  *
- * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
+ * Copyright 2005-2009 Sun Microsystems Inc. All Rights Reserved
  */
 -->
 <%@page contentType="application/atom+xml" pageEncoding="UTF-8"

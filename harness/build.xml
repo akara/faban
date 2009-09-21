@@ -19,9 +19,9 @@
 * your own identifying information:
 * "Portions Copyrighted [year] [name of copyright owner]"
 *
-* $Id: build.xml,v 1.8 2009/06/10 23:48:56 akara Exp $
+* $Id$
 *
-* Copyright 2005 Sun Microsystems Inc. All Rights Reserved
+* Copyright 2005-2009 Sun Microsystems Inc. All Rights Reserved
 -->
 <project name="Faban Harness" default="all">
 

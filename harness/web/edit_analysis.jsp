@@ -19,9 +19,9 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: edit_analysis.jsp,v 1.2 2009/02/28 18:03:50 akara Exp $
+ * $Id$
  *
- * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
+ * Copyright 2005-2009 Sun Microsystems Inc. All Rights Reserved
  */
 -->
 <%@ page language="java" import="com.sun.faban.harness.common.Config,

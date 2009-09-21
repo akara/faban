@@ -3,7 +3,7 @@
  * This software is the proprietary information of Sun Microsystems, Inc.
  * Use is subject to license terms.
  *
- * $Id: TimedInputStream.java,v 1.5 2009/06/30 06:34:50 akara Exp $
+ * $Id$
  *
  */
 package com.sun.faban.driver.transport.util;
@@ -33,9 +33,9 @@ import java.io.IOException;
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: TimedInputStream.java,v 1.5 2009/06/30 06:34:50 akara Exp $
+ * $Id$
  *
- * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
+ * Copyright 2005-2009 Sun Microsystems Inc. All Rights Reserved
  */
 
 

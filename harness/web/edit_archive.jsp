@@ -21,7 +21,7 @@
  *
  * $Id$
  *
- * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
+ * Copyright 2005-2009 Sun Microsystems Inc. All Rights Reserved
  */
 -->
 <%@ page language="java" import="com.sun.faban.harness.common.Config,

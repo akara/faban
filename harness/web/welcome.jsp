@@ -19,9 +19,9 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: welcome.jsp,v 1.4 2009/02/28 18:03:50 akara Exp $
+ * $Id$
  *
- * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
+ * Copyright 2005-2009 Sun Microsystems Inc. All Rights Reserved
  */
 -->
 <%@ page language="java" import="com.sun.faban.harness.common.Config,
@@ -45,7 +45,7 @@
   %>
         <p><br/><br/></p>
         <p style="margin-left: 100px; margin-right: 100px;"><font size="-2">
-        Copyright &copy; 2006 Sun Microsystems, Inc. All rights reserved.
+        Copyright &copy; 2006-2009 Sun Microsystems, Inc. All rights reserved.
         </font></p>
         <p style="margin-left: 100px; margin-right: 100px;"><font size="-2">
         U.S. Government Rights - Commercial software. Government users are
@@ -62,7 +62,7 @@
         countries.<br/></font></p>
         <p><br/></p>
         <p style="margin-left: 100px; margin-right: 100px;"><font size="-2">
-        Copyright &copy; 2006 Sun Microsystems, Inc. Tous droits
+        Copyright &copy; 2006-2009 Sun Microsystems, Inc. Tous droits
         r&eacute;serv&eacute;s.</font></p>
         <p style="margin-left: 100px; margin-right: 100px;"><font size="-2">
         L'utilisation est soumise aux termes du contrat de licence.</font></p>

@@ -17,7 +17,7 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * Copyright 2007 Sun Microsystems Inc. All Rights Reserved
+ * Copyright 2007-2009 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.services;
 

@@ -17,9 +17,9 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: RunResult.java,v 1.12 2009/09/16 22:48:59 akara Exp $
+ * $Id$
  *
- * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
+ * Copyright 2005-2009 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.webclient;
 
@@ -38,17 +38,12 @@ import javax.security.auth.Subject;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
  * Result class scans through the output directory and compiles a list of run
@@ -119,7 +114,6 @@ public class RunResult {
 
     /** Tags applicable to this run. */
     public String[] tags;
-    static LinkedHashMap<String, Target> targetMap = new LinkedHashMap<String, Target>();
 
     /**
      * This getInstance0 assumes you've checked the run id is found. It will
@@ -687,219 +681,6 @@ public class RunResult {
         return table;
     }
 
-    private static HashMap<String, String> getAchievedMetricForTarget(String tags)
-            throws IOException {
-        HashMap<String, String> achievedMetricMap = new HashMap<String, String>();
-        TagEngine tagEngine;
-        try {
-            tagEngine = TagEngine.getInstance();
-        } catch (ClassNotFoundException ex) {
-            logger.log(Level.SEVERE, "Cannot find tag engine class", ex);
-            throw new IOException("Cannot find tag engine class", ex);
-        }
-        Set<String> runIds = tagEngine.search(tags);
-        Double achievedMetric = 0.0;
-        String achievedMetricUnit = " ";
-        for (String runid : runIds) {
-            try {
-                RunId runId = new RunId(runid);
-                RunResult res = getInstance(runId);
-                if (res != null && achievedMetric < res.metric.value){
-                    achievedMetric = res.metric.value;
-                    achievedMetricUnit = res.metricUnit;
-                }
-            } catch (Exception e) {
-                logger.log(Level.WARNING, "Cannot read result dir " + runid, e);
-            }           
-        }
-        achievedMetricMap.put("metric", achievedMetric.toString());
-        achievedMetricMap.put("metricunit", achievedMetricUnit);
-        return achievedMetricMap;
-    }
-
-
-    /**
-     * Returns the target list with target search.
-     * @param target
-     * @return ArrayList
-     * @throws java.io.IOException
-     */
-    public static ArrayList<Target> getTargetListForTarget(String target)
-            throws IOException {        
-        ArrayList<Target> targetList = getTargetList();
-        if(target != null ){
-            targetList = new ArrayList<Target>();
-            Object[] keyset = targetMap.keySet().toArray();
-            for (int i = 0; i < keyset.length; i++) {
-                    if (keyset[i].toString().contains(target) && targetMap.containsKey(keyset[i])) {
-                        targetList.add(targetMap.get(keyset[i]));
-                    }
-            }              
-        }
-        return targetList;
-    }
-
-    public static ArrayList<Target> getTargetListForUserWithTg(String target, String user)
-            throws IOException {
-        ArrayList<Target> list = new ArrayList<Target>();
-        if(target != null && user != null){
-            ArrayList<Target> targetList = getTargetListForTarget(target);
-            for (int i = 0; i < targetList.size(); i++) {
-                String owner = targetList.get(i).owner.toString();
-                if (owner.equals(user)) {
-                    list.add(targetList.get(i));
-                }
-            }
-        }
-        return list;
-    }
-
-    public static ArrayList<Target> getTargetListForUser(String user)
-            throws IOException {
-        ArrayList<Target> list = new ArrayList<Target>();
-        if(user != null){
-            ArrayList<Target> targetList = getTargetList();
-            for (int i = 0; i < targetList.size(); i++) {
-                String owner = targetList.get(i).owner.toString();
-                if (owner.equals(user)) {
-                    list.add(targetList.get(i));
-                }
-            }
-        }
-        return list;
-    }
-
-    
-    static SortableTableModel generateTargetTable(List<Target> targets, int column,
-            String sortDirection) {
-
-        // 1. Generate table header
-        SortableTableModel table = new SortableTableModel(9);
-        
-        String sort = "<img src=/img/sort_asc.gif></img>";
-        if(sortDirection.equals("DESCENDING")){
-             sort = "<img src=\"/img/sort_asc.gif\" border=\"0\"></img>";
-        }else if(sortDirection.equals("ASCENDING")){
-             sort = "<img src=\"/img/sort_desc.gif\" border=\"0\"></img>";
-        }
-        if(column == 0)
-            table.setHeader(0, "Targets " + sort);
-        else
-            table.setHeader(0, "Targets");
-
-        if(column == 1)
-            table.setHeader(1, "Owner " + sort);
-        else
-            table.setHeader(1, "Owner");
-
-        if(column == 2)
-            table.setHeader(2, "Status " + sort);
-        else
-            table.setHeader(2, "Status");
-
-        if(column == 3)
-            table.setHeader(3, "Achieved Metric " + sort);
-        else
-            table.setHeader(3, "Achieved Metric");
-
-        if(column == 4)
-            table.setHeader(4, "Metric " + sort);
-        else
-            table.setHeader(4, "Metric");
-
-        if(column == 5)
-            table.setHeader(5, "Tags " + sort);
-        else
-            table.setHeader(5, "Tags");
-
-        // 2. Generate table rows.
-        for (Target target : targets) {
-            //int idx = table.newRow();
-            Comparable[] row = table.newRow();
-            row[0] = target.name;
-            row[1] = target.owner;
-            row[2] = target.status;
-            row[3] = target.achievedMetric+ " " + target.achievedMetricunit;
-            row[4] = target.metric + " " + target.metricunit;
-            row[5] = target.tags;
-            row[6] = target.red;
-            row[7] = target.orange;
-            row[8] = target.yellow;
-        }
-
-        SortDirection enumValForDirection = SortDirection.valueOf(sortDirection);
-        table.sort(column, enumValForDirection);
-        return table;
-    }
-
-    /**
-     * Obtains a list of targets currently in the system.
-     * @return The list of targets or an empty list if none available
-     * @throws IOException Error accessing targets file
-     */
-    public static ArrayList<Target> getTargetList() throws IOException{
-        ArrayList<Target> targetList = new ArrayList<Target>();
-        File targetFile = new File(Config.CONFIG_DIR, "targets.xml");
-        if (targetFile.exists() && targetFile.length() > 0) {
-            //Use the XMLReader and locate the <passed> elements
-            XMLReader reader = new XMLReader(targetFile.
-                    getAbsolutePath());
-            if (reader != null) {
-                NodeList targets = reader.getNodeListForTagName("target");
-                int targetCount;
-                if((targetCount = targets.getLength()) > 0) {
-                    for (int i = 0; i < targetCount; i++) {
-                        Target tg = new Target();
-                        Node targetNode = targets.item(i);
-                        if (targetNode.getNodeType() != Node.ELEMENT_NODE) {
-                            continue;
-                        }
-                        Element se = (Element) targetNode;
-                        NodeList targetNodeChildNodes =
-                                                    targetNode.getChildNodes();
-                        int len = targetNodeChildNodes.getLength();
-                        for (int k = 0; k < len; k++) {
-                            if (targetNodeChildNodes.item(k).getNodeType() ==
-                                    Node.ELEMENT_NODE) {
-                                String nodeName = targetNodeChildNodes.item(k).
-                                                    getNodeName();
-                                if ("name".equals(nodeName)) {
-                                    tg.name = reader.getValue("name", se);
-                                } else if ("owner".equals(nodeName)) {
-                                    tg.owner = reader.getValue("owner", se);
-                                } else if ("tags".equals(nodeName)) {
-                                    tg.tags = reader.getValue("tags", se);
-                                } else if ("metric".equals(nodeName)) {
-                                    tg.metric = reader.getValue("metric", se);
-                                } else if ("metricunit".equals(nodeName)) {
-                                    tg.metricunit = reader.getValue(
-                                            "metricunit", se);
-                                } else if ("red".equals(nodeName)) {
-                                    tg.red = reader.getValue("red", se);
-                                } else if ("orange".equals(nodeName)) {
-                                    tg.orange = reader.getValue("orange", se);
-                                } else if ("yellow".equals(nodeName)) {
-                                    tg.yellow = reader.getValue("yellow", se);
-                                }
-                            }
-                        }
-                        HashMap<String, String> achievedMetricMap =
-                                getAchievedMetricForTarget(tg.tags);
-                        tg.achievedMetric = achievedMetricMap.get("metric");
-                        tg.achievedMetricunit =
-                                achievedMetricMap.get("metricunit");
-                        Double status = ((Double.parseDouble(tg.achievedMetric)/
-                                          Double.parseDouble(tg.metric)) * 100);
-                        tg.status = status.toString();
-                        targetList.add(tg);
-                        targetMap.put(tg.name.toString(), tg);
-                    }
-                }
-            }
-        }
-        return targetList;
-    }
-
     /**
      * A result field representing the real value of the field used for
      * sorting, and the text representation of the value.
@@ -1064,21 +845,5 @@ public class RunResult {
         if (feedList.size() > FEED_LIMIT)
             return feedList.subList(0, FEED_LIMIT);
         return feedList;
-    }
-
-    public static class Target implements Serializable {
-        public String name;
-        public String owner;
-        public String tags;
-        public String runs;
-        public String status;
-        public String metric;
-        public String metricunit;
-        public String achievedMetric;
-        public String achievedMetricunit;
-        public String red;
-        public String orange;
-        public String yellow;
-
     }
 }

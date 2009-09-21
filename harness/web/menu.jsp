@@ -19,9 +19,9 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id: menu.jsp,v 1.13 2009/08/07 20:01:27 sheetalpatil Exp $
+ * $Id$
  *
- * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
+ * Copyright 2005-2009 Sun Microsystems Inc. All Rights Reserved
  */
 -->
 <%@ page language="java" import="javax.security.auth.Subject,
@@ -71,17 +71,10 @@
 <% } else { %>
             <tr><td VALIGN="CENTER" style="color: rgb(102, 102, 102);"><br/>Switch Profile</td></tr>
 <% } %>
-<% if (Config.repositoryURLs != null && Config.repositoryURLs.length > 0 && Config.targetting == true) { %>
-        <% if(usrEnv.getUser() != null ) { %>
-            <tr><td VALIGN="CENTER"><br/><a href="/controller/results/targetlist?viewAll=true" target="main">Targets</a></td></tr>
-        <%}else{%>
-            <tr><td VALIGN="CENTER"><br/><a href="/controller/results/targetlist?viewAll=null" target="main">Targets</a></td></tr>
-        <%}%>
-<% } %>
             <tr><td VALIGN="CENTER"><br/><a href="http://faban.sunsource.net/1.0/docs/toc.html" target="_blank">Help</a></td></tr>
             <tr><td VALIGN="CENTER"><br/></td></tr>
             <tr><td VALIGN="CENTER">
-               <form name="tagsearch" method="get" target="main" action="/controller/results/list">
+               <form name="tagsearch" method="get" target="main" action="controller/results/list">
                    Tag Search<br>
                    <input type="text" name="inputtag" title="tag search" size="15"><br>
                    <input type="submit" value="Search">&nbsp;&nbsp;<input type="reset" value="Reset">
