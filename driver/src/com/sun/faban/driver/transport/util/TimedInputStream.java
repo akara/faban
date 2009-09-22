@@ -84,7 +84,7 @@ public class TimedInputStream extends FilterInputStream {
     @Override
 	public int read() throws IOException {
         int b = super.read();
-        if (ctx != null)
+        if (ctx != null && b != -1)
             ctx.recordEndTime();
         return b;
     }
@@ -112,7 +112,7 @@ public class TimedInputStream extends FilterInputStream {
     @Override
 	public int read(byte b[]) throws IOException {
         int bytes = super.read(b);
-        if (ctx != null)
+        if (ctx != null && bytes > 0)
             ctx.recordEndTime();
         return bytes;
     }
@@ -137,7 +137,7 @@ public class TimedInputStream extends FilterInputStream {
     @Override
 	public int read(byte b[], int off, int len) throws IOException {
         int bytes = super.read(b, off, len);
-        if (ctx != null)
+        if (ctx != null && bytes > 0)
             ctx.recordEndTime();
         return bytes;
     }
