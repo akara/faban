@@ -262,7 +262,7 @@
                                             <td class="tablecell" style="color: rgb(255, 0, 0);">FAILED</td>
                                         </xsl:when>
                                         <xsl:otherwise>
-                                            <td></td>
+                                            <td class="tablecell"></td>
                                         </xsl:otherwise>
                                     </xsl:choose>
                                 </tr>
