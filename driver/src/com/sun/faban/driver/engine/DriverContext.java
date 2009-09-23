@@ -23,26 +23,26 @@
  */
 package com.sun.faban.driver.engine;
 
-import com.sun.faban.driver.CustomTableMetrics;
-import static com.sun.faban.driver.engine.AgentThread.TIME_NOT_SET;
-
+import com.sun.faban.common.FabanNamespaceContext;
 import com.sun.faban.driver.CustomMetrics;
+import com.sun.faban.driver.CustomTableMetrics;
 import com.sun.faban.driver.Timing;
 import com.sun.faban.driver.util.Random;
 import com.sun.faban.driver.util.Timer;
-import com.sun.faban.common.FabanNamespaceContext;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import java.util.HashMap;
-import java.util.logging.Logger;
 import java.io.File;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.logging.Logger;
+
+import static com.sun.faban.driver.engine.AgentThread.TIME_NOT_SET;
 
 /**
  * DriverContext is the point of communication between the
@@ -248,7 +248,6 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      * @param name    The name or description of this metrics
      * @param metrics The custom metrics to be replaced
      */
-    @Override
     public void attachMetrics(String name, CustomMetrics metrics) {
         if (agentThread.metrics.metricAttachments == null)
             agentThread.metrics.metricAttachments =
@@ -265,7 +264,6 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      * @param name    The name or description of this metrics
      * @param metrics The custom metrics to be replaced
      */
-    @Override
     public void attachMetrics(String name, CustomTableMetrics metrics) {
         if (agentThread.metrics.tableAttachments == null)
             agentThread.metrics.tableAttachments =
@@ -580,10 +578,18 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
         if (timingInfo != null && agentThread.driverConfig.operations[
                 agentThread.currentOperation].timing == Timing.AUTO) {
             if (timingInfo.invokeTime == TIME_NOT_SET) {
+                if (timingInfo.respondTime != TIME_NOT_SET)
+                    logger.warning("Respond time already set before " +
+                                   "sleeping. Please report a bug.");
                 timer.wakeupAt(timingInfo.intendedInvokeTime);
                 // But since sleep may not be exact, we get the time again here.
                 timingInfo.invokeTime = System.nanoTime();
             } else if (pauseSupported && timingInfo.respondTime != TIME_NOT_SET) {
+                if (timingInfo.respondTime < timingInfo.invokeTime)
+                    logger.warning("Respond time (" + timingInfo.respondTime +
+                            ") less than invoke time (" +
+                            timingInfo.invokeTime + "). Please report a bug.");
+
                 // Some response already read, then transmit again.
                 // In this case the time from last receive to this transmit
                 // is the pause time ...
@@ -595,6 +601,8 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
                 timingInfo.pauseTime +=
                         System.nanoTime() - timingInfo.lastRespondTime;
             }
+            // Otherwise this can be a subsequent write.
+            // Invoke time already set and respond time not set.
         }
     }
 
@@ -608,8 +616,23 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
         if (agentThread.currentOperation == -1)
             return;
         if (timingInfo != null && agentThread.driverConfig.operations[
-                agentThread.currentOperation].timing == Timing.AUTO) {
-			timingInfo.respondTime = System.nanoTime();
+                agentThread.currentOperation].timing == Timing.AUTO ) {
+            // Some stacks clear the connection by doing a read before a write
+            // in a request, normally a read of 0 bytes. We need to make sure
+            // such reads are not part of the response time.
+            if (timingInfo.invokeTime == TIME_NOT_SET) {
+                int[] previousOps = agentThread.previousOperation;
+                String name = agentThread.driverConfig.mix[0].
+                                operations[previousOps[0]].name;
+                if (previousOps.length > 1)
+                    name += ',' + agentThread.driverConfig.mix[1].
+                                  operations[previousOps[1]].name;
+                logger.warning("Read before write! Some input may still be in" +
+                        " the buffer from previous operation " + name +
+                        ". Ignoring such input.");
+            } else {
+			    timingInfo.respondTime = System.nanoTime();
+            }
 		}
     }
 

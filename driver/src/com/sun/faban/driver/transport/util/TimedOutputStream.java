@@ -91,7 +91,7 @@ public class TimedOutputStream extends FilterOutputStream {
      */
     @Override
 	public void write(byte b[]) throws IOException {
-        if (ctx != null)
+        if (ctx != null && b.length > 0)
             ctx.recordStartTime();
         super.write(b);
     }
@@ -111,7 +111,7 @@ public class TimedOutputStream extends FilterOutputStream {
      */
     @Override
 	public void write(byte b[], int off, int len) throws IOException {
-        if (ctx != null)
+        if (ctx != null && b.length > 0 && len > 0)
             ctx.recordStartTime();
         out.write(b, off, len);
     }
