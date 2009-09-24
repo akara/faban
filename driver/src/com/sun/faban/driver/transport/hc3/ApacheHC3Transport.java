@@ -28,6 +28,8 @@ import org.apache.commons.httpclient.*;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
+import org.apache.commons.httpclient.methods.multipart.Part;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.httpclient.protocol.Protocol;
 import org.apache.commons.httpclient.protocol.ProtocolSocketFactory;
@@ -225,14 +227,17 @@ public class ApacheHC3Transport extends HttpTransport {
      */
     public int readURL(String url, Map<String, String> headers)
             throws IOException {
-        GetMethod method = new GetMethod(url);
+        GetMethod method;
+        method = new GetMethod(url);
         method.setFollowRedirects(followRedirects);
         setHeaders(method, headers);
-        responseCode = hc.executeMethod(method);
-        buildResponseHeaders(method);
-        int size = readResponse(method);
-        method.releaseConnection();
-        return size;
+        try {
+            responseCode = hc.executeMethod(method);
+            buildResponseHeaders(method);
+            return readResponse(method);
+        } finally {
+            method.releaseConnection();
+        }
     }
 
     /**
@@ -265,11 +270,13 @@ public class ApacheHC3Transport extends HttpTransport {
         method.setFollowRedirects(followRedirects);
         setHeaders(method, headers);
         setParameters(method, postRequest);
-        responseCode = hc.executeMethod(method);
-        buildResponseHeaders(method);
-        int size = readResponse(method);
-        method.releaseConnection();
-        return size;
+        try {
+            responseCode = hc.executeMethod(method);
+            buildResponseHeaders(method);
+            return readResponse(method);
+        } finally {
+            method.releaseConnection();
+        }
     }
 
     private void setParameters(PostMethod method, String request) {
@@ -296,7 +303,7 @@ public class ApacheHC3Transport extends HttpTransport {
         responseHeader =
                 new LinkedHashMap<String, List<String>>(respHeaders.length);
         for (Header header : respHeaders) {
-            String name = header.getName();
+            String name = header.getName().toLowerCase();
             List<String> values = responseHeader.get(name);
             if (values == null) {
                 values = new ArrayList<String>();
@@ -382,6 +389,83 @@ public class ApacheHC3Transport extends HttpTransport {
     }
 
     /**
+     * Makes a Multi-part POST request to the URL. Reads data back and discards
+     * the data, keeping just the size of the total read. This is useful for
+     * ensuring receival of binary or text data that do not need further
+     * analysis.
+     *
+     * @param url The URL to read from
+     * @param parts The parts list
+     * @param headers The request headers
+     * @return The number of bytes read
+     * @throws java.io.IOException
+     */
+    public int readURL(String url, List<Part> parts,
+                       Map<String, String> headers) throws IOException {
+
+        Part[] partsArray = parts.toArray(new Part[parts.size()]);
+        PostMethod method = new PostMethod(url);
+        method.setFollowRedirects(followRedirects);
+        setHeaders(method, headers);
+        method.setRequestEntity(new MultipartRequestEntity(
+                partsArray, method.getParams()));
+        try {
+            responseCode = hc.executeMethod(method);
+            buildResponseHeaders(method);
+            return readResponse(method);
+        } finally {
+            method.releaseConnection();
+        }
+    }
+
+    /**
+     * Makes a Multi-part POST request to the URL. Reads data back and discards
+     * the data, keeping just the size of the total read. This is useful for
+     * ensuring receival of binary or text data that do not need further
+     * analysis.
+     *
+     * @param url The URL to read from
+     * @param parts The parts list
+     * @return The number of bytes read
+     * @throws java.io.IOException
+     */
+    public int readURL(URL url, List<Part> parts) throws IOException {
+        return readURL(url.toString(), parts, null);
+    }
+
+    /**
+     * Makes a Multi-part POST request to the URL. Reads data back and discards
+     * the data, keeping just the size of the total read. This is useful for
+     * ensuring receival of binary or text data that do not need further
+     * analysis.
+     *
+     * @param url The URL to read from
+     * @param parts The parts list
+     * @return The number of bytes read
+     * @throws java.io.IOException
+     */
+    public int readURL(String url, List<Part> parts) throws IOException {
+        return readURL(url, parts, null);
+    }
+
+    /**
+     * Makes a Multi-part POST request to the URL. Reads data back and discards
+     * the data, keeping just the size of the total read. This is useful for
+     * ensuring receival of binary or text data that do not need further
+     * analysis.
+     *
+     * @param url The URL to read from
+     * @param parts The parts list
+     * @param headers The request headers
+     * @return The number of bytes read
+     * @throws java.io.IOException
+     */
+    public int readURL(URL url, List<Part> parts,
+                       Map<String, String> headers) throws IOException {
+        return readURL(url.toString(), parts, headers);
+    }
+
+    /**
      * Reads data from the URL and returns the data read. Note that this
      * method only works with text data as it does the byte-to-char
      * conversion. This method will return null for responses with binary
@@ -439,11 +523,13 @@ public class ApacheHC3Transport extends HttpTransport {
         GetMethod method = new GetMethod(url);
         method.setFollowRedirects(followRedirects);
         setHeaders(method, headers);
-        responseCode = hc.executeMethod(method);
-        buildResponseHeaders(method);
-        StringBuilder b = fetchResponse(method);
-        method.releaseConnection();
-        return b;
+        try {
+            responseCode = hc.executeMethod(method);
+            buildResponseHeaders(method);
+            return fetchResponse(method);
+        } finally {
+            method.releaseConnection();
+        }
     }
 
     /**
@@ -507,11 +593,13 @@ public class ApacheHC3Transport extends HttpTransport {
         method.setFollowRedirects(followRedirects);
         setHeaders(method, headers);
         setParameters(method, postRequest);
-        responseCode = hc.executeMethod(method);
-        buildResponseHeaders(method);
-        StringBuilder b = fetchResponse(method);
-        method.releaseConnection();
-        return b;
+        try {
+            responseCode = hc.executeMethod(method);
+            buildResponseHeaders(method);
+            return fetchResponse(method);
+        } finally {
+            method.releaseConnection();
+        }
     }
 
     /**
@@ -555,6 +643,91 @@ public class ApacheHC3Transport extends HttpTransport {
             throws IOException {
         return fetchURL(url.toString(), postRequest,
                 (Map<String, String>) null);
+    }
+
+    /**
+     * Makes a Multi-part POST request to the URL. Reads data back and
+     * returns the data read. Note that this method only works with text
+     * data as it does the byte-to-char conversion. This method will return
+     * null for responses with binary MIME types. The addTextType(String)
+     * method is used to register additional MIME types as text types.
+     * Use getContentSize() to obtain the bytes of binary data read.
+     *
+     * @param url The URL to read from
+     * @param parts The parts list
+     * @param headers The request headers
+     * @return The StringBuilder buffer containing the resulting document
+     * @throws java.io.IOException
+     */
+    public StringBuilder fetchURL(String url, List<Part> parts,
+                       Map<String, String> headers) throws IOException {
+
+        Part[] partsArray = parts.toArray(new Part[parts.size()]);
+        PostMethod method = new PostMethod(url);
+        method.setFollowRedirects(followRedirects);
+        setHeaders(method, headers);
+        method.setRequestEntity(new MultipartRequestEntity(
+                partsArray, method.getParams()));
+        try {
+            responseCode = hc.executeMethod(method);
+            buildResponseHeaders(method);
+            return fetchResponse(method);
+        } finally {
+            method.releaseConnection();
+        }
+    }
+
+    /**
+     * Makes a Multi-part POST request to the URL. Reads data back and
+     * returns the data read. Note that this method only works with text
+     * data as it does the byte-to-char conversion. This method will return
+     *  null for responses with binary MIME types. The addTextType(String)
+     * method is used to register additional MIME types as text types.
+     * Use getContentSize() to obtain the bytes of binary data read.
+     *
+     * @param url The URL to read from
+     * @param parts The parts list
+     * @return The StringBuilder buffer containing the resulting document
+     * @throws java.io.IOException
+     */
+    public StringBuilder fetchURL(URL url, List<Part> parts) throws IOException {
+        return fetchURL(url.toString(), parts, null);
+    }
+
+    /**
+     * Makes a Multi-part POST request to the URL. Reads data back and
+     * returns the data read. Note that this method only works with text
+     * data as it does the byte-to-char conversion. This method will return
+     * null for responses with binary MIME types. The addTextType(String)
+     * method is used to register additional MIME types as text types.
+     * Use getContentSize() to obtain the bytes of binary data read.
+     *
+     * @param url The URL to read from
+     * @param parts The parts list
+     * @return The StringBuilder buffer containing the resulting document
+     * @throws java.io.IOException
+     */
+    public StringBuilder fetchURL(String url, List<Part> parts) throws IOException {
+        return fetchURL(url, parts, null);
+    }
+
+    /**
+     * Makes a Multi-part POST request to the URL. Reads data back and
+     * returns the data read. Note that this method only works with text
+     * data as it does the byte-to-char conversion. This method will return
+     * null for responses with binary MIME types. The addTextType(String)
+     * method is used to register additional MIME types as text types. Use getContentSize()
+     * to obtain the bytes of binary data read.
+     *
+     * @param url The URL to read from
+     * @param parts The parts list
+     * @param headers The request headers
+     * @return The StringBuilder buffer containing the resulting document
+     * @throws java.io.IOException
+     */
+    public StringBuilder fetchURL(URL url, List<Part> parts,
+                       Map<String, String> headers) throws IOException {
+        return fetchURL(url.toString(), parts, headers);
     }
 
     /*
@@ -874,7 +1047,7 @@ public class ApacheHC3Transport extends HttpTransport {
     }
 
     /**
-     * Mathces the regular expression against the response fetched from the
+     * Matches the regular expression against the response fetched from the
      * post request made to the URL.
      * @param url The source of the data
      * @param postRequest The post request string
@@ -888,6 +1061,74 @@ public class ApacheHC3Transport extends HttpTransport {
         fetchURL(url, postRequest, headers);
         return matchResponse(regex);
     }
+
+    /**
+     * Matches the regular expression against the response fetched from the
+     * multi-part post request made to the URL.
+     *
+     * @param url The URL to read from
+     * @param parts The parts list
+     * @param regex The regular expression to match
+     * @param headers The request headers
+     * @return True if the match succeeds, false otherwise
+     * @throws java.io.IOException
+     */
+    public boolean matchURL(String url, List<Part> parts, String regex,
+                       Map<String, String> headers) throws IOException {
+
+        fetchURL(url, parts, headers);
+        return matchResponse(regex);
+    }
+
+    /**
+     * Matches the regular expression against the response fetched from the
+     * multi-part post request made to the URL.
+     *
+     * @param url The URL to read from
+     * @param parts The parts list
+     * @param regex The regular expression to match
+     * @return True if the match succeeds, false otherwise
+     * @throws java.io.IOException
+     */
+    public boolean matchURL(URL url, List<Part> parts, String regex)
+            throws IOException {
+        fetchURL(url.toString(), parts, null);
+        return matchResponse(regex);
+    }
+
+    /**
+     * Matches the regular expression against the response fetched from the
+     * multi-part post request made to the URL.
+     *
+     * @param url The URL to read from
+     * @param parts The parts list
+     * @param regex The regular expression to match
+     * @return True if the match succeeds, false otherwise
+     * @throws java.io.IOException
+     */
+    public boolean matchURL(String url, List<Part> parts, String regex)
+            throws IOException {
+        fetchURL(url, parts, null);
+        return matchResponse(regex);
+    }
+
+    /**
+     * Matches the regular expression against the response fetched from the
+     * multi-part post request made to the URL.
+     *
+     * @param url The URL to read from
+     * @param parts The parts list
+     * @param regex The regular expression to match
+     * @param headers The request headers
+     * @return True if the match succeeds, false otherwise
+     * @throws java.io.IOException
+     */
+    public boolean matchURL(URL url, List<Part> parts, String regex,
+                       Map<String, String> headers) throws IOException {
+        fetchURL(url.toString(), parts, headers);
+        return matchResponse(regex);
+    }
+
 
     /**
      * Obtains the list of cookie values by the name of the cookies.
@@ -912,9 +1153,11 @@ public class ApacheHC3Transport extends HttpTransport {
      * @return An array of response header values
      */
     public String[] getResponseHeader(String name) {
-        List<String> values = responseHeader.get(name);
-        String[] v = new String[values.size()];
-        return values.toArray(v);
+        List<String> values = responseHeader.get(name.toLowerCase());
+        String[] v = null;
+        if (values != null)
+            v = values.toArray(new String[values.size()]);
+        return v;
     }
 
     /**
