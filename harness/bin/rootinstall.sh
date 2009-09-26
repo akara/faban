@@ -1,6 +1,12 @@
 #!/bin/sh
 
-UID=`id -u`
+# For older versions of Solaris, we need to use id from /usr/xpg4/bin.
+IDCMD=id
+if [ -x "/usr/xpg4/bin/id" ] ; then
+    IDCMD=/usr/xpg4/bin/id
+fi
+
+UID=`$IDCMD -u`
 
 if [ $UID != 0 ] ; then
     echo "$0: Needs to be run as superuser" >&2
