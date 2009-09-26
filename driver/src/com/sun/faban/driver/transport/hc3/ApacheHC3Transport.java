@@ -281,6 +281,8 @@ public class ApacheHC3Transport extends HttpTransport {
 
     private void setParameters(PostMethod method, String request) {
         int idx = 0;
+        if (request == null || request.length() == 0)
+            return;
         if (request.charAt(0) == '?')
             ++idx;
         do {
