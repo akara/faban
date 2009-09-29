@@ -154,7 +154,7 @@ public class Dispatcher extends HttpServlet {
                 }
                 // And create new instance.
                 controller = controllerClass.newInstance();
-                session.setAttribute(pathElements[1], controllerClass);
+                session.setAttribute(pathElements[1], controller);
             } catch (ClassNotFoundException e) {
                 throw new ServletException("Cannot find controller class " +
                         controllerName, e);
