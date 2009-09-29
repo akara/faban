@@ -115,16 +115,19 @@ public class Engine {
         logger = Logger.getLogger(this.getClass().getName());
         logger.fine("Faban logging to " + path);
 
-        // Instanciate the runq which in turn will start the runDaemon
+        // Instantiate the runq which in turn will start the runDaemon
         runQ = RunQ.getHandle();
         logger.fine("RunQ created");
 
-        logServer = new LogServer(new LogConfig());
+        if (Config.daemonMode == Config.DaemonModes.POLLER ||
+                Config.daemonMode == Config.DaemonModes.LOCAL) {
+            logServer = new LogServer(new LogConfig());
 
-        // Share the thread pool for other uses, too.
-        Config.THREADPOOL = logServer.config.threadPool;
+            // Share the thread pool for other uses, too.
+            Config.THREADPOOL = logServer.config.threadPool;
 
-        logServer.start();
+            logServer.start();
+        }
     }
 
     private void terminate() {
@@ -136,10 +139,11 @@ public class Engine {
         }
 
         // Shutdown the log server.
-        try {
-            logServer.shutdown();            
-        }  catch (Throwable t) {
-            logger.log(Level.SEVERE, "Error shutting down log server", t);
-        }        
+        if (logServer != null)
+            try {
+                logServer.shutdown();
+            }  catch (Throwable t) {
+                logger.log(Level.SEVERE, "Error shutting down log server", t);
+            }
     }
 }
