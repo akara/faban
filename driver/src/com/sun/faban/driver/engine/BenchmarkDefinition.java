@@ -207,7 +207,9 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
             defClass = Class.forName(defClassName);
             logger.fine("Found benchmark definition class " + defClassName);
         } catch (ClassNotFoundException e) {
+            File runXml = new File(System.getProperty("benchmark.config"));
             throw new ConfigurationException("Defining class " + defClassName +
+                                            " in " + runXml.getName() +
                                             " not found in deployment.", e);
         }
 
