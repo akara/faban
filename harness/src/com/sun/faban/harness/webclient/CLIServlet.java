@@ -592,7 +592,7 @@ public class CLIServlet extends HttpServlet {
         }
 
         /**
-         * Formats a multi-line message into html line breaks
+         * Formats a multi-line message into text line breaks
          * for readability.
          *
          * @param message The message to be formatted.
@@ -674,9 +674,9 @@ public class CLIServlet extends HttpServlet {
             // Print only the time, not the date.
             int timeIdx = r.date.indexOf('T') + 1;
             writer.println(r.date.substring(timeIdx) +
-                        ':' + r.level + ':' + r.message);
+                        ':' + r.level + ':' + formatMessage(r.message));
             if (r.exception != null) {
-                writer.println(r.exception.message);
+                writer.println(formatMessage(r.exception.message));
                 for (StackFrame s : r.exception.stackFrames) {
                     writer.println("    at " + s.clazz + '.' + s.method +
                                 " (" + s.line + ')');

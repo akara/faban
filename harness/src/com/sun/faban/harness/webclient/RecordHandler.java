@@ -74,7 +74,7 @@ class RecordHandler extends LogParseHandler {
         else if ("logger".equals(qName))
             detail.logger = buffer.toString().trim();
         else if ("message".equals(qName))
-            exception.message = formatMessage(buffer.toString().trim());
+            exception.message = buffer.toString().trim();
         else if ("class".equals(qName))
             frame.clazz = buffer.toString().trim();
         else if ("method".equals(qName))
@@ -133,7 +133,7 @@ class RecordHandler extends LogParseHandler {
                     "style=\"padding: 2px; border: 2px solid #cccccc; " +
                     "text-align: left; width: 100%;\">");
         out.print("<tbody><tr class=\"even\"><td>");
-        out.print(logRecord.message);
+        out.print(formatMessage(logRecord.message));
         out.println("</td></tr></tbody></table>");
         out.println("<hr style=\"border: 1px solid #cccccc;\">" +
                     "<h2>Details:</h2>");
@@ -182,7 +182,7 @@ class RecordHandler extends LogParseHandler {
                         "cellspacing=\"3\" style=\"padding: 2px; border: 2px " +
                         "solid #cccccc; text-align: left; width: 100%;\">");
             out.print("<tbody><tr class=\"even\"><td>");
-            out.print(exception.message);
+            out.print(formatMessage(exception.message));
             out.println("</td></tr></tbody></table>");
             out.print("<br><span style=\"font-weight: bold;\">" +
                     "Stack Trace:</span>");

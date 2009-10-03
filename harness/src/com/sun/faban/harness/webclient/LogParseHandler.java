@@ -12,6 +12,8 @@ import javax.servlet.ServletOutputStream;
 import java.util.ArrayList;
 import java.io.IOException;
 
+import com.sun.faban.common.Utilities;
+
 /**
  * The superclass of all log handlers provides all basic services
  * to be subclassed by specific handlers or display formatters.
@@ -150,7 +152,7 @@ abstract class LogParseHandler extends DefaultHandler {
             else if ("thread".equals(qName))
                 logRecord.thread = buffer.toString().trim();
             else if ("message".equals(qName) && "record".equals(parent)) {
-                logRecord.message = formatMessage(buffer.toString().trim());
+                logRecord.message = buffer.toString().trim();
             }
             else
                 processDetail(qName);
@@ -159,22 +161,23 @@ abstract class LogParseHandler extends DefaultHandler {
     }
 
     /**
-     * Formats a multi-line message into html line breaks
-     * for readability.
+     * Formats a meesage to ensure it is readable in html.
      * @param message The message to be formatted.
      * @return The new formatted message.
      */
     String formatMessage(String message) {
-        int idx = message.indexOf('\n');
-        if (idx == -1) // If there's no \n, don't even hassle.
-            return message;
-        StringBuffer msg = new StringBuffer(message);
+        StringBuilder msgBuffer = new StringBuilder(message.length() * 2);
+        Utilities.escapeXML(message, msgBuffer);
+
         String crlf = "<br>";
-        while (idx != -1) {
-            msg.replace(idx, idx + 1, crlf);
-            idx = msg.indexOf("\n", idx + crlf.length());
+        for (int idx = 0;;) {
+            idx = msgBuffer.indexOf("\n", idx);
+            if (idx == -1)
+                break;
+            msgBuffer.replace(idx, idx + 1, crlf);
+            idx += crlf.length();
         }
-        return msg.toString();
+        return msgBuffer.toString();
     }
 
     /**

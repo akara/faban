@@ -228,7 +228,7 @@ class TableHandler extends LogParseHandler {
                     "\">exception</a></i></font></td>");
         else
             out.println("</td>");
-        out.println("<td " + msgmouseover + " class=\"tablecell\">" + record.message + "</td>");
+        out.println("<td " + msgmouseover + " class=\"tablecell\">" + formatMessage(record.message) + "</td>");
         //out.println("<td class=\"tablecell\" style=\"text-align: center;\">" + record.thread +
         //        "</td>");
         //out.println("<td class=\"tablecell\">" + record.clazz + '.' + record.method + "</td>");
