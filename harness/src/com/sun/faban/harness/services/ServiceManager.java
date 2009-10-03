@@ -315,6 +315,11 @@ public class ServiceManager {
                 Element serviceElement = (Element) serviceNodes.item(j);
                 String serviceName = par.getParameter("fh:name",
                                                         serviceElement);
+
+                boolean enabled = par.getBooleanValue("fh:enabled", true);
+                if (!enabled)
+                    continue;
+                
                 boolean restart = par.getBooleanValue("fh:restart",
                                                       serviceElement);
                 Node configNode = par.getNode("fh:config", serviceElement);

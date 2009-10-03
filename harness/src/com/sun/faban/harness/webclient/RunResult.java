@@ -169,7 +169,7 @@ public class RunResult {
         String resultFilePath;
         String configFileName;
         BenchmarkDescription desc = BenchmarkDescription.
-                readDescription(shortName, resultDir.getAbsolutePath());
+                getDescription(shortName, resultDir.getAbsolutePath());
         if (desc == null) {
             Map<String, BenchmarkDescription> benchMap =
                     BenchmarkDescription.getBenchDirMap();

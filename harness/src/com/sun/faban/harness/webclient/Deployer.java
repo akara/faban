@@ -34,14 +34,12 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
-import java.io.Writer;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Logger;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * The Deployer servlet is used to deploy a benchmark/service from a remote
@@ -109,12 +107,23 @@ public class Deployer extends HttpServlet {
         try {
             List<String> deployNames = new ArrayList<String>();
             List<String> cantDeployNames = new ArrayList<String>();
+            List<String> errDeployNames = new ArrayList<String>();
             List<String> invalidNames = new ArrayList<String>();
+            List<String> errHeaders = new ArrayList<String>();
+            List<String> errDetails = new ArrayList<String>();
 
             String user = null;
             String password = null;
             boolean clearConfig = false;
             boolean hasPermission = true;
+
+            // Check whether we have to return text or html
+            boolean acceptHtml = false;
+            String acceptHeader = request.getHeader("Accept");
+            if (acceptHeader.indexOf("text/html") >= 0) {
+                    acceptHtml = true;
+            }
+
 
             DiskFileUpload fu = new DiskFileUpload();
             // No maximum size
@@ -123,6 +132,9 @@ public class Deployer extends HttpServlet {
             fu.setSizeThreshold(4096);
             // the location for saving data that is larger than getSizeThreshold()
             fu.setRepositoryPath(Config.TMP_DIR);
+
+            StringWriter messageBuffer = new StringWriter();
+            PrintWriter messageWriter = new PrintWriter(messageBuffer);
 
             List fileItems = null;
             try {
@@ -191,19 +203,19 @@ public class Deployer extends HttpServlet {
                     continue;
                 }
 
-                String benchName = fileName.substring(0, fileName.length() - 4);
+                String deployName = fileName.substring(0, fileName.length() - 4);
 
-                if (benchName.indexOf('.') > -1) {
-                    invalidNames.add(benchName);
+                if (deployName.indexOf('.') > -1) {
+                    invalidNames.add(deployName);
                     continue;
                 }
 
                 // Check if we can deploy benchmark or service.
                 // If running or queued, we won't deploy benchmark.
                 // If service being used by current run,we won't deploy service.
-                if (!DeployUtil.canDeployBenchmark(benchName) ||
-                        !DeployUtil.canDeployService(benchName)) {
-                    cantDeployNames.add(benchName);
+                if (!DeployUtil.canDeployBenchmark(deployName) ||
+                        !DeployUtil.canDeployService(deployName)) {
+                    cantDeployNames.add(deployName);
                     continue;
                 }
 
@@ -219,13 +231,15 @@ public class Deployer extends HttpServlet {
 
 
                 try {
-                    DeployUtil.unjar(uploadFile, benchName);
-                    //DeployUtil.generateDD(benchName);
-                    //DeployUtil.generateXform(benchName);
+                    DeployUtil.processUploadedJar(uploadFile, deployName);
                 } catch (Exception e) {
-                    throw new ServletException(e);
+                    messageWriter.println("\nError deploying " + deployName +
+                                          ".\n");
+                    e.printStackTrace(messageWriter);
+                    errDeployNames.add(deployName);
+                    continue;
                 }
-                deployNames.add(benchName);
+                deployNames.add(deployName);
             }
 
             if (clearConfig)
@@ -236,6 +250,8 @@ public class Deployer extends HttpServlet {
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             else if (cantDeployNames.size() > 0)
                 response.setStatus(HttpServletResponse.SC_CONFLICT);
+            else if (errDeployNames.size() > 0)
+                response.setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
             else if (invalidNames.size() > 0)
                 response.setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
             else if (deployNames.size() > 0)
@@ -243,41 +259,79 @@ public class Deployer extends HttpServlet {
             else
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 
-            Writer writer = response.getWriter();
-            writeHeader(request, writer);
+            StringBuilder b = new StringBuilder();
 
-            if (deployNames.size() > 1)
-                writer.write("Benchmarks/services ");
-            else if (deployNames.size() > 0)
-                writer.write("Benchmark/service ");
+            if (deployNames.size() > 0) {
+                if (deployNames.size() > 1)
+                    b.append("Benchmarks/services ");
+                else
+                    b.append("Benchmark/service ");
 
-            for (int i = 0; i < deployNames.size(); i++) {
-                if (i > 0)
-                    writer.write(", ");
-                writer.write((String) deployNames.get(i));
+                for (int i = 0; i < deployNames.size(); i++) {
+                    if (i > 0)
+                        b.append(", ");
+                    b.append((String) deployNames.get(i));
+                }
+
+                b.append(" deployed.");
+                errHeaders.add(b.toString());
+                b.setLength(0);
             }
 
-            if (deployNames.size() > 0)
-                writer.write(" deployed.<br>\n");
+            if (invalidNames.size() > 0) {
+                if (invalidNames.size() > 1)
+                    b.append("Invalid deploy files ");
+                else
+                    b.append("Invalid deploy file ");
+                for (int i = 0; i < invalidNames.size(); i++) {
+                    if (i > 0)
+                        b.append(", ");
+                    b.append((String) invalidNames.get(i));
+                }
+                b.append(". Deploy files must have .jar extension.");
+                errHeaders.add(b.toString());
+                b.setLength(0);
+            }
 
             if (cantDeployNames.size() > 0) {
                 if (cantDeployNames.size() > 1)
-                    writer.write("Cannot deploy benchmarks/services ");
+                    b.append("Cannot deploy benchmarks/services ");
                 else
-                    writer.write("Cannot deploy benchmark/services ");
+                    b.append("Cannot deploy benchmark/services ");
                 for (int i = 0; i < cantDeployNames.size(); i++) {
                     if (i > 0)
-                        writer.write(", ");
-                    writer.write((String) cantDeployNames.get(i));
+                        b.append(", ");
+                    b.append((String) cantDeployNames.get(i));
                 }
-                writer.write(". Benchmark/services being used or " +
-                        "queued up for run.<br>\n");
+                b.append(". Benchmark/services being used or " +
+                        "queued up for run.");
+                errHeaders.add(b.toString());
+                b.setLength(0);
+            }
+
+            if (errDeployNames.size() > 0) {
+                if (errDeployNames.size() > 1) {
+                    b.append("Error deploying benchmarks/services ");
+                    for (int i = 0; i < errDeployNames.size(); i++) {
+                        if (i > 0)
+                            b.append(", ");
+                        b.append((String) errDeployNames.get(i));
+                    }
+                }
+
+                errDetails.add(messageBuffer.toString());
+                errHeaders.add(b.toString());
+                b.setLength(0);
             }
 
             if (!hasPermission)
-                writer.write("Permission denied!");
+                errHeaders.add("Permission denied!");
 
-            writeTrailer(writer);
+            Writer writer = response.getWriter();
+            if (acceptHtml)
+                writeHtml(request, writer, errHeaders, errDetails);
+            else
+                writeText(writer, errHeaders, errDetails);
             writer.flush();
             writer.close();
         } catch (ServletException e) {
@@ -292,7 +346,63 @@ public class Deployer extends HttpServlet {
         }
     }
 
-    private static void writeHeader(HttpServletRequest request, Writer w) 
+    private static void writeText(Writer w, List<String> errHeaders, List<String> errDetails) throws IOException {
+        for (String errHeader : errHeaders) {
+            w.write(errHeader);
+            w.write("\n");
+        }
+        w.write("\n");
+        for (String errDetail : errDetails) {
+            w.write(errDetail);
+            w.write("\n\n");
+        }
+    }
+
+    private static void writeHtml(HttpServletRequest request, Writer w, List<String> errHeaders, List<String> errDetails)
+            throws IOException {
+        w.write("<!DOCTYPE html\n");
+        w.write("    PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\n");
+        w.write("    \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-" +
+                "transitional.dtd\">\n");
+        w.write("<html>\n");
+        w.write("    <head>\n");
+        w.write("        <title>" + Config.HARNESS_NAME +
+                " Benchmark/Service Deployment</title>\n");
+        w.write("<link rel=\"icon\" type=\"image/gif\" href=\"" +
+                    request.getContextPath() + "/img/faban.gif\">");
+        w.write("<link rel=\"stylesheet\" type=\"text/css\" href=\"/css/style.css\" />");
+
+        w.write("    </head>\n");
+        w.write("    <body>\n");
+        w.write("        <table BORDER=\"0\" CELLSPACING=\"0\" CELLPADDING=\"0\" WIDTH=\"100%\" >\n");
+        w.write("            <tr class=\"gradient\">\n");
+        w.write("                <td align=\"left\" width=\"25%\" style=\"color:white; font-size:10px\">\n");
+        w.write("                &nbsp;&nbsp;<img src=\"img/faban_large.png\" height=\"50\" width=\"58\"/><br></td>\n");
+        w.write("                <td align=\"center\" width=\"50%\" style=\"color:white; font-size:10px\">\n");
+        w.write("                <b>Benchmark/Service Deployment</b></td>\n");
+        w.write("                <td align=\"right\" valign=\"bottom\" width=25% style=\"color:white\">");
+        w.write(Config.HARNESS_NAME + "&nbsp;&nbsp;" + Config.HARNESS_VERSION +"&nbsp;</td>\n");
+        w.write("            </tr>\n");
+        w.write("        </table>");
+        w.write("        <br><center><b>");
+        for (String errHdr : errHeaders) {
+            w.write("            ");
+            w.write(errHdr);
+            w.write("<br>\n");
+        }
+        w.write("        </b></center>");
+        for (String errDetail : errDetails) {
+            w.write("         <table border=\"0\" cellpadding=\"4\" cellspacing=\"3\" " +
+                    "style=\"padding: 2px; border: 2px solid #cccccc; text-align: left; width: 100%;\">\n");
+            w.write("         <tbody><tr class=\"even\"><td><pre>");
+            w.write(errDetail);
+            w.write("</pre></td></tr></tbody></table>\n");
+        }
+        w.write("    </body>\n");
+        w.write("</html>\n");
+    }
+
+        private static void writeHeader(HttpServletRequest request, Writer w)
             throws IOException {
         w.write("<!DOCTYPE html\n");
         w.write("    PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\n");

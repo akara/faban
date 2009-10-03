@@ -109,6 +109,14 @@ public class ServiceContext implements Serializable {
     }
 
     /**
+     * Obtains the name (aka id) of the service.
+     * @return The name of the service
+     */
+    public String getName() {
+        return desc.id;
+    }
+
+    /**
      * Obtains the list of hosts as configured in the configuration file
      * for the role this service is associated.
      * @return string array of hosts

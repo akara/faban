@@ -37,6 +37,7 @@ import org.apache.tools.ant.Task;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 
 /**
@@ -132,6 +133,10 @@ public class DeployTask extends Task {
 
             // Prepare the post method.
             PostMethod post = new PostMethod(target + "/deploy");
+
+            // Ensure text/plain is the only accept header.
+            post.removeRequestHeader("Accept");
+            post.setRequestHeader("Accept", "text/plain");
             post.setRequestEntity(
                     new MultipartRequestEntity(parts, post.getParams()));
 
@@ -140,19 +145,34 @@ public class DeployTask extends Task {
             client.getHttpConnectionManager().getParams().
                     setConnectionTimeout(5000);
             int status = client.executeMethod(post);
+            StringBuilder b = new StringBuilder();
+            InputStream respBody  = post.getResponseBodyAsStream();
+            byte[] readBuffer = new byte[8192];
+            for (;;) {
+                int size = respBody.read(readBuffer);
+                if (size == -1)
+                    break;
+                b.append(new String(readBuffer, 0, size));
+            }
+            String response = b.toString();
 
             // Check status.
-            if (status == HttpStatus.SC_CONFLICT)
+            if (status == HttpStatus.SC_CONFLICT) {
+                handleErrorFlush(response);
                 throw new BuildException("Benchmark to deploy is currently " +
                         "run or queued to be run. Please clear run queue " +
                         "of this benchmark before deployment");
-            else if (status == HttpStatus.SC_NOT_ACCEPTABLE)
+            } else if (status == HttpStatus.SC_NOT_ACCEPTABLE) {
+                handleErrorFlush(response);
                 throw new BuildException("Benchmark deploy name or deploy " +
-                        "file name invalid. Name must have no '.' and file " +
-                        "must have the '.jar' extensions");
-            else if (status != HttpStatus.SC_CREATED)
+                        "file invalid. Deploy file may contain errors. Name " +
+                        "must have no '.' and file must have the " +
+                        "'.jar' extensions.");
+            } else if (status != HttpStatus.SC_CREATED) {
+                handleOutput(response);
                 throw new BuildException("Faban responded with status code " +
                         status + ". Status code 201 (SC_CREATED) expected.");
+            }
         } catch (FileNotFoundException e) {
             throw new BuildException(e);
         } catch (HttpException e) {

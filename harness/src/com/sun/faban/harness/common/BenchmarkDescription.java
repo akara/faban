@@ -209,7 +209,7 @@ public class BenchmarkDescription implements Serializable {
         File[] benchmarks = DeployUtil.BENCHMARKDIR.listFiles();
         for (int i = 0; i < benchmarks.length; i++) {
             logger.finest("Found benchmark directory " + benchmarks[i]);
-            BenchmarkDescription desc = readDescription(benchmarks[i].getName(),
+            BenchmarkDescription desc = getDescription(benchmarks[i].getName(),
                                         benchmarks[i].getAbsolutePath());
             if (desc == null)
                 continue;
@@ -230,16 +230,41 @@ public class BenchmarkDescription implements Serializable {
         mapTimeStamp = System.currentTimeMillis();
     }
 
+
+    /**
+     * Obtains the benchmark description from a directory, not from cache.
+     * The directory can either be the benchmark deployment directory or the
+     * benchmark result dir. The benchmark directory is given as an absolute
+     * path.
+     * @param shortName The short benchmark name, equals the deployment directory
+     * @param dir The benchmark directory
+     * @return The benchmark description object, or null if there are errors
+     */
+    public static BenchmarkDescription getDescription(String shortName,
+                                                      String dir) {
+        BenchmarkDescription desc = null;
+        try {
+            desc = readDescription(shortName, dir);
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Error reading benchmark " +
+                    "descriptor for " + dir, e);
+        }
+        return desc;
+    }
+
    /**
     * Reads the benchmark description from a directory. This can be either
     * the benchmark deployment directory or the benchmark result dir. The
     * benchmark directory is given as an absolute path.
     * @param shortName The short benchmark name, equals the deployment directory
     * @param dir The benchmark directory
-    * @return The benchmark description object.
+    * @return The benchmark description object
+    * @throws Exception error reading or processing the description
     */
     public static BenchmarkDescription readDescription(String shortName,
-                                                       String dir) {
+                                                       String dir)
+           throws Exception {
+
         BenchmarkDescription desc = null;
         String metaInf = dir + File.separator + "META-INF";
         File metaInfDir = new File(metaInf);
@@ -248,91 +273,85 @@ public class BenchmarkDescription implements Serializable {
 
         File benchmarkXml = new File(metaInfDir, "benchmark.xml");
 
-        try {
-            desc = new BenchmarkDescription();
-            DocumentBuilder parser = parserPool.get();
-            Node root = null;
-            if (benchmarkXml.exists()) {
-               root = parser.parse(benchmarkXml).getDocumentElement();
-               desc.benchmarkClass = xPath.evaluate("benchmark-class", root);
-            }
-            boolean fdExists = readFabanDescription(desc, metaInfDir, parser);
-            parserPool.release(parser);
+       desc = new BenchmarkDescription();
+       DocumentBuilder parser = parserPool.get();
+       Node root = null;
+       if (benchmarkXml.exists()) {
+           root = parser.parse(benchmarkXml).getDocumentElement();
+           desc.benchmarkClass = xPath.evaluate("benchmark-class", root);
+       }
+       boolean fdExists = readFabanDescription(desc, metaInfDir, parser);
+       parserPool.release(parser);
 
-            if (!fdExists && root == null)
-                throw new IOException("Missing benchmark.xml!");
+       if (!fdExists && root == null)
+           throw new IOException("Missing benchmark.xml!");
 
-            desc.shortName = shortName ;
+       desc.shortName = shortName ;
 
-            if (root != null) {
-                String value = xPath.evaluate("config-file-name", root);
-                if (value != null && value.length() > 0)
-                    desc.configFileName = value;
+       if (root != null) {
+           String value = xPath.evaluate("config-file-name", root);
+           if (value != null && value.length() > 0)
+               desc.configFileName = value;
 
-                value = xPath.evaluate("config-stylesheet", root);
-                if (value != null && value.length() > 0)
-                    desc.configStylesheet = value;
-                
-                value = xPath.evaluate("banner-page", root);
-                if (value != null && value.length() > 0)
-                    desc.bannerPage = value;                
+           value = xPath.evaluate("config-stylesheet", root);
+           if (value != null && value.length() > 0)
+               desc.configStylesheet = value;
 
-                if (desc.benchmarkClass == null ||
-                    desc.benchmarkClass.length() == 0)
-                    throw new IOException("Element <benchmark-class> empty " +
-                            "or missing in " + benchmarkXml.getAbsolutePath());
+           value = xPath.evaluate("banner-page", root);
+           if (value != null && value.length() > 0)
+               desc.bannerPage = value;
 
-                value = xPath.evaluate("name", root);
-                if (value != null && value.length() > 0)
-                    desc.name = value;
-                if (desc.name == null)
-                    throw new IOException("Element <name> empty or missing " +
-                                        "in " + benchmarkXml.getAbsolutePath());
+           if (desc.benchmarkClass == null ||
+                   desc.benchmarkClass.length() == 0)
+               throw new IOException("Element <benchmark-class> empty " +
+                       "or missing in " + benchmarkXml.getAbsolutePath());
 
-                value = xPath.evaluate("version", root);
-                if (value != null && value.length() > 0)
-                    desc.version = value;
-                if (desc.version == null)
-                    throw new IOException("Element <version> empty or " +
-                            "missing in " + benchmarkXml.getAbsolutePath());
+           value = xPath.evaluate("name", root);
+           if (value != null && value.length() > 0)
+               desc.name = value;
+           if (desc.name == null)
+               throw new IOException("Element <name> empty or missing " +
+                       "in " + benchmarkXml.getAbsolutePath());
 
-                value = xPath.evaluate("config-form", root);
-                if (value != null && value.length() > 0)
-                    desc.configForm = value;
+           value = xPath.evaluate("version", root);
+           if (value != null && value.length() > 0)
+               desc.version = value;
+           if (desc.version == null)
+               throw new IOException("Element <version> empty or " +
+                       "missing in " + benchmarkXml.getAbsolutePath());
 
-                value = xPath.evaluate("result-file-path", root);
-                if (value != null && value.length() > 0)
-                    desc.resultFilePath = value;
+           value = xPath.evaluate("config-form", root);
+           if (value != null && value.length() > 0)
+               desc.configForm = value;
 
-                value = xPath.evaluate("metric", root);
-                if (value != null && value.length() > 0)
-                    desc.metric = value;
-                if (desc.metric == null)
-                    throw new IOException("Element <metric> empty or " +
-                            "missing in " + benchmarkXml.getAbsolutePath());
+           value = xPath.evaluate("result-file-path", root);
+           if (value != null && value.length() > 0)
+               desc.resultFilePath = value;
 
-                value = xPath.evaluate("scaleName", root);
-                if (value != null && value.length() > 0)
-                    desc.scaleName = value;
-                if (desc.scaleName == null)
-                    desc.scaleName = "";
+           value = xPath.evaluate("metric", root);
+           if (value != null && value.length() > 0)
+               desc.metric = value;
+           if (desc.metric == null)
+               throw new IOException("Element <metric> empty or " +
+                       "missing in " + benchmarkXml.getAbsolutePath());
 
-                value = xPath.evaluate("scaleUnit", root);
-                if (value != null && value.length() > 0)
-                    desc.scaleUnit = value;
-                if (desc.scaleUnit == null)
-                    desc.scaleUnit = "";
+           value = xPath.evaluate("scaleName", root);
+           if (value != null && value.length() > 0)
+               desc.scaleName = value;
+           if (desc.scaleName == null)
+               desc.scaleName = "";
 
-                if (desc.scaleName.length() == 0 &&
-                    desc.scaleUnit.length() == 0)
-                    throw new IOException("Both element <scaleName> and " +
-                            "<scaleUnit> empty or missing in " +
-                            benchmarkXml.getAbsolutePath());
-            }
-       } catch (Exception e) {
-           desc = null;
-           logger.log(Level.WARNING, "Error reading benchmark " +
-                   "descriptor for " + dir, e);
+           value = xPath.evaluate("scaleUnit", root);
+           if (value != null && value.length() > 0)
+               desc.scaleUnit = value;
+           if (desc.scaleUnit == null)
+               desc.scaleUnit = "";
+
+           if (desc.scaleName.length() == 0 &&
+                   desc.scaleUnit.length() == 0)
+               throw new IOException("Both element <scaleName> and " +
+                       "<scaleUnit> empty or missing in " +
+                       benchmarkXml.getAbsolutePath());
        }
        return desc;
     }

@@ -102,6 +102,10 @@ public class Engine {
         if(path != null)
             System.setProperty("faban.root", path);
 
+        String fabanHome = ctx.getInitParameter("faban.home");
+        if (fabanHome != null)
+            System.setProperty("faban.home", fabanHome);
+
         StringBuffer reqUrl = request.getRequestURL();
         int uriLength = reqUrl.length() - request.getRequestURI().length() +
                         request.getContextPath().length();

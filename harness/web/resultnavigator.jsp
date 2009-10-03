@@ -38,11 +38,12 @@
 
     // First, we try to get the meta info from the results.
     BenchmarkDescription desc = BenchmarkDescription.
-            readDescription(benchmark, Config.OUT_DIR + runId);
+            getDescription(benchmark, Config.OUT_DIR + runId);
     if (desc == null)
 
-    // If not, we fetch it from the benchmark meta info.
-    desc = BenchmarkDescription.getDescription(benchmark);
+        // If not, we fetch it from the benchmark meta info.
+        desc = BenchmarkDescription.getDescription(benchmark);
+    
     String[] status = RunResult.readStatus(runId);
     boolean finished = true;
     if ("STARTED".equals(status[0]))

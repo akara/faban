@@ -25,6 +25,7 @@ package com.sun.faban.harness.util;
 
 import com.sun.faban.common.Command;
 import com.sun.faban.common.Utilities;
+import com.sun.faban.common.CommandHandle;
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.engine.RunQ;
@@ -78,17 +79,16 @@ public class DeployUtil {
 
 
     /**
-     * Unjars the content a benchmark jar file into the benchmark directory.
-     * @param jarFile The benchmark jar file
-     * @param benchName The name of the benchmark
-     * @throws Exception Error unjaring the jar file.
+     * Unjars the content a deployable jar file into the deploy directory.
+     * @param jarFile The deployable jar file
+     * @param deployName The name of the deployable unit
+     * @throws IOException Error unjaring the jar file.
      */
-    public static void unjar(File jarFile, String benchName) throws Exception {
+    public static void unjar(File jarFile, String deployName)
+            throws IOException {
                 
-        logger.info("Redeploying " + benchName);
-
-        String jarName = jarFile.getName();
-        File dir = new File(Config.BENCHMARK_DIR, benchName);
+        logger.info("Redeploying " + deployName);
+        File dir = new File(jarFile.getParent(), deployName);
 
         if (dir.exists())
             FileHelper.recursiveDelete(dir);
@@ -96,17 +96,33 @@ public class DeployUtil {
         dir.mkdir();
 
         FileHelper.unjar(jarFile.getAbsolutePath(), dir.getAbsolutePath());
-        File runXml = new File(Config.BENCHMARK_DIR + benchName + File.separator + "META-INF" + File.separator + "run.xml");
-        File servicesToolsXml = new File(Config.BENCHMARK_DIR + benchName + File.separator + "META-INF" + File.separator + "services-tools.xml");
-        if (servicesToolsXml.exists() && !runXml.exists()) {
-            logger.info("Redeploying Service " + benchName);
+    }
 
-            File dir1 = new File(Config.SERVICE_DIR, benchName);
+    /**
+     * Processes an uploaded jar file.
+     * @param jarFile The benchmark or service jar file
+     * @param deployName The name of the benchmark or service
+     * @throws Exception Error processing the file
+     */
+    public static void processUploadedJar(File jarFile, String deployName)
+            throws Exception {
+        unjar(jarFile, deployName);
+        String jarName = jarFile.getName();
+        File dir = new File(Config.BENCHMARK_DIR, deployName);
+        File runXml = new File(Config.BENCHMARK_DIR + deployName +
+                File.separator + "META-INF" + File.separator + "run.xml");
+        File servicesToolsXml = new File(Config.BENCHMARK_DIR + deployName +
+                File.separator + "META-INF" + File.separator +
+                "services-tools.xml");
+        if (servicesToolsXml.exists() && !runXml.exists()) {
+            logger.info("Redeploying Service " + deployName);
+            File dir1 = new File(Config.SERVICE_DIR, deployName);
             if (dir1.exists()) {
                 FileHelper.recursiveDelete(dir1);
             }
             dir1.mkdir();
-            FileHelper.copyFile(Config.BENCHMARK_DIR + jarName, Config.SERVICE_DIR + jarName, false);
+            FileHelper.copyFile(Config.BENCHMARK_DIR + jarName,
+                    Config.SERVICE_DIR + jarName, false);
             FileHelper.recursiveCopy(dir, dir1);
             FileHelper.recursiveDelete(dir);
             FileHelper.recursiveDelete(new File(Config.BENCHMARK_DIR + jarName));
@@ -117,18 +133,27 @@ public class DeployUtil {
             }else{
                 dir.delete();
             }*/
-        }else{
-            generateDD(benchName);
-            generateXform(benchName);
+        } else {
+            try {
+                generateDD(deployName);
+                BenchmarkDescription desc = BenchmarkDescription.
+                        readDescription(deployName, dir.toString());
+                if (desc == null)
+                    throw new DeployException(
+                            "Missing META-INF directory in benchmark deployment.");
+                generateXform(deployName);
+            } catch (Exception e) { // Clean up if we run into errors.
+                FileHelper.recursiveDelete(dir);
+                throw e;
+            }
         }
-   
     }
 
     /**
      * This method is responsible for generation the deployment descriptor.
      * @param dir The deployment directory
      */
-    public static void generateDD(String dir) {
+    public static void generateDD(String dir) throws DeployException {
         String benchDir = Config.BENCHMARK_DIR + dir + File.separator;
         String metaInf = benchDir + "META-INF" + File.separator;
         String xmlPath = metaInf + "benchmark.xml";
@@ -177,18 +202,40 @@ public class DeployUtil {
                 ddCmd.add(classpath);
                 ddCmd.add("-Dbenchmark.config=" + configFile);
                 ddCmd.add("-Dbenchmark.ddfile=faban.xml");
-                ddCmd.add("-Djava.util.logging.config.file=" +
-                               Config.CONFIG_DIR + "logging.properties");
                 ddCmd.add("com.sun.faban.driver.util.DDGenerator");
 
                 Command cmd = new Command(ddCmd);
                 cmd.setWorkingDirectory(metaInf);
-                cmd.execute();
+                cmd.setStreamHandling(Command.STDOUT, Command.CAPTURE);
+                cmd.setStreamHandling(Command.STDERR, Command.CAPTURE);
+                CommandHandle p = cmd.execute();
+                if (p.exitValue() != 0) {
+                    StringBuilder b = new StringBuilder();
+                    b.append("Error generating faban driver deployment " +
+                             "descriptor for " + dir + ".\n");
 
+                    byte[] output = p.fetchOutput(Command.STDOUT);
+                    String o = null;
+                    if (output != null)
+                        o = new String(output, 0, output.length).trim();
+
+                    if (o != null && o.length() > 0)
+                        b.append("stdout:\n").append(o);
+
+                    output = p.fetchOutput(Command.STDERR);
+                    if (output != null) {
+                        o = new String(output, 0, output.length).trim();
+                        if (o.length() > 0)
+                            b.append("\nstderr:\n").append(o);
+                    }
+
+                    throw new DeployException(b.toString());
+                }
+            } catch (DeployException e) {
+                throw e;
             } catch (Exception e) {
-                Logger logger = Logger.getLogger(DeployUtil.class.getName());
-                logger.log(Level.WARNING, "Error generating FabanDriver " +
-                        "descriptor for " + dir, e);
+                throw new DeployException("Error generating faban driver " +
+                        "descriptor for " + dir + ".", e);
             }
     }
 
@@ -227,7 +274,8 @@ public class DeployUtil {
         if (!configFormFile.exists()) {
             File runFile = new File(metaInf + configFile);
             if (runFile.exists()) {
-                File templateFile = new File(Config.FABAN_HOME + "resources/config-template.xhtml");
+                File templateFile = new File(Config.FABAN_HOME +
+                        "resources/config-template.xhtml");
                 XformsGenerator.generate(runFile, configFormFile, templateFile);
             }
         }
@@ -356,6 +404,9 @@ public class DeployUtil {
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Error deploying benchmark \"" +
                         benchName + "\"", e);
+                File dir = new File(Config.BENCHMARK_DIR, benchName);
+                if (dir.exists())
+                    FileHelper.recursiveDelete(dir);
             }
     }
 
@@ -369,8 +420,11 @@ public class DeployUtil {
             try {
                 unjar(jarFile, serviceBundleName);
             } catch (Exception e) {
-                logger.log(Level.SEVERE, "Error deploying serviceBundle \"" +
+                logger.log(Level.SEVERE, "Error deploying service bundle \"" +
                         serviceBundleName + "\"", e);
+                File dir = new File(Config.SERVICE_DIR, serviceBundleName);
+                if (dir.exists())
+                    FileHelper.recursiveDelete(dir);
             }
     }
 
