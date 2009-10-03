@@ -428,6 +428,9 @@ public class FileHelper {
             if (entry.isDirectory()) {
                 target.mkdirs();
             } else {
+                File parent = target.getParentFile();
+                if (!parent.isDirectory())
+                    parent.mkdirs();
                 InputStream in = jarFile.getInputStream(entry);
                 FileOutputStream out = new FileOutputStream(target);
                 for (;;) {
