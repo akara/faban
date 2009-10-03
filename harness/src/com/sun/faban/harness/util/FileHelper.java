@@ -23,9 +23,6 @@
  */
 package com.sun.faban.harness.util;
 
-import com.sun.faban.common.Command;
-import com.sun.faban.common.CommandHandle;
-import com.sun.faban.common.Utilities;
 import com.sun.faban.harness.agent.CmdAgentImpl;
 import com.sun.faban.harness.agent.FileAgent;
 import com.sun.faban.harness.agent.FileService;
@@ -38,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Properties;
 import java.util.StringTokenizer;
+import java.util.jar.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -359,28 +357,53 @@ public class FileHelper {
     public static void jar(String dir, String[] fileNames, String jarPath)
             throws IOException {
 
-        logger.fine("Jar'ring up " + dir + " to " + jarPath + '.');
+        logger.fine("Jar'ing up " + dir + " to " + jarPath + '.');
 
-        ArrayList<String> cmdList = new ArrayList<String>(fileNames.length + 3);
-        String jarCmd = Utilities.getJavaHome() + File.separator + "bin" +
-                File.separator + "jar";
-        cmdList.add(jarCmd);
-        cmdList.add("cf");
-        cmdList.add(jarPath);
+        File jarFile = new File(jarPath);
+        if (!jarFile.isAbsolute())
+            jarFile = new File(dir, jarPath);
+
+        Manifest manifest = new Manifest();
+        Attributes attributes = manifest.getMainAttributes();
+        attributes.putValue("Manifest-Version", "1.0");
+        attributes.putValue("Created-By", Config.HARNESS_NAME + ' ' +
+                            Config.HARNESS_VERSION);
+        JarOutputStream out = new JarOutputStream(
+                new FileOutputStream(jarFile), manifest);
+
+        byte[] buffer = new byte[8192];
         for (String fileName : fileNames) {
-            cmdList.add(fileName);
+            addEntry(out, dir, fileName, buffer);
         }
-        Command cmd = new Command(cmdList);
-        cmd.setWorkingDirectory(dir);
-        try {
-            CommandHandle handle = cmd.execute();
-            int exitValue = handle.exitValue();
-            if (exitValue != 0){
-                handle.destroy();
-                //throw new IOException("Command \"jar cf\" has exit value " + exitValue);
+        out.flush();
+        out.close();
+    }
+
+    private static void addEntry(JarOutputStream out, String baseDir,
+                                 String name, byte[] buffer)
+            throws IOException {
+        File input = new File(baseDir + '/' + name);
+        if (input.isDirectory()) {
+            JarEntry jarEntry = new JarEntry(name + '/');
+            jarEntry.setTime(input.lastModified());
+            out.putNextEntry(jarEntry);
+            out.closeEntry();
+            String[] entries = input.list();
+            for (String entry : entries)
+                addEntry(out, baseDir, name + '/' + entry, buffer);
+        } else {
+            JarEntry jarEntry = new JarEntry(name);
+            jarEntry.setTime(input.lastModified());
+            FileInputStream in = new FileInputStream(input);
+            out.putNextEntry(jarEntry);
+            for (;;) {
+                int len = in.read(buffer);
+                if (len == -1)
+                    break;
+                out.write(buffer, 0, len);
             }
-        } catch (InterruptedException e) {
-            logger.log(Level.SEVERE, "Jar interrupted", e);
+            out.closeEntry();
+            in.close();
         }
     }
 
@@ -393,21 +416,35 @@ public class FileHelper {
     public static void unjar(String jarPath, String outputDir)
             throws IOException {
 
-        logger.fine("Unjar'ring " + jarPath + " to " + outputDir + '.');
-        String jarCmd = Utilities.getJavaHome() + File.separator + "bin" +
-                File.separator + "jar";
-        Command cmd = new Command(jarCmd, "xf", jarPath);
-        cmd.setWorkingDirectory(outputDir);
-        try {
-            CommandHandle handle = cmd.execute();
-            int exitValue = handle.exitValue();
-            if (exitValue != 0)
-                throw new IOException("Command \"jar xf\" has exit value " +
-                                      exitValue);
-        } catch (InterruptedException e) {
-            logger.log(Level.SEVERE, "Unjar interrupted", e);
+        logger.fine("Unjar'ing " + jarPath + " to " + outputDir + '.');
+
+        JarFile jarFile = new JarFile(jarPath);
+        Enumeration<? extends JarEntry> entries = jarFile.entries();
+        byte[] buffer = new byte[8192];
+        while (entries.hasMoreElements()) {
+            JarEntry entry = entries.nextElement();
+            File target = new File(outputDir + File.separator +
+                                   entry.getName());
+            if (entry.isDirectory()) {
+                target.mkdirs();
+            } else {
+                InputStream in = jarFile.getInputStream(entry);
+                FileOutputStream out = new FileOutputStream(target);
+                for (;;) {
+                    int size = in.read(buffer);
+                    if (size == -1)
+                        break;
+                    out.write(buffer, 0, size);
+                }
+                target.setLastModified(entry.getTime());
+                out.flush();
+                out.close();
+                in.close();
+            }
         }
+        jarFile.close();
     }
+
 
     /**
      * Unjars a temporary jar file xxxx.jar under the directory
