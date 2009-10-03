@@ -331,17 +331,40 @@ public class Config {
 
         FABAN_ROOT = System.getProperty("faban.root");
         if (FABAN_ROOT != null) { // If FABAN_ROOT != null, we're in the server
+            String fabanHome = System.getProperty("faban.home");
+            if (fabanHome != null) {
+                File fabanHomePath = new File(fabanHome);
+                if (fabanHomePath.isAbsolute()) {
+                    FABAN_HOME = fabanHome;
+                } else {
+                    fabanHomePath = new File(FABAN_ROOT);
+                    // Derive absolute path from relative faban.home.
+                    StringTokenizer t = new StringTokenizer(fabanHome, "/");
+                    while (t.hasMoreTokens()) {
+                        String pathElement = t.nextToken();
+                        if ("..".equals(pathElement))
+                            fabanHomePath = fabanHomePath.getParentFile();
+                        else
+                            fabanHomePath = new File(fabanHomePath, pathElement);
+                    }
+                    fabanHome = fabanHomePath.getAbsolutePath();
 
-            // Move back to the fourth File.separator from right.
-            int idx = FABAN_ROOT.length() - 1;
-            for (int i = 0; i < 4; i++) {
-                idx = FABAN_ROOT.lastIndexOf(File.separator, idx);
-                --idx;
+                    if (fabanHome.endsWith(File.separator))
+                        FABAN_HOME = fabanHome;
+                    else
+                        FABAN_HOME = fabanHome + File.separator;
+                }
+            } else {
+                // Move back to the fourth File.separator from right.
+                int idx = FABAN_ROOT.length() - 1;
+                for (int i = 0; i < 4; i++) {
+                    idx = FABAN_ROOT.lastIndexOf(File.separator, idx);
+                    --idx;
+                }
+
+                // Then take the substring including the separator.
+                FABAN_HOME = FABAN_ROOT.substring(0, idx + 2);
             }
-
-            // Then take the substring including the separator.
-            FABAN_HOME = FABAN_ROOT.substring(0, idx + 2);
-
 
             // Only for the server, we need to set URL
             FABAN_URL = System.getProperty("faban.url");

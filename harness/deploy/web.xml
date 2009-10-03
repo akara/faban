@@ -5,6 +5,16 @@
 -->
 <web-app>
     <context-param>
+        <param-name>faban.home</param-name>
+        <param-value>../../../</param-value>
+        <description>Path to Faban home directory, outside the webapp.
+                     A relative path is relative to the root context path
+                     of the web application.
+                     Note: Use '/' as the path separator, even on Windows.
+        </description>
+    </context-param>
+
+    <context-param>
         <param-name>debug</param-name>
         <param-value>true</param-value>
         <description>flag for debugging the whole app</description>
