@@ -29,14 +29,17 @@ import java.util.regex.MatchResult;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Scanner;
+import java.util.logging.Logger;
 
 /**
  * The variable load handler provides the load indexes for load variation.
  * @author Hubert Wong
  */
 public class VariableLoadHandler implements Iterator {
-	
-	private ArrayList<VariableLoad> load = new ArrayList<VariableLoad>();
+
+	private static Logger logger = Logger.getLogger(
+            VariableLoadHandler.class.getName());
+    private ArrayList<VariableLoad> load = new ArrayList<VariableLoad>();
 	private int index = 0;
 
     /**
@@ -92,14 +95,22 @@ public class VariableLoadHandler implements Iterator {
 		File loadConfiguration = new File(path);
 		Scanner loadScanner = new Scanner(loadConfiguration);	
 		while(loadScanner.hasNext()) {
-			String line = loadScanner.nextLine();
+			String line = loadScanner.nextLine().trim();
+            if (line.length() == 0)
+                continue;
 			Scanner lineScanner = new Scanner(line);
 			lineScanner.findInLine("(\\d+),(\\d+)");
-			MatchResult result = lineScanner.match();
-			load.add(new VariableLoad(Integer.parseInt(result.group(1)), Integer.parseInt(result.group(2))));
-			// for (int i=1; i<=result.groupCount(); i++)
-			//	System.out.println(result.group(i));
-			lineScanner.close();
+            try {
+                MatchResult result = lineScanner.match();
+                load.add(new VariableLoad(Integer.parseInt(result.group(1)),
+                                          Integer.parseInt(result.group(2))));
+                // for (int i=1; i<=result.groupCount(); i++)
+                //	System.out.println(result.group(i));
+            } catch (IllegalStateException e) {
+                logger.warning("Invalid entry \"" + line +
+                               "\" in load variation file");
+            }
+            lineScanner.close();
 		}
 		loadScanner.close();
 	}
