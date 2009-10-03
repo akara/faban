@@ -48,9 +48,11 @@ public class DDGenerator {
             if (definingClassName != null &&
                     definingClassName.trim().length() > 0)
                 BenchmarkDefinition.printFabanDD(definingClassName);
+            System.exit(0);
         } catch (Exception e) {
             Logger logger = Logger.getLogger(DDGenerator.class.getName());
             logger.severe(e.getMessage());
+            System.exit(1);
         }
     }
 }

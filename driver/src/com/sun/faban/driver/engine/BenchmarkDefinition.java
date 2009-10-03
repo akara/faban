@@ -198,7 +198,8 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
      * Reads the Faban definition annotations and prints a DD to file.
      * @param defClassName The defining class name
      */
-    public static void printFabanDD(String defClassName) {
+    public static void printFabanDD(String defClassName)
+            throws ConfigurationException, DefinitionException {
         Logger logger = Logger.getLogger(BenchmarkDefinition.class.getName());
         logger.fine("Generating Faban DD.");
         Class<?> defClass = null;
@@ -206,17 +207,16 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
             defClass = Class.forName(defClassName);
             logger.fine("Found benchmark definition class " + defClassName);
         } catch (ClassNotFoundException e) {
-            ConfigurationException ce = new ConfigurationException(e);
-            logger.log(Level.SEVERE, e.getMessage(), ce);
-            return;
+            throw new ConfigurationException("Defining class " + defClassName +
+                                            " not found in deployment.", e);
         }
 
         if (!defClass.isAnnotationPresent(
                 com.sun.faban.driver.BenchmarkDefinition.class)) {
-            String msg = "Class " + defClassName +
+            String msg = "Defining class " + defClassName +
                     " is not a benchmark definition.";
             logger.severe(msg);
-            return;
+            throw new DefinitionException(msg);
         }
 
         com.sun.faban.driver.BenchmarkDefinition benchDefAnnotation = defClass.
