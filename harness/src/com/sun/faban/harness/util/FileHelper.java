@@ -418,16 +418,21 @@ public class FileHelper {
 
         logger.fine("Unjar'ing " + jarPath + " to " + outputDir + '.');
 
+        File target;
+        FileOutputStream out;
+
         JarInputStream in =
                 new JarInputStream(new FileInputStream(jarPath));
 
         Manifest manifest = in.getManifest();
-        File target = new File(outputDir + File.separator + "META-INF");
-        target.mkdirs();
-        FileOutputStream out = new FileOutputStream(
-                new File(target, "MANIFEST.MF"));
-        manifest.write(out);
-        out.close();
+
+        if (manifest != null) {
+            target = new File(outputDir + File.separator + "META-INF");
+            target.mkdirs();
+            out = new FileOutputStream(new File(target, "MANIFEST.MF"));
+            manifest.write(out);
+            out.close();
+        }
 
         byte[] buffer = new byte[8192];
         for (;;) {
