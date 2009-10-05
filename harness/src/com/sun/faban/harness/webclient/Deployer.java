@@ -120,10 +120,8 @@ public class Deployer extends HttpServlet {
             // Check whether we have to return text or html
             boolean acceptHtml = false;
             String acceptHeader = request.getHeader("Accept");
-            if (acceptHeader.indexOf("text/html") >= 0) {
+            if (acceptHeader != null && acceptHeader.indexOf("text/html") >= 0)
                     acceptHtml = true;
-            }
-
 
             DiskFileUpload fu = new DiskFileUpload();
             // No maximum size
