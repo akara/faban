@@ -418,21 +418,30 @@ public class FileHelper {
 
         logger.fine("Unjar'ing " + jarPath + " to " + outputDir + '.');
 
-        JarFile jarFile = new JarFile(jarPath);
-        Enumeration<? extends JarEntry> entries = jarFile.entries();
+        JarInputStream in =
+                new JarInputStream(new FileInputStream(jarPath));
+
+        Manifest manifest = in.getManifest();
+        File target = new File(outputDir + File.separator + "META-INF");
+        target.mkdirs();
+        FileOutputStream out = new FileOutputStream(
+                new File(target, "MANIFEST.MF"));
+        manifest.write(out);
+        out.close();
+
         byte[] buffer = new byte[8192];
-        while (entries.hasMoreElements()) {
-            JarEntry entry = entries.nextElement();
-            File target = new File(outputDir + File.separator +
-                                   entry.getName());
+        for (;;) {
+            JarEntry entry = in.getNextJarEntry();
+            if (entry == null)
+                break;
+            target = new File(outputDir + File.separator + entry.getName());
             if (entry.isDirectory()) {
                 target.mkdirs();
             } else {
                 File parent = target.getParentFile();
                 if (!parent.isDirectory())
                     parent.mkdirs();
-                InputStream in = jarFile.getInputStream(entry);
-                FileOutputStream out = new FileOutputStream(target);
+                out = new FileOutputStream(target);
                 for (;;) {
                     int size = in.read(buffer);
                     if (size == -1)
@@ -442,10 +451,10 @@ public class FileHelper {
                 target.setLastModified(entry.getTime());
                 out.flush();
                 out.close();
-                in.close();
             }
+            in.closeEntry();
         }
-        jarFile.close();
+        in.close();
     }
 
 
