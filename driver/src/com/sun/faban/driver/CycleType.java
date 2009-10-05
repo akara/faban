@@ -36,7 +36,7 @@ public enum CycleType {
     THINKTIME,
 
     /**
-     *  Arrival time defines time between the begin of the previous operation
+     * Inter-arrival time defines time between the begin of the previous operation
      * and the begin of the next operation.
      */
     CYCLETIME
