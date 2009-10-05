@@ -24,6 +24,7 @@ package com.sun.services;
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
 import com.sun.faban.common.NameValuePair;
+import com.sun.faban.harness.ConfigurationException;
 import com.sun.faban.harness.Configure;
 import com.sun.faban.harness.Context;
 import com.sun.faban.harness.RunContext;
@@ -58,14 +59,23 @@ public class MemcachedService {
     /**
      * Configures this MemcachedService.
      */
-    @Configure public void configure() {
+    @Configure public void configure() throws ConfigurationException {
         logger.fine("Configuring memcached service ");
         myHostPorts = ctx.getUniqueHostPorts();
+        if(myHostPorts == null){
+            throw new ConfigurationException("Memcached host:port is null");
+        }
         memcachedCmdPath = ctx.getProperty("cmdPath");
+        if(memcachedCmdPath != null && memcachedCmdPath.trim().length() > 0) {
+            memcachedCmdPath = memcachedCmdPath + " ";
+        }else{
+            throw new ConfigurationException("cmdPath property is null");
+        }
         memcachedMemSize = ctx.getProperty("serverMemSize");
-        /* if (!memcachedHome.endsWith(File.separator))
-            memcachedHome = memcachedHome + File.separator;        
-        memcachedBin = memcachedHome + "bin";*/
+        if(memcachedMemSize == null){
+            throw new ConfigurationException("serverMemSize property is null");
+        }
+        
         memcachedStartCmd = memcachedCmdPath + " -u mysql -m " +
                 memcachedMemSize;
         memcacheHandles = new CommandHandle[myHostPorts.size()];

@@ -25,6 +25,7 @@ import com.sun.faban.common.CommandHandle;
 import com.sun.faban.common.NameValuePair;
 import com.sun.faban.common.TextTable;
 
+import com.sun.faban.harness.ConfigurationException;
 import com.sun.faban.harness.Context;
 import com.sun.faban.harness.Configure;
 import com.sun.faban.harness.Start;
@@ -310,11 +311,17 @@ public class MemcacheStats {
     /**
      * Configures this MemcacheStats tool.
      */
-    @Configure public void configure() {
+    @Configure public void configure() throws ConfigurationException {
         LinkedHashSet<String> serverSet = new LinkedHashSet<String>();
         List<String> toolArgs = ctx.getToolArgs();
+        if(toolArgs == null){
+            throw new ConfigurationException("toolArgs is null");
+        }
         List<NameValuePair<Integer>> myHostPorts =
                 ctx.getServiceContext().getUniqueHostPorts();
+        if(myHostPorts == null){
+            throw new ConfigurationException("Memcached host:port is null");
+        }
         for(NameValuePair<Integer> myHostPort : myHostPorts){
             if(myHostPort.value == null)
                 myHostPort.value = 11211;

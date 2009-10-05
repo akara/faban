@@ -54,29 +54,41 @@ public class ApacheHttpdService {
     private static Logger logger =
             Logger.getLogger(ApacheHttpdService.class.getName());
     private String[] myServers;
-    private static String apacheCmd,  errlogFile,  acclogFile, phpSessionDir;
+    private static String apacheCmd,  errlogFile,  acclogFile, sessionDir;
     CommandHandle apacheHandles[];
 
     /**
      * Configures the service.
      */
-    @Configure public void configure() {
+    @Configure public void configure() throws ConfigurationException {
         myServers = ctx.getUniqueHosts();
+        if(myServers == null){
+            throw new ConfigurationException("Apache hostname is null");
+        }
         apacheCmd = ctx.getProperty("cmdPath");
-        if (!apacheCmd.endsWith(" "))
+        if(apacheCmd != null && apacheCmd.trim().length() > 0) {
             apacheCmd = apacheCmd + " ";
-
-        String phpSessionDir1 = ctx.getProperty("phpSessionDir");
-        if (phpSessionDir1.endsWith(File.separator))
-            phpSessionDir = phpSessionDir1.substring(0,
-                    phpSessionDir1.length() - File.separator.length());
-        else
-            phpSessionDir = phpSessionDir1;
-
+        }else{
+            throw new ConfigurationException("cmdPath property is null");
+        }
+        
         String logsDir = ctx.getProperty("logsDir");
-        if (!logsDir.endsWith(File.separator))
-            logsDir = logsDir + File.separator;
+        if(logsDir != null && logsDir.trim().length() > 0) {
+            if (!logsDir.endsWith(File.separator))
+                logsDir = logsDir + File.separator;
+        }else{
+            throw new ConfigurationException("logsDir property is null");
+        }
 
+        sessionDir = ctx.getProperty("sessionDir");
+        if(sessionDir != null && sessionDir.trim().length() > 0) {
+            if (sessionDir.endsWith(File.separator)) {
+                sessionDir = sessionDir.substring(0,
+                        sessionDir.length() - File.separator.length());
+            }
+        }else{
+            logger.warning("sessionDir property is null");
+        }
         errlogFile = logsDir + "error_log";
         acclogFile = logsDir + "access_log";
         logger.fine("ApacheHttpdService setup complete.");
@@ -255,26 +267,21 @@ public class ApacheHttpdService {
             }
 
             logger.fine("Logs cleared for " + myServers[i]);
-            try {
-                // Now delete the session files
-                if (RunContext.deleteFiles(myServers[i], phpSessionDir,
-                        new WildcardFileFilter("sess*")))
-                    logger.fine("Deleted session files for " + myServers[i]);
-                else
-                    logger.warning("Error deleting session files for " +
-                            myServers[i]);
+            if(sessionDir != null && sessionDir.trim().length() > 0) {
+                try {
+                    // Now delete the session files
+                    if (RunContext.deleteFiles(myServers[i], sessionDir,
+                            new WildcardFileFilter("sess*")))
+                        logger.fine("Deleted session files for " + myServers[i]);
+                    else
+                        logger.warning("Error deleting session files for " +
+                                myServers[i]);
 
-                if (RunContext.deleteFiles(myServers[i], phpSessionDir,
-                        new WildcardFileFilter("php*")))
-                    logger.fine("Deleted php temp files for " + myServers[i]);
-                else
-                    logger.warning("Error deleting php temp files for " +
-                            myServers[i]);
-
-            } catch (Exception e) {
-                logger.log(Level.FINE, "Delete session files failed on " +
-                        myServers[i] + ".", e);
-                logger.log(Level.FINE, "Exception", e);
+                } catch (Exception e) {
+                    logger.log(Level.FINE, "Delete session files failed on " +
+                            myServers[i] + ".", e);
+                    logger.log(Level.FINE, "Exception", e);
+                }
             }
         }
     }

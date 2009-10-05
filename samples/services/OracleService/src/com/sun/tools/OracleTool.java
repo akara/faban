@@ -23,6 +23,7 @@ package com.sun.tools;
 
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
+import com.sun.faban.harness.ConfigurationException;
 import com.sun.faban.harness.Context;
 import com.sun.faban.harness.Configure;
 import com.sun.faban.harness.RunContext;
@@ -63,15 +64,21 @@ public abstract class OracleTool {
      * call the tool with.
      *
      */
-    @Configure public void configure() {
+    @Configure public void configure() throws ConfigurationException {
         toolName = ctx.getToolName();
+        if(toolName == null && toolName.trim().length() <= 0){
+            throw new ConfigurationException("toolName is null");
+        }
         String oracleHome = ctx.getServiceProperty("serverHome");
+        if(oracleHome == null && oracleHome.trim().length() <= 0) {
+            throw new ConfigurationException("serverHome property is null");
+        }
         String oracleSid = ctx.getServiceProperty("serverId");
-        String oracleBin = ctx.getServiceProperty("serverBinDir");
-        if (!oracleHome.endsWith(File.separator))
-            oracleHome = oracleHome + File.separator;
-        if (!oracleBin.endsWith(File.separator))
-            oracleBin = oracleBin + File.separator;
+        if(oracleSid == null && oracleSid.trim().length() <= 0){
+            throw new ConfigurationException("serverId property is null");
+        }
+        String oracleBin = oracleHome + "bin" + File.separator;
+        
         // Prepare the environment
         String[] env = new String[4];
         env[0] = "ORACLE_HOME=" + oracleHome;

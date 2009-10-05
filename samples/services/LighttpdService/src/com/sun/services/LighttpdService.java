@@ -23,6 +23,7 @@ package com.sun.services;
 
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
+import com.sun.faban.harness.ConfigurationException;
 import com.sun.faban.harness.RunContext;
 import com.sun.faban.harness.services.ServiceContext;
 import com.sun.faban.harness.Context;
@@ -58,30 +59,58 @@ public class LighttpdService {
     @Context public ServiceContext ctx;
     private Logger logger = Logger.getLogger(LighttpdService.class.getName());
     private String[] myServers;
-    private static String lightyCmd,  errlogFile,  acclogFile, confFile, pidFile;
+    private static String lightyCmd,  errlogFile,  acclogFile, confFile, 
+            pidFile, sessionDir;
     private CommandHandle[] ch = null;
 
     /**
      * Configures the LighttpdService.
      */
-    @Configure public void configure() {
+    @Configure public void configure() throws ConfigurationException {
         myServers = ctx.getUniqueHosts();
+        if(myServers == null){
+            throw new ConfigurationException("Lighttpd hostname is null");
+        }
         lightyCmd = ctx.getProperty("cmdPath");
-        if (!lightyCmd.endsWith(File.separator))
-            lightyCmd = lightyCmd + File.separator;
-
+        if(lightyCmd != null && lightyCmd.trim().length() > 0) {
+            lightyCmd = lightyCmd + " ";
+        }else{
+            throw new ConfigurationException("cmdPath property is null");
+        }
         String logsDir = ctx.getProperty("logsDir");
-        if (!logsDir.endsWith(File.separator))
-            logsDir = logsDir + File.separator;
+        if(logsDir != null && logsDir.trim().length() > 0) {
+            if (!logsDir.endsWith(File.separator))
+                logsDir = logsDir + File.separator;
+        }else{
+            throw new ConfigurationException("logsDir property is null");
+        }
 
         String confDir = ctx.getProperty("confDir");
-        if (!confDir.endsWith(File.separator))
+        if(confDir != null && confDir.trim().length() > 0) {
+            if (!confDir.endsWith(File.separator))
             confDir = confDir + File.separator;
+        }else{
+            throw new ConfigurationException("confDir property is null");
+        }
 
         String pidDir = ctx.getProperty("pidDir");
-        if (!pidDir.endsWith(File.separator))
-            pidDir = pidDir + File.separator;
+        if(pidDir != null && pidDir.trim().length() > 0) {
+            if (!pidDir.endsWith(File.separator))
+                pidDir = pidDir + File.separator;
+        }else{
+            throw new ConfigurationException("pidDir property is null");
+        }
 
+        sessionDir = ctx.getProperty("sessionDir");
+        if(sessionDir != null && sessionDir.trim().length() > 0) {
+            if (sessionDir.endsWith(File.separator)) {
+                sessionDir = sessionDir.substring(0,
+                        sessionDir.length() - File.separator.length());
+            }
+        }else{
+            logger.warning("sessionDir property is null");
+        }
+        
         errlogFile = logsDir + "error_log";
         acclogFile = logsDir + "access_log";
         confFile = confDir + File.separator + "lighttpd.conf";
@@ -93,9 +122,8 @@ public class LighttpdService {
      * Starts up the Lighttpd servers.
      */
     @Start public void startup() {
-        String cmd = lightyCmd + "lighttpd";
-        logger.fine("Starting command = "  + cmd);
-        Command startCmd = new Command(cmd, "-f", confFile);
+        logger.fine("Starting command = "  + lightyCmd);
+        Command startCmd = new Command(lightyCmd, "-f", confFile);
         startCmd.setLogLevel(Command.STDOUT, Level.FINE);
         startCmd.setLogLevel(Command.STDERR, Level.FINE);
         startCmd.setSynchronous(false); // to run in bg
@@ -255,12 +283,14 @@ public class LighttpdService {
 
             logger.fine("Logs cleared for " + myServers[i]);
              // Now delete the session files
-             if (RunContext.deleteFiles(myServers[i], "/tmp",
-                        new WildcardFileFilter("sess*")))
-                 logger.fine("Deleted session files for " + myServers[i]);
-             else
-                 logger.warning("Error deleting session files for " +
-                            myServers[i]);
+            if(sessionDir != null && sessionDir.trim().length() > 0) {
+                 if (RunContext.deleteFiles(myServers[i], "/tmp",
+                            new WildcardFileFilter("sess*")))
+                     logger.fine("Deleted session files for " + myServers[i]);
+                 else
+                     logger.warning("Error deleting session files for " +
+                                myServers[i]);
+            }
         }
     }
 

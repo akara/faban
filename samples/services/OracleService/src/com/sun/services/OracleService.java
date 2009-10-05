@@ -23,6 +23,7 @@ package com.sun.services;
 
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
+import com.sun.faban.harness.ConfigurationException;
 import com.sun.faban.harness.RunContext;
 import com.sun.faban.harness.services.ServiceContext;
 import com.sun.faban.harness.Context;
@@ -61,22 +62,37 @@ public class OracleService {
     /**
      * Configures this Oracle service.
      */
-    @Configure public void configure() {
+    @Configure public void configure() throws ConfigurationException {
         logger.fine("Configuring oracle service ");
         myServers = ctx.getUniqueHosts();
-        oracleHome = ctx.getProperty("serverHome");
-        oracleSid = ctx.getProperty("serverId");
-        startupConf = ctx.getProperty("startupConf"); // What is this used for?
-        oracleBin = oracleHome + "bin";
-        if (!oracleHome.endsWith(File.separator))
-            oracleHome = oracleHome + File.separator;
-        if (!oracleBin.endsWith(File.separator))
-            oracleBin = oracleBin + File.separator;
-        String includeListners = ctx.getProperty("includes");
-        StringTokenizer st = new StringTokenizer(includeListners,"; ,\n");
-        while(st.hasMoreTokens()){
-            listners.add(st.nextToken());
+        if(myServers == null){
+            throw new ConfigurationException("Oracle DB hostname is null");
         }
+        oracleHome = ctx.getProperty("serverHome");
+        if(oracleHome != null && oracleHome.trim().length() > 0) {
+            if (!oracleHome.endsWith(File.separator))
+            oracleHome = oracleHome + File.separator;
+        }else{
+            throw new ConfigurationException("serverHome property is null");
+        }
+        oracleSid = ctx.getProperty("serverId");
+        if(oracleSid == null){
+            throw new ConfigurationException("serverId property is null");
+        }
+        startupConf = ctx.getProperty("startupConf"); // What is this used for?
+        if(startupConf == null){
+            throw new ConfigurationException("startupConf property is null");
+        }
+        String includeListners = ctx.getProperty("includes");
+        if(includeListners != null){
+            StringTokenizer st = new StringTokenizer(includeListners,"; ,\n");
+            while(st.hasMoreTokens()){
+                listners.add(st.nextToken());
+            }
+        }else{
+            throw new ConfigurationException("includes property is null");
+        }
+        oracleBin = oracleHome + "bin" + File.separator;
         oracleStartCmd = oracleBin + "sqlplus /nolog <<EOT\nconnect " +
                 " / as sysdba \nstartup pfile=" + startupConf + "\nexit\nEOT";
         oracleStopCmd = oracleBin + "sqlplus /nolog <<EOT\nconnect " +

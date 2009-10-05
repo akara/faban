@@ -25,6 +25,7 @@ package com.sun.tools;
 
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
+import com.sun.faban.harness.ConfigurationException;
 import com.sun.faban.harness.Context;
 import com.sun.faban.harness.Configure;
 import com.sun.faban.harness.RunContext;
@@ -59,12 +60,23 @@ public class Mysqlstats {
     /**
      * Configures the MySQLStats.
      */
-    @Configure public void config() {
+    @Configure public void config() throws ConfigurationException {
         toolName = ctx.getToolName();
-
+        if(toolName == null && toolName.trim().length() <= 0){
+            throw new ConfigurationException("toolName is null");
+        }
         String mysqlHome = ctx.getServiceProperty("serverHome");
+        if(mysqlHome == null && mysqlHome.trim().length() <= 0) {
+            throw new ConfigurationException("serverHome property is null");
+        }
         String mysqlUser = ctx.getServiceProperty("user");
+        if(mysqlUser == null && mysqlUser.trim().length() <= 0) {
+            throw new ConfigurationException("user property is null");
+        }
         String mysqlPass = ctx.getServiceProperty("password");
+        if(mysqlPass == null && mysqlPass.trim().length() <= 0) {
+            throw new ConfigurationException("password property is null");
+        }
 
         if (mysqlHome.endsWith(File.separator))
             mysqlHome = mysqlHome.substring(0, mysqlHome.length() -
@@ -72,13 +84,10 @@ public class Mysqlstats {
 
         toolCmd = new ArrayList<String>();
         String mysqlCmd = "mysql";
-        if (mysqlHome != null)
-            mysqlCmd = mysqlHome + File.separator + "bin" + File.separator + mysqlCmd;
+        mysqlCmd = mysqlHome + File.separator + "bin" + File.separator + mysqlCmd;
         toolCmd.add(mysqlCmd);
-		if (mysqlUser != null)
-            toolCmd.add("-u" + mysqlUser);
-        if (mysqlPass != null)
-            toolCmd.add("-p" + mysqlPass);
+        toolCmd.add("-u" + mysqlUser);
+        toolCmd.add("-p" + mysqlPass);
         toolCmd.add("-B");
         toolCmd.add("-e");
         toolCmd.add("show global status;");

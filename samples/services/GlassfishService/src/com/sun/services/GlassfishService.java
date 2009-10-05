@@ -58,18 +58,26 @@ public class GlassfishService {
      * It is assumed that all servers have the same installation directory
      *
      */
-     @Configure public void configure() {
+     @Configure public void configure() throws ConfigurationException {
         myServers = ctx.getUniqueHosts();
+        if(myServers == null){
+            throw new ConfigurationException("Glassfish hostname is null");
+        }
         String logsDir = ctx.getProperty("logsDir");
-        if (!logsDir.endsWith(File.separator))
-            logsDir = logsDir + File.separator;
+        if(logsDir != null && logsDir.trim().length() > 0) {
+            if (!logsDir.endsWith(File.separator))
+                logsDir = logsDir + File.separator;
+        }else{
+            throw new ConfigurationException("logsDir property is null");
+        }
 
         asadminCmd = ctx.getProperty("cmdPath");
-        if (!asadminCmd.endsWith(File.separator))
-            asadminCmd = asadminCmd + File.separator;
+        if(asadminCmd != null && asadminCmd.trim().length() > 0) {
+            asadminCmd = asadminCmd + " ";
+        }else{
+            throw new ConfigurationException("cmdPath property is null");
+        }
 
-
-        asadminCmd = asadminCmd + "asadmin";
         errlogFile = logsDir + "server.log";
         acclogFile = logsDir + "access";
         logger.fine("GlassfishService Configure completed.");

@@ -25,6 +25,7 @@ package com.sun.services;
 
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
+import com.sun.faban.harness.ConfigurationException;
 import com.sun.faban.harness.RunContext;
 import com.sun.faban.harness.services.ServiceContext;
 import com.sun.faban.harness.Context;
@@ -61,12 +62,19 @@ public class MySQLService {
     /**
      * Configures the MySQL service.
      */
-    @Configure public void configure() {
+    @Configure public void configure() throws ConfigurationException {
         logger.fine("Configuring mysql Started");
         myServers = ctx.getUniqueHosts();
+        if(myServers == null){
+            throw new ConfigurationException("Mysql hostname is null");
+        }
         dbHome = ctx.getProperty("serverHome");
-        if (!dbHome.endsWith(File.separator))
-            dbHome = dbHome + File.separator;
+        if(dbHome != null && dbHome.trim().length() > 0) {
+            if (!dbHome.endsWith(File.separator))
+                dbHome = dbHome + File.separator;
+        }else{
+            throw new ConfigurationException("serverHome property is null");
+        }
         dataDir = dbHome + "data" + File.separator;
         mysqlCmd = dbHome + "bin" + File.separator + "mysqld_safe ";
         logger.fine("MysqlService Configure complete.");
