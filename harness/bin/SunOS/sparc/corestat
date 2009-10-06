@@ -1,204 +1,358 @@
 #!/bin/perl -w
 
-#################################
-# corestat
-# version 2.2 Ravindra.Talashikar@sun.com Mon Nov 14 18:08:43 IST 2005
+###############################################################
 #
-# Read from a file or standard input
+# Copyright 2007 Sun Microsystems, Inc. All Rights Reserved.
 #
-# Typical input line will look like :
-# 20.024   1  tick    231640  53787286  # pic0=L2_imiss,pic1=Instr_cnt,nouser,sys
-# OR
-# 18.006   0  tick     79783  27979245  # pic1=Instr_cnt,pic0=L2_dmiss_ld,nouser,sys
+# The contents of this file are subject to the terms
+# of the Common Development and Distribution License
+# (the "License"). You may not use this file except
+# in compliance with the License.
 #
-##################################
-# Define constants here 
-*DEFAULT_FREQUENCY = \1194 ; # 1194 MHz
-*DEFAULT_INTERVAL = \10 ; # 10 sec 
-##################################
+# You can obtain a copy of the license at
+# http://www.opensolaris.org/os/licensing
+# See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL
+# HEADER in each file and include the License file at
+# http://www.opensolaris.org/os/licensing
+# If applicable add the following below this CDDL HEADER
+# with the fields enclosed by brackets "[]" replaced with
+# your own identifying information: Portions Copyright
+# [year] [name of copyright owner]
+#
+###############################################################
 
-$frequency = $DEFAULT_FREQUENCY ;
+#
+#  For Corestat version 1.1a
+#
+#  Typical input line on T1 will look like :
+#  20.024   1  tick    231640  53787286  # pic0=L2_imiss,pic1=Instr_cnt,nouser,sys
+#  OR
+#  18.006   0  tick     79783  27979245  # pic1=Instr_cnt,pic0=L2_dmiss_ld,nouser,sys
+#
+#  For Corestat version 1.2.1
+#
+#  Typical input line expected on T2 will be :
+#  5.010  19  tick  30201595         0  # pic0=Instr_cnt,pic1=Instr_FGU_arithmetic
+#  OR
+#  5.007   7  tick  34551835         0  # pic1=Instr_FGU_arithmetic,pic0=Instr_cnt
+#
+#  Note :
+#  1. Version 1.1a supports T1 only
+#  2. Version 1.2.1 supports T2 only
+#  3. For offline analysis based on cpustat data :
+#     Use following command to capture cpustat data on T1 -
+#     cpustat -n -c pic0=L2_dmiss_ld,pic1=Instr_cnt -c pic0=L2_dmiss_ld,pic1=Instr_cnt,nouser,sys 1
+#
+#     Use following command to capture cpustat data on T2 -
+#     cpustat -n -c pic0=Instr_cnt,pic1=Instr_FGU_arithmetic -c pic0=Instr_cnt,pic1=Instr_FGU_arithmetic,nouser,sys 1
+#
+###############################################################
+# Define constants here
+#
+*DEFAULT_FREQUENCY = \1417 ; # 1417 MHz
+*DEFAULT_INTERVAL = \10 ; # 10 sec
+*VERSION = \"1.2.3" ; # Version number
+*MAX_CPUS = \256 ; # Max CPUs for T2
+*INT_TYPE = \0 ; # Integer instructions
+*FP_TYPE = \1 ; # FP instructions
+#
+###############################################################
+
 $interval = $DEFAULT_INTERVAL ;
-
-&clear_stats () ; # Initialize 
-
+$frequency = 0 ;
+$freq = 0 ;
+$int_usage = 1 ;
+$fpu_usage = 0 ;
 $flag = " " ;
 $val = " " ;
+&clear_stats () ; # Initialize
 
-if ($#ARGV >= 0) {
-  while ($#ARGV > -1) {
-    $arg = shift @ARGV;
-    if ( $arg =~ /^-(.)(.*)$/ ) {
-      $flag=$1; 
-      if ( $flag eq "f" ) {
-        $val = shift @ARGV;
-        if ($val) { $fname = $val ;}
-        else { &print_usage () ; exit ; } 
-      } elsif ( $flag eq "i" ) {
-        $val = shift @ARGV;
-        if ($val) { $interval = $val ;}
-        else { &print_usage () ; exit ; } 
-      } elsif ( $flag eq "r" ) {
-        $val = shift @ARGV;
-        if ($val) { $frequency = $val ;}
-        else { &print_usage () ; exit ; } 
-      } elsif ( $flag eq "h" ) { 
-        &print_usage () ; 
-        exit ; 
-      } else {
-        printf ("$0 : Invalid option -%s\n", $flag) ;
+  if ($#ARGV >= 0) {
+    while ($#ARGV > -1) {
+      $arg = shift @ARGV;
+      if ( $arg =~ /^-(.)(.*)$/ ) {
+        $flag=$1;
+        if ( $flag eq "f" ) {
+          $val = shift @ARGV;
+          if ($val) { $fname = $val ;}
+          else { &print_usage () ; exit ; }
+        } elsif ( $flag eq "i" ) {
+          $val = shift @ARGV;
+          if ($val) { $interval = $val ;}
+          else { &print_usage () ; exit ; }
+        } elsif ( $flag eq "r" ) {
+          $val = shift @ARGV;
+          if ($val) { $frequency = $val ;}
+          else { &print_usage () ; exit ; }
+        } elsif ( $flag eq "h" ) {
+          &print_usage () ;
+          exit ;
+        } elsif ($flag eq "g") {
+          $fpu_usage = 1 ;
+        } elsif ($flag eq "v" ) {
+          &print_version () ;
+          exit ;
+        } else {
+          printf ("$0 : Invalid option -%s\n", $flag) ;
+          &print_usage () ;
+          exit ;
+        }
+      }
+      else {
+        printf ("$0 : Invalid option %s\n", $arg) ;
         &print_usage () ;
         exit ;
       }
     }
-    else {
-      printf ("$0 : Invalid option %s\n", $arg) ;
+  }
+
+  if ($interval%2) {
+    $interval++ ;
+  }
+  if ($interval < 4) {
+    $interval = 4 ; # Minimum reporting interval
+  }
+
+  if ($frequency) {
+    if (($frequency < 1000) || ($frequency > 1600)) {
+      printf ("$0 : Invalid frequency - %d MHz \n", $frequency) ;
       &print_usage () ;
       exit ;
     }
   }
-}
-
-if (($frequency < 600) || ($frequency > 1200)) {
-  printf ("$0 : Invalid frequency - %d MHz \n", $frequency) ;
-  &print_usage () ;
-  exit ;
-} else { $max_mips = $frequency*1024*1024 ;}
-
-if ($interval < 10) {
-  $interval = 10 ; # Minimum reporting interval
-}
-
-if ($fname) { open (fd_in, $fname) || die ("Cannot open $fname") ; }
-else {
-  open (fd_in, "/bin/id |") || die "Can't fork : $!" ;
-  $line = <fd_in> ;
-  close (fd_in) ;
-  if ($line =~ m/uid=0\(root\)/i) {
-    open (fd_in, "priocntl -e -c RT cpustat -n -c pic0=L2_dmiss_ld,pic1=Instr_cnt -c pic0=L2_dmiss_ld,pic1=Instr_cnt,nouser,sys 1 2>&1  |") || die "Can't fork : $!" ;
+  elsif ($fname) {
+    $frequency = $DEFAULT_FREQUENCY ;
   } else {
-    printf ("$0 : Permission denied. Needs root privilege... \n") ;
-    &print_usage () ;
-    exit ;
-  }
-}
+    # Detect frequency and CPU type from psrinfo
 
-while ($line = <fd_in>) { 
-  $line = " " . $line ;
-  @list = split (/\s+/, $line) ;
-  $len = $#list ;
+    open (fd_in, "psrinfo -vp | ") || die ("Can't run psrinfo") ;
+    while ($line = <fd_in>) {
+      #$line = " " . $line ;
+      @list = split (/\s+/, $line) ;
+      $len = $#list ;
 
-  if (($len >= 7) && ($list[3] ne "total")) { # Ignore header and totals
-    $cpu_id = $list[2] ;
-    $pic0 = $list[4] ;
-    $pic1 = $list[5] ;
-
-    # Detect type for which data is collected
-
-    if ($list[7] =~ m/nouser,sys/i) {
-      $type = 1 ; # system type
-      $sys_mode = 1 ;
-    }elsif ($list[7] =~ m/sys/i) {
-      $type = 2 ; # Total time
-      $tot_mode = 1 ; 
-    }else {
-      $type = 0 ; # User type
-      $usr_mode = 1 ;
-    }
-
-    # Detect which counter holds instruction count
-    if ($list[7] =~ m/pic1=Instr_cnt/i) {
-      $instr_ctr = $pic1 ;
-    } else {
-      $instr_ctr = $pic0 ;
-    }
-    if ($cpu_stat_pic1[$cpu_id][$type] == 0) {
-      $cpu_stat_pic1[$cpu_id][$type] = $instr_ctr ;
-      $unique_events ++ ;
-    } else { # Save minsamples
-      $minsamples = $unique_events * ($interval-($interval%($usr_mode+$sys_mode+$tot_mode))) / ($usr_mode+$sys_mode+$tot_mode) ;
-      if ($nsamples == $minsamples) {
-        &print_stats () ;
-        &clear_stats () ;
-        $cpu_stat_pic1[$cpu_id][$type] = $instr_ctr ; # Save the current sample
-        $unique_events++ ;
-      } else {
-         $cpu_stat_pic1[$cpu_id][$type] = ($cpu_stat_pic1[$cpu_id][$type] + $instr_ctr)/2 ;
+      if ($line =~ m/UltraSPARC/i) {
+        while ($len >= 0) {
+          #if ($list[$len] =~ m/UltraSPARC/i) {
+            #$cpu_type = $list[$len] ;
+          #}
+          if ($list[$len] =~ m/clock/) {
+            $freq = $list[$len+1] ;
+          }
+          $len-- ;
+        }
+        last ; # break out of while loop
       }
     }
-    $nsamples++ ;
+    $frequency = $freq ;
   }
-}
 
-&print_stats () ;
+  #$frequency=1167 ;
+  printf ("Frequency = %s MHz\n", $frequency) ;
+  $max_mips = $frequency*1000*1000 ;
 
-sub clear_stats () {
-  $cpu = 0 ;
-  $m = 0 ;
-  $nsamples = 0 ;
-  $minsamples = 0 ;
-  $usr_mode = 0 ;
-  $sys_mode = 0 ;
-  $tot_mode = 0 ;
-  $unique_events = 0 ;
-
-  while ($cpu < 32) {
-    while ($m < 3) {
-      $cpu_stat_pic1[$cpu][$m] = 0 ;
-      $core_stat_pic1[$cpu/4][$m] = 0 ;
-      $m++ ;
+  if ($fname) { open (fd_in, $fname) || die ("Cannot open $fname") ; }
+  else {
+    open (fd_in, "/bin/id |") || die "Can't fork : $!" ;
+    $line = <fd_in> ;
+    close (fd_in) ;
+    if ($line =~ m/uid=0\(root\)/i) {
+      open (fd_in, "priocntl -e -c RT cpustat -n -c pic0=Instr_FGU_arithmetic,pic1=Instr_cnt -c pic0=Instr_FGU_arithmetic,pic1=Instr_cnt,nouser,sys 1 2>&1  |") || die "Can't fork : $!" ;
+    } else {
+      printf ("$0 : Permission denied. Needs root privilege... \n") ;
+      &print_usage () ;
+      exit ;
     }
-    $m = 0 ;
-    $cpu++ ;
   }
-  $core_avg_pic1[0] = 0 ;
-  $core_avg_pic1[1] = 0 ;
-  $core_avg_pic1[2] = 0 ;
-}
 
-sub print_stats () {
+  while ($line = <fd_in>) {
+    $line = " " . $line ;
+    @list = split (/\s+/, $line) ;
+    $len = $#list ;
+
+    if (($len >= 7) && ($list[3] ne "total")) { # Ignore header and totals
+      $cpu_id = $list[2] ;
+      $pic0 = $list[4] ;
+      $pic1 = $list[5] ;
+
+      # Detect mode for which data is collected
+
+      if ($list[7] =~ m/nouser,sys/i) {
+        $mode = 1 ; # system mode
+      }elsif ($list[7] =~ m/sys/i) {
+        $mode = 2 ; # Total time
+      }else {
+        $mode = 0 ; # User mode
+      }
+
+      if (($list[7] =~ m/pic1=Instr_cnt/i) && ($list[7] =~ m/pic0=Instr_FGU_arithmetic/i)) {
+        $instr_ctr = $pic1-$pic0 ;
+        $fp_ctr = $pic0 ;
+      } elsif (($list[7] =~ m/pic0=Instr_cnt/i) && ($list[7] =~ m/pic1=Instr_FGU_arithmetic/i)) {
+        $instr_ctr = $pic0 - $pic1 ;
+        $fp_ctr = $pic1 ;
+      } else {
+         printf ("ERROR : Invalid cpu counter information! \n") ;
+         exit(1) ;
+      }
+
+      if ($cpu_list[$cpu_id] == 0) {
+        $cpu_list[$cpu_id] = 1 ;
+        $ncpus++ ;
+        $minsamples = $ncpus*$interval ;
+      } else {
+         if ($nsamples < $minsamples) {
+           $cpu_stat[$cpu_id][$mode][$INT_TYPE] = $instr_ctr ;
+           $cpu_stat[$cpu_id][$mode][$FP_TYPE] = $fp_ctr ;
+           $nsamples++ ;
+         }
+         else {
+           &print_stats () ;
+           &clear_stats () ;
+           $cpu_stat[$cpu_id][$mode][$INT_TYPE] = $instr_ctr ;
+           $cpu_stat[$cpu_id][$mode][$FP_TYPE] = $fp_ctr ;
+           $nsamples = 1 ;
+           $ncpus = 1 ;
+        }
+      }
+    }
+  }
+
+  &print_stats () ;
+
+  sub clear_stats () {
+  $cpu = 0 ;
+  $mode = 0 ;
+  $nsamples = 0 ;
+  $pipe_id = 0 ;
+  $minsamples = 0 ;
+
+    while ($cpu < $MAX_CPUS) {
+      while ($mode < 2) {
+        $cpu_stat[$cpu][$mode][$INT_TYPE] = 0 ;
+        $cpu_stat[$cpu][$mode][$FP_TYPE] = 0 ;
+        $core_stat_int[$cpu/7][$pipe_id][$mode] = 0 ;
+        $core_stat_fp[$cpu/8][$mode] = 0 ;
+        $mode++ ;
+      }
+      $mode = 0 ;
+      $cpu_list[$cpu] = 0 ;
+
+      $cpu++ ;
+      if (($cpu%4) == 0) {
+        if ($pipe_id == 0) {
+          $pipe_id = 1 ;
+        }
+        else {
+          $pipe_id = 0 ;
+        }
+      }
+    }
+
+    $core_avg[0] = 0 ;
+    $core_avg[1] = 0 ;
+  }
+
+  sub print_stats () {
   $core_id = 0 ;
+  $pipe_id = 0 ;
   $cpu = 0 ;
   $ncores = 0 ;
   $header = 1 ;
 
-  # Process sequentially
-  while ($cpu < 32) {
-    $core_id = $cpu/4 ;
-    $core_stat_pic1[$core_id][0] += $cpu_stat_pic1[$cpu][0] ;
-    $core_stat_pic1[$core_id][1] += $cpu_stat_pic1[$cpu][1] ;
-    if (($cpu+1) % 4 == 0) {
-      if ($core_stat_pic1[$core_id][0] || $core_stat_pic1[$core_id][1]) {
-        if ($header) {
-          &print_header () ;
-          $header = 0 ;
+    if ($int_usage) {
+      while ($cpu < $MAX_CPUS) {
+        $core_id = $cpu/8 ;
+        $core_stat_int[$core_id][$pipe_id][0] += $cpu_stat[$cpu][0][$INT_TYPE] ;
+        $core_stat_int[$core_id][$pipe_id][1] += $cpu_stat[$cpu][1][$INT_TYPE] ;
+        if (($cpu+1) % 4 == 0) {
+          if ($core_stat_int[$core_id][$pipe_id][0] || $core_stat_int[$core_id][$pipe_id][1]) {
+            if ($header) {
+              &print_header ($INT_TYPE) ;
+              $header = 0 ;
+            }
+            printf ("    %2d,%d          %5.2f     %5.2f     %5.2f \n", $core_id, $pipe_id, $core_stat_int[$core_id][$pipe_id][0]*100/$max_mips, $core_stat_int[$core_id][$pipe_id][1]*100/$max_mips, $core_stat_int[$core_id][$pipe_id][0]*100/$max_mips + $core_stat_int[$core_id][$pipe_id][1]*100/$max_mips) ;
+            $core_avg[0] += $core_stat_int[$core_id][$pipe_id][0]*100/$max_mips ;
+            $core_avg[1] += $core_stat_int[$core_id][$pipe_id][1]*100/$max_mips ;
+            $ncores++ ;
+          }
+          $pipe_id++ ;
+          if ($pipe_id == 2) {
+            $pipe_id = 0 ;
+          }
         }
-        printf ("  %d       %5.2f     %5.2f     %5.2f \n", $core_id, $core_stat_pic1[$core_id][0]*100/$max_mips, $core_stat_pic1[$core_id][1]*100/$max_mips, $core_stat_pic1[$core_id][0]*100/$max_mips + $core_stat_pic1[$core_id][1]*100/$max_mips) ;
-	$core_avg_pic1[0] += $core_stat_pic1[$core_id][0]*100/$max_mips ;	
-	$core_avg_pic1[1] += $core_stat_pic1[$core_id][1]*100/$max_mips ;	
-	$ncores++ ;
+        $cpu++ ;
       }
+      &print_average () ;
     }
-    $cpu++ ;
-  }
-  if ($core_avg_pic1[0] || $core_avg_pic1[1]) {
-    printf ("------    -----     -----    ------ \n") ;
-    printf (" Avg      %5.2f     %5.2f     %5.2f \n", $core_avg_pic1[0]/$ncores, $core_avg_pic1[1]/$ncores, $core_avg_pic1[0]/$ncores + $core_avg_pic1[1]/$ncores) ;
-  }
-}
 
-sub print_header () {
-  printf ("\n") ;
-  printf ("        Core Utilization          \n") ;
-  printf ("CoreId     %%Usr     %%Sys     %%Total \n") ;
-  printf ("------    -----     -----    ------ \n") ;
-}
+    if ($fpu_usage) {
+      $ncores = 0 ;
+      $cpu = 0 ;
+      $header = 1 ;
+      $valid = 0 ;
+      while ($cpu < $MAX_CPUS) {
+        $core_id = $cpu/8 ;
+        if ($cpu_list[$cpu]) {
+          $core_stat_fp[$core_id][0] += $cpu_stat[$cpu][0][$FP_TYPE] ;
+          $core_stat_fp[$core_id][1] += $cpu_stat[$cpu][1][$FP_TYPE] ;
+          $valid = 1 ;
+        }
+        if ((($cpu+1) % 8 == 0) && ($valid)) {
+          if ($header) {
+            &print_header ($FP_TYPE) ;
+            $header = 0 ;
+          }
+          printf ("     %2d           %5.2f     %5.2f     %5.2f \n", $core_id, $core_stat_fp[$core_id][0]*100/$max_mips, $core_stat_fp[$core_id][1]*100/$max_mips, $core_stat_fp[$core_id][0]*100/$max_mips + $core_stat_fp[$core_id][1]*100/$max_mips) ;
+          $core_avg[0] += $core_stat_fp[$core_id][0]*100/$max_mips ;
+          $core_avg[1] += $core_stat_fp[$core_id][1]*100/$max_mips ;
+          $ncores++ ;
+          $valid = 0 ;
+        }
+        $cpu++ ;
+      }
+      &print_average() ;
+    }
+  }
 
-sub print_usage () {
-  printf ("\n") ;
-  printf ("Usage : corestat [-f <infile>] [-i <interval>] [-r <freq>] \n\n") ;
-  printf ("                  -f infile   : Filename containing sampled cpustat data \n") ;
-  printf ("                  -i interval : Reporting interval in sec \(default = 10 sec\)\n") ;
-  printf ("                  -r freq     : CPU frequency in MHz \(default = 1194 MHz\)\n") ;
-  printf ("\n") ;
+  sub print_average() {
+    if ($core_avg[0] || $core_avg[1]) {
+      printf ("-------------     -----     -----    ------ \n") ;
+      printf ("    Avg          %5.2f     %5.2f     %5.2f \n", $core_avg[0]/$ncores, $core_avg[1]/$ncores, $core_avg[0]/$ncores + $core_avg[1]/$ncores) ;
+    }
+    $core_avg[0] = 0 ;
+    $core_avg[1] = 0 ;
+  }
+
+  sub print_header () {
+    printf ("\n") ;
+    if ($_[0] == $FP_TYPE) {
+      printf ("             FPU Utilization \n") ;
+      printf ("     Core         %%Usr     %%Sys     %%Usr+Sys \n") ;
+      printf ("-------------     -----     -----     -------- \n") ;
+    }
+    if ($_[0] == $INT_TYPE) {
+      printf ("     Core Utilization for Integer pipeline          \n") ;
+      printf ("Core,Int-pipe     %%Usr     %%Sys     %%Usr+Sys \n") ;
+      printf ("-------------     -----     -----    -------- \n") ;
+    }
+  }
+
+  sub print_version () {
+    printf ("Corestat : Version %s \n", $VERSION) ;
+  }
+
+  sub print_usage () {
+    printf ("\n") ;
+    printf ("Usage : corestat [-g] [-v] [[-f <infile>] [-i <interval>] [-r <freq>]] \n\n") ;
+    printf ("                  Default mode: Report Integer Pipeline Utilization \n") ;
+    printf ("                  -g          : Report FPU usage \n") ;
+    printf ("                  -v          : Report version number \n") ;
+    printf ("                  -f infile   : Filename containing sampled cpustat data \n") ;
+    printf ("                  -i interval : Reporting interval in sec \(default = 10 sec\)\n") ;
+    printf ("                  -r freq     : Processor frequency in MHz \(default = 1417 MHz\)\n") ;
+    printf ("\n") ;
 }
