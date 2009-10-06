@@ -76,15 +76,15 @@ public class OracleService {
             throw new ConfigurationException("serverHome property is null");
         }
         oracleSid = ctx.getProperty("serverId");
-        if(oracleSid == null){
+        if(oracleSid == null || oracleSid.trim().length() <= 0){
             throw new ConfigurationException("serverId property is null");
         }
         startupConf = ctx.getProperty("startupConf"); // What is this used for?
-        if(startupConf == null){
+        if(startupConf == null || startupConf.trim().length() <= 0){
             throw new ConfigurationException("startupConf property is null");
         }
         String includeListners = ctx.getProperty("includes");
-        if(includeListners != null){
+        if(includeListners != null && includeListners.trim().length() > 0){
             StringTokenizer st = new StringTokenizer(includeListners,"; ,\n");
             while(st.hasMoreTokens()){
                 listners.add(st.nextToken());

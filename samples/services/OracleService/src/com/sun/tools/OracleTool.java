@@ -66,15 +66,15 @@ public abstract class OracleTool {
      */
     @Configure public void configure() throws ConfigurationException {
         toolName = ctx.getToolName();
-        if(toolName == null && toolName.trim().length() <= 0){
+        if(toolName == null || toolName.trim().length() <= 0){
             throw new ConfigurationException("toolName is null");
         }
         String oracleHome = ctx.getServiceProperty("serverHome");
-        if(oracleHome == null && oracleHome.trim().length() <= 0) {
+        if(oracleHome == null || oracleHome.trim().length() <= 0) {
             throw new ConfigurationException("serverHome property is null");
         }
         String oracleSid = ctx.getServiceProperty("serverId");
-        if(oracleSid == null && oracleSid.trim().length() <= 0){
+        if(oracleSid == null || oracleSid.trim().length() <= 0){
             throw new ConfigurationException("serverId property is null");
         }
         String oracleBin = oracleHome + "bin" + File.separator;

@@ -72,7 +72,7 @@ public class MemcachedService {
             throw new ConfigurationException("cmdPath property is null");
         }
         memcachedMemSize = ctx.getProperty("serverMemSize");
-        if(memcachedMemSize == null){
+        if(memcachedMemSize == null || memcachedMemSize.trim().length() <= 0){
             throw new ConfigurationException("serverMemSize property is null");
         }
         
