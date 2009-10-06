@@ -619,45 +619,24 @@ public class ServiceManager {
      * Configures the service.
      */
     public void configure() {
-        for(ServiceWrapper sw : loadedServicesList){
-            try {
-                sw.configure();
-                logger.info("Configured " + sw.ctx.desc.id + " service.");
-            } catch (Exception e) {
-                logger.log(Level.WARNING, "Failed to configure service " +
-                        sw.ctx.desc.id, e);
-            }
-        }
+        for(ServiceWrapper sw : loadedServicesList)
+            sw.configure();
     }
 
     /**
      * Obtains the configuration of a service.
      */
     public void getConfig() {
-        for(ServiceWrapper sw : loadedServicesList){
-            try {
-                sw.getConfig();
-                logger.fine("Got " + sw.ctx.desc.id + " service configuration.");
-            } catch (Exception e) {
-                logger.log(Level.WARNING, "Failed to obtain service " +
-                        "configuration for service " + sw.ctx.desc.id, e);
-            }
-        }
+        for(ServiceWrapper sw : loadedServicesList)
+            sw.getConfig();
     }
 
     /**
      * Obtains the logs of a service.
      */
     public void getLogs() {
-        for(ServiceWrapper sw : loadedServicesList){
-            try {
-                sw.getLogs();
-                logger.info("Transfered " + sw.ctx.desc.id + " service logs.");
-            } catch (Exception e) {
-                logger.log(Level.WARNING, "Failed to obtain service logs " +
-                        "for service " + sw.ctx.desc.id, e);
-             }
-        }
+        for(ServiceWrapper sw : loadedServicesList)
+            sw.getLogs();
     }
 
     /**
@@ -667,35 +646,15 @@ public class ServiceManager {
     public void startup() {
         // Use two separate loops to leave some time
         // between shutdown and startup.
-        for(ServiceWrapper sw : loadedServicesList){
-            if (sw.ctx.restart) {
-                try {
-                    sw.shutdown();
-                    logger.info("Stopped " + sw.ctx.desc.id + " service.");
-                } catch (Exception e) {
-                    logger.log(Level.WARNING, "Failed to shutdown service " +
-                            sw.ctx.desc.id, e);
-                }
-            }
-            try {
-                sw.clearLogs();
-                logger.info("Cleared " + sw.ctx.desc.id + " service logs.");
-            } catch (Exception e) {
-                logger.log(Level.WARNING, "Failed to clear service logs " +
-                        "for service " + sw.ctx.desc.id, e);
-            }            
+        for(ServiceWrapper sw : loadedServicesList) {
+            if (sw.ctx.restart)
+                sw.shutdown();
+            sw.clearLogs();
         }
 
-        for(ServiceWrapper sw : loadedServicesList){
-            if (sw.ctx.restart) {
-                try {
-                    sw.startup();
-                    logger.info("Started " + sw.ctx.desc.id + " service.");
-                } catch (Exception e) {
-                    logger.log(Level.WARNING, "Failed to startup service " +
-                            sw.ctx.desc.id, e);
-                }
-            }
+        for(ServiceWrapper sw : loadedServicesList) {
+            if (sw.ctx.restart)
+                sw.startup();
         }
     }
 
@@ -714,13 +673,7 @@ public class ServiceManager {
         }
         for(ServiceWrapper sw : loadedServicesList){
             if (sw.ctx.restart)
-                try {
-                    sw.shutdown();
-                    logger.info("Stopped " + sw.ctx.desc.id + " service.");
-                } catch (Exception e) {
-                    logger.log(Level.WARNING, "Failed to shutdown service " +
-                            sw.ctx.desc.id, e);
-                }
+                sw.shutdown();
         }
         instance = null;
     }

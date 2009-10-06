@@ -31,6 +31,7 @@ import com.sun.faban.harness.util.Invoker;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * This is a wrapper class for service.
@@ -150,55 +151,85 @@ public class ServiceWrapper {
 
     /**
      * Invokes service's method annotated by @ClearLogs.
-     * @throws java.lang.Exception
      */
-    void clearLogs() throws Exception {
+    void clearLogs() {
         if (configured)
-            Invoker.invoke(service, clearLogsMethod, ctx.servicePath);
+            try {
+                Invoker.invoke(service, clearLogsMethod, ctx.servicePath);
+                logger.info("Cleared " + ctx.desc.id + " service logs.");
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Failed to clear service logs " +
+                        "for service " + ctx.desc.id, e);
+            }
     }
 
     /**
      * Invokes service's method annotated by @Configure.
-     * @throws java.lang.Exception
      */
-    void configure() throws Exception {
-        Invoker.invoke(service, configureMethod, ctx.servicePath);
-        configured = true;
+    void configure() {
+        try {
+            Invoker.invoke(service, configureMethod, ctx.servicePath);
+            configured = true;
+            logger.info("Configured " + ctx.desc.id + " service.");
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Failed to configure service " +
+                    ctx.desc.id, e);
+        }
     }
 
     /**
      * Invokes service's method annotated by @GetConfig.
-     * @throws java.lang.Exception
      */
-    void getConfig() throws Exception {
+    void getConfig() {
         if (configured)
-            Invoker.invoke(service, getConfigMethod, ctx.servicePath);
+            try {
+                Invoker.invoke(service, getConfigMethod, ctx.servicePath);
+                logger.fine("Got " + ctx.desc.id + " service configuration.");
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Failed to obtain service " +
+                        "configuration for service " + ctx.desc.id, e);
+            }
     }
 
    /**
      * Invokes service's method annotated by @GetLogs.
-     * @throws java.lang.Exception
      */
-    void getLogs() throws Exception {
-        if (configured)
-            Invoker.invoke(service, getLogsMethod, ctx.servicePath);
-    }
+   void getLogs() {
+       if (configured)
+           try {
+               Invoker.invoke(service, getLogsMethod, ctx.servicePath);
+               logger.info("Transfered " + ctx.desc.id + " service logs.");
+           } catch (Exception e) {
+               logger.log(Level.WARNING, "Failed to obtain service logs " +
+                       "for service " + ctx.desc.id, e);
+           }
+   }
 
     /**
      * Invokes service's method annotated by @Startup.
-     * @throws java.lang.Exception
      */
-    void startup() throws Exception {
+    void startup() {
         if (configured)
-            Invoker.invoke(service, startupMethod, ctx.servicePath);
+            try {
+                Invoker.invoke(service, startupMethod, ctx.servicePath);
+                logger.info("Started " + ctx.desc.id + " service.");
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Failed to startup service " +
+                        ctx.desc.id, e);
+            }
     }
 
     /**
      * Invokes service's method annotated by @Shutdown.
-     * @throws java.lang.Exception
      */
-    void shutdown() throws Exception {
+    void shutdown() {
         if (configured)
-            Invoker.invoke(service, shutdownMethod, ctx.servicePath);
+            try {
+                Invoker.invoke(service, shutdownMethod, ctx.servicePath);
+                logger.info("Stopped " + ctx.desc.id + " service.");
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Failed to shutdown service " +
+                        ctx.desc.id, e);
+            }
     }
 }
