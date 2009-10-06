@@ -69,20 +69,20 @@ public class LighttpdService {
     @Configure public void configure() throws ConfigurationException {
         myServers = ctx.getUniqueHosts();
         if(myServers == null){
-            throw new ConfigurationException("Lighttpd hostname is null");
+            throw new ConfigurationException("Lighttpd hostname is not provided");
         }
         lightyCmd = ctx.getProperty("cmdPath");
         if(lightyCmd != null && lightyCmd.trim().length() > 0) {
             lightyCmd = lightyCmd + " ";
         }else{
-            throw new ConfigurationException("cmdPath property is null");
+            throw new ConfigurationException("Lighttpd cmdPath is not provided");
         }
         String logsDir = ctx.getProperty("logsDir");
         if(logsDir != null && logsDir.trim().length() > 0) {
             if (!logsDir.endsWith(File.separator))
                 logsDir = logsDir + File.separator;
         }else{
-            throw new ConfigurationException("logsDir property is null");
+            throw new ConfigurationException("Lighttpd logsDir is not provided");
         }
 
         String confDir = ctx.getProperty("confDir");
@@ -90,7 +90,7 @@ public class LighttpdService {
             if (!confDir.endsWith(File.separator))
             confDir = confDir + File.separator;
         }else{
-            throw new ConfigurationException("confDir property is null");
+            throw new ConfigurationException("Lighttpd confDir is not provided");
         }
 
         String pidDir = ctx.getProperty("pidDir");
@@ -98,7 +98,7 @@ public class LighttpdService {
             if (!pidDir.endsWith(File.separator))
                 pidDir = pidDir + File.separator;
         }else{
-            throw new ConfigurationException("pidDir property is null");
+            throw new ConfigurationException("Lighttpd pidDir is not provided");
         }
 
         sessionDir = ctx.getProperty("sessionDir");
@@ -108,7 +108,7 @@ public class LighttpdService {
                         sessionDir.length() - File.separator.length());
             }
         }else{
-            logger.warning("sessionDir property is null");
+            logger.warning("Lighttpd sessionDir is not provided");
         }
         
         errlogFile = logsDir + "error_log";

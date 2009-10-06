@@ -315,12 +315,12 @@ public class MemcacheStats {
         LinkedHashSet<String> serverSet = new LinkedHashSet<String>();
         List<String> toolArgs = ctx.getToolArgs();
         if(toolArgs == null){
-            throw new ConfigurationException("toolArgs is null");
+            throw new ConfigurationException("MemcacheStats toolArgs is not provided");
         }
         List<NameValuePair<Integer>> myHostPorts =
                 ctx.getServiceContext().getUniqueHostPorts();
         if(myHostPorts == null){
-            throw new ConfigurationException("Memcached host:port is null");
+            throw new ConfigurationException("Memcached host:port is not provided");
         }
         for(NameValuePair<Integer> myHostPort : myHostPorts){
             if(myHostPort.value == null)

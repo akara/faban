@@ -63,17 +63,17 @@ public class MemcachedService {
         logger.fine("Configuring memcached service ");
         myHostPorts = ctx.getUniqueHostPorts();
         if(myHostPorts == null){
-            throw new ConfigurationException("Memcached host:port is null");
+            throw new ConfigurationException("Memcached host:port is not provided");
         }
         memcachedCmdPath = ctx.getProperty("cmdPath");
         if(memcachedCmdPath != null && memcachedCmdPath.trim().length() > 0) {
             memcachedCmdPath = memcachedCmdPath + " ";
         }else{
-            throw new ConfigurationException("cmdPath property is null");
+            throw new ConfigurationException("Memcached cmdPath is not provided");
         }
         memcachedMemSize = ctx.getProperty("serverMemSize");
         if(memcachedMemSize == null || memcachedMemSize.trim().length() <= 0){
-            throw new ConfigurationException("serverMemSize property is null");
+            throw new ConfigurationException("Memcached serverMemSize is not provided");
         }
         
         memcachedStartCmd = memcachedCmdPath + " -u mysql -m " +

@@ -66,22 +66,22 @@ public class OracleService {
         logger.fine("Configuring oracle service ");
         myServers = ctx.getUniqueHosts();
         if(myServers == null){
-            throw new ConfigurationException("Oracle DB hostname is null");
+            throw new ConfigurationException("Oracle DB hostname is not provided");
         }
         oracleHome = ctx.getProperty("serverHome");
         if(oracleHome != null && oracleHome.trim().length() > 0) {
             if (!oracleHome.endsWith(File.separator))
             oracleHome = oracleHome + File.separator;
         }else{
-            throw new ConfigurationException("serverHome property is null");
+            throw new ConfigurationException("Oracle DB serverHome is not provided");
         }
         oracleSid = ctx.getProperty("serverId");
         if(oracleSid == null || oracleSid.trim().length() <= 0){
-            throw new ConfigurationException("serverId property is null");
+            throw new ConfigurationException("Oracle DB serverId is not provided");
         }
         startupConf = ctx.getProperty("startupConf"); // What is this used for?
         if(startupConf == null || startupConf.trim().length() <= 0){
-            throw new ConfigurationException("startupConf property is null");
+            throw new ConfigurationException("Oracle DB startupConf is not provided");
         }
         String includeListners = ctx.getProperty("includes");
         if(includeListners != null && includeListners.trim().length() > 0){
@@ -90,7 +90,7 @@ public class OracleService {
                 listners.add(st.nextToken());
             }
         }else{
-            throw new ConfigurationException("includes property is null");
+            throw new ConfigurationException("Oracle DB includes property is not provided");
         }
         oracleBin = oracleHome + "bin" + File.separator;
         oracleStartCmd = oracleBin + "sqlplus /nolog <<EOT\nconnect " +

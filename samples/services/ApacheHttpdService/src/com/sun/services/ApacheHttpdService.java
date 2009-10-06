@@ -63,13 +63,13 @@ public class ApacheHttpdService {
     @Configure public void configure() throws ConfigurationException {
         myServers = ctx.getUniqueHosts();
         if(myServers == null){
-            throw new ConfigurationException("Apache hostname is null");
+            throw new ConfigurationException("Apache hostname is not provided");
         }
         apacheCmd = ctx.getProperty("cmdPath");
         if(apacheCmd != null && apacheCmd.trim().length() > 0) {
             apacheCmd = apacheCmd + " ";
         }else{
-            throw new ConfigurationException("cmdPath property is null");
+            throw new ConfigurationException("Apache cmdPath is not provided");
         }
         
         String logsDir = ctx.getProperty("logsDir");
@@ -77,7 +77,7 @@ public class ApacheHttpdService {
             if (!logsDir.endsWith(File.separator))
                 logsDir = logsDir + File.separator;
         }else{
-            throw new ConfigurationException("logsDir property is null");
+            throw new ConfigurationException("Apache logsDir is not provided");
         }
 
         sessionDir = ctx.getProperty("sessionDir");
@@ -87,7 +87,7 @@ public class ApacheHttpdService {
                         sessionDir.length() - File.separator.length());
             }
         }else{
-            logger.warning("sessionDir property is null");
+            logger.warning("Apache sessionDir is not provided");
         }
         errlogFile = logsDir + "error_log";
         acclogFile = logsDir + "access_log";

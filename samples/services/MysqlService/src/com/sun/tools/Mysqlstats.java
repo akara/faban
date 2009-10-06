@@ -61,21 +61,18 @@ public class Mysqlstats {
      * Configures the MySQLStats.
      */
     @Configure public void config() throws ConfigurationException {
-        toolName = ctx.getToolName();
-        if(toolName == null || toolName.trim().length() <= 0){
-            throw new ConfigurationException("toolName is null");
-        }
+        toolName = ctx.getToolName();        
         String mysqlHome = ctx.getServiceProperty("serverHome");
         if(mysqlHome == null || mysqlHome.trim().length() <= 0) {
-            throw new ConfigurationException("serverHome property is null");
+            throw new ConfigurationException("MySQL serverHome property is not provided");
         }
         String mysqlUser = ctx.getServiceProperty("user");
         if(mysqlUser == null || mysqlUser.trim().length() <= 0) {
-            throw new ConfigurationException("user property is null");
+            throw new ConfigurationException("MySQL user is not provided");
         }
         String mysqlPass = ctx.getServiceProperty("password");
         if(mysqlPass == null || mysqlPass.trim().length() <= 0) {
-            throw new ConfigurationException("password property is null");
+            throw new ConfigurationException("MySQL password is not provided");
         }
 
         if (mysqlHome.endsWith(File.separator))

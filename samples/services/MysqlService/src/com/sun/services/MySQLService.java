@@ -66,14 +66,14 @@ public class MySQLService {
         logger.fine("Configuring mysql Started");
         myServers = ctx.getUniqueHosts();
         if(myServers == null){
-            throw new ConfigurationException("Mysql hostname is null");
+            throw new ConfigurationException("MySQL hostname is not provided");
         }
         dbHome = ctx.getProperty("serverHome");
         if(dbHome != null && dbHome.trim().length() > 0) {
             if (!dbHome.endsWith(File.separator))
                 dbHome = dbHome + File.separator;
         }else{
-            throw new ConfigurationException("serverHome property is null");
+            throw new ConfigurationException("MySQL serverHome is not provided");
         }
         dataDir = dbHome + "data" + File.separator;
         mysqlCmd = dbHome + "bin" + File.separator + "mysqld_safe ";

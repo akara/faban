@@ -61,21 +61,21 @@ public class GlassfishService {
      @Configure public void configure() throws ConfigurationException {
         myServers = ctx.getUniqueHosts();
         if(myServers == null){
-            throw new ConfigurationException("Glassfish hostname is null");
+            throw new ConfigurationException("Glassfish hostname is not provided");
         }
         String logsDir = ctx.getProperty("logsDir");
         if(logsDir != null && logsDir.trim().length() > 0) {
             if (!logsDir.endsWith(File.separator))
                 logsDir = logsDir + File.separator;
         }else{
-            throw new ConfigurationException("logsDir property is null");
+            throw new ConfigurationException("Glassfish logsDir is not provided");
         }
 
         asadminCmd = ctx.getProperty("cmdPath");
         if(asadminCmd != null && asadminCmd.trim().length() > 0) {
             asadminCmd = asadminCmd + " ";
         }else{
-            throw new ConfigurationException("cmdPath property is null");
+            throw new ConfigurationException("Glassfish cmdPath is not provided");
         }
 
         errlogFile = logsDir + "server.log";
