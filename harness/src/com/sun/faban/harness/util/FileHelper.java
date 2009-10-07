@@ -365,7 +365,7 @@ public class FileHelper {
 
         Manifest manifest = new Manifest();
         Attributes attributes = manifest.getMainAttributes();
-        attributes.putValue("Manifest-Version", "1.0");
+        attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
         attributes.putValue("Created-By", Config.HARNESS_NAME + ' ' +
                             Config.HARNESS_VERSION);
         JarOutputStream out = new JarOutputStream(
