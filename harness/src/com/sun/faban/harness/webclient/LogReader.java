@@ -130,6 +130,7 @@ public class LogReader extends HttpServlet {
             throw new ServletException(e);
         }
 
+        response.setContentType("text/html");
         handler.printHtml();
         out.flush();
         out.close();
