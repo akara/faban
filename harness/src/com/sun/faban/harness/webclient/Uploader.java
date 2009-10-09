@@ -129,7 +129,7 @@ public class Uploader {
             return next.toString();
         }
         
-        private boolean checkIfArchived(String runId) throws IOException {
+        private boolean checkIfArchived(String runId) {
             boolean found = false;
             File file = new File(Config.OUT_DIR + runId + '/' +
                                                             Config.RESULT_INFO);

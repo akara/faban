@@ -449,7 +449,7 @@ public class ResultAction {
                 }
             }
         }
-        duplicateSet = uploadRuns(uploadSet,replaceSet);
+        duplicateSet = uploadRuns(runIds, uploadSet,replaceSet);
         request.setAttribute("archive.model", model);
         request.setAttribute("uploadedRuns", uploadedRuns);
         request.setAttribute("duplicateRuns", duplicateSet);
@@ -545,11 +545,18 @@ public class ResultAction {
      * @return HashSet
      * @throws java.io.IOException
      */
-    public static HashSet<String> uploadRuns(HashSet<File> uploadSet,
+    public static HashSet<String> uploadRuns(String[] runIds,
+                                             HashSet<File> uploadSet,
                                              HashSet<String> replaceSet)
             throws IOException {
         // 3. Upload the run
         HashSet<String> duplicates = new HashSet<String>();
+
+        // Prepare run id set for cross checking.
+        HashSet<String> runIdSet = new HashSet<String>(runIds.length);
+        for (String runId : runIds) {
+            runIdSet.add(runId);
+        }
 
         // Prepare the parts for the request.
         ArrayList<Part> params = new ArrayList<Part>();
@@ -576,22 +583,39 @@ public class ResultAction {
             int status = client.executeMethod(post);
 
             if (status == HttpStatus.SC_FORBIDDEN)
-                logger.severe("Server denied permission to upload run !");
+                logger.warning("Server denied permission to upload run !");
             else if (status == HttpStatus.SC_NOT_ACCEPTABLE)
-                logger.severe("Run origin error!");
+                logger.warning("Run origin error!");
             else if (status != HttpStatus.SC_CREATED)
-                logger.severe("Server responded with status code " +
+                logger.warning("Server responded with status code " +
                         status + ". Status code 201 (SC_CREATED) expected.");
             for (File jarFile : uploadSet) {
                 jarFile.delete();
             }
+
             String response = post.getResponseBodyAsString();
+
+            if (status == HttpStatus.SC_CREATED) {
+
             StringTokenizer t = new StringTokenizer(response.trim(),"\n");
             while (t.hasMoreTokens()) {
-                duplicates.add(t.nextToken().trim());
+                String duplicateRun = t.nextToken().trim();
+                if (duplicateRun.length() > 0)
+                    duplicates.add(duplicateRun.trim());
+            }
+
+            for (Iterator<String> iter = duplicates.iterator(); iter.hasNext();) {
+                String runId = iter.next();
+                if (!runIdSet.contains(runId)) {
+                    logger.warning("Unexpected archive response from " +
+                            repos + ": "  + runId);
+                    iter.remove();
+                }
+            }
+            } else {
+                logger.warning("Message from repository: " + response);
             }
         }
         return duplicates;
     }
-
 }

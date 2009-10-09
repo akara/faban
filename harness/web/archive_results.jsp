@@ -59,19 +59,18 @@
         %>
         <br>
         <%if( !(duplicateSet.isEmpty()) ) {%>
-            <h4>These runs might be archived to <%=model.head%>, please try again!!</h4>
+            <h4>These runs might already be archived to <%=model.head%>, please try again!!</h4>
             <%
-                for (int i = 0; i < model.runIds.length; i++) {
-                String runId = model.runIds[i];
-                if(duplicateSet.contains(runId)){
+                for (String runId : model.runIds) {
+                    if (duplicateSet.contains(runId)) {
             %>
                     <%=runId%><br>
             <%
+                    }
                 }
-            }
         }
         %>
-        <%if( duplicateSet.isEmpty() && uploadedRuns.isEmpty() ) {%>
+        <%if(duplicateSet.isEmpty() && uploadedRuns.isEmpty() ) {%>
             <h4>No runs archived to <%=model.head%></h4>
         <%}%>
     </body>
