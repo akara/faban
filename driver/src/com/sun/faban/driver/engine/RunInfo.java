@@ -109,7 +109,7 @@ public class RunInfo implements Serializable {
     /**
      * Milliseconds between thread start.
      */
-    public int msBetweenThreadStart = 0;
+    public int msBetweenThreadStart = 200;
   
     /** The benchmark start time, relative to the timer. */
     public int benchStartTime = Integer.MAX_VALUE;
@@ -121,13 +121,13 @@ public class RunInfo implements Serializable {
     public int maxRunTime = 6;  // 6 hrs
 
     /** The time interval for graphing. */
-    public int graphInterval = 30; // 30 seconds
+    public int graphInterval = 10; // 30 seconds
 
     /** Whether the runtime stats are enabled. */
     public boolean runtimeStatsEnabled = false;
 
     /** Interval for runtime stats. */
-    public int runtimeStatsInterval = 30;
+    public int runtimeStatsInterval = 10;
 
     /** The current driver config object. */
     public DriverConfig driverConfig;
@@ -300,6 +300,7 @@ public class RunInfo implements Serializable {
         /** Number of threads. */
         public int numThreads = -1; // Overrides the threadPerScale
 
+        /** Graph bucket interval. Overrides the bucket interval of the run. */
         int graphInterval;
 
         /** Target for runtime stats, currently unused. */
