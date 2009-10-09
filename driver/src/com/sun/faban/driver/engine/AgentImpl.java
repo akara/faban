@@ -366,6 +366,20 @@ public class AgentImpl extends UnicastRemoteObject
 			return;     // the master again. Once per agent is enough.
 		}
         runAborted = true;
+        if (startLatch != null) 
+            try {
+                startLatch.countDown();
+            } catch (Exception e) {
+                // Just make sure we don't get stuck here.
+            }
+
+        if (postRunLatch != null)
+            try {
+                postRunLatch.countDown();
+            } catch (Exception e) {
+                // Just make sure we don't get stuck here.
+            }
+
         try {
             master.abortRun();
         } catch (RemoteException e) {

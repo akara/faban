@@ -34,6 +34,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.concurrent.TimeUnit;
 import java.io.InterruptedIOException;
 
 
@@ -347,10 +348,14 @@ public abstract class AgentThread extends Thread {
             } catch (InterruptedIOException e) {
                 // Should not happen unless run is cancelled. And if so,
                 // we don't really care to redo this.
+            } finally {
+                agent.preRunLatch.countDown();
             }
-            agent.preRunLatch.countDown();
             try {
-                agent.startLatch.await();
+                while (!stopped) {
+                    if (agent.startLatch.await(500, TimeUnit.MILLISECONDS))
+                        break;
+                }
             } catch (InterruptedException e) {
                 logger.log(Level.WARNING, name +
                         ": Start latch await interrupted!");
@@ -375,11 +380,18 @@ public abstract class AgentThread extends Thread {
             // Then wait for a signal (everybody else finished) to run postrun.
             while (agent.postRunLatch.getCount() > 0l) {
 				try {
-                    agent.postRunLatch.await();
+                    while (!stopped) {
+                        if (agent.postRunLatch.await(500,
+                                TimeUnit.MILLISECONDS))
+                            break;
+                    }
                 } catch (InterruptedException e) {
                 	logger.log(Level.FINE, e.getMessage(), e);
                 }
 			}
+
+            if (stopped)
+                return;
             // We need to make sure this method is re-run if I/O is interrupted.
             // This may happen if terminate gets called while thread is
             // switching to POST_RUN state.
