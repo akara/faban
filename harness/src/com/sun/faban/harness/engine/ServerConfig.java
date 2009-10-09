@@ -29,6 +29,9 @@ import com.sun.faban.harness.ConfigurationException;
 import com.sun.faban.harness.ParamRepository;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.Run;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -58,13 +61,72 @@ class ServerConfig {
     String master;
     CmdService cmds;
     Logger logger;
+    List<HostConfig> hostConfigs;
 
-    public ServerConfig(Run r, ParamRepository par) {
+    public ServerConfig(Run r, ParamRepository par)
+            throws ConfigurationException {
         this.par = par;
         run = r;
         cmds = CmdService.getHandle();
         logger = Logger.getLogger(this.getClass().getName());
         master = CmdService.getHandle().getMaster();
+        readHostConfigs();
+    }
+
+    static class HostConfig {
+        String[] hosts;
+        int[] numCpus;
+        String userCommands;
+    }
+
+    private void readHostConfigs() throws ConfigurationException {
+        hostConfigs = new ArrayList<HostConfig>();
+        NodeList topLevelElements = par.getTopLevelElements();
+        int topLevelSize = topLevelElements.getLength();
+        for (int i = 0; i < topLevelSize; i++) {
+            Node node = topLevelElements.item(i);
+            if (node.getNodeType() != Node.ELEMENT_NODE) {
+                continue;
+            }
+            Element ti = (Element) node;
+            String ns = ti.getNamespaceURI();
+            String topElement = ti.getNodeName();
+
+            if("http://faban.sunsource.net/ns/fabanharness".equals(ns) &&
+                    "jvmConfig".equals(topElement))
+                continue;
+
+            // Get the hosts
+            String[] hosts = par.getEnabledHosts(ti);
+            if (hosts == null || hosts.length == 0)
+                continue;
+
+            HostConfig hostConfig = new HostConfig();
+            hostConfig.hosts = hosts;
+            String[] vals = par.getTokenizedValue("fa:hostConfig/fh:cpus", ti);
+            if (vals != null) {
+                hostConfig.numCpus = new int[vals.length];
+                for (int j = 0; j < vals.length; j++) {
+                    try {
+                        hostConfig.numCpus[j] = Integer.parseInt(vals[j]);
+                    } catch (NumberFormatException e) {
+                        throw new ConfigurationException(
+                                "fa:hostConfig/fh:cpus under " +
+                                node.getNodeName() +
+                                " has a non-integer value: " + vals[j] + '.',
+                                e);
+                    }
+                }
+            }
+            hostConfig.userCommands =
+                    par.getParameter("fa:hostConfig/fh:userCommands", ti);
+            if (hostConfig.userCommands != null)
+                hostConfig.userCommands = hostConfig.userCommands.trim();
+            if (hostConfig.userCommands.length() == 0)
+                hostConfig.userCommands = null;
+
+            hostConfigs.add(hostConfig);
+        }
     }
 
     /**
@@ -78,44 +140,11 @@ class ServerConfig {
     public boolean get() {
         // Generate name of system log file - system.log
         String syslogfile = run.getOutDir() + "sysinfo.";
-        String userCmds[];
-        String[][] serverMachines;
         boolean success = true;
 
-        List<String[]> enabledHosts;
-        try {
-            enabledHosts = par.getEnabledHosts();
-        } catch (ConfigurationException e) {
-            logger.log(Level.SEVERE, e.getMessage(), e);
-            return false;
-        }
-        List<String> cmdList =
-                        par.getParameters("fa:hostConfig/fh:userCommands");
-        ArrayList<String> commands = new ArrayList<String>();
-
-        if(enabledHosts.size() != cmdList.size()) {
-            logger.severe("Number of hosts does not match Number of " +
-                    "userCommands");
-            return false;
-        }
-        int idx = 0;
-        for (Iterator<String[]> iter = enabledHosts.iterator(); iter.hasNext();) {
-            String[] hosts = iter.next();
-            if (hosts.length > 0)
-                commands.add(cmdList.get(idx++));
-            else
-                iter.remove();
-        }
-
-        serverMachines = enabledHosts.toArray(new String[1][1]);
-        // Each category of hosts may have a user command to be executed.
-        userCmds = commands.toArray((new String[1]));
-
-
-        for(int j = 0; j < serverMachines.length; j++) {
-            for (int i = 0; i < serverMachines[j].length; i++) {
-                String machine = serverMachines[j][i];
-                String machineName = cmds.getHostName(machine);
+        for(HostConfig hostConfig : hostConfigs) {
+            for (String host : hostConfig.hosts) {
+                String machineName = cmds.getHostName(host);
                 try {
                     File f = new File(syslogfile + machineName + ".html");
 
@@ -130,7 +159,7 @@ class ServerConfig {
                                     new PrintStream(new FileOutputStream(f));
                     Command sysinfo = new Command("sysinfo");
                     sysinfo.setStreamHandling(Command.STDOUT, Command.CAPTURE);
-                    CommandHandle handle = cmds.execute(machine, sysinfo, null);
+                    CommandHandle handle = cmds.execute(host, sysinfo, null);
                     byte[] info = handle.fetchOutput(Command.STDOUT);
 
                     // Write header and info to file.
@@ -140,16 +169,18 @@ class ServerConfig {
                     syslog.write(info);
 
                     // Get User Commands output if specified
-                    if (userCmds[j] != null && userCmds[j].trim().length() > 0) {
-                        String[] cmdStrings = userCmds[j].split(";");
+                    if (hostConfig.userCommands != null &&
+                            hostConfig.userCommands.trim().length() > 0) {
+                        String[] cmdStrings = hostConfig.userCommands.
+                                                            split(";");
                         for (String cmdString : cmdStrings) {
                             Command c = new Command(cmdString);
-                            c.setStreamHandling(Command.STDOUT, Command.CAPTURE);
-                            handle = cmds.execute(machine, c, null);
+                            c.setStreamHandling(Command.STDOUT,Command.CAPTURE);
+                            handle = cmds.execute(host, c, null);
                             info = handle.fetchOutput(Command.STDOUT);
                             if (info != null) {
                                 syslog.println(linesep);
-                                syslog.println("<h3>" + userCmds[j] +
+                                syslog.println("<h3>" + hostConfig.userCommands+
                                         " on server " + machineName + "</h3>");
                                 syslog.println("<pre>\n");
                                 syslog.write(info);
@@ -212,22 +243,20 @@ class ServerConfig {
             return false;
         }
 
-        for(int i = 0; i < serverMachines.length; i++) {
-            String[] machines = serverMachines[i];
-            String[] cpus = numCpus[i];
+        for (HostConfig hostConfig : hostConfigs) {
+            String[] hosts = hostConfig.hosts;
+            int[] cpus = hostConfig.numCpus;
             int numCPUs = 0;
 
-            for(int j = 0; j < machines.length; j++) {
+            for(int j = 0; j < hosts.length; j++) {
                 // If the CPU is set to null, Null String or 0 don't do anything.
-                if ((cpus == null) || ((cpus.length == 1) &&
-                        ((cpus[0].trim().equals("")) ||
-                        (cpus[0].trim().equals("0")))))
+                if (cpus == null || (cpus.length == 1 && cpus[0] == 0)) {
                     break;
-                else {
+                } else {
                     if(cpus.length == 1)
-                        numCPUs = Integer.parseInt(cpus[0]);
+                        numCPUs = cpus[0];
                     else
-                        numCPUs = Integer.parseInt(cpus[j]);
+                        numCPUs = cpus[j];
                 }
 
                 // User don't want to reconfigure this system.
@@ -238,13 +267,13 @@ class ServerConfig {
                     // We first turn on all cpus, then turn off enough of them
                     // to get the required number
                     Command cmd = new Command(Config.BIN_DIR + "fastsu", "/usr/sbin/psradm", "-a", "-n");
-                    logger.config("Turning on all cpus on " + machines[j]);
-                    cmds.execute(machines[j], cmd, null);
+                    logger.config("Turning on all cpus on " + hosts[j]);
+                    cmds.execute(hosts[j], cmd, null);
 
                     cmd = new Command("/usr/sbin/psrinfo");
                     cmd.setStreamHandling(Command.STDOUT, Command.CAPTURE);
                     logger.fine("Getting cpus");
-                    CommandHandle handle = cmds.execute(machines[j], cmd, null);
+                    CommandHandle handle = cmds.execute(hosts[j], cmd, null);
                     byte[] buffer = handle.fetchOutput(Command.STDOUT);
 
                     if (buffer != null) {
@@ -297,12 +326,11 @@ class ServerConfig {
                             logger.info("Off-lining CPUs with command: " +
                                     offlineCmd);
                             cmd = new Command(offlineCmd);
-                            cmds.execute(machines[j], cmd, null);
+                            cmds.execute(hosts[j], cmd, null);
                         }
-                    }
-                    else {
+                    } else {
                         logger.severe("Could not set CPUs on server " +
-                                serverMachines[i]);
+                                hosts[j]);
                     }
                 } catch (Exception ie) {
                     logger.log(Level.SEVERE, "Failed to set Server Config.", ie);

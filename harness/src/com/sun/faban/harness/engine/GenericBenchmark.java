@@ -27,6 +27,7 @@ import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
 import com.sun.faban.common.Utilities;
 import com.sun.faban.harness.ParamRepository;
+import com.sun.faban.harness.ConfigurationException;
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.HostRoles;
@@ -247,7 +248,12 @@ public class GenericBenchmark {
 
             // Now, process generic server parameters
             logger.fine("Processing Generic Parameters");
-            server = new ServerConfig(run, par);
+            try {
+                server = new ServerConfig(run, par);
+            } catch (ConfigurationException e) {
+                logger.log(Level.SEVERE, e.getMessage(), e);
+                return;
+            }
 
             // Set # of cpus
             if (!server.set(cmds)) {
