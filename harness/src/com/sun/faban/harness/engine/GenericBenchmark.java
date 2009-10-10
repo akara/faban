@@ -25,9 +25,8 @@ package com.sun.faban.harness.engine;
 
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
-import com.sun.faban.common.Utilities;
-import com.sun.faban.harness.ParamRepository;
 import com.sun.faban.harness.ConfigurationException;
+import com.sun.faban.harness.ParamRepository;
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.HostRoles;
@@ -37,7 +36,6 @@ import com.sun.faban.harness.services.ServiceManager;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -150,41 +148,10 @@ public class GenericBenchmark {
                 runIdFile.write(run.getRunId());
                 runIdFile.close();
 
-                String javaHome =
-                        par.getParameter("fh:jvmConfig/fh:javaHome");
-
-                if (javaHome != null)
-                    javaHome = javaHome.trim();
-
-                if (javaHome == null || javaHome.length() == 0) {
-                    javaHome = Utilities.getJavaHome();
-                    logger.config("JAVA_HOME set to " + javaHome);
-                }
-
-                if(!(new File(javaHome)).isDirectory()) {
-                    logger.severe("Cannot set JAVA_HOME. " + javaHome +
-                            " is not a valid JAVA_HOME. Exiting");
-                    return;
-                }
-
-                String jvmOpts =
-                        par.getParameter("fh:jvmConfig/fh:jvmOptions");
-
-                if (jvmOpts != null)
-                    jvmOpts = jvmOpts.trim();
-
-                if((jvmOpts == null) || (jvmOpts.length() == 0))
-                    jvmOpts = "";
-
                 // Start CmdAgent on all ENABLED hosts using the JAVA HOME
                 // Specified JVM options will be used by the Agent when it
                 // starts java processes
-                List<String[]> enabledHosts = par.getEnabledHosts();
-                String[][] hostArray = enabledHosts.toArray(new String[1][1]);
-                boolean clockSync = par.getBooleanValue(
-                                            "fa:runConfig/fh:timeSync", true);
-                if (!cmds.setup(benchDesc.shortName,
-                        hostArray, javaHome, jvmOpts, clockSync)) {
+                if (!cmds.setup(benchDesc.shortName, par)) {
                 logger.severe("CmdService setup failed. Exiting");
                     return;
                 }

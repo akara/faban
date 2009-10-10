@@ -597,21 +597,21 @@ public class ResultAction {
 
             if (status == HttpStatus.SC_CREATED) {
 
-            StringTokenizer t = new StringTokenizer(response.trim(),"\n");
-            while (t.hasMoreTokens()) {
-                String duplicateRun = t.nextToken().trim();
-                if (duplicateRun.length() > 0)
-                    duplicates.add(duplicateRun.trim());
-            }
-
-            for (Iterator<String> iter = duplicates.iterator(); iter.hasNext();) {
-                String runId = iter.next();
-                if (!runIdSet.contains(runId)) {
-                    logger.warning("Unexpected archive response from " +
-                            repos + ": "  + runId);
-                    iter.remove();
+                StringTokenizer t = new StringTokenizer(response.trim(),"\n");
+                while (t.hasMoreTokens()) {
+                    String duplicateRun = t.nextToken().trim();
+                    if (duplicateRun.length() > 0)
+                        duplicates.add(duplicateRun.trim());
                 }
-            }
+
+                for (Iterator<String> iter = duplicates.iterator(); iter.hasNext();) {
+                    String runId = iter.next();
+                    if (!runIdSet.contains(runId)) {
+                        logger.warning("Unexpected archive response from " +
+                                repos + ": "  + runId);
+                        iter.remove();
+                    }
+                }
             } else {
                 logger.warning("Message from repository: " + response);
             }

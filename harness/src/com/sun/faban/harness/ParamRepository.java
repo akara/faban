@@ -32,6 +32,7 @@ import org.w3c.dom.NodeList;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.Collections;
 
 /**
  * The ParamRepository is the programmatic representation of the
@@ -43,6 +44,7 @@ public class ParamRepository {
 
 
     private XMLReader reader;
+    private List<HostConfig> hostConfigs;
 
     /**
      * Constructor: Open specified repository.
@@ -227,29 +229,82 @@ public class ParamRepository {
     }
 
     /**
-     * Obtains the list of enabled hosts.
-     * @return A list of enabled hosts, grouped by host type.
-     * @throws ConfigurationException
+     * HostConfig structure holding a hostConfig element from the config file.
      */
-    public List<String[]> getEnabledHosts() throws ConfigurationException {
-        ArrayList<String[]> enabledHosts = new ArrayList<String[]>();
-        List<String[]> hosts = getTokenizedParameters(
-                                            "fa:hostConfig/fa:host");
-        List<String> enabled = getParameters("fa:hostConfig/fh:enabled");
-        if(hosts.size() != enabled.size()) {
-            throw new ConfigurationException("Number of hosts, " +
-                    hosts.size() + ", does not match enabled, " +
-                    enabled.size() + ".");
-        } else {
-            for(int i = 0; i < hosts.size(); i++) {
-                if(Boolean.valueOf((String) enabled.get(i)).booleanValue()) {
-                    enabledHosts.add(hosts.get(i));
-                } else {
-                    enabledHosts.add(new String[0]);
+    public static class HostConfig {
+        public String[] hosts;
+        public int[] numCpus;
+        public String tools;
+        public String userCommands;
+    }
+
+    private void readHostConfigs() throws ConfigurationException {
+        ArrayList<HostConfig> hostConfigs = new ArrayList<HostConfig>();
+        NodeList topLevelElements = getTopLevelElements();
+        int topLevelSize = topLevelElements.getLength();
+        for (int i = 0; i < topLevelSize; i++) {
+            Node node = topLevelElements.item(i);
+            if (node.getNodeType() != Node.ELEMENT_NODE) {
+                continue;
+            }
+            Element ti = (Element) node;
+            String ns = ti.getNamespaceURI();
+            String topElement = ti.getNodeName();
+
+            if("http://faban.sunsource.net/ns/fabanharness".equals(ns) &&
+                    "jvmConfig".equals(topElement))
+                continue;
+
+            // Get the hosts
+            String[] hosts = getEnabledHosts(ti);
+            if (hosts == null || hosts.length == 0)
+                continue;
+
+            HostConfig hostConfig = new HostConfig();
+            hostConfig.hosts = hosts;
+            String[] vals = getTokenizedValue("fa:hostConfig/fh:cpus", ti);
+            if (vals != null) {
+                hostConfig.numCpus = new int[vals.length];
+                for (int j = 0; j < vals.length; j++) {
+                    try {
+                        hostConfig.numCpus[j] = Integer.parseInt(vals[j]);
+                    } catch (NumberFormatException e) {
+                        throw new ConfigurationException(
+                                "fa:hostConfig/fh:cpus under " +
+                                node.getNodeName() +
+                                " has a non-integer value: " + vals[j] + '.',
+                                e);
+                    }
                 }
             }
+
+            hostConfig.tools = getParameter("fa:hostConfig/fh:tools", ti);
+            if (hostConfig.tools != null)
+                hostConfig.tools = hostConfig.tools.trim();
+            if (hostConfig.tools.length() == 0)
+                hostConfig.tools = null;
+
+            hostConfig.userCommands =
+                    getParameter("fa:hostConfig/fh:userCommands", ti);
+            if (hostConfig.userCommands != null)
+                hostConfig.userCommands = hostConfig.userCommands.trim();
+            if (hostConfig.userCommands.length() == 0)
+                hostConfig.userCommands = null;
+
+            hostConfigs.add(hostConfig);
         }
-        return enabledHosts;
+        this.hostConfigs = Collections.unmodifiableList(hostConfigs);
+    }
+
+    /**
+     * Obtains the list of enabled host configurations.
+     * @return A list of enabled hosts configurations
+     * @throws ConfigurationException Error reading the configuration
+     */
+    public List<HostConfig> getHostConfigs() throws ConfigurationException {
+        if (hostConfigs == null)
+            readHostConfigs();
+        return hostConfigs;
     }
 
     /**
@@ -260,7 +315,7 @@ public class ParamRepository {
      */
     public String[] getEnabledHosts(Element base) throws ConfigurationException {
         String[] enabledHosts;
-        if (getBooleanValue("fa:hostConfig/fh:enabled", base))
+        if (getBooleanValue("fa:hostConfig/fh:enabled", base, true))
             enabledHosts = getTokenizedValue("fa:hostConfig/fa:host", base);
         else
             enabledHosts = new String[0];

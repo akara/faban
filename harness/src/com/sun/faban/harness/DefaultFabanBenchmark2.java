@@ -23,14 +23,15 @@
  */
 package com.sun.faban.harness;
 
-import static com.sun.faban.harness.RunContext.*;
-
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
+import org.w3c.dom.Element;
 
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static com.sun.faban.harness.RunContext.*;
 
 /**
  * The default benchmark class(based on annotations) for use with benchmarks
@@ -110,20 +111,18 @@ public class DefaultFabanBenchmark2 {
             String[] agentSpecs = params.getTokenizedValue(qb + "fd:agents");
 
             switch (agentSpecs.length) {
-                case 0: // Empty agents field, throw exception.
-                    String msg = "Number of agents for " + agentName +
-                                            " driver must not be empty.";
-                    ConfigurationException ce = new ConfigurationException(msg);
-                    logger.log(Level.SEVERE, msg, ce);
-                    throw ce;
+                case 0: // Default to 1 agent
+                    String[] defaultAgentSpecs = { "1" };
+                    agentSpecs = defaultAgentSpecs; // fall thru to case 1.
                 case 1: // Single value field, could be just count or host:count
                     if (agentSpecs[0].indexOf(':') < 0) { //Just count
                         int agentCnt = 0;
                         try {
                             agentCnt = Integer.parseInt(agentSpecs[0]);
                         } catch (NumberFormatException e) {
-                            msg = "Invalid agents spec " + agentSpecs[0];
-                            ce = new ConfigurationException(msg);
+                            String msg = "Invalid agents spec " + agentSpecs[0];
+                            ConfigurationException ce =
+                                    new ConfigurationException(msg);
                             logger.log(Level.SEVERE, msg, ce);
                             throw ce;
                         }
@@ -137,8 +136,9 @@ public class DefaultFabanBenchmark2 {
 
                         // Check the spec for anything odd.
                         if (colIdx < 1) {
-                            msg = "Invalid agents spec " + agentSpec;
-                            ce = new ConfigurationException(msg);
+                            String msg = "Invalid agents spec " + agentSpec;
+                            ConfigurationException ce =
+                                    new ConfigurationException(msg);
                             logger.log(Level.SEVERE, msg, ce);
                             throw ce;
                         }
@@ -148,8 +148,9 @@ public class DefaultFabanBenchmark2 {
                             agentCnt = Integer.parseInt(
                                             agentSpec.substring(colIdx + 1));
                         } catch (NumberFormatException e) {
-                            msg = "Invalid agents spec " + agentSpec;
-                            ce = new ConfigurationException(msg);
+                            String msg = "Invalid agents spec " + agentSpec;
+                            ConfigurationException ce =
+                                    new ConfigurationException(msg);
                             logger.log(Level.SEVERE, msg, ce);
                             throw ce;
                         }
@@ -249,8 +250,18 @@ public class DefaultFabanBenchmark2 {
             // Save the new host back the list.
             params.setParameter("fa:runConfig/fa:hostConfig/fa:host",
                                                 agentHostsBldr.toString());
+
             // Update the output directory to the one assigned by the harness.
-            params.setParameter("fa:runConfig/fd:outputDir", getOutDir());
+            Element outputDirNode = (Element)                                      
+                    params.getNode("fa:runConfig/fd:outputDir");
+
+            if (outputDirNode == null)
+                outputDirNode = params.addParameter("fa:runConfig",
+                        "http://faban.sunsource.net/ns/fabandriver", null,
+                        "outputDir");
+
+            params.setParameter(outputDirNode, getOutDir());
+
             params.save();
         } catch(Exception e) {
             logger.log(Level.SEVERE, "Exception updating " + getParamFile(), e);

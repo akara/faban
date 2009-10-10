@@ -98,11 +98,9 @@ final public class ToolService {
 
         /* Get tool related parameters */
 
-        List<String[]> hostClasses = null;
-        List<String> allTools =  null;
+        List<ParamRepository.HostConfig> hostConfigs = null;
         try {
-            hostClasses = par.getEnabledHosts();
-            allTools = par.getParameters("fa:hostConfig/fh:tools");
+            hostConfigs = par.getHostConfigs();
         } catch (ConfigurationException e) {
             logger.log(Level.WARNING, e.getMessage(), e);
             return false;
@@ -131,28 +129,27 @@ final public class ToolService {
                 new HashMap<String, Set<String>>();
         
         // First we flatten out the classes into host names and tools sets
-        for (int i = 0; i < hostClasses.size(); i++) {
+        for (ParamRepository.HostConfig hostConfig : hostConfigs) {
             Set<String> toolset = new LinkedHashSet<String>();
             // Get the hosts list in the class.
-            String[] hosts = hostClasses.get(i);
+            String[] hosts = hostConfig.hosts;
             if (hosts.length == 0) {
                 continue; // This class is disabled.
             }
-            String toolCmds = allTools.get(i).trim();
 
-            // Ignore class if no tools to start.
-            if (toolCmds.toUpperCase().equals("NONE")) {
-                continue;
-            }
+            String toolCmds = hostConfig.tools;
 
             // Get the tools list for this host list.
-            if (toolCmds.length() != 0) {
+            if (toolCmds == null) {
+                toolset.add("default");
+            } else if ("NONE".equals(toolCmds.toUpperCase())) {
+                // Ignore class if no tools to start.
+                continue;
+            } else {
                 StringTokenizer st = new StringTokenizer(toolCmds, ";");
                 while (st.hasMoreTokens()) {
                     toolset.add(st.nextToken().trim());
                 }
-            } else if ("".equals(toolCmds) && toolCmds.length() == 0) {
-                toolset.add("default");
             }
             
             for (int j = 0; j < hosts.length; j++) {

@@ -29,9 +29,6 @@ import com.sun.faban.harness.ConfigurationException;
 import com.sun.faban.harness.ParamRepository;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.common.Run;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -61,7 +58,7 @@ class ServerConfig {
     String master;
     CmdService cmds;
     Logger logger;
-    List<HostConfig> hostConfigs;
+    List<ParamRepository.HostConfig> hostConfigs;
 
     public ServerConfig(Run r, ParamRepository par)
             throws ConfigurationException {
@@ -70,63 +67,7 @@ class ServerConfig {
         cmds = CmdService.getHandle();
         logger = Logger.getLogger(this.getClass().getName());
         master = CmdService.getHandle().getMaster();
-        readHostConfigs();
-    }
-
-    static class HostConfig {
-        String[] hosts;
-        int[] numCpus;
-        String userCommands;
-    }
-
-    private void readHostConfigs() throws ConfigurationException {
-        hostConfigs = new ArrayList<HostConfig>();
-        NodeList topLevelElements = par.getTopLevelElements();
-        int topLevelSize = topLevelElements.getLength();
-        for (int i = 0; i < topLevelSize; i++) {
-            Node node = topLevelElements.item(i);
-            if (node.getNodeType() != Node.ELEMENT_NODE) {
-                continue;
-            }
-            Element ti = (Element) node;
-            String ns = ti.getNamespaceURI();
-            String topElement = ti.getNodeName();
-
-            if("http://faban.sunsource.net/ns/fabanharness".equals(ns) &&
-                    "jvmConfig".equals(topElement))
-                continue;
-
-            // Get the hosts
-            String[] hosts = par.getEnabledHosts(ti);
-            if (hosts == null || hosts.length == 0)
-                continue;
-
-            HostConfig hostConfig = new HostConfig();
-            hostConfig.hosts = hosts;
-            String[] vals = par.getTokenizedValue("fa:hostConfig/fh:cpus", ti);
-            if (vals != null) {
-                hostConfig.numCpus = new int[vals.length];
-                for (int j = 0; j < vals.length; j++) {
-                    try {
-                        hostConfig.numCpus[j] = Integer.parseInt(vals[j]);
-                    } catch (NumberFormatException e) {
-                        throw new ConfigurationException(
-                                "fa:hostConfig/fh:cpus under " +
-                                node.getNodeName() +
-                                " has a non-integer value: " + vals[j] + '.',
-                                e);
-                    }
-                }
-            }
-            hostConfig.userCommands =
-                    par.getParameter("fa:hostConfig/fh:userCommands", ti);
-            if (hostConfig.userCommands != null)
-                hostConfig.userCommands = hostConfig.userCommands.trim();
-            if (hostConfig.userCommands.length() == 0)
-                hostConfig.userCommands = null;
-
-            hostConfigs.add(hostConfig);
-        }
+        hostConfigs = par.getHostConfigs();
     }
 
     /**
@@ -142,7 +83,7 @@ class ServerConfig {
         String syslogfile = run.getOutDir() + "sysinfo.";
         boolean success = true;
 
-        for(HostConfig hostConfig : hostConfigs) {
+        for(ParamRepository.HostConfig hostConfig : hostConfigs) {
             for (String host : hostConfig.hosts) {
                 String machineName = cmds.getHostName(host);
                 try {
@@ -208,56 +149,31 @@ class ServerConfig {
      */
     public boolean set(CmdService cmds) {
 
-        List<String[]> enabledHosts;
-        try {
-            enabledHosts = par.getEnabledHosts();
-        } catch (ConfigurationException e) {
-            logger.log(Level.SEVERE, e.getMessage(), e);
-            return false;
-        }
-
-        List<String[]> CPUs  =
-                            par.getTokenizedParameters("fa:hostConfig/fh:cpus");
-        ArrayList<String[]> cpuVector = new ArrayList<String[]>();
-        String[][] serverMachines = null;
-        String[][] numCpus = null;
-
-        if(enabledHosts.size() != CPUs.size()) {
-            logger.severe("Number of hosts does not match Number of cpus");
-            return false;
-        }
-        int idx = 0;
-        for (Iterator<String[]> iter = enabledHosts.iterator(); iter.hasNext();) {
-            String[] hosts = iter.next();
-            if (hosts.length > 0)
-                cpuVector.add(CPUs.get(idx++));
-            else
-                iter.remove();
-        }
-
-        serverMachines = enabledHosts.toArray(new String[1][1]);
-        numCpus = cpuVector.toArray(new String[1][1]);
-
-        if(serverMachines.length != numCpus.length) {
-            logger.severe("serverMachines.length != numCPUs.length");
-            return false;
-        }
-
-        for (HostConfig hostConfig : hostConfigs) {
+        for (ParamRepository.HostConfig hostConfig : hostConfigs) {
             String[] hosts = hostConfig.hosts;
             int[] cpus = hostConfig.numCpus;
             int numCPUs = 0;
 
+            if (cpus == null)
+                continue;
+
+            if (cpus.length == 1 && cpus[0] == 0)
+                continue;
+
+            // cpus can be of size 0 - don't set it, 1 - set the same for all,
+            // or the number of hosts.
+            if (cpus.length > 1 && cpus.length != hosts.length) {
+                logger.severe("Entries in the \"cpus\" field must be 1 or " +
+                        "the number of hosts, or blank. CPU entry mismatch. " +
+                        "Please check configuration.");
+                return false;
+            }
+
             for(int j = 0; j < hosts.length; j++) {
-                // If the CPU is set to null, Null String or 0 don't do anything.
-                if (cpus == null || (cpus.length == 1 && cpus[0] == 0)) {
-                    break;
-                } else {
-                    if(cpus.length == 1)
-                        numCPUs = cpus[0];
-                    else
-                        numCPUs = cpus[j];
-                }
+                if(cpus.length == 1)
+                    numCPUs = cpus[0];
+                else
+                    numCPUs = cpus[j];
 
                 // User don't want to reconfigure this system.
                 if(numCPUs == 0)
@@ -266,7 +182,8 @@ class ServerConfig {
                 try {
                     // We first turn on all cpus, then turn off enough of them
                     // to get the required number
-                    Command cmd = new Command(Config.BIN_DIR + "fastsu", "/usr/sbin/psradm", "-a", "-n");
+                    Command cmd = new Command(Config.BIN_DIR + "fastsu",
+                            "/usr/sbin/psradm", "-a", "-n");
                     logger.config("Turning on all cpus on " + hosts[j]);
                     cmds.execute(hosts[j], cmd, null);
 
@@ -351,21 +268,6 @@ class ServerConfig {
      */
     public void report(long startTime, long endTime) {
 
-        List<String[]> enabledHosts;
-        try {
-            enabledHosts = par.getEnabledHosts();
-        } catch (ConfigurationException e) {
-            logger.log(Level.SEVERE, e.getMessage(), e);
-            return;
-        }
-
-        // Remove empty entries identifying disabled host roles.
-        for (Iterator<String[]> iter = enabledHosts.iterator(); iter.hasNext();) {
-            String[] hosts = iter.next();
-            if (hosts.length == 0)
-                iter.remove();
-        }
-        
         String sysfile = run.getOutDir() + "system.report";
         PrintStream syslog = null;
         DateFormat df = DateFormat.getDateTimeInstance(
@@ -398,17 +300,17 @@ class ServerConfig {
         c.setStreamHandling(Command.STDOUT, Command.CAPTURE);
         logger.fine("Getting system messages");
 
-        for (String[] machines : enabledHosts)
-            for(String machine : machines) {
-                File f = new File(sysfile + "." + machine);
+        for (ParamRepository.HostConfig hostConfig : hostConfigs) {
+            for(String host : hostConfig.hosts) {
+                File f = new File(sysfile + "." + host);
                 f.delete();
                 try {
                     syslog = new PrintStream(new FileOutputStream(f));
-                    handle = cmds.execute(machine, c, null);
+                    handle = cmds.execute(host, c, null);
                     byte[] messages = handle.fetchOutput(Command.STDOUT);
                     syslog.println(linesep);
                     syslog.println("System messages during run from server " +
-                            machine);
+                            host);
                     syslog.println("\n");
                     if (messages != null) // Null if no messages.
                         syslog.write(messages);
@@ -418,7 +320,7 @@ class ServerConfig {
                     while (cause != null)
                         cause = cause.getCause();
                     String message = "Error processing system messages for " +
-                                                                    machine;
+                                                                    host;
                     // A remote IOException usually means the messages script
                     // is not available for the target OS. We want to log
                     // at a lower level.
@@ -428,9 +330,10 @@ class ServerConfig {
                         logger.log(Level.WARNING, message, cause);
                 } catch (Exception e) {
                     logger.log(Level.WARNING,
-                            "Error collecting system messages from " + machine,
+                            "Error collecting system messages from " + host,
                             e);
                 }
             }
+        }
     }
 }

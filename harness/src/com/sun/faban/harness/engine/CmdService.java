@@ -26,6 +26,8 @@ package com.sun.faban.harness.engine;
 import com.sun.faban.common.*;
 import com.sun.faban.harness.FabanHostUnknownException;
 import com.sun.faban.harness.RemoteCallable;
+import com.sun.faban.harness.ParamRepository;
+import com.sun.faban.harness.ConfigurationException;
 import com.sun.faban.harness.agent.CmdAgent;
 import com.sun.faban.harness.agent.FileAgent;
 import com.sun.faban.harness.agent.FileService;
@@ -175,14 +177,26 @@ final public class CmdService { 	// The final keyword prevents clones
      * This method can be called multiple times to initialize multiple
      * classes of machines.
      * @param benchName The name of the benchmark
-     * @param hosts String[][] of machines
-     * @param home JAVA_HOME
-     * @param options Driver JVM options
-     * @param clockSync Whether to synchronize the clocks between systems
+     * @param par The parameter repository
      * @return true if successful, false if setup failed
      */
-    public boolean setup(String benchName, String[][] hosts,
-            String home, String options, boolean clockSync) {
+    public boolean setup(String benchName, ParamRepository par) {
+
+        String home = par.getParameter("fh:jvmConfig/fh:home");
+
+        if (home != null)
+            home = home.trim();
+
+        if (home == null || home.length() == 0) {
+            home = Utilities.getJavaHome();
+            logger.config("JAVA_HOME set to " + home);
+        }
+
+        if(!(new File(home)).isDirectory()) {
+            logger.severe("Cannot set JAVA_HOME. " + home +
+                    " is not a valid JAVA_HOME. Exiting");
+            return false;
+        }
 
         javaHome = home;
 
@@ -271,7 +285,16 @@ final public class CmdService { 	// The final keyword prevents clones
         }
 
         // Now add the driver options to the JVM options. Need them after this.
-        jvmOptions.addAll(Command.parseArgs(options));
+        String jvmOpts =
+                par.getParameter("fh:jvmConfig/fh:jvmOptions");
+
+        if (jvmOpts != null)
+            jvmOpts = jvmOpts.trim();
+
+        if((jvmOpts == null) || (jvmOpts.length() == 0))
+            jvmOpts = "-XX:+DisableExplicitGC";
+
+        jvmOptions.addAll(Command.parseArgs(jvmOpts));
 
         // RMI registry takes a bit of time to startup. So sleep for some time
         try {
@@ -310,9 +333,16 @@ final public class CmdService { 	// The final keyword prevents clones
         HashSet<String> remoteMachines = new HashSet<String>();
         boolean isMasterSet = false;
 
+        List<ParamRepository.HostConfig> hostConfigs = null;
+        try {
+            hostConfigs = par.getHostConfigs();
+        } catch (ConfigurationException e) {
+            logger.log(Level.SEVERE, "Problem reading parameter file", e);
+        }
+
         outer:
-        for (int j = 0; j < hosts.length; j++) {
-            String[] machines = hosts[j];
+        for (ParamRepository.HostConfig hostConfig : hostConfigs) {
+            String[] machines = hostConfig.hosts;
             for (int i = 0; i < machines.length; i++) {
 
                 // Check for no localhost, we don't allow it.
@@ -422,8 +452,8 @@ final public class CmdService { 	// The final keyword prevents clones
 
         // cycles through benchmark machines starting up agents and
         // configuring them
-        for (int j = 0; j < hosts.length; j++) {
-            String[] machines = hosts[j];
+        for (ParamRepository.HostConfig hostConfig : hostConfigs) {
+            String[] machines = hostConfig.hosts;
             for (int i = 0; i < machines.length; i++) {
                 // Do not start duplicate Cmd agent
                 if (machinesList.contains(machines[i])) {
@@ -454,9 +484,11 @@ final public class CmdService { 	// The final keyword prevents clones
                 return false;
             }
         }
-        if (clockSync) {
+
+        if (par.getBooleanValue("fa:runConfig/fh:timeSync", true)) {
             setClocks();
         }
+
         return true;
     }
 
