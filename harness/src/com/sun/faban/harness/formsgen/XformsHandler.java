@@ -49,7 +49,7 @@ public class XformsHandler {
        String handlerName = getHandlerName(eNode.getLocalName());
        try {
            //this.handleElement = Class.forName(handlerName).asSubclass(ElementHandler.class).newInstance();
-           this.handleElement = (ElementHandler) Class.forName("com.sun.faban.harness.util."+handlerName, true, this.getClass().getClassLoader()).newInstance();
+           this.handleElement = (ElementHandler) Class.forName("com.sun.faban.harness.formsgen."+handlerName, true, this.getClass().getClassLoader()).newInstance();
        } catch (Exception e) {
            this.handleElement = new GenericElement();
        }
