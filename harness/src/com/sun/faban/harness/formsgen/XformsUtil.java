@@ -244,12 +244,14 @@ public class XformsUtil {
                         }
                 }
                 idStack.add(id);
-                if ("buildXformsBind".equals(methodName)) {
-                    buildXformsBind(list.item(i),spaces,id);
-                } else if ("buildXformsCases".equals(methodName)) {
-                    nodeCount++;
-                    buildXformsCases(list.item(i),spaces,id,stack);
-                    nodeCount--;
+                if(methodName != null && methodName.trim().length() > 0) {
+                    if ("buildXformsBind".equals(methodName)) {
+                        buildXformsBind(list.item(i),spaces,id);
+                    } else if ("buildXformsCases".equals(methodName)) {
+                        nodeCount++;
+                        buildXformsCases(list.item(i),spaces,id,stack);
+                        nodeCount--;
+                    }
                 }
                 spaces--;
             }
