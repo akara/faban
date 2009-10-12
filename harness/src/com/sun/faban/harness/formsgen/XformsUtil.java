@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package com.sun.faban.harness.util;
+package com.sun.faban.harness.formsgen;
 
 import com.sun.faban.common.FabanNamespaceContext;
 import java.util.ArrayList;

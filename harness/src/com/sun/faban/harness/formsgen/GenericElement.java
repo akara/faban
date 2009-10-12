@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package com.sun.faban.harness.util;
+package com.sun.faban.harness.formsgen;
 
 import java.util.ArrayList;
 import org.w3c.dom.Node;
@@ -12,12 +12,13 @@ import org.w3c.dom.Node;
  *
  * @author sp208304
  */
-public class ThreadStartElement {
-    private StringBuilder casesBuffer = null;
-    ArrayList<String> ignoreNodesStack = new ArrayList<String>();
+public class GenericElement implements ElementHandler{
 
-    private void loadIgnoreStack() {
-        //ignoreNodesStack.add("maxRunTime");
+   private StringBuilder casesBuffer = null;
+   ArrayList<String> ignoreNodesStack = new ArrayList<String>();
+
+   private void loadIgnoreStack() {
+        ignoreNodesStack.add("maxRunTime");
     }
 
     public StringBuilder getBuffer(Node eNode, String id) {
@@ -26,4 +27,5 @@ public class ThreadStartElement {
         casesBuffer = new StringBuilder(xu.buildXformsCases(eNode, 0, id, ignoreNodesStack));
         return casesBuffer;
     }
+
 }

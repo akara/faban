@@ -20,8 +20,9 @@
 * Copyright 2005-2009 Sun Microsystems Inc. All Rights Reserved
 */
 
-package com.sun.faban.harness.util;
+package com.sun.faban.harness.formsgen;
 
+import com.sun.faban.harness.util.FileHelper;
 import java.io.File;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;

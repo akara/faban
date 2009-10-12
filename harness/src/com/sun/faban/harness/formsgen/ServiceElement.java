@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package com.sun.faban.harness.util;
+package com.sun.faban.harness.formsgen;
 
 import java.util.ArrayList;
 import org.w3c.dom.Node;

@@ -29,6 +29,7 @@ import com.sun.faban.common.CommandHandle;
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.engine.RunQ;
+import com.sun.faban.harness.formsgen.XformsGenerator;
 import com.sun.faban.harness.services.ServiceManager;
 import org.w3c.dom.Node;
 
