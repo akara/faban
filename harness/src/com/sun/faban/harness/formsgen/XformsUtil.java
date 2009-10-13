@@ -22,8 +22,10 @@ public class XformsUtil {
     
     static ArrayList<String> propertyLabelsStack = new ArrayList<String>();
     static ArrayList<String> needLabelsStack = new ArrayList<String>();
+    StringBuilder zeroNodeCountBuff = null;
     static int nodeCount = 0;
     StringBuilder casesBuffer = null;
+    StringBuilder casesBuff = null;
     ArrayList<String> labelsStack = new ArrayList<String>();
     ArrayList<String> ignoreNodesStack = new ArrayList<String>();
     ArrayList<String> idStack = new ArrayList<String>();
@@ -188,24 +190,60 @@ public class XformsUtil {
         }
 
         //Handling cases section
-        if(eNode != doc.getDocumentElement() && eNode.getParentNode() == doc.getDocumentElement()){
-            inputs = tab + "<xforms:case id='case-" + strg + "'>" + "\n";           
-        }else if (eNode.getParentNode().getParentNode() == doc.getDocumentElement()) {
-            if (!ignoreNodesStack.contains(strg)) {                
-                handle = new XformsHandler(eNode, id);
-                inputs = handle.executeElement().toString();
+        if (!ignoreNodesStack.contains(strg)) {
+            if (eNode != doc.getDocumentElement() && eNode.getParentNode() == doc.getDocumentElement()) {
+                if (XformsGenerator.xformsCasesBuffer == null) {
+                    XformsGenerator.xformsCasesBuffer = new StringBuilder("<xforms:case id='case-" + strg + "'>" + "\n");
+                } else {
+                    XformsGenerator.xformsCasesBuffer.append("<xforms:case id='case-" + strg + "'>" + "\n");
+                }
+            } else if (eNode.getParentNode().getParentNode() == doc.getDocumentElement()) {
+                if (hasMoreElements(eNode)) {
+                    handle = new XformsHandler(eNode, id);
+                    inputs = handle.executeElement().toString();
+                } else {
+                    if (zeroNodeCountBuff == null) {
+                        if (strg.equalsIgnoreCase("description")) {
+                            zeroNodeCountBuff = new StringBuilder(tab + "<xforms:textarea id='input-" + id + "' xforms:bind='bind-" + id + "'>" + "\n" +
+                                    "\t\t\t<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/" + strg + "'/>" + "\n" +
+                                    "\t\t</xforms:textarea>\n");
+                        } else {
+                            zeroNodeCountBuff = new StringBuilder(tab + "<xforms:input id='input-" + id + "' xforms:bind='bind-" + id + "'>" + "\n" +
+                                    "\t\t\t<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/" + strg + "'/>" + "\n" +
+                                    "\t\t</xforms:input>\n");
+                        }
+                    } else {
+                        if (strg.equalsIgnoreCase("description")) {
+                            zeroNodeCountBuff.append(tab + "<xforms:textarea id='input-" + id + "' xforms:bind='bind-" + id + "'>" + "\n" +
+                                    "\t\t\t<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/" + strg + "'/>" + "\n" +
+                                    "\t\t</xforms:textarea>\n");
+                        } else {
+                            zeroNodeCountBuff.append(tab + "<xforms:input id='input-" + id + "' xforms:bind='bind-" + id + "'>" + "\n" +
+                                    "\t\t\t<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/" + strg + "'/>" + "\n" +
+                                    "\t\t</xforms:input>\n");
+                        }
+                    }
+                }
             }
         }
-        if (XformsGenerator.xformsCasesBuffer == null) {
-            XformsGenerator.xformsCasesBuffer = new StringBuilder(inputs);
+        if (casesBuff == null) {
+            casesBuff = new StringBuilder(inputs);
         } else {
-            XformsGenerator.xformsCasesBuffer.append(inputs);
+            casesBuff.append(inputs);
         }
-
         loopBack(eNode, spaces, id, prevNode, "buildXformsBind", null);
         XformsGenerator.xformsBindBuffer.append(tab + "</xforms:bind>\n");
         if(eNode != doc.getDocumentElement() && eNode.getParentNode() == doc.getDocumentElement()){
-            XformsGenerator.xformsCasesBuffer.append(tab + "</xforms:case>\n");
+            String ins = tab + "<xforms:group id='group-nogroup'>" + "\n" +
+                        zeroNodeCountBuff.toString() + "\n</xforms:group>\n" +
+                        tab + casesBuff.toString() +   "\n</xforms:case>\n";
+            if (XformsGenerator.xformsCasesBuffer == null) {               
+                XformsGenerator.xformsCasesBuffer = new StringBuilder(ins);
+            } else {
+                XformsGenerator.xformsCasesBuffer.append(ins);
+            }
+            zeroNodeCountBuff.delete(0, zeroNodeCountBuff.length()-1);
+            casesBuff.delete(0, casesBuff.length()-1);
         }
         spaces--;
     }
@@ -269,54 +307,42 @@ public class XformsUtil {
                     "\t\t\t<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/" + propertyLabelsStack.get(0) + "'/>" + "\n" +
                     "\t\t</xforms:input>\n";
             propertyLabelsStack.remove(0);
-        } else if (!ignoreStack.contains(strg)) {
+        } else if (!ignoreStack.contains(strg)) {            
             if (hasMoreElements(eNode)) {
                 if(nodeCount == 0) {
-                    if(needLabelsStack.contains(strg)){
-                        inputs = tab + tab + tab + "<xforms:group id='group-" + strg + "'>" + "\n"+
+                    if (needLabelsStack.contains(strg)) {
+                        inputs = tab + tab + tab + "<xforms:group id='group-" + strg + "'>" + "\n" +
                                 tab + tab + tab + "<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/" + strg + "' />" + "\n";
-                    }else{
+                    } else {
                         inputs = tab + tab + tab + "<xforms:group id='group-" + strg + "'>" + "\n";
                     }
-                } 
-            } else if (!hasMoreElements(eNode)) {
-                if (nodeCount == 0) {
-                    if (strg.equalsIgnoreCase("description")) {
-                        inputs = tab + "<xforms:group id='group-" + strg + "'><xforms:textarea id='input-" + id + "' xforms:bind='bind-" + id + "'>" + "\n" +
-                                "\t\t\t<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/" + strg + "'/>" + "\n" +
-                                "\t\t</xforms:textarea></xforms:group>\n";
-                    } else {
-                        inputs = tab + "<xforms:group id='group-" + strg + "'><xforms:input id='input-" + id + "' xforms:bind='bind-" + id + "'>" + "\n" +
-                                "\t\t\t<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/" + strg + "'/>" + "\n" +
-                                "\t\t</xforms:input></xforms:group>\n";
+                }
+            } else {
+                if (selectsMap.containsKey(strg)) {
+                    String label = selectsMap.get(strg);
+                    String choice1 = "true";
+                    String choice2 = "false";
+                    if ("yes".equals(label)) {
+                        choice1 = "yes";
+                        choice2 = "no";
                     }
+                    inputs = tab + "<xforms:select1 id='input-" + id + "' xforms:bind='bind-" + id + "'>" + "\n" +
+                            "\t\t<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/" + strg + "'/>" + "\n" +
+                            "\t\t\t<xforms:choices>" + "\n" +
+                            "\t\t\t\t<xforms:item>" + "\n" +
+                            "\t\t\t\t\t<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/" + choice1 + "'/>" + "\n" +
+                            "\t\t\t\t\t<xforms:value>true</xforms:value>" + "\n" +
+                            "\t\t\t\t</xforms:item>" + "\n" +
+                            "\t\t\t\t<xforms:item>" + "\n" +
+                            "\t\t\t\t\t<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/" + choice2 + "'/>" + "\n" +
+                            "\t\t\t\t\t<xforms:value>false</xforms:value>" + "\n" +
+                            "\t\t\t\t</xforms:item>" + "\n" +
+                            "\t\t\t</xforms:choices>" + "\n" +
+                            "\t\t</xforms:select1>\n";
                 } else {
-                    if (selectsMap.containsKey(strg)) {
-                        String label = selectsMap.get(strg);
-                        String choice1 = "true";
-                        String choice2 = "false";
-                        if("yes".equals(label)){
-                            choice1 = "yes";
-                            choice2 = "no";
-                        }
-                        inputs = tab + "<xforms:select1 id='input-" + id + "' xforms:bind='bind-" + id + "'>" + "\n" +
-                                "\t\t<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/" + strg + "'/>" + "\n" +
-                                "\t\t\t<xforms:choices>" + "\n" +
-                                "\t\t\t\t<xforms:item>" + "\n" +
-                                "\t\t\t\t\t<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/" + choice1 + "'/>" + "\n" +
-                                "\t\t\t\t\t<xforms:value>true</xforms:value>" + "\n" +
-                                "\t\t\t\t</xforms:item>" + "\n" +
-                                "\t\t\t\t<xforms:item>" + "\n" +
-                                "\t\t\t\t\t<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/" + choice2 + "'/>" + "\n" +
-                                "\t\t\t\t\t<xforms:value>false</xforms:value>" + "\n" +
-                                "\t\t\t\t</xforms:item>" + "\n" +
-                                "\t\t\t</xforms:choices>" + "\n" +
-                                "\t\t</xforms:select1>\n";
-                    } else {
-                        inputs = tab + "<xforms:input id='input-" + id + "' xforms:bind='bind-" + id + "'>" + "\n" +
-                                "\t\t\t<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/" + strg + "'/>" + "\n" +
-                                "\t\t</xforms:input>\n";
-                    }
+                    inputs = tab + "<xforms:input id='input-" + id + "' xforms:bind='bind-" + id + "'>" + "\n" +
+                            "\t\t\t<xforms:label xforms:model='benchmark-labels' xforms:ref='/labels/" + strg + "'/>" + "\n" +
+                            "\t\t</xforms:input>\n";
                 }
             }
         }
@@ -416,7 +442,7 @@ public class XformsUtil {
         String newStr = (String) str.get(0);
         if(!str.isEmpty()){
             for(int i = 1; i < str.size(); i++){
-                newStr = newStr + " " + str.get(i);
+                newStr = newStr + "&#160;" + str.get(i);
             }
             s = newStr;
         }
