@@ -54,7 +54,8 @@ public class ApacheHttpdService {
     private static Logger logger =
             Logger.getLogger(ApacheHttpdService.class.getName());
     private String[] myServers;
-    private static String apacheCmd,  errlogFile,  acclogFile, sessionDir;
+    private static String apacheCmd,  errlogFile,  acclogFile, sessionDir,
+            iniFile, confFile;
     CommandHandle apacheHandles[];
 
     /**
@@ -89,6 +90,17 @@ public class ApacheHttpdService {
         }else{
             logger.warning("Apache sessionDir is not provided");
         }
+
+        iniFile = ctx.getProperty("iniPath");
+        if(iniFile == null || iniFile.trim().length() <= 0){
+            logger.warning("iniPath is not provided");
+        }
+
+        confFile = ctx.getProperty("confPath");
+        if(confFile == null || confFile.trim().length() <= 0){
+            logger.warning("confPath is not provided");
+        }
+
         errlogFile = logsDir + "error_log";
         acclogFile = logsDir + "access_log";
         logger.fine("ApacheHttpdService setup complete.");
@@ -293,7 +305,7 @@ public class ApacheHttpdService {
      */
     @GetLogs public void getLogs() {
         for (int i = 0; i < myServers.length; i++) {
-             String outFile = RunContext.getOutDir() + "httpd_err.log." +
+            String outFile = RunContext.getOutDir() + "httpd_err.log." +
                              RunContext.getHostName(myServers[i]);
 
             // copy the error_log to the master
@@ -302,6 +314,17 @@ public class ApacheHttpdService {
                         outFile);
                 return;
             }
+
+            if(iniFile != null && iniFile.trim().length() > 0) {
+                String outIniFile = RunContext.getOutDir() + "ini.log." +
+                                 RunContext.getHostName(myServers[i]);
+
+                // copy the iniFile to the master
+                if (!RunContext.getFile(myServers[i], iniFile, outIniFile)) {
+                    logger.warning("Could not copy " + iniFile + " to " + outIniFile);
+                }
+            }
+
             RunContext.truncateFile(myServers[i], errlogFile);
             logger.fine("XferLog Completed for " + myServers[i]);
         }

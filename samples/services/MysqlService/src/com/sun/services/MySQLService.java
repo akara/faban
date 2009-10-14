@@ -57,7 +57,7 @@ public class MySQLService {
     @Context public ServiceContext ctx;
     Logger logger = Logger.getLogger(MySQLService.class.getName());
     String dbHome,  myServers[];
-    String mysqlCmd,  dataDir;
+    String mysqlCmd,  dataDir, confFile;
 
     /**
      * Configures the MySQL service.
@@ -74,6 +74,10 @@ public class MySQLService {
                 dbHome = dbHome + File.separator;
         }else{
             throw new ConfigurationException("MySQL serverHome is not provided");
+        }
+        confFile = ctx.getProperty("confPath");
+        if(confFile == null || confFile.trim().length() <= 0){
+            logger.warning("confPath is not provided");
         }
         dataDir = dbHome + "data" + File.separator;
         mysqlCmd = dbHome + "bin" + File.separator + "mysqld_safe ";
@@ -195,6 +199,15 @@ public class MySQLService {
                 return;
             }           
             RunContext.truncateFile(myServer, errFile);
+
+            if(confFile != null && confFile.trim().length() > 0) {
+                String outConfFile = RunContext.getOutDir() + "mysql_err.log." + RunContext.getHostName(myServer);
+                // copy the conf file to the master
+                if (!RunContext.getFile(myServer, confFile, outConfFile)) {
+                    logger.warning("Could not copy " + confFile + " to " + outConfFile);
+                    return;
+                }
+            }
             logger.fine("XferLog Completed for " + myServer);
         }
 
