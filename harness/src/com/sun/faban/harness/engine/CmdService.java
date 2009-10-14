@@ -288,13 +288,18 @@ final public class CmdService { 	// The final keyword prevents clones
         String jvmOpts =
                 par.getParameter("fh:jvmConfig/fh:jvmOptions");
 
+        final String disableEGC = "-XX:+DisableExplicitGC";
+
         if (jvmOpts != null)
             jvmOpts = jvmOpts.trim();
 
         if((jvmOpts == null) || (jvmOpts.length() == 0))
-            jvmOpts = "-XX:+DisableExplicitGC";
+            jvmOpts = "";
 
-        jvmOptions.addAll(Command.parseArgs(jvmOpts));
+        List<String> usrOpts = Command.parseArgs(jvmOpts);
+        if (!usrOpts.contains(disableEGC))
+            usrOpts.add(disableEGC);
+        jvmOptions.addAll(usrOpts);
 
         // RMI registry takes a bit of time to startup. So sleep for some time
         try {
