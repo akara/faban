@@ -176,7 +176,7 @@
         <mkdir dir="${jar.output}"/>
         <jar jarfile="${jar.output}/${jar.file}">
             <fileset dir="${compile.output}"
-	       	includes="**/harness/*, **/agent/**, **/common/**, **/services/**, **/engine/**, **/security/**, **/tools/**, **/util/**"/>
+	       	includes="**/harness/*, **/agent/**, **/common/**, **/formsgen/**, **/services/**, **/engine/**, **/security/**, **/tools/**, **/util/**"/>
         </jar>
     </target>
 
