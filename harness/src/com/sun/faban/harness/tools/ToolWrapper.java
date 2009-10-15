@@ -320,17 +320,18 @@ public class ToolWrapper {
      * Transfers the tool output file back to the master.
      */
     protected void xferLog() {
-        String logfile = tc.getOutputFile();
-        if (!new File(logfile).exists()) {
-            logger.warning(toolName + ": Transfer file " + logfile +
-                    " not found.");
-            return;
-        }
+        String logfile = null;
         try {
             FileTransfer transfer;
             if (outputHandle != null) {
                 transfer = outputHandle.fetchOutput(outputStream, outfile);
             } else {
+                logfile = tc.getOutputFile();
+                if (!new File(logfile).exists()) {
+                    logger.warning(toolName + ": Transfer file " + logfile +
+                            " not found.");
+                    return;
+                }
                 transfer = new FileTransfer(logfile, outfile);
             }
             logger.fine(toolName + ": Transferring log from " + logfile +
@@ -345,8 +346,12 @@ public class ToolWrapper {
                     logger.info(toolName + ": Invalid transfer size");
             }
         } catch (IOException e) {
-            logger.log(Level.INFO, toolName + ": Error transferring " +
-                    logfile, e);
+            if (logfile == null)
+                logger.log(Level.INFO, toolName + ": Error transferring " +
+                        logfile, e);
+            else
+                logger.log(Level.INFO, toolName + ": Error transferring " +
+                        toolName + " output.", e);
         }
     }
 
