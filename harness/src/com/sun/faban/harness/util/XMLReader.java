@@ -392,6 +392,36 @@ public class XMLReader {
         if (!valueSet)
             element.appendChild(doc.createTextNode(value));
     }
+    
+    /**
+     * Replaces the new value for the element text.
+     * @param element
+     * @param value
+     */
+    public void replaceValue(Element element, String value) {
+        NodeList children = element.getChildNodes();
+        int childCount = children.getLength();
+        for (int i = 0; i < childCount; i++) {
+            Node child = children.item(i);
+            short nodeType = child.getNodeType();
+            if (nodeType == Node.TEXT_NODE) {
+                child.setTextContent(value);
+                this.updated = true;
+                break;
+            }
+        }
+    }
+
+    /**
+     * Deletes a node.
+     * @param deleteNode
+     * @param parent
+     * @return Element
+     */
+    public void deleteNode(Node deleteNode, Node parent) {
+        parent.removeChild(deleteNode);
+        this.updated = true;
+    }
 
     /**
      * Adds a node.

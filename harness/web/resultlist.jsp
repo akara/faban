@@ -107,11 +107,11 @@
             <tr <%if(i % 2 == 0){%>class="even"<%}else{%>class="odd"<% } %>>
                 <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell" ><input type="checkbox" name="select" value="<%= row[0] %>"></input></td>
     <%          for (int j = 0; j < row.length; j++) {
-                    String mouseover = " ";
-                    String val = row[j].toString();
+                    String mouseover = " ";                    
                     if(row[j] == null)
                        row[j] = " ";
-                    if(j==0 || j==1 || row[j].toString().equals("&nbsp;") || row[j].toString().equals("&nbsp")){%>
+                    String val = row[j].toString();
+                    if(j==0 || j==1 || "&nbsp;".equals(row[j].toString()) || "&nbsp".equals(row[j].toString())){%>
                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell" ><%=val%></td>
                     <%} else if (j == 2) { %>                             
                              <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell" <%= mouseover%>><%=val%></td>
