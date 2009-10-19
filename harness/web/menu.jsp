@@ -71,6 +71,13 @@
 <% } else { %>
             <tr><td VALIGN="CENTER" style="color: rgb(102, 102, 102);"><br/>Switch Profile</td></tr>
 <% } %>
+<% if (Config.repositoryURLs != null && Config.repositoryURLs.length > 0 && Config.targetting == true) { %>
+        <% if(usrEnv.getUser() != null ) { %>
+            <tr><td VALIGN="CENTER"><br/><a href="/controller/results/targetlist?viewAll=true" target="main">Targets</a></td></tr>
+        <%}else{%>
+            <tr><td VALIGN="CENTER"><br/><a href="/controller/results/targetlist?viewAll=null" target="main">Targets</a></td></tr>
+        <%}%>
+<% } %>
             <tr><td VALIGN="CENTER"><br/><a href="http://faban.sunsource.net/1.0/docs/toc.html" target="_blank">Help</a></td></tr>
             <tr><td VALIGN="CENTER"><br/></td></tr>
             <tr><td VALIGN="CENTER">

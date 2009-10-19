@@ -270,6 +270,9 @@ public class Config {
 
     /** URLs for Faban repositories, if enabled. */
     public static URL[] repositoryURLs = null;
+    
+    /** Faban repositories, targeting feature disabled by default. */
+    public static boolean targetting = false;
 
     static {
         deriveConfig();
@@ -586,6 +589,14 @@ public class Config {
                     }
                     repositoryURLs = new URL[serverList.size()];
                     repositoryURLs = serverList.toArray(repositoryURLs);
+                }
+
+                // Reading targetting config
+                Node t = (Node) xPath.evaluate(
+                        "repository/targetting[@enabled='true']", root,
+                        XPathConstants.NODE);
+                if (t != null) {
+                   targetting = true;
                 }
 
                 // Note: The logServer config is read by LogConfig, not here.
