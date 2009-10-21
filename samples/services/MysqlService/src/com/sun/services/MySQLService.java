@@ -201,7 +201,7 @@ public class MySQLService {
             RunContext.truncateFile(myServer, errFile);
 
             if(confFile != null && confFile.trim().length() > 0) {
-                String outConfFile = RunContext.getOutDir() + "mysql_err.log." + RunContext.getHostName(myServer);
+                String outConfFile = RunContext.getOutDir() + "mysql_conf.log." + RunContext.getHostName(myServer);
                 // copy the conf file to the master
                 if (!RunContext.getFile(myServer, confFile, outConfFile)) {
                     logger.warning("Could not copy " + confFile + " to " + outConfFile);
