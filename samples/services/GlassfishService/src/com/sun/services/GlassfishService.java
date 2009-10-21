@@ -50,7 +50,7 @@ public class GlassfishService {
     @Context public ServiceContext ctx;
     Logger logger = Logger.getLogger(GlassfishService.class.getName());
     private String[] myServers;
-    private static String asadminCmd,  errlogFile,  acclogFile;
+    private static String asadminCmd,  errlogFile,  acclogFile, confFile;
 
 
     /**
@@ -60,23 +60,24 @@ public class GlassfishService {
      */
      @Configure public void configure() throws ConfigurationException {
         myServers = ctx.getUniqueHosts();
-        if(myServers == null){
+        if (myServers == null) {
             throw new ConfigurationException("Glassfish hostname is not provided");
         }
+        confFile = ctx.getProperty("confPath");
+        if (confFile == null || confFile.trim().length() == 0)
+            logger.warning("Glassfish confPath is not set.");
+        
         String logsDir = ctx.getProperty("logsDir");
-        if(logsDir != null && logsDir.trim().length() > 0) {
-            if (!logsDir.endsWith(File.separator))
-                logsDir = logsDir + File.separator;
-        }else{
-            throw new ConfigurationException("Glassfish logsDir is not provided");
-        }
+        if (logsDir == null || logsDir.trim().length() == 0)
+            logger.warning("Glassfish logsDir not set.");
+        if (!logsDir.endsWith(File.separator))
+            logsDir = logsDir + File.separator;
 
         asadminCmd = ctx.getProperty("cmdPath");
         if(asadminCmd != null && asadminCmd.trim().length() > 0) {
-            asadminCmd = asadminCmd + " ";
-        }else{
-            throw new ConfigurationException("Glassfish cmdPath is not provided");
-        }
+            asadminCmd = asadminCmd.trim();
+        } else
+            throw new ConfigurationException("Glassfish cmdPath is not set.");
 
         errlogFile = logsDir + "server.log";
         acclogFile = logsDir + "access";
@@ -87,7 +88,6 @@ public class GlassfishService {
      * Start all glassfish servers on configured hosts.
      */
     @Start public void startup() {
-
         Command startCmd = new Command(asadminCmd, "start-domain");       
 
         for (int i = 0; i < myServers.length; i++) {
@@ -216,12 +216,13 @@ public class GlassfishService {
         return (true);
     }
 
+
     /**
      * Transfer log files.
      */
     @GetLogs public void xferLogs() {
         for (int i = 0; i < myServers.length; i++) {
-            String outFile = getOutDir() + "server_log." +
+            String outFile = getOutDir() + "glassfish_err.log." +
                     getHostName(myServers[i]);
 
             // copy the error_log to the master
@@ -231,6 +232,15 @@ public class GlassfishService {
                 return;
             }
             RunContext.truncateFile(myServers[i], errlogFile);
+
+			// Copy the config file to master
+			outFile = getOutDir() + "domain.xml.log." + 
+                    getHostName(myServers[i]);
+            if (!getFile(myServers[i], confFile, outFile)) {
+                logger.warning("Could not copy " + confFile + " to " +
+                        outFile);
+                return;
+            }
             logger.fine("XferLog Completed for " + myServers[i]);
         }
     }
