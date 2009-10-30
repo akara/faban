@@ -481,22 +481,25 @@ public class ServiceManager {
                     }
                 }
                 for (MasterToolContext toolCtx : toolList) {
-                    String locationType =
+                    String locationType = null;
+                    if(toolCtx.getToolDescription() != null) {
+                        locationType =
                             toolCtx.getToolDescription().getLocationType();
-                    if ("services".equals(locationType)) {
-                        String location =
-                                toolCtx.getToolDescription().getLocation();
-                        String fullLocation = locationType + '/' + location;
-                        activeDeployments.add(fullLocation);
+                        if ("services".equals(locationType)) {
+                            String location =
+                                    toolCtx.getToolDescription().getLocation();
+                            String fullLocation = locationType + '/' + location;
+                            activeDeployments.add(fullLocation);
 
-                        CmdService cmds = CmdService.getHandle();
-                        String[] ctxHosts =
-                                toolCtx.getToolServiceContext().getHosts();
-                        for (String ctxHost : ctxHosts) {
-                            if (hostDeploymentSet.add(new NameValuePair<String>(
-                                    cmds.getHostName(ctxHost), location))) {
-                                hostDeploymentList.add(new NameValuePair<String>
-                                        (ctxHost, location));
+                            CmdService cmds = CmdService.getHandle();
+                            String[] ctxHosts =
+                                    toolCtx.getToolServiceContext().getHosts();
+                            for (String ctxHost : ctxHosts) {
+                                if (hostDeploymentSet.add(new NameValuePair<String>(
+                                        cmds.getHostName(ctxHost), location))) {
+                                    hostDeploymentList.add(new NameValuePair<String>
+                                            (ctxHost, location));
+                                }
                             }
                         }
                     }
