@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : toolsets.xml
+    Created on : August 26, 2009, 7:25 AM
+    Author     : damien
+    Description:
+        Purpose of the document follows.
+-->
+
+<toolsets>
+    <toolset>
+        <service>HadoopService</service>
+        <name>default</name>
+        <includes>vmstat 10</includes>
+        <includes>iostat -xn 10</includes>
+        <includes>mpstat 10</includes>
+    </toolset>
+</toolsets>

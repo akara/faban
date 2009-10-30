@@ -1,0 +1,329 @@
+<project name="Faban Benchmark" default="deploy.jar" basedir=".">
+
+    <property file="build.properties"/>
+    <property name="src.dir" value="src"/>
+    <property name="build.dir" value="build"/>
+    <property name="classes.dir" value="${build.dir}/classes"/>
+    <property name="lib.dir" value="lib"/>
+    <property name="docs.dir" value="output-results"/>
+    <property name="buildlib.dir" value="${build.dir}/lib"/>
+    <property name="faban.libs" value="${faban.home}/lib"/>
+    <property name="faban.classes" value="${faban.home}/master/webapps/faban/WEB-INF/classes"/>
+    <property name="config.xhtml" value="${build.dir}/../config/config.xhtml"/>
+    <property name="run.xml" value="${build.dir}/../config/run.xml"/>
+
+    <path id="taskclasspath">
+        <fileset dir="${faban.home}/ant/lib" includes="*.jar"/>
+        <fileset dir="${faban.libs}" includes="*.jar"/>
+    </path>
+
+    <path id="classpath" location="${faban.libs}" >
+        <pathelement location="${classes.dir}"/>
+        <fileset dir="${lib.dir}" includes="*.jar"/>
+        <fileset dir="${faban.libs}" includes="*.jar"/>
+        <pathelement location="${faban.classes}"/>
+    </path>
+    
+    <taskdef name="deploy" classname="com.sun.faban.harness.util.DeployTask">
+        <classpath refid="taskclasspath"/>
+    </taskdef>
+
+    <target name="init">
+        <mkdir dir="${classes.dir}"/>
+    </target>
+
+     <target depends="init,
+                      LogEntry,
+                      LogFileFilter,
+                      LogTarFileFilter,
+                      MRLogParser,
+                      MapredMetricsFileFilter,
+                      MetricsFileFilter,
+                      TimeCapture,
+                      AbstractLogRecord,
+                      JobRecord,
+                      JobtrackerRecord,
+                      LogFileProcessor,
+                      METRIC_TYPE,
+                      ShuffleInputRecord,
+                      ShuffleOutputRecord,
+                      TasktrackerRecord,
+                      HadoopStats,
+                      HadoopService" description="Compile GridMix" name="GridMix">
+        <javac destdir="${classes.dir}" debug="on" deprecation="on" srcdir="${src.dir}">
+    	     <include name="com/sun/hadoop/harness/GridMix.java"/>
+             <compilerarg value="-Xlint:unchecked"/>
+     	     <classpath refid="classpath"/>
+        </javac>
+     </target>
+
+     <target depends="init" description="Compile HadoopService" name="HadoopService">
+        <javac destdir="${classes.dir}" debug="on" deprecation="on" srcdir="${src.dir}">
+    	     <include name="com/sun/hadoop/services/HadoopService.java"/>
+     	     <classpath refid="classpath"/>
+        </javac>
+     </target>
+
+     <target depends="init" description="Compile HadoopStats" name="HadoopStats">
+        <javac destdir="${classes.dir}" debug="on" deprecation="on" srcdir="${src.dir}">
+    	     <include name="com/sun/hadoop/services/HadoopStats.java"/>
+     	     <classpath refid="classpath"/>
+        </javac>
+     </target>
+
+     <target depends="init" description="Compile MRLogParser" name="MRLogParser">
+        <javac destdir="${classes.dir}" debug="on" deprecation="on" srcdir="${src.dir}">
+    	     <include name="com/sun/hadoop/MRLogParser.java"/>
+     	     <classpath refid="classpath"/>
+        </javac>
+     </target>
+
+     <target depends="init" description="Compile LogEntry" name="LogEntry">
+        <javac destdir="${classes.dir}" debug="on" deprecation="on" srcdir="${src.dir}">
+    	     <include name="com/sun/hadoop/harness/LogEntry.java"/>
+     	     <classpath refid="classpath"/>
+        </javac>
+     </target>
+     <target depends="init" description="Compile LogFileFilter" name="LogFileFilter">
+        <javac destdir="${classes.dir}" debug="on" deprecation="on" srcdir="${src.dir}">
+    	     <include name="com/sun/hadoop/harness/LogFileFilter.java"/>
+     	     <classpath refid="classpath"/>
+        </javac>
+     </target>
+     <target depends="init" description="Compile LogTarFileFilter" name="LogTarFileFilter">
+        <javac destdir="${classes.dir}" debug="on" deprecation="on" srcdir="${src.dir}">
+    	     <include name="com/sun/hadoop/harness/LogTarFileFilter.java"/>
+     	     <classpath refid="classpath"/>
+        </javac>
+     </target>
+     <target depends="init" description="Compile LogMRLogParser" name="LogMRLogParser">
+        <javac destdir="${classes.dir}" debug="on" deprecation="on" srcdir="${src.dir}">
+    	     <include name="com/sun/hadoop/harness/HadoopLogMRLogParser.java"/>
+     	     <classpath refid="classpath"/>
+        </javac>
+     </target>
+     <target depends="init" description="Compile MetricsFileFilter" name="MetricsFileFilter">
+        <javac destdir="${classes.dir}" debug="on" deprecation="on" srcdir="${src.dir}">
+    	     <include name="com/sun/gridmix/harness/MetricsFileFilter.java"/>
+     	     <classpath refid="classpath"/>
+        </javac>
+     </target>
+     <target depends="init" description="Compile MetricsGenericLogParser" name="MetricsGenericLogParser">
+        <javac destdir="${classes.dir}" debug="on" deprecation="on" srcdir="${src.dir}">
+    	     <include name="com/sun/hadoop/harness/MetricsGenericLogParser.java"/>
+     	     <classpath refid="classpath"/>
+        </javac>
+     </target>                    
+     <target depends="init" description="Compile MetricsProcessLogFile" name="MetricsProcessLogFile">
+        <javac destdir="${classes.dir}" debug="on" deprecation="on" srcdir="${src.dir}">
+    	     <include name="com/sun/hadoop/harness/MetricsProcessLogFile.java"/>
+     	     <classpath refid="classpath"/>
+        </javac>
+     </target>
+     
+     <target depends="init" description="Compile METRIC_TYPE" name="METRIC_TYPE">
+        <javac destdir="${classes.dir}" debug="on" deprecation="on" srcdir="${src.dir}">
+    	     <include name="com/sun/hadoop/logrecords/METRIC_TYPE.java"/>
+     	     <classpath refid="classpath"/>
+        </javac>
+     </target>
+     <target depends="init" description="Compile MapredMetricsFileFilter" name="MapredMetricsFileFilter">
+        <javac destdir="${classes.dir}" debug="on" deprecation="on" srcdir="${src.dir}">
+    	     <include name="com/sun/hadoop/harness/MapredMetricsFileFilter.java"/>
+     	     <classpath refid="classpath"/>
+        </javac>
+     </target>
+     <target depends="init" description="Compile ShuffleOutputRecord" name="ShuffleOutputRecord">
+        <javac destdir="${classes.dir}" debug="on" deprecation="on" srcdir="${src.dir}">
+    	     <include name="com/sun/hadoop/logrecords/ShuffleOutputRecord.java"/>
+     	     <classpath refid="classpath"/>
+        </javac>
+     </target>
+     <target depends="init" description="Compile ShuffleInputRecord" name="ShuffleInputRecord">
+        <javac destdir="${classes.dir}" debug="on" deprecation="on" srcdir="${src.dir}">
+    	     <include name="com/sun/hadoop/logrecords/ShuffleInputRecord.java"/>
+     	     <classpath refid="classpath"/>
+        </javac>
+     </target>          
+     <target depends="init" description="Compile TasktrackerRecord" name="TasktrackerRecord">
+        <javac destdir="${classes.dir}" debug="on" deprecation="on" srcdir="${src.dir}">
+    	     <include name="com/sun/hadoop/logrecords/TasktrackerRecord.java"/>
+     	     <classpath refid="classpath"/>
+        </javac>
+     </target>     
+     <target depends="init" description="Compile AbstractLogRecord" name="AbstractLogRecord">
+        <javac destdir="${classes.dir}" debug="on" deprecation="on" srcdir="${src.dir}">
+    	     <include name="com/sun/hadoop/logrecords/AbstractLogRecord.java"/>
+     	     <classpath refid="classpath"/>
+        </javac>
+     </target>
+     <target depends="init" description="Compile JobRecord" name="JobRecord">
+        <javac destdir="${classes.dir}" debug="on" deprecation="on" srcdir="${src.dir}">
+    	     <include name="com/sun/hadoop/logrecords/JobRecord.java"/>
+     	     <classpath refid="classpath"/>
+        </javac>
+     </target>
+     <target depends="init" description="Compile LogFileProcessor" name="LogFileProcessor">
+        <javac destdir="${classes.dir}" debug="on" deprecation="on" srcdir="${src.dir}">
+    	     <include name="com/sun/hadoop/logrecords/LogFileProcessor.java"/>
+     	     <classpath refid="classpath"/>
+        </javac>
+     </target>
+     <target depends="init" description="Compile TimeCapture" name="TimeCapture">
+        <javac destdir="${classes.dir}" debug="on" deprecation="on" srcdir="${src.dir}">
+    	     <include name="com/sun/hadoop/harness/TimeCapture.java"/>
+     	     <classpath refid="classpath"/>
+        </javac>
+     </target>
+     <target depends="init" description="Compile JobtrackerRecord" name="JobtrackerRecord">
+        <javac destdir="${classes.dir}" debug="on" deprecation="on" srcdir="${src.dir}">
+    	     <include name="com/sun/hadoop/logrecords/JobtrackerRecord.java"/>
+     	     <classpath refid="classpath"/>
+        </javac>
+     </target>
+     
+
+    <target name="compile" depends="init,GridMix" description="Compiling all source files">
+        <javac srcdir="${src.dir}"
+            deprecation="on" target="${compiler.target.version}"
+            destdir="${classes.dir}" debug="on">
+            <include name="com/sun/hadoop/harness/GridMix.java" />
+            <classpath refid="classpath"/>
+            <compilerarg value="-Xlint:unchecked"/>
+        </javac>
+    </target>
+
+    <target name="clean" description="cleanup module">
+      <delete>
+        <fileset dir="${build.dir}" includes="**/*"/>
+      </delete>
+    </target>
+
+
+    <target name="bench.jar" depends="compile" description="Assembles library jar with benchmark classes">
+        <mkdir dir="${buildlib.dir}"/>
+        <jar compress="true" jarfile="${buildlib.dir}/${bench.shortname}.jar">
+            <fileset dir="${classes.dir}" includes="**/*.class"/>
+        </jar>
+    </target>
+
+    <target name="deploy.jar" depends="bench.jar"
+        description="Assembles deployment jar image for Faban harness">
+        <fixcrlf srcdir="bin"/> 
+        <jar compress="true" jarfile="${build.dir}/${bench.shortname}.jar">
+            <metainf dir="deploy" includes="*"/>
+            <fileset dir="." includes="bin/**/*, lib/**/*, resources/**/*"/>
+            <fileset dir="${build.dir}" includes="lib/**/*"/>
+        </jar>
+    </target>
+
+    <target name="jdepend">
+      <jdepend format="xml" outputfile="${docs.dir}/jdepend-report.xml">
+          <exclude name="java.*"/>
+          <exclude name="javax.*"/>
+          <classespath>
+            <pathelement location="${build.dir}" />
+          </classespath>
+          <classpath location="${build.dir}" />
+      </jdepend>
+
+      <style basedir="${docs.dir}" destdir="${docs.dir}" includes="jdepend-report.xml" style="${ant.home}/etc/jdepend.xsl" />
+    </target>
+
+    <!-- taskdef name="lint4j" classname="com.jutils.lint4j.ant.Lint4jAntTask">
+        <classpath><pathelement location="/data/java/jars/lint4j.jar"/></classpath>
+    </taskdef -->
+
+    <!--target name="lint-check-Harness" description="Perform checks on Hadoop Harness">
+      <lint4j ignorePackages=""  packages="com.sun.hadoop.*" level="5" exact="${lint4j.exact}">
+        <sourcepath>
+          <dirset dir="${src.dir}">
+            <include name="**/com/sun/hadoop/harness" />
+            <include name="**/com/sun/hadoop/logrecords" />
+            <include name="**/com/sun/hadoop/services" />
+          </dirset>
+          <pathelement path="${src.dir}/com/sun/hadoop/harness" />
+          <pathelement path="${src.dir}/com/sun/hadoop/logrecords" />
+          <pathelement path="${src.dir}/com/sun/hadoop/services" />
+        </sourcepath>
+        <classpath>
+          <fileset dir="/var/tmp/tomcat5-deps/">
+            <include name="**/*.jar" />
+          </fileset>
+        </classpath>
+        <formatters>
+          <formatter type="text" />
+          <formatter type="text" toFile="${docs.dir}/hadoopHarness.out"/>
+          <formatter type="xml" toFile="${docs.dir}/hadoopHarness.xml"/>
+        </formatters>
+      </lint4j>
+    </target-->
+
+
+
+    <target name="deploy" depends="deploy.jar"
+        description="Deploys benchmark on the Faban harness">
+        <deploy url="${faban.url}"
+            jar="${build.dir}/${bench.shortname}.jar"
+            user="${deploy.user}" password="${deploy.password}"
+            clearConfig="${deploy.clearconfig}"/>
+    </target>
+
+    <target name="run" depends="bench.jar" 
+        description="Test runs the benchmark outside the Faban Harness">
+        <java classname="com.sun.faban.driver.core.MasterImpl"
+              classpathref="classpath"
+              fork="true"
+              failonerror="true"
+              dir="config">
+              <jvmarg value="-XX:+DisableExplicitGC"/>
+              <jvmarg value="-Djava.security.policy=security/driver.policy"/>
+              <jvmarg value="-Djava.util.logging.config.file=logging.properties"/>
+              <jvmarg value="-Dbenchmark.config=../deploy/run.xml"/>
+        </java>
+    </target>
+    
+    <target name="registry"
+        description="Starts the Faban registry">
+        <java classname="com.sun.faban.common.RegistryImpl"
+              classpathref="classpath"
+              fork="true"
+              failonerror="true">
+              <jvmarg value="-XX:+DisableExplicitGC"/>
+              <jvmarg value="-Djava.security.policy=security/driver.policy"/>
+              <jvmarg value="-Djava.util.logging.config.file=logging.properties"/>
+        </java>            
+    </target>
+    
+    <target name="agent"
+        description="Start a Faban agent">
+        <!-- To start the agent, properties driver.name, driver.id, 
+             and master.host need to be declared -->
+        <java classname="com.sun.faban.driver.core.AgentImpl"
+              classpathref="classpath"
+              fork="true"
+              failonerror="true">
+              <jvmarg value="-XX:+DisableExplicitGC"/>
+              <jvmarg value="-Djava.security.policy=security/driver.policy"/>
+              <jvmarg value="-Djava.util.logging.config.file=logging.properties"/>
+              <arg value="${driver.name}"/>
+              <arg value="${driver.id}"/>
+              <arg value="${master.host}"/>
+        </java>                        
+    </target>
+    
+    <target name="multi"
+        description="Start a distributed benchmark run">
+        <parallel>
+            <antcall target="registry"/>
+            <sequential>
+                <sleep seconds="2"/>
+                <antcall target="agent"/>                
+            </sequential>
+            <sequential>
+                <sleep seconds="5"/>
+                <antcall target="run"/>
+            </sequential>
+        </parallel>
+    </target>
+</project>

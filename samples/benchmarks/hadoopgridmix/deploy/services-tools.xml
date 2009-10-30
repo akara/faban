@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : service-tools.xml
+    Created on : August 26, 2009, 6:41 AM
+    Author     : Damien Cooke
+    Description:
+        Purpose of the document follows.
+-->
+
+<services-tools>
+    <service id="HadoopService">
+        <class>com.sun.hadoop.services.HadoopService</class>
+    </service>
+    <tool id="HadoopStats" service="HadoopService">
+        <class>com.sun.hadoop.services.HadoopStats</class>
+    </tool>
+</services-tools>

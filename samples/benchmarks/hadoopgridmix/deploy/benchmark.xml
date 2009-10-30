@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<benchmark>
+    <!-- Note: Most of these fields are not needed for a benchmark
+    implemented using the Faban driver framework.-->
+    <name>HadoopHarness</name>
+    <version>0.4.0.4</version>
+    <config-form>config.xhtml</config-form>
+    <config-file-name>run.xml</config-file-name>
+    <benchmark-class>com.sun.hadoop.harness.GridMix</benchmark-class>
+    <metric>Run Time</metric>
+    <scaleName>SlaveNodes</scaleName> 
+    <scaleUnit></scaleUnit>
+    <result-file-path>summary.html</result-file-path>
+</benchmark>

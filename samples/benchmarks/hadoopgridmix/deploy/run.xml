@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gridmix xmlns:fa="http://faban.sunsource.net/ns/faban" 
+         xmlns:fh="http://faban.sunsource.net/ns/fabanharness">
+    <fh:jvmConfig>
+        <fh:javaHome>/data/java/jdk1.6.0_14</fh:javaHome>
+        <fh:jvmOptions>-Xmx1g -Xms256m -XX:+DisableExplicitGC</fh:jvmOptions>
+    </fh:jvmConfig>
+    
+    <fa:runConfig>
+        <fh:description>Enter description for this run here</fh:description>        
+        <fa:hostConfig>
+            <fa:host>driverHost</fa:host>
+            <fh:enabled>true</fh:enabled>
+            <fh:cpus>0</fh:cpus>
+            <fh:tools>NONE</fh:tools>
+            <fh:userCommands/>
+        </fa:hostConfig>
+
+        <fa:runControl>
+            <fa:rampUp>10</fa:rampUp>
+            <fa:steadyState/>
+            <fa:rampDown>10</fa:rampDown>
+        </fa:runControl>
+        <fh:timeSync>true</fh:timeSync>
+    </fa:runConfig>
+
+    <masterConfig>
+        <fa:hostConfig xmlns="http://faban.sunsource.net/ns/fabanharness" xmlns:fa="http://faban.sunsource.net/ns/faban">
+            <fa:host>master</fa:host>
+            <fh:enabled>true</fh:enabled>
+            <fh:cpus>0</fh:cpus>
+            <fh:tools>vmstat 10; mpstat 10; netsum -a -i 10</fh:tools>
+            <fh:userCommands/>
+        </fa:hostConfig>
+
+        <fh:service xmlns:fh="http://faban.sunsource.net/ns/fabanharness">
+            <fh:name>HadoopService</fh:name>
+            <fh:tools>NONE</fh:tools>
+            <fh:restart>true</fh:restart>
+            <fh:config>
+                <cmdPath></cmdPath>
+                <logsDir></logsDir>
+            </fh:config>
+        </fh:service>
+
+    </masterConfig>
+    <slaveConfig>
+        <fa:hostConfig>
+            <fa:host>slave1 slave2 </fa:host>
+            <fh:enabled>true</fh:enabled>
+            <fh:cpus>0</fh:cpus>
+            <fh:tools>vmstat 10; mpstat 10; netsum -a -i 10</fh:tools>
+            <fh:userCommands/>
+        </fa:hostConfig>
+    </slaveConfig>
+    
+    <hadoopConfig>
+        <hadoopHomeDir>/data/hadoop/hadoop-0.20.0</hadoopHomeDir>
+        <GridMixPath>/data/hadoop/hadoop-0.20.0/src/benchmarks/gridmix</GridMixPath>
+        <HadoopToolsPath>/data/hadoop-tools</HadoopToolsPath>
+        <hadoopVersion>0.20.0</hadoopVersion>
+        <hadoopLogDir>/tmp</hadoopLogDir>
+        <benchmarkComboName>JavaSort-Medium</benchmarkComboName>
+        <hadoopJob>index/LineIndexer</hadoopJob>
+    </hadoopConfig>
+
+    <advancedHDFSSiteConfig>        
+        <dfsNamenodeLoggingLevel>info</dfsNamenodeLoggingLevel>
+        <dfsSecondaryHttpAddress>0.0.0.0:50090</dfsSecondaryHttpAddress>
+        <dfsDatanodeAddress>0.0.0.0:50010</dfsDatanodeAddress>
+        <dfsDatanodeHttpAddress>0.0.0.0:50075</dfsDatanodeHttpAddress>
+        <dfsDatanodeIpcAddress>0.0.0.0:50020</dfsDatanodeIpcAddress>
+        <dfsDatanodeHandlerCount>3</dfsDatanodeHandlerCount>
+        <dfsHttpAddress>0.0.0.0:50070</dfsHttpAddress>
+        <dfsHttpsEnable>false</dfsHttpsEnable>
+        <dfsHttpsNeedClientAuth>false</dfsHttpsNeedClientAuth>
+        <dfsHttpsServerKeystoreResource>ssl-server.xml</dfsHttpsServerKeystoreResource>
+        <dfsHttpsClientKeystoreResource>ssl-client.xml</dfsHttpsClientKeystoreResource>
+        <setDFSFinalFlag>False</setDFSFinalFlag>
+
+        <dfsDatanodeHttpsAddress>0.0.0.0:50475</dfsDatanodeHttpsAddress>
+        <dfsHttpsAddress>0.0.0.0:50470</dfsHttpsAddress>
+        <dfsDatanodeDnsInterface>default</dfsDatanodeDnsInterface>
+        <dfsDatanodeDnsNameserver>default</dfsDatanodeDnsNameserver>
+        <dfsReplicationConsiderLoad>true</dfsReplicationConsiderLoad>
+        <dfsDefaultChunkViewSize>32768</dfsDefaultChunkViewSize>
+        <dfsDatanodeDuReserved>0</dfsDatanodeDuReserved>
+        <dfsNameDir>${hadoop.tmp.dir}/dfs/name</dfsNameDir>
+        <dfsNameEditsDir>${dfs.name.dir}</dfsNameEditsDir>
+        <dfsWebUgi>webuser,webgroup</dfsWebUgi>
+
+        <dfsPermissions>true</dfsPermissions>
+        <dfsPermissionsSupergroup>supergroup</dfsPermissionsSupergroup>
+        <dfsDataDir>${hadoop.tmp.dir}/dfs/data</dfsDataDir>
+        <dfsReplication>3</dfsReplication>
+        <dfsReplicationMax>512</dfsReplicationMax>
+        <dfsReplicationMin>1</dfsReplicationMin>
+        <dfsBlockSize>67108864</dfsBlockSize>
+        <dfsDfInterval>60000</dfsDfInterval>
+        <dfsClientBlockWriteRetries>3</dfsClientBlockWriteRetries>
+        <dfsBlockreportIntervalMsec>3600000</dfsBlockreportIntervalMsec>
+
+        <dfsBlockreportInitialDelay>0</dfsBlockreportInitialDelay>
+        <dfsHeartbeatInterval>3</dfsHeartbeatInterval>
+        <dfsNamenodeHandlerCount>10</dfsNamenodeHandlerCount>
+        <dfsSafemodeThresholdPct>0.999f</dfsSafemodeThresholdPct>
+        <dfsSafemodeExtension>30000</dfsSafemodeExtension>
+        <dfsBalanceBandwidthPerSec>1048576</dfsBalanceBandwidthPerSec>
+        <dfsHosts></dfsHosts>
+        <dfsHostsExclude></dfsHostsExclude>
+        <dfsMaxObjects>0</dfsMaxObjects>
+        <dfsDamenodeDecommissionInterval>30</dfsDamenodeDecommissionInterval>
+        <dfsNamenodeDecommissionNodesPerInterval>5</dfsNamenodeDecommissionNodesPerInterval>
+        <dfsReplicationInterval>3</dfsReplicationInterval>
+        <dfsAccessTimePrecision>3600000</dfsAccessTimePrecision>
+        <dfsSupportAppend>false</dfsSupportAppend>
+    </advancedHDFSSiteConfig>
+
+    <advancedCoreSiteConfig>
+        <hadoopTmpDir>/tmp/hadoop-${user.name}</hadoopTmpDir>
+        <hadoopNativeLib>true</hadoopNativeLib>
+        <hadoopHttpFilterInitializers></hadoopHttpFilterInitializers>
+        <hadoopSecurityAuthorization>false</hadoopSecurityAuthorization>
+        <hadoopLogfileSize>10000000</hadoopLogfileSize>
+        <hadoopLogfileCount>10</hadoopLogfileCount>
+        <ioFileBufferSize>4096</ioFileBufferSize>
+        <ioBytesPerChecksum>512</ioBytesPerChecksum>
+        <ioSkipChecksumErrors>false</ioSkipChecksumErrors>
+        <ioCompressionCodecs>org.apache.hadoop.io.compress.DefaultCodec,org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.BZip2Codec</ioCompressionCodecs>
+
+        <ioSerializations>org.apache.hadoop.io.serializer.WritableSerialization</ioSerializations>
+        <fsDefaultName>file:///</fsDefaultName>
+        <fsTrashInterval>0</fsTrashInterval>
+        <fsFileImpl>org.apache.hadoop.fs.LocalFileSystem</fsFileImpl>
+        <fsHdfsImpl>org.apache.hadoop.hdfs.DistributedFileSystem</fsHdfsImpl>
+        <fsS3Impl>org.apache.hadoop.fs.s3.S3FileSystem</fsS3Impl>
+        <fsS3nImpl>org.apache.hadoop.fs.s3native.NativeS3FileSystem</fsS3nImpl>
+        <fsKfsImpl>org.apache.hadoop.fs.kfs.KosmosFileSystem</fsKfsImpl>
+        <fsHftpImpl>org.apache.hadoop.hdfs.HftpFileSystem</fsHftpImpl>
+        <fsHsftpImpl>org.apache.hadoop.hdfs.HsftpFileSystem</fsHsftpImpl>
+
+        <fsFtpImpl>org.apache.hadoop.fs.ftp.FTPFileSystem</fsFtpImpl>
+        <fsRamfsImpl>org.apache.hadoop.fs.InMemoryFileSystem</fsRamfsImpl>
+        <fsHarImpl>org.apache.hadoop.fs.HarFileSystem</fsHarImpl>
+        <fsCheckpointDir>${hadoop.tmp.dir}/dfs/namesecondary</fsCheckpointDir>
+        <fsCheckpointEditsDir>${fs.checkpoint.dir}</fsCheckpointEditsDir>
+        <fsCheckpointPeriod>3600</fsCheckpointPeriod>
+        <fsCheckpointSize>67108864</fsCheckpointSize>
+        <fsS3BlockSize>67108864</fsS3BlockSize>
+        <fsS3BufferDir>${hadoop.tmp.dir}/s3</fsS3BufferDir>
+        <fsS3MaxRetries>4</fsS3MaxRetries>
+        <fsS3SleepTimeSeconds>10</fsS3SleepTimeSeconds>
+        <localCacheSize>10737418240</localCacheSize>
+        <ioSeqfileCompressBlocksize>1000000</ioSeqfileCompressBlocksize>
+        <ioSeqfileLazydecompress>true</ioSeqfileLazydecompress>
+        <ioSeqfileSorterRecordlimit>1000000</ioSeqfileSorterRecordlimit>
+
+        <ioMapfileBloomSize>1048576</ioMapfileBloomSize>
+        <ioMapfileBloomErrorRate>0.005</ioMapfileBloomErrorRate>
+        <hadoopUtilHashType>murmur</hadoopUtilHashType>
+        <ipcClientIdlethreshold>4000</ipcClientIdlethreshold>
+        <ipcClientKillMax>10</ipcClientKillMax>
+        <ipcClientConnectionMaxidletime>10000</ipcClientConnectionMaxidletime>
+        <ipcClientConnectMaxRetries>10</ipcClientConnectMaxRetries>
+        <ipcServerListenQueueSize>128</ipcServerListenQueueSize>
+        <ipcServerTcpnodelay>false</ipcServerTcpnodelay>
+        <ipcClientTcpnodelay>false</ipcClientTcpnodelay>
+        <webinterfacePrivateActions>false</webinterfacePrivateActions>
+        <hadoopRpcSocketFactoryClassDefault>org.apache.hadoop.net.StandardSocketFactory</hadoopRpcSocketFactoryClassDefault>
+        <hadoopRpcSocketFactoryClassClientProtocol></hadoopRpcSocketFactoryClassClientProtocol>
+        <hadoopSocksServer></hadoopSocksServer>
+        <topologyNodeSwitchMappingImpl>org.apache.hadoop.net.ScriptBasedMapping</topologyNodeSwitchMappingImpl>
+        <topologyScriptFileName></topologyScriptFileName>
+        <topologyScriptNumberArgs>100</topologyScriptNumberArgs>
+        <setCoreFinalFlag>False</setCoreFinalFlag>
+    </advancedCoreSiteConfig>
+
+    <advancedMapredSiteConfig>
+        <hadoopJobHistoryLocation></hadoopJobHistoryLocation>
+        <hadoopJobHistoryUserLocation></hadoopJobHistoryUserLocation>
+        <ioSortFactor>10</ioSortFactor>
+        <ioSortMb>100</ioSortMb>
+        <ioSortRecordPercent>0.05</ioSortRecordPercent>
+        <ioSortSpillPercent>0.80</ioSortSpillPercent>
+        <ioMapIndexSkip>0</ioMapIndexSkip>
+        <mapredJobTracker>local</mapredJobTracker>
+        <mapredJobTrackerHttpAddress>0.0.0.0:50030</mapredJobTrackerHttpAddress>
+        <mapredJobTrackerHandlerCount>10</mapredJobTrackerHandlerCount>
+
+        <mapredTaskTrackerReportAddress>127.0.0.1:0</mapredTaskTrackerReportAddress>
+        <mapredLocalDir>${hadoop.tmp.dir}/mapred/local</mapredLocalDir>
+        <mapredSystemDir>${hadoop.tmp.dir}/mapred/system</mapredSystemDir>
+        <mapredTempDir>${hadoop.tmp.dir}/mapred/temp</mapredTempDir>
+        <mapredLocalDirMinspacestart>0</mapredLocalDirMinspacestart>
+        <mapredLocalDirMinspacekil>0</mapredLocalDirMinspacekil>
+        <mapredTasktrackerExpiryInterval>600000</mapredTasktrackerExpiryInterval>
+        <mapredTasktrackerInstrumentation>org.apache.hadoop.mapred.TaskTrackerMetricsInst</mapredTasktrackerInstrumentation>
+        <mapredTasktrackerVmemReserved>-1</mapredTasktrackerVmemReserved>
+        <mapredTasktrackerPmemReserved>-1</mapredTasktrackerPmemReserved>
+
+        <mapredTaskDefaultMaxvmem>-1</mapredTaskDefaultMaxvmem>
+        <mapredTaskLimitMaxvmem>-1</mapredTaskLimitMaxvmem>
+        <mapredTaskMaxvmem>-1</mapredTaskMaxvmem>
+        <mapredTaskMaxpmem>-1</mapredTaskMaxpmem>
+        <mapredTasktrackerMemoryCalculatorPlugin></mapredTasktrackerMemoryCalculatorPlugin>
+        <mapredTasktrackerTaskmemorymanagerMonitoringInterval>5000</mapredTasktrackerTaskmemorymanagerMonitoringInterval>
+        <mapredTasktrackerProcfsbasedprocesstreeSleeptimeBeforeSigkill>5000</mapredTasktrackerProcfsbasedprocesstreeSleeptimeBeforeSigkill>
+        <mapredMapTasks>2</mapredMapTasks>
+        <mapredReduceTasks>1</mapredReduceTasks>
+        <mapredJobtrackerRestartRecover>false</mapredJobtrackerRestartRecover>
+
+        <mapredJobtrackerJobHistoryBlockSize>3145728</mapredJobtrackerJobHistoryBlockSize>
+        <mapredJobtrackerTaskScheduler>org.apache.hadoop.mapred.JobQueueTaskScheduler</mapredJobtrackerTaskScheduler>
+        <mapredJobtrackerTaskSchedulerMaxRunningTasksPerJob></mapredJobtrackerTaskSchedulerMaxRunningTasksPerJob>
+        <mapredMapMaxAttempts>4</mapredMapMaxAttempts>
+        <mapredReduceMaxAttempts>4</mapredReduceMaxAttempts>
+        <mapredReduceParallelCopies>5</mapredReduceParallelCopies>
+        <mapredReduceCopyBackoff>300</mapredReduceCopyBackoff>
+        <mapredTaskTimeout>600000</mapredTaskTimeout>
+        <mapredTasktrackerMapTasksMaximum>2</mapredTasktrackerMapTasksMaximum>
+        <mapredTasktrackerReduceTasksMaximum>2</mapredTasktrackerReduceTasksMaximum>
+
+        <mapredJobtrackerCompleteuserjobsMaximum>100</mapredJobtrackerCompleteuserjobsMaximum>
+        <mapredJobtrackerInstrumentation>org.apache.hadoop.mapred.JobTrackerMetricsInst</mapredJobtrackerInstrumentation>
+        <mapredChildJavaOpts>-Xmx200m</mapredChildJavaOpts>
+        <mapredChildUlimit></mapredChildUlimit>
+        <mapredChildTmp>./tmp</mapredChildTmp>
+        <mapredInmemergeThreshold>1000</mapredInmemergeThreshold>
+        <mapredJobShuffleMergePercent>0.66</mapredJobShuffleMergePercent>
+        <mapredJobShuffleInputBufferPercent>0.70</mapredJobShuffleInputBufferPercent>
+        <mapredJobReduceInputBufferPercent>0.0</mapredJobReduceInputBufferPercent>
+        <mapredMapTasksSpeculativeExecution>true</mapredMapTasksSpeculativeExecution>
+        <mapredReduceTasksSpeculativeExecution>true</mapredReduceTasksSpeculativeExecution>
+        <mapredJobReuseJvmNumTasks>1</mapredJobReuseJvmNumTasks>
+        <mapredMinSplitSize>0</mapredMinSplitSize>
+        <mapredJobtrackerMaxtasksPerJob>-1</mapredJobtrackerMaxtasksPerJob>
+        <mapredSubmitReplication>10</mapredSubmitReplication>
+        <mapredTasktrackerDnsInterface>default</mapredTasktrackerDnsInterface>
+        <mapredTasktrackerDnsNameserver>default</mapredTasktrackerDnsNameserver>
+        <tasktrackerHttpThreads>40</tasktrackerHttpThreads>
+        <mapredTaskTrackerHttpAddress>0.0.0.0:50060</mapredTaskTrackerHttpAddress>
+        <keepFailedTaskFiles>false</keepFailedTaskFiles>
+        <mapredOutputCompress>false</mapredOutputCompress>
+        <mapredOutputCompressionType>RECORD</mapredOutputCompressionType>
+        <mapredOutputCompressionCodec>org.apache.hadoop.io.compress.DefaultCodec</mapredOutputCompressionCodec>
+        <mapredCompressMapOutput>false</mapredCompressMapOutput>
+        <mapredMapOutputCompressionCodec>org.apache.hadoop.io.compress.DefaultCodec</mapredMapOutputCompressionCodec>
+        <mapSortClass>org.apache.hadoop.util.QuickSort</mapSortClass>
+        <mapredUserlogLimitKb>0</mapredUserlogLimitKb>
+        <mapredUserlogRetainHours>24</mapredUserlogRetainHours>
+        <mapredHosts></mapredHosts>
+        <mapredHostsExclude></mapredHostsExclude>
+
+        <mapredMaxTrackerBlacklists>4</mapredMaxTrackerBlacklists>
+        <mapredMaxTrackerFailures>4</mapredMaxTrackerFailures>
+        <jobclientOutputFilter>FAILED</jobclientOutputFilter>
+        <mapredJobTrackerPersistJobstatusActive>false</mapredJobTrackerPersistJobstatusActive>
+        <mapredJobTrackerPersistJobstatusHours>0</mapredJobTrackerPersistJobstatusHours>
+        <mapredJobTrackerPersistJobstatusDir>/jobtracker/jobsInfo</mapredJobTrackerPersistJobstatusDir>
+        <mapredTaskProfile>false</mapredTaskProfile>
+        <mapredTaskProfileMaps>0-2</mapredTaskProfileMaps>
+        <mapredTaskProfileReduces>0-2</mapredTaskProfileReduces>
+        <mapredLineInputFormatLinespermap>1</mapredLineInputFormatLinespermap>
+        <mapredSkipAttemptsToStartSkipping>2</mapredSkipAttemptsToStartSkipping>
+        <mapredSkipMapAutoIncrProcCount>true</mapredSkipMapAutoIncrProcCount>
+        <mapredSkipReduceAutoIncrProcCount>true</mapredSkipReduceAutoIncrProcCount>
+        <mapredSkipOutDir></mapredSkipOutDir>
+        <mapredSkipMapMaxSkipRecords>0</mapredSkipMapMaxSkipRecords>
+        <mapredSkipReduceMaxSkipGroups>0</mapredSkipReduceMaxSkipGroups>
+        <jobEndRetryAttempts>0</jobEndRetryAttempts>
+        <jobEndRetryInterval>30000</jobEndRetryInterval>
+        <hadoopRpcSocketFactoryClassJobSubmissionProtocol></hadoopRpcSocketFactoryClassJobSubmissionProtocol>
+        <mapredTaskCacheLevels>2</mapredTaskCacheLevels>
+        <mapredQueueNames>default</mapredQueueNames>
+        <mapredAclsEnabled>false</mapredAclsEnabled>
+        <mapredQueueDefaultAclSubmitJob>*</mapredQueueDefaultAclSubmitJob>
+        <mapredQueueDefaultAclAdministerJobs>*</mapredQueueDefaultAclAdministerJobs>
+        <mapredJobQueueName>default</mapredJobQueueName>
+        <mapredTasktrackerIndexcacheMb>10</mapredTasktrackerIndexcacheMb>
+        <mapredMergeRecordsBeforeProgress>10000</mapredMergeRecordsBeforeProgress>
+        <mapredReduceSlowstartCompletedMaps>0.05</mapredReduceSlowstartCompletedMaps>
+        <setMapredFinalFlag>False</setMapredFinalFlag>
+    </advancedMapredSiteConfig>
+
+    <hadoopSiteConfig>
+        <mapredSubmitReplication>1</mapredSubmitReplication>
+        <tasktrackerHttpThreads>50</tasktrackerHttpThreads>
+        <mapredReduceTasksSpeculativeExecution>false</mapredReduceTasksSpeculativeExecution>
+        <mapredMapTasksSpeculativeExecution>false</mapredMapTasksSpeculativeExecution>
+        <mapredMapTasks>101</mapredMapTasks>
+        <mapredReduceTasks>23</mapredReduceTasks>
+        <mapredChildJavaOpts>-Xmx1024m</mapredChildJavaOpts>
+        <mapredTasktrackerReduceTasksMaximum>5</mapredTasktrackerReduceTasksMaximum>
+        <mapredTasktrackerMapTasksMaximum>5</mapredTasktrackerMapTasksMaximum>
+        <mapredJobTrackerHandlerCount>60</mapredJobTrackerHandlerCount>        
+        <tasktrackerHttpPort>54132</tasktrackerHttpPort>
+        <dfsNamenodeHandlerCount>3</dfsNamenodeHandlerCount>
+        <dfsBlockSize>33554432</dfsBlockSize>
+        <ioSortMb>100</ioSortMb>
+        <hadoopLogfileCount>2</hadoopLogfileCount>
+        <hadoopLogfileSize>1000000</hadoopLogfileSize>
+        <dfsReplication>3</dfsReplication>        
+        <mapredTaskTimeout>60000</mapredTaskTimeout>        
+    </hadoopSiteConfig>
+    
+    <!--basicHadoopSiteConfig>
+        <fsDefaultName>hdfs://localhost:9000</fsDefaultName>
+        <mapredJobTracker>localhost:9001</mapredJobTracker>
+        <hadoopTmpDir>/tmp/cloud-data</hadoopTmpDir>
+    </basicHadoopSiteConfig-->
+
+    <newBasicHadoopSiteConfig>
+        <newFsDefaultName>hdfs://localhost:9000</newFsDefaultName>
+        <newMapredJobTracker>hdfs://localhost:9001</newMapredJobTracker>
+        <newHadoopTmpDir>/tmp/cloud-data</newHadoopTmpDir>
+    </newBasicHadoopSiteConfig>
+</gridmix>

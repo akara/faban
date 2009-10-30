@@ -1,0 +1,2298 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- $Id$ -->
+<html xmlns:chiba="http://chiba.sourceforge.net/2003/08/xforms"
+    xmlns:xforms="http://www.w3.org/2002/xforms"
+    xmlns:fa="http://faban.sunsource.net/ns/faban"
+    xmlns:fh="http://faban.sunsource.net/ns/fabanharness"
+    chiba:stylesheet="faban.xsl">
+    <head>
+        <xforms:model id="benchmark-model">
+            <xforms:instance id="benchmark-instance" src="{benchmark.template}"/>
+            <xforms:submission xforms:action="schedule-run.jsp" xforms:replace="all" id="submission-debug" xforms:method="post"/>
+            <xforms:bind id="bind-gridmix" xforms:nodeset="/gridmix">
+                <xforms:bind id="bind-jvmConfig" xforms:nodeset="fh:jvmConfig">
+                    <xforms:bind id="bind-javaHome" xforms:nodeset="fh:javaHome"/>
+                    <xforms:bind id="bind-jvmOptions" xforms:nodeset="fh:jvmOptions"/>
+                </xforms:bind>
+
+
+                <xforms:bind id="bind-runConfig" xforms:nodeset="fa:runConfig">
+                    <xforms:bind id="bind-description" xforms:nodeset="fh:description"/>
+                    <xforms:bind id="bind-runConfig-hostConfig" xforms:nodeset="fa:hostConfig">
+                        <xforms:bind id="bind-agent-host" xforms:nodeset="fa:host"/>
+                        <xforms:bind id="bind-agent-tools" xforms:nodeset="fh:tools"/>
+                        <xforms:bind id="bind-agent-userCommands" xforms:nodeset="fh:userCommands"/>
+                    </xforms:bind>
+                    <xforms:bind id="bind-scale" xforms:nodeset="fa:scale" xforms:type="positiveInteger"/>
+                    <xforms:bind id="bind-runControl" xforms:nodeset="fa:runControl">
+                        <xforms:bind id="bind-unit" xforms:nodeset="@unit"/>
+                        <xforms:bind id="bind-rampUp" xforms:nodeset="fa:rampUp" xforms:type="positiveInteger"/>
+                        <xforms:bind id="bind-steadyState" xforms:nodeset="fa:steadyState" xforms:type="positiveInteger"/>
+                        <xforms:bind id="bind-rampDown" xforms:nodeset="fa:rampDown" xforms:type="positiveInteger"/>
+                    </xforms:bind>                
+                </xforms:bind>
+
+                <xforms:bind id="bind-masterConfig" xforms:nodeset="masterConfig">
+                        <xforms:bind id="bind-master-hostConfig" xforms:nodeset="fa:hostConfig">
+                            <xforms:bind id="bind-master-host" xforms:nodeset="fa:host"/>
+                            <!--xforms:bind id="bind-master-tools" xforms:nodeset="fh:tools"/-->
+                            <!--xforms:bind id="bind-master-userCommands" xforms:nodeset="fh:userCommands"/-->
+                        </xforms:bind>
+                 </xforms:bind>
+                 <xforms:bind id="bind-slaveConfig" xforms:nodeset="slaveConfig">
+                        <xforms:bind id="bind-slave-hostConfig" xforms:nodeset="fa:hostConfig">
+                            <xforms:bind id="bind-slave-host" xforms:nodeset="fa:host"/>
+                            <!--xforms:bind id="bind-slave-tools" xforms:nodeset="fh:tools"/-->
+                            <!--xforms:bind id="bind-slave-userCommands" xforms:nodeset="fh:userCommands"/-->
+                        </xforms:bind>
+                 </xforms:bind>
+
+                 
+
+                <xforms:bind id="bind-hadoopConfig" xforms:nodeset="hadoopConfig">
+
+                    <!--xforms:bind id="bind-masterConfig" xforms:nodeset="masterConfig">
+                        <xforms:bind id="bind-master-hostConfig" xforms:nodeset="fa:hostConfig">
+                            <xforms:bind id="bind-master-host" xforms:nodeset="fa:host"/>                            
+                        </xforms:bind>
+                    </xforms:bind>
+                    <xforms:bind id="bind-slaveConfig" xforms:nodeset="slaveConfig">
+                        <xforms:bind id="bind-slave-hostConfig" xforms:nodeset="fa:hostConfig">
+                            <xforms:bind id="bind-slave-host" xforms:nodeset="fa:host"/>                            
+                        </xforms:bind>
+                    </xforms:bind-->
+
+
+                    <xforms:bind id="bind-hadoop-home" xforms:nodeset="hadoopHomeDir"/>
+                    <xforms:bind id="bind-hadoop-version" xforms:nodeset="hadoopVersion"/>
+                    <xforms:bind id="bind-hadoop-log-dir" xforms:nodeset="hadoopLogDir"/>
+                    <xforms:bind id="bind-gridmix-path" xforms:nodeset="GridMixPath"/>
+                    <xforms:bind id="bind-hadoop-tools-path" xforms:nodeset="HadoopToolsPath"/>
+                    <xforms:bind id="bind-benchmark-combo-name" xforms:nodeset="benchmarkComboName"/>
+                    <xforms:bind id="bind-non-hadoop-job" xforms:nodeset="hadoopJob"/>
+                </xforms:bind>
+
+                <!--xforms:bind id="bind-basicHadoopSiteConfig" xforms:nodeset="basicHadoopSiteConfig">
+                    <xforms:bind id="bind-fs-default-name" xforms:nodeset="fsDefaultName"/>
+                    <xforms:bind id="bind-mapred-job-tracker" xforms:nodeset="mapredJobTracker"/>                    
+                    <xforms:bind id="bind-hadoop-tmp-dir" xforms:nodeset="hadoopTmpDir"/>
+                </xforms:bind-->
+                    
+                <xforms:bind id="bind-newBasicHadoopSiteConfig" xforms:nodeset="newBasicHadoopSiteConfig">
+                    <xforms:bind id="bind-new-fs-default-name" xforms:nodeset="newFsDefaultName"/>
+                    <xforms:bind id="bind-new-mapred-job-tracker" xforms:nodeset="newMapredJobTracker"/>
+                    <xforms:bind id="bind-new-hadoop-tmp-dir" xforms:nodeset="newHadoopTmpDir"/>
+                </xforms:bind>
+
+                    
+                <xforms:bind id="bind-advancedHDFSSiteConfig" xforms:nodeset="advancedHDFSSiteConfig">
+                    <xforms:bind id="bind-dfsNamenodeLoggingLevel" xforms:nodeset="dfsNamenodeLoggingLevel"/>
+                    <xforms:bind id="bind-dfsSecondaryHttpAddress" xforms:nodeset="dfsSecondaryHttpAddress"/>
+                    <xforms:bind id="bind-dfsDatanodeAddress" xforms:nodeset="dfsDatanodeAddress"/>
+                    <xforms:bind id="bind-dfsDatanodeHttpAddress" xforms:nodeset="dfsDatanodeHttpAddress"/>
+                    <xforms:bind id="bind-dfsDatanodeIpcAddress" xforms:nodeset="dfsDatanodeIpcAddress"/>
+                    <xforms:bind id="bind-dfsDatanodeHandlerCount" xforms:nodeset="dfsDatanodeHandlerCount"/>
+                    <xforms:bind id="bind-dfsHttpAddress" xforms:nodeset="dfsHttpAddress"/>
+                    <xforms:bind id="bind-dfsHttpsNeedClientAuth" xforms:nodeset="dfsHttpsNeedClientAuth"/>
+                    <xforms:bind id="bind-dfsHttpsServerKeystoreResource" xforms:nodeset="dfsHttpsServerKeystoreResource"/>
+                    <xforms:bind id="bind-dfsHttpsClientKeystoreResource" xforms:nodeset="dfsHttpsClientKeystoreResource"/>
+                    
+                    <xforms:bind id="bind-dfsDatanodeHttpsAddress" xforms:nodeset="dfsDatanodeHttpsAddress"/>
+                    <xforms:bind id="bind-dfsHttpsAddress" xforms:nodeset="dfsHttpsAddress"/>
+                    <xforms:bind id="bind-dfsDatanodeDnsInterface" xforms:nodeset="dfsDatanodeDnsInterface"/>
+                    <xforms:bind id="bind-dfsDatanodeDnsNameserver" xforms:nodeset="dfsDatanodeDnsNameserver"/>
+                    <xforms:bind id="bind-dfsReplicationConsiderLoad" xforms:nodeset="dfsReplicationConsiderLoad"/>
+                    <xforms:bind id="bind-dfsDefaultChunkViewSize" xforms:nodeset="dfsDefaultChunkViewSize"/>
+                    <xforms:bind id="bind-dfsDatanodeDuReserved" xforms:nodeset="dfsDatanodeDuReserved"/>
+                    <xforms:bind id="bind-dfsNameDir" xforms:nodeset="dfsNameDir"/>
+                    <xforms:bind id="bind-dfsNameEditsDir" xforms:nodeset="dfsNameEditsDir"/>
+                    <xforms:bind id="bind-dfsWebUgi" xforms:nodeset="dfsWebUgi"/>
+
+                    <xforms:bind id="bind-dfsPermissions" xforms:nodeset="dfsPermissions"/>
+                    <xforms:bind id="bind-dfsPermissionsSupergroup" xforms:nodeset="dfsPermissionsSupergroup"/>
+                    <xforms:bind id="bind-dfsDataDir" xforms:nodeset="dfsDataDir"/>
+                    <xforms:bind id="bind-dfsReplication" xforms:nodeset="dfsReplication"/>
+                    <xforms:bind id="bind-dfsReplicationMax" xforms:nodeset="dfsReplicationMax"/>
+                    <xforms:bind id="bind-dfsReplicationMin" xforms:nodeset="dfsReplicationMin"/>
+                    <xforms:bind id="bind-dfsBlockSize" xforms:nodeset="dfsBlockSize"/>
+                    <xforms:bind id="bind-dfsDfInterval" xforms:nodeset="dfsDfInterval"/>
+                    <xforms:bind id="bind-dfsClientBlockWriteRetries" xforms:nodeset="dfsClientBlockWriteRetries"/>
+                    <xforms:bind id="bind-dfsBlockreportIntervalMsec" xforms:nodeset="dfsBlockreportIntervalMsec"/>
+
+                    <xforms:bind id="bind-dfsBlockreportInitialDelay" xforms:nodeset="dfsBlockreportInitialDelay"/>
+                    <xforms:bind id="bind-dfsHeartbeatInterval" xforms:nodeset="dfsHeartbeatInterval"/>
+                    <xforms:bind id="bind-dfsNamenodeHandlerCount" xforms:nodeset="dfsNamenodeHandlerCount"/>
+                    <xforms:bind id="bind-dfsSafemodeThresholdPct" xforms:nodeset="dfsSafemodeThresholdPct"/>
+                    <xforms:bind id="bind-dfsSafemodeExtension" xforms:nodeset="dfsSafemodeExtension"/>
+                    <xforms:bind id="bind-dfsBalanceBandwidthPerSec" xforms:nodeset="dfsBalanceBandwidthPerSec"/>
+                    <xforms:bind id="bind-dfsHosts" xforms:nodeset="dfsHosts"/>
+                    <xforms:bind id="bind-dfsHostsExclude" xforms:nodeset="dfsHostsExclude"/>
+                    <xforms:bind id="bind-dfsMaxObjects" xforms:nodeset="dfsMaxObjects"/>
+                    <xforms:bind id="bind-dfsDamenodeDecommissionInterval" xforms:nodeset="dfsDamenodeDecommissionInterval"/>
+                    <xforms:bind id="bind-dfsNamenodeDecommissionNodesPerInterval" xforms:nodeset="dfsNamenodeDecommissionNodesPerInterval"/>
+                    <xforms:bind id="bind-dfsReplicationInterval" xforms:nodeset="dfsReplicationInterval"/>
+                    <xforms:bind id="bind-dfsAccessTimePrecision" xforms:nodeset="dfsAccessTimePrecision"/>
+                    <xforms:bind id="bind-dfsSupportAppend" xforms:nodeset="dfsSupportAppend"/>
+
+                    <xforms:bind id="bind-set-dfs-final-flag" xforms:nodeset="setDFSFinalFlag"/>
+                </xforms:bind>
+
+                <xforms:bind id="bind-advancedCoreSiteConfig" xforms:nodeset="advancedCoreSiteConfig">
+
+                    <xforms:bind id="bind-hadoopTmpDir" xforms:nodeset="hadoopTmpDir"/>
+                    <xforms:bind id="bind-hadoopNativeLib" xforms:nodeset="hadoopNativeLib"/>
+                    <xforms:bind id="bind-hadoopHttpFilterInitializers" xforms:nodeset="hadoopHttpFilterInitializers"/>
+                    <xforms:bind id="bind-hadoopSecurityAuthorization" xforms:nodeset="hadoopSecurityAuthorization"/>
+                    <xforms:bind id="bind-hadoopLogfileSize" xforms:nodeset="hadoopLogfileSize"/>
+                    <xforms:bind id="bind-hadoopLogfileCount" xforms:nodeset="hadoopLogfileCount"/>
+                    <xforms:bind id="bind-ioFileBufferSize" xforms:nodeset="ioFileBufferSize"/>
+                    <xforms:bind id="bind-ioBytesPerChecksum" xforms:nodeset="ioBytesPerChecksum"/>
+                    <xforms:bind id="bind-ioSkipChecksumErrors" xforms:nodeset="ioSkipChecksumErrors"/>
+                    <xforms:bind id="bind-ioCompressionCodecs" xforms:nodeset="ioCompressionCodecs"/>
+
+                    <xforms:bind id="bind-ioSerializations" xforms:nodeset="ioSerializations"/>
+                    <xforms:bind id="bind-fsDefaultName" xforms:nodeset="fsDefaultName"/>
+                    <xforms:bind id="bind-fsTrashInterval" xforms:nodeset="fsTrashInterval"/>
+                    <xforms:bind id="bind-fsFileImpl" xforms:nodeset="fsFileImpl"/>
+                    <xforms:bind id="bind-fsHdfsImpl" xforms:nodeset="fsHdfsImpl"/>
+                    <xforms:bind id="bind-fsS3Impl" xforms:nodeset="fsS3Impl"/>
+                    <xforms:bind id="bind-fsS3nImpl" xforms:nodeset="fsS3nImpl"/>
+                    <xforms:bind id="bind-fsKfsImpl" xforms:nodeset="fsKfsImpl"/>
+                    <xforms:bind id="bind-fsHftpImpl" xforms:nodeset="fsHftpImpl"/>
+                    <xforms:bind id="bind-fsHsftpImpl" xforms:nodeset="fsHsftpImpl"/>
+
+                    <xforms:bind id="bind-fsFtpImpl" xforms:nodeset="fsFtpImpl"/>
+                    <xforms:bind id="bind-fsRamfsImpl" xforms:nodeset="fsRamfsImpl"/>
+                    <xforms:bind id="bind-fsHarImpl" xforms:nodeset="fsHarImpl"/>
+                    <xforms:bind id="bind-fsCheckpointDir" xforms:nodeset="fsCheckpointDir"/>
+                    <xforms:bind id="bind-fsCheckpointEditsDir" xforms:nodeset="fsCheckpointEditsDir"/>
+                    <xforms:bind id="bind-fsCheckpointPeriod" xforms:nodeset="fsCheckpointPeriod"/>
+                    <xforms:bind id="bind-fsCheckpointSize" xforms:nodeset="fsCheckpointSize"/>
+                    <xforms:bind id="bind-fsS3BlockSize" xforms:nodeset="fsS3BlockSize"/>
+                    <xforms:bind id="bind-fsS3BufferDir" xforms:nodeset="fsS3BufferDir"/>
+                    <xforms:bind id="bind-fsS3MaxRetries" xforms:nodeset="fsS3MaxRetries"/>
+                    <xforms:bind id="bind-fsS3SleepTimeSeconds" xforms:nodeset="fsS3SleepTimeSeconds"/>
+                    <xforms:bind id="bind-localCacheSize" xforms:nodeset="localCacheSize"/>
+                    <xforms:bind id="bind-ioSeqfileCompressBlocksize" xforms:nodeset="ioSeqfileCompressBlocksize"/>
+                    <xforms:bind id="bind-ioSeqfileLazydecompress" xforms:nodeset="ioSeqfileLazydecompress"/>
+                    <xforms:bind id="bind-ioSeqfileSorterRecordlimit" xforms:nodeset="ioSeqfileSorterRecordlimit"/>
+
+
+                    <xforms:bind id="bind-ioMapfileBloomSize" xforms:nodeset="ioMapfileBloomSize"/>
+                    <xforms:bind id="bind-ioMapfileBloomErrorRate" xforms:nodeset="ioMapfileBloomErrorRate"/>
+                    <xforms:bind id="bind-hadoopUtilHashType" xforms:nodeset="hadoopUtilHashType"/>
+                    <xforms:bind id="bind-ipcClientIdlethreshold" xforms:nodeset="ipcClientIdlethreshold"/>
+                    <xforms:bind id="bind-ipcClientKillMax" xforms:nodeset="ipcClientKillMax"/>
+                    <xforms:bind id="bind-ipcClientConnectionMaxidletime" xforms:nodeset="ipcClientConnectionMaxidletime"/>
+                    <xforms:bind id="bind-ipcClientConnectMaxRetries" xforms:nodeset="ipcClientConnectMaxRetries"/>
+                    <xforms:bind id="bind-ipcServerListenQueueSize" xforms:nodeset="ipcServerListenQueueSize"/>
+                    <xforms:bind id="bind-ipcServerTcpnodelay" xforms:nodeset="ipcServerTcpnodelay"/>
+                    <xforms:bind id="bind-ipcClientTcpnodelay" xforms:nodeset="ipcClientTcpnodelay"/>
+                    <xforms:bind id="bind-webinterfacePrivateActions" xforms:nodeset="webinterfacePrivateActions"/>
+                    <xforms:bind id="bind-hadoopRpcSocketFactoryClassDefault" xforms:nodeset="hadoopRpcSocketFactoryClassDefault"/>
+                    <xforms:bind id="bind-hadoopRpcSocketFactoryClassClientProtocol" xforms:nodeset="hadoopRpcSocketFactoryClassClientProtocol"/>
+                    <xforms:bind id="bind-hadoopSocksServer" xforms:nodeset="hadoopSocksServer"/>
+                    <xforms:bind id="bind-topologyNodeSwitchMappingImpl" xforms:nodeset="topologyNodeSwitchMappingImpl"/>
+                    <xforms:bind id="bind-topologyScriptFileName" xforms:nodeset="topologyScriptFileName"/>
+                    <xforms:bind id="bind-topologyScriptNumberArgs" xforms:nodeset="topologyScriptNumberArgs"/>
+
+
+
+
+
+                    <xforms:bind id="bind-set-core-final-flag" xforms:nodeset="setCoreFinalFlag"/>
+                </xforms:bind>
+
+                <xforms:bind id="bind-advancedMapredSiteConfig" xforms:nodeset="advancedMapredSiteConfig">
+
+                    <xforms:bind id="bind-hadoopJobHistoryLocation" xforms:nodeset="hadoopJobHistoryLocation"/>
+                    <xforms:bind id="bind-hadoopJobHistoryUserLocation" xforms:nodeset="hadoopJobHistoryUserLocation"/>
+                    <xforms:bind id="bind-ioSortFactor" xforms:nodeset="ioSortFactor"/>
+                    <xforms:bind id="bind-ioSortMb" xforms:nodeset="ioSortMb"/>
+                    <xforms:bind id="bind-ioSortRecordPercent" xforms:nodeset="ioSortRecordPercent"/>
+                    <xforms:bind id="bind-ioSortSpillPercent" xforms:nodeset="ioSortSpillPercent"/>
+                    <xforms:bind id="bind-ioMapIndexSkip" xforms:nodeset="ioMapIndexSkip"/>
+                    <xforms:bind id="bind-mapredJobTracker" xforms:nodeset="mapredJobTracker"/>
+                    <xforms:bind id="bind-mapredJobTrackerHttpAddress" xforms:nodeset="mapredJobTrackerHttpAddress"/>
+                    <xforms:bind id="bind-mapredJobTrackerHandlerCount" xforms:nodeset="mapredJobTrackerHandlerCount"/>
+                    
+                    <xforms:bind id="bind-mapredTaskTrackerReportAddress" xforms:nodeset="mapredTaskTrackerReportAddress"/>
+                    <xforms:bind id="bind-mapredLocalDir" xforms:nodeset="mapredLocalDir"/>
+                    <xforms:bind id="bind-mapredSystemDir" xforms:nodeset="mapredSystemDir"/>
+                    <xforms:bind id="bind-mapredTempDir" xforms:nodeset="mapredTempDir"/>
+                    <xforms:bind id="bind-mapredLocalDirMinspacestart" xforms:nodeset="mapredLocalDirMinspacestart"/>
+                    <xforms:bind id="bind-mapredLocalDirMinspacekil" xforms:nodeset="mapredLocalDirMinspacekil"/>
+                    <xforms:bind id="bind-mapredTasktrackerExpiryInterval" xforms:nodeset="mapredTasktrackerExpiryInterval"/>
+                    <xforms:bind id="bind-mapredTasktrackerInstrumentation" xforms:nodeset="mapredTasktrackerInstrumentation"/>
+                    <xforms:bind id="bind-mapredTasktrackerVmemReserved" xforms:nodeset="mapredTasktrackerVmemReserved"/>
+                    <xforms:bind id="bind-mapredTasktrackerPmemReserved" xforms:nodeset="mapredTasktrackerPmemReserved"/>
+                    
+                    <xforms:bind id="bind-mapredTaskDefaultMaxvmem" xforms:nodeset="mapredTaskDefaultMaxvmem"/>
+                    <xforms:bind id="bind-mapredTaskLimitMaxvmem" xforms:nodeset="mapredTaskLimitMaxvmem"/>
+                    <xforms:bind id="bind-mapredTaskMaxvmem" xforms:nodeset="mapredTaskMaxvmem"/>
+                    <xforms:bind id="bind-mapredTaskMaxpmem" xforms:nodeset="mapredTaskMaxpmem"/>
+                    <xforms:bind id="bind-mapredTasktrackerMemoryCalculatorPlugin" xforms:nodeset="mapredTasktrackerMemoryCalculatorPlugin"/>
+                    <xforms:bind id="bind-mapredTasktrackerTaskmemorymanagerMonitoringInterval" xforms:nodeset="mapredTasktrackerTaskmemorymanagerMonitoringInterval"/>
+                    <xforms:bind id="bind-mapredTasktrackerProcfsbasedprocesstreeSleeptimeBeforeSigkill" xforms:nodeset="mapredTasktrackerProcfsbasedprocesstreeSleeptimeBeforeSigkill"/>
+                    <xforms:bind id="bind-mapredMapTasks" xforms:nodeset="mapredMapTasks"/>
+                    <xforms:bind id="bind-mapredReduceTasks" xforms:nodeset="mapredReduceTasks"/>
+                    <xforms:bind id="bind-mapredJobtrackerRestartRecover" xforms:nodeset="mapredJobtrackerRestartRecover"/>
+
+                    <xforms:bind id="bind-mapredJobtrackerJobHistoryBlockSize" xforms:nodeset="mapredJobtrackerJobHistoryBlockSize"/>
+                    <xforms:bind id="bind-mapredJobtrackerTaskScheduler" xforms:nodeset="mapredJobtrackerTaskScheduler"/>
+                    <xforms:bind id="bind-mapredJobtrackerTaskSchedulerMaxRunningTasksPerJob" xforms:nodeset="mapredJobtrackerTaskSchedulerMaxRunningTasksPerJob"/>
+                    <xforms:bind id="bind-mapredMapMaxAttempts" xforms:nodeset="mapredMapMaxAttempts"/>
+                    <xforms:bind id="bind-mapredReduceMaxAttempts" xforms:nodeset="mapredReduceMaxAttempts"/>
+                    <xforms:bind id="bind-mapredReduceParallelCopies" xforms:nodeset="mapredReduceParallelCopies"/>
+                    <xforms:bind id="bind-mapredReduceCopyBackoff" xforms:nodeset="mapredReduceCopyBackoff"/>
+                    <xforms:bind id="bind-mapredTaskTimeout" xforms:nodeset="mapredTaskTimeout"/>
+                    <xforms:bind id="bind-mapredTasktrackerMapTasksMaximum" xforms:nodeset="mapredTasktrackerMapTasksMaximum"/>
+                    <xforms:bind id="bind-mapredTasktrackerReduceTasksMaximum" xforms:nodeset="mapredTasktrackerReduceTasksMaximum"/>
+
+                    <xforms:bind id="bind-mapredJobtrackerCompleteuserjobsMaximum" xforms:nodeset="mapredJobtrackerCompleteuserjobsMaximum"/>
+                    <xforms:bind id="bind-mapredJobtrackerInstrumentation" xforms:nodeset="mapredJobtrackerInstrumentation"/>
+                    <xforms:bind id="bind-mapredChildJavaOpts" xforms:nodeset="mapredChildJavaOpts"/>
+                    <xforms:bind id="bind-mapredChildUlimit" xforms:nodeset="mapredChildUlimit"/>
+                    <xforms:bind id="bind-mapredChildTmp" xforms:nodeset="mapredChildTmp"/>
+                    <xforms:bind id="bind-mapredInmemergeThreshold" xforms:nodeset="mapredInmemergeThreshold"/>
+                    <xforms:bind id="bind-mapredJobShuffleMergePercent" xforms:nodeset="mapredJobShuffleMergePercent"/>
+                    <xforms:bind id="bind-mapredJobShuffleInputBufferPercent" xforms:nodeset="mapredJobShuffleInputBufferPercent"/>
+                    <xforms:bind id="bind-mapredJobReduceInputBufferPercent" xforms:nodeset="mapredJobReduceInputBufferPercent"/>
+                    <xforms:bind id="bind-mapredMapTasksSpeculativeExecution" xforms:nodeset="mapredMapTasksSpeculativeExecution"/>
+
+                    <xforms:bind id="bind-mapredReduceTasksSpeculativeExecution" xforms:nodeset="mapredReduceTasksSpeculativeExecution"/>
+                    <xforms:bind id="bind-mapredJobReuseJvmNumTasks" xforms:nodeset="mapredJobReuseJvmNumTasks"/>
+                    <xforms:bind id="bind-mapredMinSplitSize" xforms:nodeset="mapredMinSplitSize"/>
+                    <xforms:bind id="bind-mapredJobtrackerMaxtasksPerJob" xforms:nodeset="mapredJobtrackerMaxtasksPerJob"/>
+                    <xforms:bind id="bind-mapredSubmitReplication" xforms:nodeset="mapredSubmitReplication"/>
+                    <xforms:bind id="bind-mapredTasktrackerDnsInterface" xforms:nodeset="mapredTasktrackerDnsInterface"/>
+                    <xforms:bind id="bind-mapredTasktrackerDnsNameserver" xforms:nodeset="mapredTasktrackerDnsNameserver"/>
+                    <xforms:bind id="bind-tasktrackerHttpThreads" xforms:nodeset="tasktrackerHttpThreads"/>
+                    <xforms:bind id="bind-mapredTaskTrackerHttpAddress" xforms:nodeset="mapredTaskTrackerHttpAddress"/>
+                    <xforms:bind id="bind-keepFailedTaskFiles" xforms:nodeset="keepFailedTaskFiles"/>
+                    <xforms:bind id="bind-mapredOutputCompress" xforms:nodeset="mapredOutputCompress"/>
+                    <xforms:bind id="bind-mapredOutputCompressionType" xforms:nodeset="mapredOutputCompressionType"/>
+                    <xforms:bind id="bind-mapredOutputCompressionCodec" xforms:nodeset="mapredOutputCompressionCodec"/>
+                    <xforms:bind id="bind-mapredCompressMapOutput" xforms:nodeset="mapredCompressMapOutput"/>
+                    <xforms:bind id="bind-mapredMapOutputCompressionCodec" xforms:nodeset="mapredMapOutputCompressionCodec"/>
+                    <xforms:bind id="bind-mapSortClass" xforms:nodeset="mapSortClass"/>
+                    <xforms:bind id="bind-mapredUserlogLimitKb" xforms:nodeset="mapredUserlogLimitKb"/>
+                    <xforms:bind id="bind-mapredUserlogRetainHours" xforms:nodeset="mapredUserlogRetainHours"/>
+                    <xforms:bind id="bind-mapredHosts" xforms:nodeset="mapredHosts"/>
+                    <xforms:bind id="bind-mapredHostsExclude" xforms:nodeset="mapredHostsExclude"/>
+
+                    <xforms:bind id="bind-mapredMaxTrackerBlacklists" xforms:nodeset="mapredMaxTrackerBlacklists"/>
+                    <xforms:bind id="bind-mapredMaxTrackerFailures" xforms:nodeset="mapredMaxTrackerFailures"/>
+                    <xforms:bind id="bind-jobclientOutputFilter" xforms:nodeset="jobclientOutputFilter"/>
+                    <xforms:bind id="bind-mapredJobTrackerPersistJobstatusActive" xforms:nodeset="mapredJobTrackerPersistJobstatusActive"/>
+                    <xforms:bind id="bind-mapredJobTrackerPersistJobstatusHours" xforms:nodeset="mapredJobTrackerPersistJobstatusHours"/>
+                    <xforms:bind id="bind-mapredJobTrackerPersistJobstatusDir" xforms:nodeset="mapredJobTrackerPersistJobstatusDir"/>
+                    <xforms:bind id="bind-mapredTaskProfile" xforms:nodeset="mapredTaskProfile"/>
+                    <xforms:bind id="bind-mapredTaskProfileMaps" xforms:nodeset="mapredTaskProfileMaps"/>
+                    <xforms:bind id="bind-mapredTaskProfileReduces" xforms:nodeset="mapredTaskProfileReduces"/>
+                    <xforms:bind id="bind-mapredLineInputFormatLinespermap" xforms:nodeset="mapredLineInputFormatLinespermap"/>
+                    <xforms:bind id="bind-mapredSkipAttemptsToStartSkipping" xforms:nodeset="mapredSkipAttemptsToStartSkipping"/>
+                    <xforms:bind id="bind-mapredSkipMapAutoIncrProcCount" xforms:nodeset="mapredSkipMapAutoIncrProcCount"/>
+                    <xforms:bind id="bind-mapredSkipReduceAutoIncrProcCount" xforms:nodeset="mapredSkipReduceAutoIncrProcCount"/>
+                    <xforms:bind id="bind-mapredSkipOutDir" xforms:nodeset="mapredSkipOutDir"/>
+                    <xforms:bind id="bind-mapredSkipMapMaxSkipRecords" xforms:nodeset="mapredSkipMapMaxSkipRecords"/>
+
+                    <xforms:bind id="bind-mapredSkipReduceMaxSkipGroups" xforms:nodeset="mapredSkipReduceMaxSkipGroups"/>
+                    <xforms:bind id="bind-jobEndRetryAttempts" xforms:nodeset="jobEndRetryAttempts"/>
+                    <xforms:bind id="bind-jobEndRetryInterval" xforms:nodeset="jobEndRetryInterval"/>
+                    <xforms:bind id="bind-hadoopRpcSocketFactoryClassJobSubmissionProtocol" xforms:nodeset="hadoopRpcSocketFactoryClassJobSubmissionProtocol"/>
+                    <xforms:bind id="bind-mapredTaskCacheLevels" xforms:nodeset="mapredTaskCacheLevels"/>
+                    <xforms:bind id="bind-mapredQueueNames" xforms:nodeset="mapredQueueNames"/>
+                    <xforms:bind id="bind-mapredAclsEnabled" xforms:nodeset="mapredAclsEnabled"/>
+                    <xforms:bind id="bind-mapredQueueDefaultAclSubmitJob" xforms:nodeset="mapredQueueDefaultAclSubmitJob"/>
+                    <xforms:bind id="bind-mapredQueueDefaultAclAdministerJobs" xforms:nodeset="mapredQueueDefaultAclAdministerJobs"/>
+                    <xforms:bind id="bind-mapredJobQueueName" xforms:nodeset="mapredJobQueueName"/>
+                    <xforms:bind id="bind-mapredTasktrackerIndexcacheMb" xforms:nodeset="mapredTasktrackerIndexcacheMb"/>
+                    <xforms:bind id="bind-mapredMergeRecordsBeforeProgress" xforms:nodeset="mapredMergeRecordsBeforeProgress"/>
+                    <xforms:bind id="bind-mapredReduceSlowstartCompletedMaps" xforms:nodeset="mapredReduceSlowstartCompletedMaps"/>
+                    
+
+                    <xforms:bind id="bind-set-mapred-final-flag" xforms:nodeset="setMapredFinalFlag"/>
+                </xforms:bind>
+
+                <!--xforms:bind id="bind-hadoopSiteConfig" xforms:nodeset="hadoopSiteConfig">
+                    <xforms:bind id="bind-tasktracker-http-threads" xforms:nodeset="tasktrackerHttpThreads"/>
+                    <xforms:bind id="bind-mapred-submit-replication" xforms:nodeset="mapredSubmitReplication"/>
+                    <xforms:bind id="bind-mapred-reduce-tasks-speculative-execution" xforms:nodeset="mapredReduceTasksSpeculativeExecution"/>
+                    <xforms:bind id="bind-mapred-map-tasks-speculative-execution" xforms:nodeset="mapredMapTasksSpeculativeExecution"/>
+                    <xforms:bind id="bind-mapred-map-tasks" xforms:nodeset="mapredMapTasks"/>
+                    <xforms:bind id="bind-mapred-reduce-tasks" xforms:nodeset="mapredReduceTasks"/>
+                    <xforms:bind id="bind-mapred-child-java-opts" xforms:nodeset="mapredChildJavaOpts"/>
+                    <xforms:bind id="bind-mapred-tasktracker-reduce-tasks-maximum" xforms:nodeset="mapredTasktrackerReduceTasksMaximum"/>
+                    <xforms:bind id="bind-mapred-tasktracker-map-tasks-maximum" xforms:nodeset="mapredTasktrackerMapTasksMaximum"/>
+                    <xforms:bind id="bind-mapred-job-tracker-handler-count" xforms:nodeset="mapredJobTrackerHandlerCount"/>
+                    <xforms:bind id="bind-mapred-job-tracker" xforms:nodeset="mapredJobTracker"/>
+                    <xforms:bind id="bind-tasktracker-http-port" xforms:nodeset="tasktrackerHttpPort"/>
+                    <xforms:bind id="bind-dfs-namenode-handler-count" xforms:nodeset="dfsNamenodeHandlerCount"/>
+                    <xforms:bind id="bind-dfs-block-size" xforms:nodeset="dfsBlockSize"/>
+                    <xforms:bind id="bind-io-sort-mb" xforms:nodeset="ioSortMb"/>
+                    <xforms:bind id="bind-hadoop-logfile-count" xforms:nodeset="hadoopLogfileCount"/>
+                    <xforms:bind id="bind-hadoop-logfile-size" xforms:nodeset="hadoopLogfileSize"/>
+                    <xforms:bind id="bind-dfs-replication" xforms:nodeset="dfsReplication"/>
+                    <xforms:bind id="bind-fs-default-name" xforms:nodeset="fsDefaultName"/>
+                    <xforms:bind id="bind-hadoop-tmp-dir" xforms:nodeset="hadoopTmpDir"/>
+                    <xforms:bind id="bind-mapred-task-timeout" xforms:nodeset="mapredTaskTimeout"/>
+                </xforms:bind-->
+
+            </xforms:bind>
+        </xforms:model>
+        <xforms:model id="benchmark-labels">
+            <xforms:instance id="benchmark-label-names">
+                <labels>
+
+                    <newBasicHadoopSiteConfig>Stuff</newBasicHadoopSiteConfig>
+                    <newFsDefaultName>fs.default.name</newFsDefaultName>
+                    <newMapredJobTracker>mapred.job.tracker</newMapredJobTracker>
+                    <newHadoopTmpDir>hadoop.tmp.dir</newHadoopTmpDir>
+
+                    <!-- values from hdfs-site.xml -->
+                    <dfsNamenodeLoggingLevel>dfs.namenode.logging.level</dfsNamenodeLoggingLevel>
+                    <dfsSecondaryHttpAddress>dfs.secondary.http.address</dfsSecondaryHttpAddress>
+                    <dfsDatanodeAddress>dfs.datanode.address</dfsDatanodeAddress>
+                    <dfsDatanodeHttpAddress>dfs.datanode.http.address</dfsDatanodeHttpAddress>
+                    <dfsDatanodeIpcAddress>dfs.datanode.ipc.address</dfsDatanodeIpcAddress>
+                    <dfsDatanodeHandlerCount>dfs.datanode.handler.count</dfsDatanodeHandlerCount>
+                    <dfsHttpAddress>dfs.http.address</dfsHttpAddress>
+                    <dfsHttpsEnable>dfs.https.enable</dfsHttpsEnable>
+                    <dfsHttpsNeedClientAuth>dfs.https.need.client.auth</dfsHttpsNeedClientAuth>
+                    <dfsHttpsServerKeystoreResource>dfs.https.server.keystore.resource</dfsHttpsServerKeystoreResource>
+                    <dfsHttpsClientKeystoreResource>dfs.https.client.keystore.resource</dfsHttpsClientKeystoreResource>
+
+                    <dfsDatanodeHttpsAddress>dfs.datanode.https.address</dfsDatanodeHttpsAddress>
+                    <dfsHttpsAddress>dfs.https.address</dfsHttpsAddress>
+                    <dfsDatanodeDnsInterface>dfs.datanode.dns.interface</dfsDatanodeDnsInterface>
+                    <dfsDatanodeDnsNameserver>dfs.datanode.dns.nameserver</dfsDatanodeDnsNameserver>
+                    <dfsReplicationConsiderLoad>dfs.replication.considerLoad</dfsReplicationConsiderLoad>
+                    <dfsDefaultChunkViewSize>dfs.default.chunk.view.size</dfsDefaultChunkViewSize>
+                    <dfsDatanodeDuReserved>dfs.datanode.du.reserved</dfsDatanodeDuReserved>
+                    <dfsNameDir>dfs.name.dir</dfsNameDir>
+                    <dfsNameEditsDir>dfs.name.edits.dir</dfsNameEditsDir>
+                    <dfsWebUgi>dfs.web.ugi</dfsWebUgi>
+
+                    <dfsPermissions>dfs.permissions</dfsPermissions>
+                    <dfsPermissionsSupergroup>dfs.permissions.supergroup</dfsPermissionsSupergroup>
+                    <dfsDataDir>dfs.data.dir</dfsDataDir>
+                    <dfsReplication>dfs.replication</dfsReplication>
+                    <dfsReplicationMax>dfs.replication.max</dfsReplicationMax>
+                    <dfsReplicationMin>dfs.replication.min</dfsReplicationMin>
+                    <dfsBlockSize>dfs.block.size</dfsBlockSize>
+                    <dfsDfInterval>dfs.df.interval</dfsDfInterval>
+                    <dfsClientBlockWriteRetries>dfs.client.block.write.retries</dfsClientBlockWriteRetries>
+                    <dfsBlockreportIntervalMsec>dfs.blockreport.intervalMsec</dfsBlockreportIntervalMsec>
+
+                    <dfsBlockreportInitialDelay>dfs.blockreport.initialDelay</dfsBlockreportInitialDelay>
+                    <dfsHeartbeatInterval>dfs.heartbeat.interval</dfsHeartbeatInterval>
+                    <dfsNamenodeHandlerCount>dfs.namenode.handler.count</dfsNamenodeHandlerCount>
+                    <dfsSafemodeThresholdPct>dfs.safemode.threshold.pct</dfsSafemodeThresholdPct>
+                    <dfsSafemodeExtension>dfs.safemode.extension</dfsSafemodeExtension>
+                    <dfsBalanceBandwidthPerSec>dfs.balance.bandwidthPerSec</dfsBalanceBandwidthPerSec>
+                    <dfsHosts>dfs.hosts</dfsHosts>
+                    <dfsHostsExclude>dfs.hosts.exclude</dfsHostsExclude>
+                    <dfsMaxObjects>dfs.max.objects</dfsMaxObjects>
+                    <dfsDamenodeDecommissionInterval>dfs.namenode.decommission.interval</dfsDamenodeDecommissionInterval>
+                    <dfsNamenodeDecommissionNodesPerInterval>dfs.namenode.decommission.nodes.per.interval</dfsNamenodeDecommissionNodesPerInterval>
+                    <dfsReplicationInterval>dfs.replication.interval</dfsReplicationInterval>
+                    <dfsAccessTimePrecision>dfs.access.time.precision</dfsAccessTimePrecision>
+                    <dfsSupportAppend>dfs.support.append</dfsSupportAppend>
+
+                    <!-- values from mapred-site.xml -->
+                    <hadoopJobHistoryLocation>hadoop.job.history.location</hadoopJobHistoryLocation>
+                    <hadoopJobHistoryUserLocation>hadoop.job.history.user.location</hadoopJobHistoryUserLocation>
+                    <ioSortFactor>io.sort.factor</ioSortFactor>
+                    <ioSortMb>io.sort.mb</ioSortMb>
+                    <ioSortRecordPercent>io.sort.record.percent</ioSortRecordPercent>
+                    <ioSortSpillPercent>io.sort.spill.percent</ioSortSpillPercent>
+                    <ioMapIndexSkip>io.map.index.skip</ioMapIndexSkip>
+                    <mapredJobTracker>mapred.job.tracker</mapredJobTracker>
+                    <mapredJobTrackerHttpAddress>mapred.job.tracker.http.address</mapredJobTrackerHttpAddress>
+                    <mapredJobTrackerHandlerCount>mapred.job.tracker.handler.count</mapredJobTrackerHandlerCount>
+
+                    <mapredTaskTrackerReportAddress>mapred.task.tracker.report.address</mapredTaskTrackerReportAddress>
+                    <mapredLocalDir>mapred.local.dir</mapredLocalDir>
+                    <mapredSystemDir>mapred.system.dir</mapredSystemDir>
+                    <mapredTempDir>mapred.temp.dir</mapredTempDir>
+                    <mapredLocalDirMinspacestart>mapred.local.dir.minspacestart</mapredLocalDirMinspacestart>
+                    <mapredLocalDirMinspacekil>mapred.local.dir.minspacekil</mapredLocalDirMinspacekil>
+                    <mapredTasktrackerExpiryInterval>mapred.tasktracker.expiry.interval</mapredTasktrackerExpiryInterval>
+                    <mapredTasktrackerInstrumentation>mapred.tasktracker.instrumentation</mapredTasktrackerInstrumentation>
+                    <mapredTasktrackerVmemReserved>mapred.tasktracker.vmem.reserved</mapredTasktrackerVmemReserved>
+                    <mapredTasktrackerPmemReserved>mapred.tasktracker.pmem.reserved</mapredTasktrackerPmemReserved>
+
+                    <mapredTaskDefaultMaxvmem>mapred.task.default.maxvmem</mapredTaskDefaultMaxvmem>
+                    <mapredTaskLimitMaxvmem>mapred.task.limit.maxvmem</mapredTaskLimitMaxvmem>
+                    <mapredTaskMaxvmem>mapred.task.maxvmem</mapredTaskMaxvmem>
+                    <mapredTaskMaxpmem>mapred.task.maxpmem</mapredTaskMaxpmem>
+                    <mapredTasktrackerMemoryCalculatorPlugin>mapred.tasktracker.memory_calculator_plugin</mapredTasktrackerMemoryCalculatorPlugin>
+                    <mapredTasktrackerTaskmemorymanagerMonitoringInterval>mapred.tasktracker.taskmemorymanager.monitoring-interval</mapredTasktrackerTaskmemorymanagerMonitoringInterval>
+                    <mapredTasktrackerProcfsbasedprocesstreeSleeptimeBeforeSigkill>mapred.tasktracker.procfsbasedprocesstree.sleeptime-before-sigkill</mapredTasktrackerProcfsbasedprocesstreeSleeptimeBeforeSigkill>
+                    <mapredMapTasks>mapred.map.tasks</mapredMapTasks>
+                    <mapredReduceTasks>mapred.reduce.tasks</mapredReduceTasks>
+                    <mapredJobtrackerRestartRecover>mapred.jobtracker.restart.recover</mapredJobtrackerRestartRecover>
+
+                    <mapredJobtrackerJobHistoryBlockSize>mapred.jobtracker.job.history.block.size</mapredJobtrackerJobHistoryBlockSize>
+                    <mapredJobtrackerTaskScheduler>mapred.jobtracker.taskScheduler</mapredJobtrackerTaskScheduler>
+                    <mapredJobtrackerTaskSchedulerMaxRunningTasksPerJob>mapred.jobtracker.taskScheduler.maxRunningTasksPerJob</mapredJobtrackerTaskSchedulerMaxRunningTasksPerJob>
+                    <mapredMapMaxAttempts>mapred.map.max.attempts</mapredMapMaxAttempts>
+                    <mapredReduceMaxAttempts>mapred.reduce.max.attempts</mapredReduceMaxAttempts>
+                    <mapredReduceParallelCopies>mapred.reduce.parallel.copies</mapredReduceParallelCopies>
+                    <mapredReduceCopyBackoff>mapred.reduce.copy.backoff</mapredReduceCopyBackoff>
+                    <mapredTaskTimeout>mapred.task.timeout</mapredTaskTimeout>
+                    <mapredTasktrackerMapTasksMaximum>mapred.tasktracker.map.tasks.maximum</mapredTasktrackerMapTasksMaximum>
+                    <mapredTasktrackerReduceTasksMaximum>mapred.tasktracker.reduce.tasks.maximum</mapredTasktrackerReduceTasksMaximum>
+
+                    <mapredJobtrackerCompleteuserjobsMaximum>mapred.jobtracker.completeuserjobs.maximum</mapredJobtrackerCompleteuserjobsMaximum>
+                    <mapredJobtrackerInstrumentation>mapred.jobtracker.instrumentation</mapredJobtrackerInstrumentation>
+                    <mapredChildJavaOpts>mapred.child.java.opts</mapredChildJavaOpts>
+                    <mapredChildUlimit>mapred.child.ulimit</mapredChildUlimit>
+                    <mapredChildTmp>mapred.child.tmp</mapredChildTmp>
+                    <mapredInmemergeThreshold>mapred.inmem.merge.threshold</mapredInmemergeThreshold>
+                    <mapredJobShuffleMergePercent>mapred.job.shuffle.merge.percent</mapredJobShuffleMergePercent>
+                    <mapredJobShuffleInputBufferPercent>mapred.job.shuffle.input.buffer.percent</mapredJobShuffleInputBufferPercent>
+                    <mapredJobReduceInputBufferPercent>mapred.job.reduce.input.buffer.percent</mapredJobReduceInputBufferPercent>
+                    <mapredMapTasksSpeculativeExecution>mapred.map.tasks.speculative.execution</mapredMapTasksSpeculativeExecution>
+
+                    <mapredReduceTasksSpeculativeExecution>mapred.reduce.tasks.speculative.execution</mapredReduceTasksSpeculativeExecution>
+                    <mapredJobReuseJvmNumTasks>mapred.job.reuse.jvm.num.tasks</mapredJobReuseJvmNumTasks>
+                    <mapredMinSplitSize>mapred.min.split.size</mapredMinSplitSize>
+                    <mapredJobtrackerMaxtasksPerJob>mapred.jobtracker.maxtasks.per.job</mapredJobtrackerMaxtasksPerJob>
+                    <mapredSubmitReplication>mapred.submit.replication</mapredSubmitReplication>
+                    <mapredTasktrackerDnsInterface>mapred.tasktracker.dns.interface</mapredTasktrackerDnsInterface>
+                    <mapredTasktrackerDnsNameserver>mapred.tasktracker.dns.nameserver</mapredTasktrackerDnsNameserver>
+                    <tasktrackerHttpThreads>tasktracker.http.threads</tasktrackerHttpThreads>
+                    <mapredTaskTrackerHttpAddress>mapred.task.tracker.http.address</mapredTaskTrackerHttpAddress>
+                    <keepFailedTaskFiles>keep.failed.task.files</keepFailedTaskFiles>
+                    <mapredOutputCompress>mapred.output.compress</mapredOutputCompress>
+                    <mapredOutputCompressionType>mapred.output.compression.type</mapredOutputCompressionType>
+                    <mapredOutputCompressionCodec>mapred.output.compression.codec</mapredOutputCompressionCodec>
+                    <mapredCompressMapOutput>mapred.compress.map.output</mapredCompressMapOutput>
+                    <mapredMapOutputCompressionCodec>mapred.map.output.compression.codec</mapredMapOutputCompressionCodec>
+                    <mapSortClass>map.sort.class</mapSortClass>
+                    <mapredUserlogLimitKb>mapred.userlog.limit.kb</mapredUserlogLimitKb>
+                    <mapredUserlogRetainHours>mapred.userlog.retain.hours</mapredUserlogRetainHours>
+                    <mapredHosts>mapred.hosts</mapredHosts>
+                    <mapredHostsExclude>mapred.hosts.exclude</mapredHostsExclude>
+
+                    <mapredMaxTrackerBlacklists>mapred.max.tracker.blacklists</mapredMaxTrackerBlacklists>
+                    <mapredMaxTrackerFailures>mapred.max.tracker.failures</mapredMaxTrackerFailures>
+                    <jobclientOutputFilter>jobclient.output.filter</jobclientOutputFilter>
+                    <mapredJobTrackerPersistJobstatusActive>mapred.job.tracker.persist.jobstatus.active</mapredJobTrackerPersistJobstatusActive>
+                    <mapredJobTrackerPersistJobstatusHours>mapred.job.tracker.persist.jobstatus.hours</mapredJobTrackerPersistJobstatusHours>
+                    <mapredJobTrackerPersistJobstatusDir>mapred.job.tracker.persist.jobstatus.dir</mapredJobTrackerPersistJobstatusDir>
+                    <mapredTaskProfile>mapred.task.profile</mapredTaskProfile>
+                    <mapredTaskProfileMaps>mapred.task.profile.maps</mapredTaskProfileMaps>
+                    <mapredTaskProfileReduces>mapred.task.profile.reduces</mapredTaskProfileReduces>
+                    <mapredLineInputFormatLinespermap>mapred.line.input.format.linespermap</mapredLineInputFormatLinespermap>
+                    <mapredSkipAttemptsToStartSkipping>mapred.skip.attempts.to.start.skipping</mapredSkipAttemptsToStartSkipping>
+                    <mapredSkipMapAutoIncrProcCount>mapred.skip.map.auto.incr.proc.count</mapredSkipMapAutoIncrProcCount>
+                    <mapredSkipReduceAutoIncrProcCount>mapred.skip.reduce.auto.incr.proc.count</mapredSkipReduceAutoIncrProcCount>
+                    <mapredSkipOutDir>mapred.skip.out.dir</mapredSkipOutDir>
+                    <mapredSkipMapMaxSkipRecords>mapred.skip.map.max.skip.records</mapredSkipMapMaxSkipRecords>
+                    <mapredSkipReduceMaxSkipGroups>mapred.skip.reduce.max.skip.groups</mapredSkipReduceMaxSkipGroups>
+                    <jobEndRetryAttempts>job.end.retry.attempts</jobEndRetryAttempts>
+                    <jobEndRetryInterval>job.end.retry.interval</jobEndRetryInterval>
+                    <hadoopRpcSocketFactoryClassJobSubmissionProtocol>hadoop.rpc.socket.factory.class.JobSubmissionProtocol</hadoopRpcSocketFactoryClassJobSubmissionProtocol>
+                    <mapredTaskCacheLevels>mapred.task.cache.levels</mapredTaskCacheLevels>
+                    <mapredQueueNames>mapred.queue.names</mapredQueueNames>
+                    <mapredAclsEnabled>mapred.acls.enabled</mapredAclsEnabled>
+                    <mapredQueueDefaultAclSubmitJob>mapred.queue.default.acl-submit-job</mapredQueueDefaultAclSubmitJob>
+                    <mapredQueueDefaultAclAdministerJobs>mapred.queue.default.acl-administer-jobs</mapredQueueDefaultAclAdministerJobs>
+                    <mapredJobQueueName>mapred.job.queue.name</mapredJobQueueName>
+                    <mapredTasktrackerIndexcacheMb>mapred.tasktracker.indexcache.mb</mapredTasktrackerIndexcacheMb>
+                    <mapredMergeRecordsBeforeProgress>mapred.merge.recordsBeforeProgress</mapredMergeRecordsBeforeProgress>
+                    <mapredReduceSlowstartCompletedMaps>mapred.reduce.slowstart.completed.maps</mapredReduceSlowstartCompletedMaps>
+                    
+                    <!-- values from core-site.xml -->
+                    <hadoopTmpDir>hadoop.tmp.dir</hadoopTmpDir>
+                    <hadoopNativeLib>hadoop.native.lib</hadoopNativeLib>
+                    <hadoopHttpFilterInitializers>hadoop.http.filter.initializers</hadoopHttpFilterInitializers>
+                    <hadoopSecurityAuthorization>hadoop.security.authorization</hadoopSecurityAuthorization>
+                    <hadoopLogfileSize>hadoop.logfile.size</hadoopLogfileSize>
+                    <hadoopLogfileCount>hadoop.logfile.count</hadoopLogfileCount>
+                    <ioFileBufferSize>io.file.buffer.size</ioFileBufferSize>
+                    <ioBytesPerChecksum>io.bytes.per.checksum</ioBytesPerChecksum>
+                    <ioSkipChecksumErrors>io.skip.checksum.errors</ioSkipChecksumErrors>
+                    <ioCompressionCodecs>io.compression.codecs</ioCompressionCodecs>
+
+                    <ioSerializations>io.serializations</ioSerializations>
+                    <fsDefaultName>fs.default.name</fsDefaultName>
+                    <fsTrashInterval>fs.trash.interval</fsTrashInterval>
+                    <fsFileImpl>fs.file.impl</fsFileImpl>
+                    <fsHdfsImpl>fs.hdfs.impl</fsHdfsImpl>
+                    <fsS3Impl>fs.s3.impl</fsS3Impl>
+                    <fsS3nImpl>fs.s3n.impl</fsS3nImpl>
+                    <fsKfsImpl>fs.kfs.impl</fsKfsImpl>
+                    <fsHftpImpl>fs.hftp.impl</fsHftpImpl>
+                    <fsHsftpImpl>fs.hsftp.impl</fsHsftpImpl>
+
+                    <fsFtpImpl>fs.ftp.impl</fsFtpImpl>
+                    <fsRamfsImpl>fs.ramfs.impl</fsRamfsImpl>
+                    <fsHarImpl>fs.har.impl</fsHarImpl>
+                    <fsCheckpointDir>fs.checkpoint.dir</fsCheckpointDir>
+                    <fsCheckpointEditsDir>fs.checkpoint.edits.dir</fsCheckpointEditsDir>
+                    <fsCheckpointPeriod>fs.checkpoint.period</fsCheckpointPeriod>
+                    <fsCheckpointSize>fs.checkpoint.size</fsCheckpointSize>
+                    <fsS3BlockSize>fs.s3.block.size</fsS3BlockSize>
+                    <fsS3BufferDir>fs.s3.buffer.dir</fsS3BufferDir>
+                    <fsS3MaxRetries>fs.s3.maxRetries</fsS3MaxRetries>
+                    <fsS3SleepTimeSeconds>fs.s3.sleepTimeSeconds</fsS3SleepTimeSeconds>
+                    <localCacheSize>local.cache.size</localCacheSize>
+                    <ioSeqfileCompressBlocksize>io.seqfile.compress.blocksize</ioSeqfileCompressBlocksize>
+                    <ioSeqfileLazydecompress>io.seqfile.lazydecompress</ioSeqfileLazydecompress>
+                    <ioSeqfileSorterRecordlimit>io.seqfile.sorter.recordlimit</ioSeqfileSorterRecordlimit>
+
+                    <ioMapfileBloomSize>io.mapfile.bloom.size</ioMapfileBloomSize>
+                    <ioMapfileBloomErrorRate>io.mapfile.bloom.error.rate</ioMapfileBloomErrorRate>
+                    <hadoopUtilHashType>hadoop.util.hash.type</hadoopUtilHashType>
+                    <ipcClientIdlethreshold>ipc.client.idlethreshold</ipcClientIdlethreshold>
+                    <ipcClientKillMax>ipc.client.kill.max</ipcClientKillMax>
+                    <ipcClientConnectionMaxidletime>ipc.client.connection.maxidletime</ipcClientConnectionMaxidletime>
+                    <ipcClientConnectMaxRetries>ipc.client.connect.max.retries</ipcClientConnectMaxRetries>
+                    <ipcServerListenQueueSize>ipc.server.listen.queue.size</ipcServerListenQueueSize>
+                    <ipcServerTcpnodelay>ipc.server.tcpnodelay</ipcServerTcpnodelay>
+                    <ipcClientTcpnodelay>ipc.client.tcpnodelay</ipcClientTcpnodelay>
+                    <webinterfacePrivateActions>webinterface.private.actions</webinterfacePrivateActions>
+                    <hadoopRpcSocketFactoryClassDefault>hadoop.rpc.socket.factory.class.default</hadoopRpcSocketFactoryClassDefault>
+                    <hadoopRpcSocketFactoryClassClientProtocol>hadoop.rpc.socket.factory.class.ClientProtocol</hadoopRpcSocketFactoryClassClientProtocol>
+                    <hadoopSocksServer>hadoop.socks.server</hadoopSocksServer>
+                    <topologyNodeSwitchMappingImpl>topology.node.switch.mapping.impl</topologyNodeSwitchMappingImpl>
+                    <topologyScriptFileName>topology.script.file.name</topologyScriptFileName>
+                    <topologyScriptNumberArgs>topology.script.number.args</topologyScriptNumberArgs>
+                    
+                    <advancedCoreSiteConfigLabel>Advanced core-site tunables</advancedCoreSiteConfigLabel>
+                    <advancedMapredSiteConfigLabel>Advanced mapred-site tunables</advancedMapredSiteConfigLabel>
+                    <advancedHDFSSiteConfigLabel>Advanced hdfs-site tunables</advancedHDFSSiteConfigLabel>
+                    <setDFSFinalFlag>Make values immutable</setDFSFinalFlag>
+                    <setCoreFinalFlag>Make values immutable</setCoreFinalFlag>
+                    <setMapredFinalFlag>Make values immutable</setMapredFinalFlag>
+                    <hadoopJobPath>Hadoop Job path</hadoopJobPath>
+                    <hadoopJob>Hadoop Job to Run</hadoopJob>
+                    <basicHadoopSiteConfig>Basic Hadoop Configuration</basicHadoopSiteConfig>
+                    <mapredTaskTimeout>mapred.task.timeout</mapredTaskTimeout>
+                    <!--hadoopTmpDir>hadoop.tmp.dir</hadoopTmpDir-->
+                    <!--fsDefaultName>fs.default.name</fsDefaultName-->
+                    <dfsReplication>dfs.replication</dfsReplication>
+                    <hadoopLogfileSize>hadoop.logfile.size</hadoopLogfileSize>
+                    <hadoopLogfileCount>hadoop.logfile.count</hadoopLogfileCount>
+                    <ioSortMb>io.sort.mb</ioSortMb>
+                    <dfsBlockSize>dfs.block.size</dfsBlockSize>
+                    <dfsNamenodeHandlerCount>dfs.namenode.handler.count</dfsNamenodeHandlerCount>
+                    <tasktrackerHttpPort>tasktracker.http.port</tasktrackerHttpPort>
+                    <!--mapredJobTracker>mapred.job.tracker</mapredJobTracker-->
+                    <mapredJobTrackerHandlerCount>mapred.job.tracker.handler.count</mapredJobTrackerHandlerCount>
+                    <mapredTasktrackerMapTasksMaximum>mapred.tasktracker.map.tasks.maximum</mapredTasktrackerMapTasksMaximum>
+                    <mapredTasktrackerReduceTasksMaximum>mapred.tasktracker.reduce.tasks.maximum</mapredTasktrackerReduceTasksMaximum>
+                    <mapredChildJavaOpts>mapred.child.java.opts</mapredChildJavaOpts>
+                    <mapredReduceTasks>mapred.reduce.tasks</mapredReduceTasks>
+                    <mapredMapTasks>mapred.map.tasks</mapredMapTasks>
+                    <mapredMapTasksSpeculativeExecution>mapred.map.tasks.speculative.execution</mapredMapTasksSpeculativeExecution>
+                    <mapredReduceTasksSpeculativeExecution>mapred.reduce.tasks.speculative.execution</mapredReduceTasksSpeculativeExecution>
+                    <mapredSubmitReplication>mapred.submit.replication</mapredSubmitReplication>
+                    <tasktrackerHttpThreads>tasktracker.http.threads</tasktrackerHttpThreads>
+                    <hadoopSiteConfigLabel>hadoop-site.xml Modifications</hadoopSiteConfigLabel>
+                    <hadoopSiteConfig>Advanced Hadoop Site Configuration</hadoopSiteConfig>
+                    <benchmark>GridMix Benchmark</benchmark>
+                    <jvmConfig>Java</jvmConfig>
+                    <javaHome>JAVA HOME</javaHome>
+                    <jvmOptions>JVM Options</jvmOptions>
+                    <runConfig>Driver</runConfig>
+                    <description>Description</description>
+                    <scale>Scale</scale>
+                    <runControl>Run Control</runControl>
+                    <unit>Unit</unit>
+                    <time>Time (sec)</time>
+                    <cycles>Cycles</cycles>
+                    <rampUp>Ramp Up</rampUp>
+                    <steadyState>Steady State</steadyState>
+                    <rampDown>Ramp Down</rampDown>
+                    <yes>Yes</yes>
+                    <no>No</no>
+                    <hadoopConfig>Benchmark Connfiguration</hadoopConfig>
+                    <serverConfig>Hadoop Information</serverConfig>
+                    <hadoopHomePath>Path for Hadoop Home</hadoopHomePath>
+                    <hadoopVersion>Hadoop Version</hadoopVersion>
+                    <hadoopLogDir>Hadoop Log Directory</hadoopLogDir>
+                    <hadoopMasters>Hadoop Master</hadoopMasters>
+                    <hadoopSlaves>Hadoop Slaves</hadoopSlaves>
+                    <host>Host</host>
+                    <hosts>Faban Driver Machine</hosts>
+                    <port>Port</port>
+                    <java>Java</java>
+                    <tools>Tools</tools>
+                    <slaveTools>Slave Tools</slaveTools>
+                    <masterTools>Master Tools</masterTools>
+                    <userCommands>User Commands</userCommands>
+                    <!--benchmarkName>Benchmark to Run</benchmarkName-->
+                    <benchmarkComboName>Benchmark to Run</benchmarkComboName>
+                    <GridMixJavaSmall>JavaSort-Small</GridMixJavaSmall>
+                    <GridMixJavaMedium>JavaSort-Medium</GridMixJavaMedium>
+                    <GridMixJavaLarge>JavaSort-Large</GridMixJavaLarge>
+                    <GridMixWebSmall>WebSort-Small</GridMixWebSmall>
+                    <GridMixWebMedium>WebSort-Medium</GridMixWebMedium>
+                    <GridMixWebLarge>WebSort-Large</GridMixWebLarge>
+                    <GridMixBasic>BasicSort</GridMixBasic>
+                    <GridMixGenerateData>GenerateData</GridMixGenerateData>
+                    <GridMixPath>GridMix Path</GridMixPath>
+                    <HadoopToolsPath>Hadoop Tools Path</HadoopToolsPath>
+                    <ok>Ok</ok>
+                    <cancel>Cancel</cancel>
+                    <true>True</true>
+                    <false>False</false>                
+                </labels>
+            </xforms:instance>
+        </xforms:model>
+    </head>
+    <body>
+        <xforms:group id="group-tabsheet">
+            <xforms:trigger id="trigger-jvmConfig">
+                <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/jvmConfig"/>
+                <xforms:action id="action-jvmConfig">
+                    <xforms:revalidate xforms:model="benchmark-model" id="revalidate-jvmConfig"/>
+                    <xforms:toggle id="toggle-jvmConfig" xforms:case="case-jvmConfig"/>
+                </xforms:action>
+            </xforms:trigger>
+            <xforms:trigger id="trigger-runConfig">
+                <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/runConfig"/>
+                <xforms:action id="action-runConfig">
+                    <xforms:revalidate xforms:model="benchmark-model" id="revalidate-runConfig"/>
+                    <xforms:toggle id="toggle-runConfig" xforms:case="case-runConfig"/>
+                </xforms:action>
+            </xforms:trigger>
+            <xforms:trigger id="trigger-hadoopConfig">
+                <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hadoopConfig"/>
+                <xforms:action id="action-hadoopConfig">
+                    <xforms:revalidate xforms:model="benchmark-model" id="revalidate-hadoopConfig"/>
+                    <xforms:toggle id="toggle-hadoopConfig" xforms:case="case-hadoopConfig"/>
+                </xforms:action>
+            </xforms:trigger>
+
+            <!--xforms:trigger id="trigger-basicHadoopSiteConfig">
+                <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/basicHadoopSiteConfig"/>
+                <xforms:action id="action-basicHadoopSiteConfig">
+                    <xforms:revalidate xforms:model="benchmark-model" id="revalidate-basicHadoopSiteConfig"/>
+                    <xforms:toggle id="toggle-basicHadoopSiteConfig" xforms:case="case-basicHadoopSiteConfig"/>
+                </xforms:action>
+            </xforms:trigger-->
+
+            <xforms:trigger id="trigger-newBasicHadoopSiteConfig">
+                <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/basicHadoopSiteConfig"/>
+                <xforms:action id="action-newBasicHadoopSiteConfig">
+                    <xforms:revalidate xforms:model="benchmark-model" id="revalidate-newBasicHadoopSiteConfig"/>
+                    <xforms:toggle id="toggle-newBasicHadoopSiteConfig" xforms:case="case-newBasicHadoopSiteConfig"/>
+                </xforms:action>
+            </xforms:trigger>
+
+            <xforms:trigger id="trigger-advancedHDFSSiteConfig">
+                <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/advancedHDFSSiteConfigLabel"/>
+                <xforms:action id="action-advancedHDFSSiteConfig">
+                    <xforms:revalidate xforms:model="benchmark-model" id="revalidate-advancedHDFSSiteConfig"/>
+                    <xforms:toggle id="toggle-advancedHDFSSiteConfig" xforms:case="case-advancedHDFSSiteConfig"/>
+                </xforms:action>
+            </xforms:trigger>
+
+            <xforms:trigger id="trigger-advancedCoreSiteConfig">
+                <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/advancedCoreSiteConfigLabel"/>
+                <xforms:action id="action-advancedCoreSiteConfig">
+                    <xforms:revalidate xforms:model="benchmark-model" id="revalidate-advancedCoreSiteConfig"/>
+                    <xforms:toggle id="toggle-advancedCoreSiteConfig" xforms:case="case-advancedCoreSiteConfig"/>
+                </xforms:action>
+            </xforms:trigger>
+
+            <xforms:trigger id="trigger-advancedMapredSiteConfig">
+                <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/advancedMapredSiteConfigLabel"/>
+                <xforms:action id="action-advancedMapredSiteConfig">
+                    <xforms:revalidate xforms:model="benchmark-model" id="revalidate-advancedMapredSiteConfig"/>
+                    <xforms:toggle id="toggle-advancedMapredSiteConfig" xforms:case="case-advancedMapredSiteConfig"/>
+                </xforms:action>
+            </xforms:trigger>
+            
+
+            
+            <!--xforms:trigger id="trigger-hadoopSiteConfig">
+                <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hadoopSiteConfig"/>
+                <xforms:action id="action-hadoopSiteConfig">
+                    <xforms:revalidate xforms:model="benchmark-model" id="revalidate-hadoopSiteConfig"/>
+                    <xforms:toggle id="toggle-hadoopSiteConfig" xforms:case="case-hadoopSiteConfig"/>
+                </xforms:action>
+            </xforms:trigger-->
+
+            <xforms:switch id="switch">
+                <xforms:case id="case-jvmConfig" xforms:selected="true">
+                    <xforms:group id="group-nogroup">
+                        <xforms:input id="input-javaHome" xforms:bind="bind-javaHome">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/javaHome"/>
+                        </xforms:input>
+                        <xforms:input id="input-jvmOptions" xforms:bind="bind-jvmOptions">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/jvmOptions"/>
+                        </xforms:input>
+                    </xforms:group>
+                </xforms:case>
+
+
+
+                <xforms:case id="case-runConfig">
+                    <xforms:group id="group-nogroup">
+                        <xforms:textarea id="input-description" xforms:bind="bind-description">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/description"/>
+                            <xforms:hint>Enter description of this run</xforms:hint>
+                        </xforms:textarea>
+                        <xforms:input id="input-agent-host" xforms:bind="bind-agent-host">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hosts"/>
+                            <xforms:hint>Enter driver machine names separated by space</xforms:hint>
+                            <xforms:help>Enter names of driver machines, separated by space</xforms:help>
+                        </xforms:input>
+
+                        
+                        <xforms:input id="input-master-host" xforms:bind="bind-master-host">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hadoopMasters"/>
+                            <xforms:hint>The master host name or IP addresse, Only one aditional ons will be ignored</xforms:hint>
+                            <xforms:help>The master host name or IP addresse, Only one aditional ons will be ignored</xforms:help>
+                        </xforms:input>
+                        <!--xforms:input id="input-master-tools" xforms:bind="bind-master-tools">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/masterTools"/>
+                            <xforms:hint>Enter tool commands to collect statistics to be run on Master, separated by semi-colon</xforms:hint>
+                            <xforms:help>Enter tool commands to collect statistics to be run on Master, separated by semi-colon</xforms:help>
+                        </xforms:input-->
+
+                        <xforms:input id="input-slave-host" xforms:bind="bind-slave-host">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hadoopSlaves"/>
+                            <xforms:hint>The slave host names or IP addresses, space separated</xforms:hint>
+                            <xforms:help>Enter the slave host names or IP addresses, space separated</xforms:help>
+                        </xforms:input>
+                        <!--xforms:input id="input-slave-tools" xforms:bind="bind-slave-tools">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/slaveTools"/>
+                            <xforms:hint>Enter tool commands to collect statistics to be run on slaves, separated by semi-colon</xforms:hint>
+                            <xforms:help>Enter tool commands to collect statistics to be run on slaves, separated by semi-colon</xforms:help>
+                        </xforms:input-->
+
+
+                    </xforms:group>                    
+                </xforms:case>
+
+
+                
+
+
+                <xforms:case id="case-hadoopConfig"> 
+                    <xforms:group id="group-hadoopConfig">
+                        <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/serverConfig"/>
+                        <xforms:input id="input-hadoop-home" xforms:bind="bind-hadoop-home">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hadoopHomePath"/>
+                            <xforms:hint>Enter the home directory of the hadoop installation</xforms:hint>
+                            <xforms:help>Enter the home directory of the hadoop installation</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-GridMix-Path" xforms:bind="bind-gridmix-path">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/GridMixPath"/>
+                            <xforms:hint>Enter the home directory of the GridMix installation </xforms:hint>
+                            <xforms:hint>Enter the home directory of the GridMix installation </xforms:hint>
+                        </xforms:input>
+
+                        <xforms:input id="input-Hadoop-Tools-Path" xforms:bind="bind-hadoop-tools-path">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/HadoopToolsPath"/>
+                            <xforms:hint>Enter the home directory of the GridMix installation </xforms:hint>
+                            <xforms:hint>Enter the home directory of the GridMix installation </xforms:hint>
+                        </xforms:input>
+
+                        <xforms:input id="input-hadoop-version" xforms:bind="bind-hadoop-version">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hadoopVersion"/>
+                            <xforms:hint>Enter the version number of the hadoop installation</xforms:hint>
+                            <xforms:help>Enter the version number of the hadoop installation</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-hadoop-log-dir" xforms:bind="bind-hadoop-log-dir">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hadoopLogDir"/>
+                            <xforms:hint>Enter the location for the hadoop logs</xforms:hint>
+                            <xforms:help>Enter the location for the hadoop logs</xforms:help>
+                        </xforms:input>
+                        <!--xforms:input id="input-master-host" xforms:bind="bind-master-host">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hadoopMasters"/>
+                            <xforms:hint>The master host name or IP addresse, Only one aditional ons will be ignored</xforms:hint>
+                            <xforms:help>The master host name or IP addresse, Only one aditional ons will be ignored</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-master-tools" xforms:bind="bind-master-tools">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/masterTools"/>
+                            <xforms:hint>Enter tool commands to collect statistics to be run on Master, separated by semi-colon</xforms:hint>
+                            <xforms:help>Enter tool commands to collect statistics to be run on Master, separated by semi-colon</xforms:help>
+                        </xforms:input>                       
+
+                        <xforms:input id="input-slave-host" xforms:bind="bind-slave-host">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hadoopSlaves"/>
+                            <xforms:hint>The slave host names or IP addresses, space separated</xforms:hint>
+                            <xforms:help>Enter the slave host names or IP addresses, space separated</xforms:help>
+                        </xforms:input>
+                        <xforms:input id="input-slave-tools" xforms:bind="bind-slave-tools">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/slaveTools"/>
+                            <xforms:hint>Enter tool commands to collect statistics to be run on slaves, separated by semi-colon</xforms:hint>
+                            <xforms:help>Enter tool commands to collect statistics to be run on slaves, separated by semi-colon</xforms:help>
+                        </xforms:input-->
+                                              
+                        <xforms:select1 id="input-workload" xforms:bind="bind-benchmark-combo-name">
+                             <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/benchmarkComboName"/>
+                             <xforms:choices>                                 
+                                 <xforms:item>
+                                     <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/GridMixJavaMedium"/>
+                                     <xforms:value>JavaSort-Medium</xforms:value>
+                                 </xforms:item>
+                                 <xforms:item>
+                                     <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hadoopJob"/>
+                                     <xforms:value>ExternalHadoopJob</xforms:value>
+                                 </xforms:item>                                 
+                             </xforms:choices>
+                         </xforms:select1>
+
+                        <xforms:input id="input-nonHadoopJob" xforms:bind="bind-non-hadoop-job">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hadoopJobPath"/>
+                            <xforms:hint>Plese enter the class you wish to execute.  It should be in the classpath and known to work from the command line</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+
+                    </xforms:group>
+                </xforms:case>
+
+                
+                
+                <xforms:case id="case-newBasicHadoopSiteConfig">
+                    <xforms:group id="group-newBasicHadoopSiteConfig">
+                        <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hadoopSiteConfigLabel"/>
+
+                        <xforms:input id="input-newFsDefaultName" xforms:bind="bind-new-fs-default-name">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/newFsDefaultName"/>
+                            <xforms:hint>Namenode details</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>                        
+
+                        <xforms:input id="input-newMapredJobTracker" xforms:bind="bind-new-mapred-job-tracker">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/newMapredJobTracker"/>
+                            <xforms:hint>Jobtracker details</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-newHadoopTmpDir" xforms:bind="bind-new-hadoop-tmp-dir">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/newHadoopTmpDir"/>
+                            <xforms:hint>Location of or for Hadoop data</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                    </xforms:group>
+                </xforms:case>
+
+
+
+
+                <!--xforms:case id="case-basicHadoopSiteConfig">
+                    <xforms:group id="group-basicHadoopSiteConfig">
+                        <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hadoopSiteConfigLabel"/>
+
+                        <xforms:input id="input-fsDefaultName" xforms:bind="bind-fs-default-name">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/fsDefaultName"/>
+                            <xforms:hint>Namenode details</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>                        
+
+                        <xforms:input id="input-mapredJobTracker" xforms:bind="bind-mapred-job-tracker">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredJobTracker"/>
+                            <xforms:hint>Jobtracker details</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-hadoopTmpDir" xforms:bind="bind-hadoop-tmp-dir">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hadoopTmpDir"/>
+                            <xforms:hint>Location of or for Hadoop data</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                    </xforms:group>
+                </xforms:case-->
+                
+
+                <xforms:case id="case-advancedHDFSSiteConfig">
+                    <xforms:group id="group-advancedHDFSSiteConfig">
+                        <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/advancedHDFSSiteConfigLabel"/>
+
+                        <xforms:input id="input-dfsNamenodeLoggingLevel" xforms:bind="bind-dfsNamenodeLoggingLevel">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsNamenodeLoggingLevel"/>
+                            <xforms:hint>Namenode logging level</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-dfsSecondaryHttpAddress" xforms:bind="bind-dfsSecondaryHttpAddress">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsSecondaryHttpAddress"/>
+                            <xforms:hint>Secondary http adress for dfs</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-dfsDatanodeAddress" xforms:bind="bind-dfsDatanodeAddress">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsDatanodeAddress"/>
+                            <xforms:hint>Datanode address</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-dfsDatanodeHttpAddress" xforms:bind="bind-dfsDatanodeHttpAddress">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsDatanodeHttpAddress"/>
+                            <xforms:hint>Datanode http address</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-dfsDatanodeIpcAddress" xforms:bind="bind-dfsDatanodeIpcAddress">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsDatanodeIpcAddress"/>
+                            <xforms:hint>Datanode IPC address</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-dfsDatanodeHandlerCount" xforms:bind="bind-dfsDatanodeHandlerCount">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsDatanodeHandlerCount"/>
+                            <xforms:hint>Datanode handler count</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-dfsHttpAddress" xforms:bind="bind-dfsHttpAddress">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsHttpAddress"/>
+                            <xforms:hint>DFS http address</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-dfsHttpsNeedClientAuth" xforms:bind="bind-dfsHttpsNeedClientAuth">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsHttpsNeedClientAuth"/>
+                            <xforms:hint>needs https client auth</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-dfsHttpsServerKeystoreResource" xforms:bind="bind-dfsHttpsServerKeystoreResource">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsHttpsServerKeystoreResource"/>
+                            <xforms:hint>Resource file from which ssl server keystore information will be extracted</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-dfsHttpsClientKeystoreResource" xforms:bind="bind-dfsHttpsClientKeystoreResource">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsHttpsClientKeystoreResource"/>
+                            <xforms:hint>Resource file from which ssl client keystore information will be extracted</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-dfsDatanodeHttpsAddress" xforms:bind="bind-dfsDatanodeHttpsAddress">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsDatanodeHttpsAddress"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-dfsHttpsAddress" xforms:bind="bind-dfsHttpsAddress">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsHttpsAddress"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-dfsDatanodeDnsInterface" xforms:bind="bind-dfsDatanodeDnsInterface">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsDatanodeDnsInterface"/>
+                            <xforms:hint>The name of the Network Interface from which a data node should report its IP address.</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-dfsDatanodeDnsNameserver" xforms:bind="bind-dfsDatanodeDnsNameserver">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsDatanodeDnsNameserver"/>
+                            <xforms:hint>The host name or IP address of the name server (DNS) which a DataNode should use to determine the host name used by the NameNode for communication and display purposes.</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-dfsReplicationConsiderLoad" xforms:bind="bind-dfsReplicationConsiderLoad">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsReplicationConsiderLoad"/>
+                            <xforms:hint>Decide if chooseTarget considers the target's load or not</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-dfsDefaultChunkViewSize" xforms:bind="bind-dfsDefaultChunkViewSize">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsDefaultChunkViewSize"/>
+                            <xforms:hint>The number of bytes to view for a file on the browser.</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-dfsDatanodeDuReserved" xforms:bind="bind-dfsDatanodeDuReserved">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsDatanodeDuReserved"/>
+                            <xforms:hint>Reserved space in bytes per volume. Always leave this much space free for non dfs use.</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-dfsNameDir" xforms:bind="bind-dfsNameDir">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsNameDir"/>
+                            <xforms:hint>Determines where on the local filesystem the DFS name node should store the name table(fsimage). If this is a comma-delimited list of directories then the name table is replicated in all of the directories, for redundancy.</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-dfsNameEditsDir" xforms:bind="bind-dfsNameEditsDir">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsNameEditsDir"/>
+                            <xforms:hint>Determines where on the local filesystem the DFS name node should store the transaction (edits) file. If this is a comma-delimited list of directories then the transaction file is replicated in all of the directories, for redundancy. Default value is same as dfs.name.dir</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-dfsWebUgi" xforms:bind="bind-dfsWebUgi">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsWebUgi"/>
+                            <xforms:hint>The user account used by the web interface. Syntax: USERNAME,GROUP1,GROUP2, ...</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-dfsPermissions" xforms:bind="bind-dfsPermissions">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsPermissions"/>
+                            <xforms:hint>If "true", enable permission checking in HDFS. If "false", permission checking is turned off, but all other behavior is unchanged. Switching from one parameter value to the other does not change the mode, owner or group of files or directories.</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-dfsPermissionsSupergroup" xforms:bind="bind-dfsPermissionsSupergroup">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsPermissionsSupergroup"/>
+                            <xforms:hint>The name of the group of super-users.</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-dfsDataDir" xforms:bind="bind-dfsDataDir">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsDataDir"/>
+                            <xforms:hint>Determines where on the local filesystem an DFS data node should store its blocks. If this is a comma-delimited list of directories, then data will be stored in all named directories, typically on different devices. Directories that do not exist are ignored.</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-dfsReplication" xforms:bind="bind-dfsReplication">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsReplication"/>
+                            <xforms:hint>Default block replication. The actual number of replications can be specified when the file is created. The default is used if replication is not specified in create time.</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-dfsReplicationMax" xforms:bind="bind-dfsReplicationMax">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsReplicationMax"/>
+                            <xforms:hint>Maximal block replication.</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-dfsReplicationMin" xforms:bind="bind-dfsReplicationMin">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsReplicationMin"/>
+                            <xforms:hint>Minimal block replication.</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-dfsBlockSize" xforms:bind="bind-dfsBlockSize">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsBlockSize"/>
+                            <xforms:hint>The default block size for new files.</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-dfsDfInterval" xforms:bind="bind-dfsDfInterval">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsDfInterval"/>
+                            <xforms:hint>Disk usage statistics refresh interval in msec.</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-dfsClientBlockWriteRetries" xforms:bind="bind-dfsClientBlockWriteRetries">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsClientBlockWriteRetries"/>
+                            <xforms:hint>The number of retries for writing blocks to the data nodes, before we signal failure to the application.</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-dfsBlockreportIntervalMsec" xforms:bind="bind-dfsBlockreportIntervalMsec">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsBlockreportIntervalMsec"/>
+                            <xforms:hint>Determines block reporting interval in milliseconds.</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-dfsBlockreportInitialDelay" xforms:bind="bind-dfsBlockreportInitialDelay">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsBlockreportInitialDelay"/>
+                            <xforms:hint>Delay for first block report in seconds.</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-dfsHeartbeatInterval" xforms:bind="bind-dfsHeartbeatInterval">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsHeartbeatInterval"/>
+                            <xforms:hint>Determines datanode heartbeat interval in seconds.</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-dfsNamenodeHandlerCount" xforms:bind="bind-dfsNamenodeHandlerCount">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsNamenodeHandlerCount"/>
+                            <xforms:hint>The number of server threads for the namenode.</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-dfsSafemodeThresholdPct" xforms:bind="bind-dfsSafemodeThresholdPct">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsSafemodeThresholdPct"/>
+                            <xforms:hint>Specifies the percentage of blocks that should satisfy the minimal replication requirement defined by dfs.replication.min. Values less than or equal to 0 mean not to start in safe mode. Values greater than 1 will make safe mode permanent.</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-dfsSafemodeExtension" xforms:bind="bind-dfsSafemodeExtension">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsSafemodeExtension"/>
+                            <xforms:hint>Determines extension of safe mode in milliseconds after the threshold level is reached.</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-dfsBalanceBandwidthPerSec" xforms:bind="bind-dfsBalanceBandwidthPerSec">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsBalanceBandwidthPerSec"/>
+                            <xforms:hint>Specifies the maximum amount of bandwidth that each datanode can utilize for the balancing purpose in term of the number of bytes per second.</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-dfsHosts" xforms:bind="bind-dfsHosts">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsHosts"/>
+                            <xforms:hint>Names a file that contains a list of hosts that are permitted to connect to the namenode. The full pathname of the file must be specified. If the value is empty, all hosts are permitted.</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-dfsHostsExclude" xforms:bind="bind-dfsHostsExclude">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsHostsExclude"/>
+                            <xforms:hint>Names a file that contains a list of hosts that are not permitted to connect to the namenode. The full pathname of the file must be specified. If the value is empty, no hosts are excluded.</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-dfsMaxObjects" xforms:bind="bind-dfsMaxObjects">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsMaxObjects"/>
+                            <xforms:hint>The maximum number of files, directories and blocks dfs supports. A value of zero indicates no limit to the number of objects that dfs supports.</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-dfsDamenodeDecommissionInterval" xforms:bind="bind-dfsDamenodeDecommissionInterval">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsDamenodeDecommissionInterval"/>
+                            <xforms:hint>Namenode periodicity in seconds to check if decommission is complete.</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-dfsNamenodeDecommissionNodesPerInterval" xforms:bind="bind-dfsNamenodeDecommissionNodesPerInterval">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsNamenodeDecommissionNodesPerInterval"/>
+                            <xforms:hint>The number of nodes namenode checks if decommission is complete in each dfs.namenode.decommission.interval.</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-dfsReplicationInterval" xforms:bind="bind-dfsReplicationInterval">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsReplicationInterval"/>
+                            <xforms:hint>The period in seconds with which the namenode computes repliaction work for datanodes.</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-dfsAccessTimePrecision" xforms:bind="bind-dfsAccessTimePrecision">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsAccessTimePrecision"/>
+                            <xforms:hint>The access time for HDFS file is precise upto this value. The default value is 1 hour. Setting a value of 0 disables access times for HDFS.</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-dfsSupportAppend" xforms:bind="bind-dfsSupportAppend">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsSupportAppend"/>
+                            <xforms:hint>Does HDFS allow appends to files? This is currently set to false because there are bugs in the "append code" and is not supported in any prodction cluster.</xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:select1 id="input-set-dfs-final-flag" xforms:bind="bind-set-dfs-final-flag">
+                             <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/setDFSFinalFlag"/>
+                             <xforms:hint>Force these values on all jobs</xforms:hint>
+                             <xforms:help></xforms:help>
+                             <xforms:choices>
+                                 <xforms:item>
+                                     <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/true"/>
+                                     <xforms:value>True</xforms:value>
+                                 </xforms:item>
+                                 <xforms:item>
+                                     <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/false"/>
+                                     <xforms:value>False</xforms:value>
+                                 </xforms:item>
+                             </xforms:choices>
+                         </xforms:select1>
+
+                    </xforms:group>
+                </xforms:case>
+
+                <xforms:case id="case-advancedCoreSiteConfig">
+                    <xforms:group id="group-advancedCoreSiteConfig">
+                        <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/advancedCoreSiteConfigLabel"/>
+
+
+                        <xforms:input id="input-hadoopTmpDir" xforms:bind="bind-hadoopTmpDir">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hadoopTmpDir"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-hadoopNativeLib" xforms:bind="bind-hadoopNativeLib">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hadoopNativeLib"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-hadoopHttpFilterInitializers" xforms:bind="bind-hadoopHttpFilterInitializers">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hadoopHttpFilterInitializers"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-hadoopSecurityAuthorization" xforms:bind="bind-hadoopSecurityAuthorization">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hadoopSecurityAuthorization"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-hadoopLogfileSize" xforms:bind="bind-hadoopLogfileSize">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hadoopLogfileSize"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-hadoopLogfileCount" xforms:bind="bind-hadoopLogfileCount">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hadoopLogfileCount"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-ioFileBufferSize" xforms:bind="bind-ioFileBufferSize">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ioFileBufferSize"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-ioBytesPerChecksum" xforms:bind="bind-ioBytesPerChecksum">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ioBytesPerChecksum"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-ioSkipChecksumErrors" xforms:bind="bind-ioSkipChecksumErrors">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ioSkipChecksumErrors"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-ioCompressionCodecs" xforms:bind="bind-ioCompressionCodecs">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ioCompressionCodecs"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                    
+
+                        <xforms:input id="input-ioSerializations" xforms:bind="bind-ioSerializations">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ioSerializations"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-fsDefaultName" xforms:bind="bind-fsDefaultName">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/fsDefaultName"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-fsTrashInterval" xforms:bind="bind-fsTrashInterval">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/fsTrashInterval"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-fsFileImpl" xforms:bind="bind-fsFileImpl">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/fsFileImpl"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-fsHdfsImpl" xforms:bind="bind-fsHdfsImpl">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/fsHdfsImpl"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-fsS3Impl" xforms:bind="bind-fsS3Impl">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/fsS3Impl"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-fsS3nImpl" xforms:bind="bind-fsS3nImpl">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/fsS3nImpl"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-fsKfsImpl" xforms:bind="bind-fsKfsImpl">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/fsKfsImpl"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-fsHftpImpl" xforms:bind="bind-fsHftpImpl">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/fsHftpImpl"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-fsHsftpImpl" xforms:bind="bind-fsHsftpImpl">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/fsHsftpImpl"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-fsFtpImpl" xforms:bind="bind-fsFtpImpl">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/fsFtpImpl"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-fsRamfsImpl" xforms:bind="bind-fsRamfsImpl">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/fsRamfsImpl"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-fsHarImpl" xforms:bind="bind-fsHarImpl">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/fsHarImpl"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-fsCheckpointDir" xforms:bind="bind-fsCheckpointDir">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/fsCheckpointDir"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-fsCheckpointEditsDir" xforms:bind="bind-fsCheckpointEditsDir">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/fsCheckpointEditsDir"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-fsCheckpointPeriod" xforms:bind="bind-fsCheckpointPeriod">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/fsCheckpointPeriod"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-fsCheckpointSize" xforms:bind="bind-fsCheckpointSize">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/fsCheckpointSize"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-fsS3BlockSize" xforms:bind="bind-fsS3BlockSize">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/fsS3BlockSize"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-fsS3BufferDir" xforms:bind="bind-fsS3BufferDir">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/fsS3BufferDir"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-fsS3MaxRetries" xforms:bind="bind-fsS3MaxRetries">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/fsS3MaxRetries"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-fsS3SleepTimeSeconds" xforms:bind="bind-fsS3SleepTimeSeconds">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/fsS3SleepTimeSeconds"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-localCacheSize" xforms:bind="bind-localCacheSize">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/localCacheSize"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-ioSeqfileCompressBlocksize" xforms:bind="bind-ioSeqfileCompressBlocksize">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ioSeqfileCompressBlocksize"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-ioSeqfileLazydecompress" xforms:bind="bind-ioSeqfileLazydecompress">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ioSeqfileLazydecompress"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-ioSeqfileSorterRecordlimit" xforms:bind="bind-ioSeqfileSorterRecordlimit">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ioSeqfileSorterRecordlimit"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-ioMapfileBloomSize" xforms:bind="bind-ioMapfileBloomSize">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ioMapfileBloomSize"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-ioMapfileBloomErrorRate" xforms:bind="bind-ioMapfileBloomErrorRate">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ioMapfileBloomErrorRate"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-hadoopUtilHashType" xforms:bind="bind-hadoopUtilHashType">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hadoopUtilHashType"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-ipcClientIdlethreshold" xforms:bind="bind-ipcClientIdlethreshold">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ipcClientIdlethreshold"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-ipcClientKillMax" xforms:bind="bind-ipcClientKillMax">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ipcClientKillMax"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-ipcClientConnectionMaxidletime" xforms:bind="bind-ipcClientConnectionMaxidletime">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ipcClientConnectionMaxidletime"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-ipcClientConnectMaxRetries" xforms:bind="bind-ipcClientConnectMaxRetries">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ipcClientConnectMaxRetries"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-ipcServerListenQueueSize" xforms:bind="bind-ipcServerListenQueueSize">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ipcServerListenQueueSize"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-ipcServerTcpnodelay" xforms:bind="bind-ipcServerTcpnodelay">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ipcServerTcpnodelay"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-ipcClientTcpnodelay" xforms:bind="bind-ipcClientTcpnodelay">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ipcClientTcpnodelay"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-webinterfacePrivateActions" xforms:bind="bind-webinterfacePrivateActions">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/webinterfacePrivateActions"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-hadoopRpcSocketFactoryClassDefault" xforms:bind="bind-hadoopRpcSocketFactoryClassDefault">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hadoopRpcSocketFactoryClassDefault"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-hadoopRpcSocketFactoryClassClientProtocol" xforms:bind="bind-hadoopRpcSocketFactoryClassClientProtocol">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hadoopRpcSocketFactoryClassClientProtocol"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-hadoopSocksServer" xforms:bind="bind-hadoopSocksServer">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hadoopSocksServer"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-topologyNodeSwitchMappingImpl" xforms:bind="bind-topologyNodeSwitchMappingImpl">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/topologyNodeSwitchMappingImpl"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-topologyScriptFileName" xforms:bind="bind-topologyScriptFileName">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/topologyScriptFileName"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-topologyScriptNumberArgs" xforms:bind="bind-topologyScriptNumberArgs">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/topologyScriptNumberArgs"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        
+
+                        <xforms:select1 id="input-set-core-final-flag" xforms:bind="bind-set-core-final-flag">
+                             <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/setCoreFinalFlag"/>
+                             <xforms:hint>Force these values on all jobs</xforms:hint>
+                             <xforms:help></xforms:help>
+                             <xforms:choices>
+                                 <xforms:item>
+                                     <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/true"/>
+                                     <xforms:value>True</xforms:value>
+                                 </xforms:item>
+                                 <xforms:item>
+                                     <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/false"/>
+                                     <xforms:value>False</xforms:value>
+                                 </xforms:item>
+                             </xforms:choices>
+                         </xforms:select1>
+
+                    </xforms:group>
+                </xforms:case>
+
+                <xforms:case id="case-advancedMapredSiteConfig">
+                    <xforms:group id="group-advancedMapredSiteConfig">
+                        <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/advancedMapredSiteConfigLabel"/>
+                        
+                        <xforms:input id="input-hadoopJobHistoryLocation" xforms:bind="bind-hadoopJobHistoryLocation">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hadoopJobHistoryLocation"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-hadoopJobHistoryUserLocation" xforms:bind="bind-hadoopJobHistoryUserLocation">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hadoopJobHistoryUserLocation"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-ioSortFactor" xforms:bind="bind-ioSortFactor">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ioSortFactor"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-ioSortMb" xforms:bind="bind-ioSortMb">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ioSortMb"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-ioSortRecordPercent" xforms:bind="bind-ioSortRecordPercent">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ioSortRecordPercent"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-ioSortSpillPercent" xforms:bind="bind-ioSortSpillPercent">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ioSortSpillPercent"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-ioMapIndexSkip" xforms:bind="bind-ioMapIndexSkip">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ioMapIndexSkip"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-mapredJobTracker" xforms:bind="bind-mapredJobTracker">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredJobTracker"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-mapredJobTrackerHttpAddress" xforms:bind="bind-mapredJobTrackerHttpAddress">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredJobTrackerHttpAddress"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-mapredJobTrackerHandlerCount" xforms:bind="bind-mapredJobTrackerHandlerCount">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredJobTrackerHandlerCount"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-mapredTaskTrackerReportAddress" xforms:bind="bind-mapredTaskTrackerReportAddress">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredTaskTrackerReportAddress"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-mapredLocalDir" xforms:bind="bind-mapredLocalDir">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredLocalDir"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-mapredSystemDir" xforms:bind="bind-mapredSystemDir">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredSystemDir"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-mapredTempDir" xforms:bind="bind-mapredTempDir">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredTempDir"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-mapredLocalDirMinspacestart" xforms:bind="bind-mapredLocalDirMinspacestart">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredLocalDirMinspacestart"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-mapredLocalDirMinspacekil" xforms:bind="bind-mapredLocalDirMinspacekil">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredLocalDirMinspacekil"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-mapredTasktrackerExpiryInterval" xforms:bind="bind-mapredTasktrackerExpiryInterval">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredTasktrackerExpiryInterval"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-mapredTasktrackerInstrumentation" xforms:bind="bind-mapredTasktrackerInstrumentation">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredTasktrackerInstrumentation"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-mapredTasktrackerVmemReserved" xforms:bind="bind-mapredTasktrackerVmemReserved">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredTasktrackerVmemReserved"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-mapredTasktrackerPmemReserved" xforms:bind="bind-mapredTasktrackerPmemReserved">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredTasktrackerPmemReserved"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-mapredTaskDefaultMaxvmem" xforms:bind="bind-mapredTaskDefaultMaxvmem">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredTaskDefaultMaxvmem"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-mapredTaskLimitMaxvmem" xforms:bind="bind-mapredTaskLimitMaxvmem">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredTaskLimitMaxvmem"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-mapredTaskMaxvmem" xforms:bind="bind-mapredTaskMaxvmem">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredTaskMaxvmem"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-mapredTaskMaxpmem" xforms:bind="bind-mapredTaskMaxpmem">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredTaskMaxpmem"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-mapredTasktrackerMemoryCalculatorPlugin" xforms:bind="bind-mapredTasktrackerMemoryCalculatorPlugin">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredTasktrackerMemoryCalculatorPlugin"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-mapredTasktrackerTaskmemorymanagerMonitoringInterval" xforms:bind="bind-mapredTasktrackerTaskmemorymanagerMonitoringInterval">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredTasktrackerTaskmemorymanagerMonitoringInterval"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-mapredTasktrackerProcfsbasedprocesstreeSleeptimeBeforeSigkill" xforms:bind="bind-mapredTasktrackerProcfsbasedprocesstreeSleeptimeBeforeSigkill">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredTasktrackerProcfsbasedprocesstreeSleeptimeBeforeSigkill"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-mapredMapTasks" xforms:bind="bind-mapredMapTasks">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredMapTasks"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-mapredReduceTasks" xforms:bind="bind-mapredReduceTasks">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredReduceTasks"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-mapredJobtrackerRestartRecover" xforms:bind="bind-mapredJobtrackerRestartRecover">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredJobtrackerRestartRecover"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-mapredJobtrackerJobHistoryBlockSize" xforms:bind="bind-mapredJobtrackerJobHistoryBlockSize">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredJobtrackerJobHistoryBlockSize"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                         <xforms:input id="input-mapredJobtrackerTaskScheduler" xforms:bind="bind-mapredJobtrackerTaskScheduler">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredJobtrackerTaskScheduler"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                         <xforms:input id="input-mapredJobtrackerTaskSchedulerMaxRunningTasksPerJob" xforms:bind="bind-mapredJobtrackerTaskSchedulerMaxRunningTasksPerJob">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredJobtrackerTaskSchedulerMaxRunningTasksPerJob"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                         <xforms:input id="input-mapredMapMaxAttempts" xforms:bind="bind-mapredMapMaxAttempts">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredMapMaxAttempts"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                         <xforms:input id="input-mapredReduceMaxAttempts" xforms:bind="bind-mapredReduceMaxAttempts">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredReduceMaxAttempts"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                         <xforms:input id="input-mapredReduceParallelCopies" xforms:bind="bind-mapredReduceParallelCopies">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredReduceParallelCopies"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                         <xforms:input id="input-mapredReduceCopyBackoff" xforms:bind="bind-mapredReduceCopyBackoff">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredReduceCopyBackoff"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                         <xforms:input id="input-mapredTaskTimeout" xforms:bind="bind-mapredTaskTimeout">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredTaskTimeout"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                         <xforms:input id="input-mapredTasktrackerMapTasksMaximum" xforms:bind="bind-mapredTasktrackerMapTasksMaximum">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredTasktrackerMapTasksMaximum"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                         <xforms:input id="input-mapredTasktrackerReduceTasksMaximum" xforms:bind="bind-mapredTasktrackerReduceTasksMaximum">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredTasktrackerReduceTasksMaximum"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredJobtrackerCompleteuserjobsMaximum" xforms:bind="bind-mapredJobtrackerCompleteuserjobsMaximum">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredJobtrackerCompleteuserjobsMaximum"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredJobtrackerInstrumentation" xforms:bind="bind-mapredJobtrackerInstrumentation">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredJobtrackerInstrumentation"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredChildJavaOpts" xforms:bind="bind-mapredChildJavaOpts">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredChildJavaOpts"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredChildUlimit" xforms:bind="bind-mapredChildUlimit">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredChildUlimit"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredChildTmp" xforms:bind="bind-mapredChildTmp">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredChildTmp"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredInmemergeThreshold" xforms:bind="bind-mapredInmemergeThreshold">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredInmemergeThreshold"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredJobShuffleMergePercent" xforms:bind="bind-mapredJobShuffleMergePercent">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredJobShuffleMergePercent"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredJobShuffleInputBufferPercent" xforms:bind="bind-mapredJobShuffleInputBufferPercent">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredJobShuffleInputBufferPercent"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredJobReduceInputBufferPercent" xforms:bind="bind-mapredJobReduceInputBufferPercent">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredJobReduceInputBufferPercent"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredMapTasksSpeculativeExecution" xforms:bind="bind-mapredMapTasksSpeculativeExecution">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredMapTasksSpeculativeExecution"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>                    
+                        
+                        <xforms:input id="input-mapredReduceTasksSpeculativeExecution" xforms:bind="bind-mapredReduceTasksSpeculativeExecution">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredReduceTasksSpeculativeExecution"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-mapredJobReuseJvmNumTasks" xforms:bind="bind-mapredJobReuseJvmNumTasks">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredJobReuseJvmNumTasks"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-mapredMinSplitSize" xforms:bind="bind-mapredMinSplitSize">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredMinSplitSize"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-mapredJobtrackerMaxtasksPerJob" xforms:bind="bind-mapredJobtrackerMaxtasksPerJob">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredJobtrackerMaxtasksPerJob"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-mapredSubmitReplication" xforms:bind="bind-mapredSubmitReplication">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredSubmitReplication"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-mapredTasktrackerDnsInterface" xforms:bind="bind-mapredTasktrackerDnsInterface">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredTasktrackerDnsInterface"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-mapredTasktrackerDnsNameserver" xforms:bind="bind-mapredTasktrackerDnsNameserver">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredTasktrackerDnsNameserver"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-tasktrackerHttpThreads" xforms:bind="bind-tasktrackerHttpThreads">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/tasktrackerHttpThreads"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-mapredTaskTrackerHttpAddress" xforms:bind="bind-mapredTaskTrackerHttpAddress">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredTaskTrackerHttpAddress"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        <xforms:input id="input-keepFailedTaskFiles" xforms:bind="bind-keepFailedTaskFiles">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/keepFailedTaskFiles"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredOutputCompress" xforms:bind="bind-mapredOutputCompress">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredOutputCompress"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredOutputCompressionType" xforms:bind="bind-mapredOutputCompressionType">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredOutputCompressionType"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredOutputCompressionCodec" xforms:bind="bind-mapredOutputCompressionCodec">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredOutputCompressionCodec"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredCompressMapOutput" xforms:bind="bind-mapredCompressMapOutput">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredCompressMapOutput"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredMapOutputCompressionCodec" xforms:bind="bind-mapredMapOutputCompressionCodec">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredMapOutputCompressionCodec"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapSortClass" xforms:bind="bind-mapSortClass">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapSortClass"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredUserlogLimitKb" xforms:bind="bind-mapredUserlogLimitKb">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredUserlogLimitKb"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredUserlogRetainHours" xforms:bind="bind-mapredUserlogRetainHours">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredUserlogRetainHours"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredHosts" xforms:bind="bind-mapredHosts">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredHosts"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredHostsExclude" xforms:bind="bind-mapredHostsExclude">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredHostsExclude"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                        
+
+                        <xforms:input id="input-mapredMaxTrackerBlacklists" xforms:bind="bind-mapredMaxTrackerBlacklists">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredMaxTrackerBlacklists"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredMaxTrackerFailures" xforms:bind="bind-mapredMaxTrackerFailures">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredMaxTrackerFailures"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-jobclientOutputFilter" xforms:bind="bind-jobclientOutputFilter">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/jobclientOutputFilter"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredJobTrackerPersistJobstatusActive" xforms:bind="bind-mapredJobTrackerPersistJobstatusActive">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredJobTrackerPersistJobstatusActive"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredJobTrackerPersistJobstatusHours" xforms:bind="bind-mapredJobTrackerPersistJobstatusHours">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredJobTrackerPersistJobstatusHours"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredJobTrackerPersistJobstatusDir" xforms:bind="bind-mapredJobTrackerPersistJobstatusDir">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredJobTrackerPersistJobstatusDir"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredTaskProfile" xforms:bind="bind-mapredTaskProfile">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredTaskProfile"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+
+
+                        <xforms:input id="input-mapredTaskProfileMaps" xforms:bind="bind-mapredTaskProfileMaps">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredTaskProfileMaps"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredTaskProfileReduces" xforms:bind="bind-mapredTaskProfileReduces">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredTaskProfileReduces"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredLineInputFormatLinespermap" xforms:bind="bind-mapredLineInputFormatLinespermap">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredLineInputFormatLinespermap"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredSkipAttemptsToStartSkipping" xforms:bind="bind-mapredSkipAttemptsToStartSkipping">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredSkipAttemptsToStartSkipping"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredSkipMapAutoIncrProcCount" xforms:bind="bind-mapredSkipMapAutoIncrProcCount">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredSkipMapAutoIncrProcCount"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredSkipReduceAutoIncrProcCount" xforms:bind="bind-mapredSkipReduceAutoIncrProcCount">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredSkipReduceAutoIncrProcCount"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredSkipOutDir" xforms:bind="bind-mapredSkipOutDir">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredSkipOutDir"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredSkipMapMaxSkipRecords" xforms:bind="bind-mapredSkipMapMaxSkipRecords">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredSkipMapMaxSkipRecords"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                    
+
+                        <xforms:input id="input-mapredSkipReduceMaxSkipGroups" xforms:bind="bind-mapredSkipReduceMaxSkipGroups">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredSkipReduceMaxSkipGroups"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-jobEndRetryAttempts" xforms:bind="bind-jobEndRetryAttempts">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/jobEndRetryAttempts"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-jobEndRetryInterval" xforms:bind="bind-jobEndRetryInterval">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/jobEndRetryInterval"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-hadoopRpcSocketFactoryClassJobSubmissionProtocol" xforms:bind="bind-hadoopRpcSocketFactoryClassJobSubmissionProtocol">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hadoopRpcSocketFactoryClassJobSubmissionProtocol"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredTaskCacheLevels" xforms:bind="bind-mapredTaskCacheLevels">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredTaskCacheLevels"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredQueueNames" xforms:bind="bind-mapredQueueNames">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredQueueNames"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredAclsEnabled" xforms:bind="bind-mapredAclsEnabled">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredAclsEnabled"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                    
+
+                        <xforms:input id="input-mapredQueueDefaultAclSubmitJob" xforms:bind="bind-mapredQueueDefaultAclSubmitJob">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredQueueDefaultAclSubmitJob"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredQueueDefaultAclAdministerJobs" xforms:bind="bind-mapredQueueDefaultAclAdministerJobs">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredQueueDefaultAclAdministerJobs"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredJobQueueName" xforms:bind="bind-mapredJobQueueName">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredJobQueueName"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredTasktrackerIndexcacheMb" xforms:bind="bind-mapredTasktrackerIndexcacheMb">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredTasktrackerIndexcacheMb"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredMergeRecordsBeforeProgress" xforms:bind="bind-mapredMergeRecordsBeforeProgress">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredMergeRecordsBeforeProgress"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredReduceSlowstartCompletedMaps" xforms:bind="bind-mapredReduceSlowstartCompletedMaps">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredReduceSlowstartCompletedMaps"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+
+                        <xforms:select1 id="input-set-mapred-final-flag" xforms:bind="bind-set-mapred-final-flag">
+                             <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/setMapredFinalFlag"/>
+                             <xforms:hint>Force these values on all jobs</xforms:hint>
+                             <xforms:help></xforms:help>
+                             <xforms:choices>
+                                 <xforms:item>
+                                     <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/true"/>
+                                     <xforms:value>True</xforms:value>
+                                 </xforms:item>
+                                 <xforms:item>
+                                     <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/false"/>
+                                     <xforms:value>False</xforms:value>
+                                 </xforms:item>
+                             </xforms:choices>
+                         </xforms:select1>
+
+                    </xforms:group>
+                </xforms:case>
+
+
+
+
+                <!--xforms:case id="case-hadoopSiteConfig">
+                    <xforms:group id="group-hadoopSiteConfig">
+                        <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hadoopSiteConfigLabel"/>
+
+                        <xforms:input id="input-mapredSubmitReplication" xforms:bind="bind-mapred-submit-replication">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredSubmitReplication"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-tasktrackerHttpThreads" xforms:bind="bind-tasktracker-http-threads">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/tasktrackerHttpThreads"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredReduceTasksSpeculativeExecution" xforms:bind="bind-mapred-reduce-tasks-speculative-execution">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredReduceTasksSpeculativeExecution"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredMapTasksSpeculativeExecution" xforms:bind="bind-mapred-map-tasks-speculative-execution">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredMapTasksSpeculativeExecution"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredMapTasks" xforms:bind="bind-mapred-map-tasks">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredMapTasks"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredReduceTasks" xforms:bind="bind-mapred-reduce-tasks">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredReduceTasks"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredChildJavaOpts" xforms:bind="bind-mapred-child-java-opts">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredChildJavaOpts"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredTasktrackerReduceTasksMaximum" xforms:bind="bind-mapred-tasktracker-reduce-tasks-maximum">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredTasktrackerReduceTasksMaximum"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredTasktrackerMapTasksMaximum" xforms:bind="bind-mapred-tasktracker-map-tasks-maximum">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredTasktrackerMapTasksMaximum"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-mapredJobTrackerHandlerCount" xforms:bind="bind-mapred-job-tracker-handler-count">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredJobTrackerHandlerCount"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>                       
+
+                        <xforms:input id="input-tasktrackerHttpPort" xforms:bind="bind-tasktracker-http-port">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/tasktrackerHttpPort"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-dfsNamenodeHandlerCount" xforms:bind="bind-dfs-namenode-handler-count">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsNamenodeHandlerCount"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-dfsBlockSize" xforms:bind="bind-dfs-block-size">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsBlockSize"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-ioSortMb" xforms:bind="bind-io-sort-mb">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ioSortMb"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-hadoopLogfileCount" xforms:bind="bind-hadoop-logfile-count">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hadoopLogfileCount"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-hadoopLogfileSize" xforms:bind="bind-hadoop-logfile-size">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/hadoopLogfileSize"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+
+                        <xforms:input id="input-dfsReplication" xforms:bind="bind-dfs-replication">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/dfsReplication"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>                        
+
+                        <xforms:input id="input-mapredTaskTimeout" xforms:bind="bind-mapred-task-timeout">
+                            <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/mapredTaskTimeout"/>
+                            <xforms:hint></xforms:hint>
+                            <xforms:help></xforms:help>
+                        </xforms:input>
+                        
+                    </xforms:group>
+                </xforms:case-->
+                
+            </xforms:switch>
+        </xforms:group>
+       
+       
+        <xforms:group id="group-buttons">
+            <xforms:trigger id="trigger-ok">
+                <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/ok"/>
+                <xforms:action id="action-ok">
+                    <xforms:send id="send-debug" xforms:submission="submission-debug"/>
+                </xforms:action>
+            </xforms:trigger>
+            <xforms:trigger id="trigger-cancel">
+                <xforms:label xforms:model="benchmark-labels" xforms:ref="/labels/cancel"/>
+                <xforms:action id="action-cancel">
+                    <xforms:reset id="reset-cancel" xforms:model="benchmark-model"/>
+                    <xforms:toggle id="toggle-cancel" xforms:case="case-jvmConfig"/>
+                </xforms:action>
+            </xforms:trigger>
+        </xforms:group>
+    </body>
+</html>
+
