@@ -256,20 +256,28 @@ public class RequestProxy implements Runnable {
             } while (handler.requestPending());
 
         } catch (TimedOutException e) {
-            logger.throwing(className, "run", e);
+            logger.log(Level.FINER, e.getMessage(), e);
         } catch (EOFException e) {
-            logger.throwing(className, "run", e);
-            key.cancel();
+            logger.log(Level.FINEST, e.getMessage(), e);
+            cancelKey();
         } catch (UnsupportedProtocolException e) {
-            logger.severe(e.getMessage());
-            logger.throwing(className, "run", e);
-            key.cancel();
+            logger.log(Level.WARNING, e.getMessage(), e);
+            cancelKey();
         } catch (IOException e) {
-            logger.severe(e.getMessage());
-            logger.throwing(className, "run", e);
-            key.cancel();
+            logger.log(Level.WARNING, e.getMessage(), e);
+            cancelKey();
         }
         flags[READY] = false;
         logger.finest("End processing request");
+    }
+
+    private void cancelKey() {
+        try {
+            key.channel().close();
+        } catch (IOException e) {
+            logger.log(Level.FINE, "Error closing socket channel", e);
+        } finally {
+            key.cancel();
+        }
     }
 }

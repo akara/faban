@@ -111,17 +111,9 @@ public class Listener implements Runnable {
                         }
                     } else if (key.isWritable()) {
                         ((RequestProxy) key.attachment()).channelReady();
-                    // } else if (key.isAcceptable()) {
-                    //    acceptNewClient(key);
                     }
                 }
                 it.remove();
-            // } catch (ClosedChannelException e) {
-            //     key.cancel();
-            // } catch (IOException e) {
-            //     key.cancel();
-            //     logger.log(Level.WARNING, "Error handling keys", e);
-            // }
         }
         if (taskList.size() > 0) {
             for (int i = 0; i < taskList.size(); i++)
