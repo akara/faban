@@ -193,27 +193,27 @@ public class GlassfishService {
 	 * It assumes that session files are in /tmp/sess*
      * @return true if operation succeeded, else fail
      */
-    @ClearLogs public boolean clearLogs() {
+    @ClearLogs public void clearLogs() {
 
         for (int i = 0; i < myServers.length; i++) {
+            boolean err = false;
             if (isFile(myServers[i], errlogFile)) {
                 if (!deleteFile(myServers[i], errlogFile)) {
                     logger.log(Level.WARNING, "Delete of " + errlogFile +
                             " failed on " + myServers[i]);
-                    return (false);
+                    err = true;
                 }
             }
             if (isFile(myServers[i], acclogFile)) {
                 if (!deleteFile(myServers[i], acclogFile)) {
                     logger.log(Level.WARNING, "Delete of " + acclogFile +
                             " failed on " + myServers[i]);
-                    return (false);
+                    err = true;
                 }
             }
-
-            logger.fine("Logs cleared for " + myServers[i]);
+            if (!err)
+                logger.fine("Logs cleared for " + myServers[i]);
         }
-        return (true);
     }
 
 
