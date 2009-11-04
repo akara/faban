@@ -28,7 +28,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation used for killing run in DefaultFabanBechmark2 class.
+ * Annotation used for the kill method run in the benchmark class.
  *
  * @author Sheetal Patil, Sun Microsystems.
  */

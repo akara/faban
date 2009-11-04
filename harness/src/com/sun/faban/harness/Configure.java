@@ -28,7 +28,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation used for configuring in DefaultFabanBechmark2 class.
+ * Annotation used for run configuration method in the benchmark class.
  *
  * @author Sheetal Patil, Sun Microsystems.
  */

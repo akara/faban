@@ -28,7 +28,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation used for Varaiable injection of services and tools.
+ * Annotation used for context variable injection of services and tools.
  *
  * @author Sheetal Patil
  */

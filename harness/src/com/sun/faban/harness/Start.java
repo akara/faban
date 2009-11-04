@@ -29,7 +29,7 @@ import java.lang.annotation.Target;
 
 
 /**
- * Annotation used for starting a tool.
+ * Annotation used for starting a service and tool.
  * @author Sheetal Patil
  */
 

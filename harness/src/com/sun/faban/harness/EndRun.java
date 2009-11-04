@@ -28,7 +28,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation used for ending run in DefaultFabanBechmark2 class.
+ * Annotation used for method waiting for the run to end
+ * in the benchmark class.
  *
  * @author Sheetal Patil, Sun Microsystems.
  */

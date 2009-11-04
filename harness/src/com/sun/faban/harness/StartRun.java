@@ -28,7 +28,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation used for starting run in DefaultFabanBechmark2 class.
+ * Annotation used for run starting method in benchmark class.
  * @author Sheetal Patil, Sun Microsystems.
  */
 @Retention(RetentionPolicy.RUNTIME)
