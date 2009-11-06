@@ -83,11 +83,12 @@
                 <input type="reset">
               </center>
               <br>
-              <table BORDER=0 CELLPADDING=4 CELLSPACING=3 width="90%" align="center" style="padding:2px; border: 2px solid #cccccc;">
+              <table id="ResultTable" BORDER=0 CELLPADDING=4 CELLSPACING=3 width="90%" align="center" style="padding:2px; border: 2px solid #cccccc;">
               <tbody>
               <tr>
                   <th style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="header">&nbsp;</th>
-    <%      for (int i = 0; i < resultTable.columns(); i++) {  
+    <%      // Last column (column 8) contaiuns the URL to the results.
+            for (int i = 0; i < resultTable.columns() - 1; i++) {
                   if(resultTable.getSortDirection() == SortDirection.DESCENDING){
                       sortDirection = "ASCENDING";
                   }else if(resultTable.getSortDirection() == SortDirection.ASCENDING){
@@ -101,20 +102,27 @@
     <%      } %>
               </tr>
     <%
+            final String[] rowClasses = { "even", "odd" };
             for(int i = 0; i < rows; i++) {
                 Comparable[] row = resultTable.getRow(i);
+                String rowClass = rowClasses[i % 2];
     %>
-            <tr <%if(i % 2 == 0){%>class="even"<%}else{%>class="odd"<% } %>>
+            <tr class="<%= rowClass %>" onmouseover="this.className='highlight'"
+                 onmouseout="this.className='<%= rowClass %>'">
                 <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell" ><input type="checkbox" name="select" value="<%= row[0] %>"></input></td>
-    <%          for (int j = 0; j < row.length; j++) {
+    <%          String linkURL = row[8].toString();
+                String onclick = "";
+                if (linkURL != null && linkURL.length() > 0)
+                    onclick = "onclick=\"location.href='" + linkURL + "'\"";
+                for (int j = 0; j < row.length - 1; j++) { // Again, last is URL
                     String mouseover = " ";                    
                     if(row[j] == null)
                        row[j] = " ";
                     String val = row[j].toString();
                     if(j==0 || j==1 || "&nbsp;".equals(row[j].toString()) || "&nbsp".equals(row[j].toString())){%>
-                       <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell" ><%=val%></td>
+                       <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell" <%= onclick %>><%=val%></td>
                     <%} else if (j == 2) { %>                             
-                             <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell" <%= mouseover%>><%=val%></td>
+                             <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell" <%= onclick %> <%= mouseover%>><%=val%></td>
                     <%}else{                      
                          if(row[j] != null) {
                              StringBuilder formattedStr = new StringBuilder();
@@ -125,14 +133,14 @@
                              }
                              mouseover = "onmouseover=\"showtip('" + val + " " + formattedStr.toString()+ "')\" onmouseout=\"hideddrivetip()\"";
                              %>
-                             <%if (j == (row.length-1)) { %>
+                             <%if (j == (row.length - 2)) { // The tag column %>
                                  <% if (row[j].toString().length() > val.length()){ %>
-                                    <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell" <%= mouseover%>><%=val%>.....</td>
+                                    <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell" <%= onclick %> <%= mouseover%>><%=val%>.....</td>
                                  <% }else {%>
-                                    <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell" ><%=val%></td>
+                                    <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell" <%= onclick %>><%=val%></td>
                              <%  }
                              } else {%>
-                                <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell" <%= mouseover%>><%=val%></td>
+                                <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell" <%= onclick %> <%= mouseover%>><%=val%></td>
                              <% }
                          }%>
    <%                }

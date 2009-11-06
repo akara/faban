@@ -234,13 +234,19 @@ public class RunResult {
         }
 
         status = statusFileContent[0];
-        StringBuilder b = new StringBuilder(
-            "/resultframe.jsp?runId=");
-        b.append(this.runId);
-        b.append("&result=");
-        b.append(resultFilePath);
-        b.append("&show=logs");
-        logLink = b.toString();
+
+        if (!"UNKNOWN".equals(status) ||
+                new File(resultDir, "log.xml").isFile()) {
+            StringBuilder b = new StringBuilder(
+                    "/resultframe.jsp?runId=");
+            b.append(this.runId);
+            b.append("&result=");
+            b.append(resultFilePath);
+            b.append("&show=logs");
+            logLink = b.toString();
+        } else {
+            logLink = "";
+        }
 
         if (dateTime == null && statusFileContent[1] != null) {
             try {
@@ -408,12 +414,13 @@ public class RunResult {
 
     /**
      * Returns the SortableTableModel.
-     * @param user
-     * @param column
-     * @param sortDirection
-     * @return SortableTableModel
+     * @param user The authenticated subject, if any
+     * @param column The sort column id
+     * @param sortDirection The sort direction
+     * @return The SortableTableModel representing this table
      */
-    public static SortableTableModel getResultTable(Subject user, int column, String sortDirection) {
+    public static SortableTableModel getResultTable(Subject user, int column,
+                                                    String sortDirection) {
 
         File[] dirs = new File(Config.OUT_DIR).listFiles();
         ArrayList<RunResult> runs = new ArrayList<RunResult>(dirs.length);
@@ -442,10 +449,10 @@ public class RunResult {
 
     /**
      * Generates the table.
-     * @param runs
-     * @param column
-     * @param sortDirection
-     * @return SortableTableModel
+     * @param runs The runs to include in the table
+     * @param column The sort column
+     * @param sortDirection The sort direction
+     * @return The SortableTableModel
      */
     static SortableTableModel generateTable(List<RunResult> runs, int column,
             String sortDirection) {
@@ -477,7 +484,7 @@ public class RunResult {
             return null;
 
         // 2. Generate table header
-        SortableTableModel table = new SortableTableModel(8);
+        SortableTableModel table = new SortableTableModel(9);
         String sort = "<img src=/img/sort_asc.gif></img>";
         if(sortDirection.equals("DESCENDING")){
              sort = "<img src=\"/img/sort_asc.gif\" border=\"0\"></img>";
@@ -558,6 +565,9 @@ public class RunResult {
         else
             table.setHeader(7, "Tags");
 
+        // Pseudo-column for the link.
+        table.setHeader(8, "Link");
+
         // 3. Generate table rows.
         StringBuilder b = new StringBuilder();
         // The output format.
@@ -571,34 +581,37 @@ public class RunResult {
             else
                 row[1] = result.description;
 
+            row[8] = ""; // Initialize the link to zero string in case it does not get set.
             ResultField<String> r = new ResultField<String>();
             if (result.result != null) {
                 r.value = result.result;
                 if (result.resultLink != null){
                     if(result.result.equals("PASSED"))
-                        r.text = "<a href=\""+ result.resultLink + "\"><img onmouseover=\"showtip('" + result.result.toString() + "')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/passed.png'></img></a>";
+                        r.text = "<img onmouseover=\"showtip('" + result.result.toString() + "')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/passed.png'></img>";
                     else if(result.result.equals("FAILED"))
-                        r.text = "<a href=\""+ result.resultLink + "\"><img onmouseover=\"showtip('" + result.result.toString() + "')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/failed.png'></img></a>";
-                    
+                        r.text = "<img onmouseover=\"showtip('" + result.result.toString() + "')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/failed.png'></img>";
+                    row[8] = result.resultLink;
                 }
-            }else if(result.status != null){
+            } else if (result.status != null) {
                 r.value = result.status;
                 if (result.logLink != null){
                     if(result.status.equals("FAILED"))
-                        r.text = "<a href=\""+ result.logLink + "\"><img onmouseover=\"showtip('" + result.status.toString() + "')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/incomplete.png'></img></a>";
+                        r.text = "<img onmouseover=\"showtip('" + result.status.toString() + "')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/incomplete.png'></img>";
                     else if(result.status.equals("KILLED"))
-                        r.text = "<a href=\""+ result.logLink + "\"><img onmouseover=\"showtip('" + result.status.toString() + "')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/killed.png'></img></a>";
+                        r.text = "<img onmouseover=\"showtip('" + result.status.toString() + "')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/killed.png'></img>";
                     else if(result.status.equals("RECEIVED"))
-                        r.text = "<a href=\""+ result.logLink + "\"><img onmouseover=\"showtip('" + result.status.toString() + "')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/received.png'></img></a>";
+                        r.text = "<img onmouseover=\"showtip('" + result.status.toString() + "')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/received.png'></img>";
                     else if(result.status.equals("STARTED"))
-                        r.text = "<a href=\""+ result.logLink + "\"><img onmouseover=\"showtip('" + result.status.toString() + "')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/running.png'></img></a>";
-                    else if(result.status.equals("COMPLETED")){
-                        r.text = "<a href=\""+ result.logLink + "\"><img onmouseover=\"showtip('" + result.status.toString() + "')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/failed.png'></img></a>";
-                    }
+                        r.text = "<img onmouseover=\"showtip('" + result.status.toString() + "')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/running.png'></img>";
+                    else if(result.status.equals("COMPLETED"))
+                        r.text = "<img onmouseover=\"showtip('" + result.status.toString() + "')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/failed.png'></img>";
+                    else if(result.status.equals("UNKNOWN"))
+                        r.text = "<img onmouseover=\"showtip('unknown')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/unknown.png'></img>";
+                    row[8] = result.logLink;
                 }
             } else {
                 r.value = NOT_AVAILABLE;
-                r.text = "<a href=\"/controller/results/list\"><img onmouseover=\"showtip('unknown')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/unknown.png'></img></a>";
+                r.text = "<img onmouseover=\"showtip('unknown')\" onmouseout=\"hideddrivetip()\" class=\"icon\"; src='/img/unknown.png'></img>";
             }
             row[2] = r;
 

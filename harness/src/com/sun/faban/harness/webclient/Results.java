@@ -470,8 +470,10 @@ public class Results {
                            "Run " + runId + " not found");
         } else if ("COMPLETED".equals(result.status)){
             resp.sendRedirect(result.resultLink);
-        } else {
+        } else if (result.logLink.length() > 0) {
             resp.sendRedirect(result.logLink);
+        } else {
+            resp.sendRedirect("/controller/results/list");
         }
     }
 
