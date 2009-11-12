@@ -56,6 +56,7 @@
         <ant dir="samples/benchmarks/ftp101"/>
         <ant dir="samples/benchmarks/fabanload"/>
         <ant dir="samples/benchmarks/specweb2005"/>
+        <ant dir="samples/benchmarks/hadoopgridmix"/>
         <ant dir="samples/services/ApacheHttpdService"/>
         <ant dir="samples/services/GlassfishService"/>
         <ant dir="samples/services/LighttpdService"/>
@@ -153,6 +154,13 @@
             overwrite="true" preservelastmodified="true"
             includeEmptyDirs="true" verbose="true">
             <fileset dir="${workspace.dir}/samples/benchmarks/specweb2005"/>
+        </copy>
+
+        <mkdir dir="samples/benchmarks/hadoopgridmix/lib"/>
+        <copy todir="samples/benchmarks/hadoopgridmix"
+            overwrite="true" preservelastmodified="true"
+            includeEmptyDirs="true" verbose="true">
+            <fileset dir="${workspace.dir}/samples/benchmarks/hadoopgridmix"/>
         </copy>
 
         <mkdir dir="samples/services/MysqlService/lib"/>
@@ -257,6 +265,7 @@
         <exclude name="release.template"/>
         <exclude name="**/.nfs*"/>
         <exclude name="**/*.iml"/>
+        <exclude name="**/nbproject/**"/>
         <exclude name=".*.swap"/>
         <exclude name="bin/**"/>
         <exclude name="benchmarks/?*"/>
