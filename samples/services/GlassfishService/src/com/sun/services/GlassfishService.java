@@ -191,7 +191,6 @@ public class GlassfishService {
     /**
      * Clear glassfish logs and session files.
 	 * It assumes that session files are in /tmp/sess*
-     * @return true if operation succeeded, else fail
      */
     @ClearLogs public void clearLogs() {
 
