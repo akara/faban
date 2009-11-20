@@ -166,6 +166,8 @@ abstract class LogParseHandler extends DefaultHandler {
      * @return The new formatted message.
      */
     String formatMessage(String message) {
+        if (message == null)
+            return "&nbsp;";
         StringBuilder msgBuffer = new StringBuilder(message.length() * 2);
         Utilities.escapeXML(message, msgBuffer);
 

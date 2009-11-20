@@ -209,7 +209,6 @@
 
     <target name="deploy.jar" depends="bench.jar"
         description="Assembles deployment jar image for Faban harness">
-        <fixcrlf srcdir="bin"/> 
         <jar compress="true" jarfile="${build.dir}/${bench.shortname}.jar">
             <metainf dir="deploy" includes="*"/>
             <fileset dir="." includes="bin/**/*, lib/**/*, resources/**/*"/>

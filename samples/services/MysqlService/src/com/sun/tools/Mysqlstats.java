@@ -87,7 +87,7 @@ public class Mysqlstats {
         toolCmd.add("-p" + mysqlPass);
         toolCmd.add("-B");
         toolCmd.add("-e");
-        toolCmd.add("show global status;");
+        toolCmd.add("show global status");
         logger.fine("Setting up mysql command: " + toolCmd);
         cmd = new Command(toolCmd);
         logfile = ctx.getOutputFile();
