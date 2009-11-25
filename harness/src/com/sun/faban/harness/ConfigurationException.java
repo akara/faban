@@ -31,6 +31,8 @@ package com.sun.faban.harness;
  */
 public class ConfigurationException extends Exception {
 
+    private static final long serialVersionUID = 20091125L;
+
     /**
      * Constructs a new ConfigurationException with <code>null</code> as its
      * detail message. The cause is not initialized, and may subsequently be
