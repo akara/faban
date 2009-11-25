@@ -295,7 +295,7 @@ public class Config {
 
         /** Repository. Runs are disabled. */
         DISABLED
-    };
+    }
 
     /**
      * Host information structure.
@@ -423,9 +423,8 @@ public class Config {
     }
 
     private static void ensureDirs(String[] dirNames) {
-        File dir = null;
         for (String dirName : dirNames) {
-            dir = new File(dirName);
+            File dir = new File(dirName);
             if (!dir.exists() && !dir.mkdirs())
                 // We do not have a logger yet. Just dump it
                 // to the Tomcat logs directly
@@ -442,7 +441,7 @@ public class Config {
 
         StringBuffer sb = new StringBuffer();
 	    sb.append("\nhandlers = java.util.logging.FileHandler\n");
-        sb.append("java.util.logging.FileHandler.pattern = " + path + "\n");
+        sb.append("java.util.logging.FileHandler.pattern = ").append(path).append("\n");
         sb.append("java.util.logging.FileHandler.append = true\n");
         sb.append("java.util.logging.FileHandler.limit = 102400\n");
         sb.append("java.util.logging.FileHandler.formatter = " +
