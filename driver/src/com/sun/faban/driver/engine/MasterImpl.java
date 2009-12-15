@@ -225,8 +225,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 		}
 
         // make a new directory for the run.
-        File runDirFile = null;
-        runDirFile = new File(runOutputDir);
+        File runDirFile = new File(runOutputDir);
         if ( !runDirFile.exists()) {
 			if ( !runDirFile.mkdirs()) {
 				throw new IOException("Could not create the new " +
@@ -287,7 +286,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
      *
      * @param increment Whether the file shall be incremented or not
      * @return runId
-     * @throws IOException 
+     * @throws IOException Problem acecessing or creating the run id file
      */
     public String getRunID(boolean increment) throws IOException{
         int runID = -1;
@@ -303,9 +302,9 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         seqFileName = seqDir + fs + seqFileName;
         File seqFile = new File(seqFileName);
         if (seqFile.exists()) {
-            FileReader bufIn = null;
+            FileReader bufIn;
             char[] buffer = new char[64];
-            int length = 0;
+            int length;
             try {
                 bufIn = new FileReader(seqFile);
             }
@@ -400,7 +399,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
                 // Get all the agentImpl refs
                 String agentName = benchDef.drivers[i].name + "Agent";
                 Remote[] refs = registry.getServices(agentName);
-                int agentCnt = 0;
+                int agentCnt;
 
                 // Usually, the agents should have been started
                 // according to the given number. But just in case
@@ -596,8 +595,8 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         int agentCnt = runInfo.driverConfigs[driverType].numAgents;
         if (agentCnt > 0) {
             Agent[] refs = agentRefs[driverType];
-            for (int agentId = 0; agentId < refs.length; agentId++)
-                refs[agentId].startThreads();
+            for (Agent ref : refs)
+                ref.startThreads();
         }
     }
 

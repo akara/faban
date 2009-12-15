@@ -236,7 +236,9 @@ public class DeployUtil {
                 throw e;
             } catch (Exception e) {
                 throw new DeployException("Error generating faban driver " +
-                        "descriptor for " + dir + ".", e);
+                        "descriptor for " + dir + " due to " + 
+                        e.getClass().getName() + ", " + e.getMessage() + '.',
+                e);
             }
     }
 
