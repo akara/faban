@@ -147,14 +147,24 @@ public class TagEngine implements Serializable{
     /**
      * Serializes the tag engine to file. It is located at
      * $FABAN/config/tagengine.ser.
-     * @throws java.io.IOException Error writing to the file.
      */
-    public void save()throws IOException{
+    public void save() {
        File filename = new File(Config.CONFIG_DIR + "/tagengine.ser");
-       ObjectOutputStream out = new ObjectOutputStream(
-                                            new FileOutputStream(filename));
-       out.writeObject(this);
-       out.close();
+        ObjectOutputStream out = null;
+        try {
+            out = new ObjectOutputStream(new FileOutputStream(filename));
+            out.writeObject(this);
+        } catch (IOException e) {
+            logger.log(Level.WARNING, "Error saving tag engine.", e);
+        } finally {
+            if (out != null)
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    logger.log(Level.WARNING, "Error closing tag engine file " +
+                            filename, e);
+                }
+        }
     }
 
     /**

@@ -17,8 +17,6 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id$
- *
  * Copyright 2005-2009 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.common;
@@ -337,9 +335,7 @@ public class Config {
             String fabanHome = System.getProperty("faban.home");
             if (fabanHome != null) {
                 File fabanHomePath = new File(fabanHome);
-                if (fabanHomePath.isAbsolute()) {
-                    FABAN_HOME = fabanHome;
-                } else {
+                if (!fabanHomePath.isAbsolute()) {
                     fabanHomePath = new File(FABAN_ROOT);
                     // Derive absolute path from relative faban.home.
                     StringTokenizer t = new StringTokenizer(fabanHome, "/");
@@ -351,12 +347,11 @@ public class Config {
                             fabanHomePath = new File(fabanHomePath, pathElement);
                     }
                     fabanHome = fabanHomePath.getAbsolutePath();
-
-                    if (fabanHome.endsWith(File.separator))
-                        FABAN_HOME = fabanHome;
-                    else
-                        FABAN_HOME = fabanHome + File.separator;
                 }
+                if (fabanHome.endsWith(File.separator))
+                    FABAN_HOME = fabanHome;
+                else
+                    FABAN_HOME = fabanHome + File.separator;
             } else {
                 // Move back to the fourth File.separator from right.
                 int idx = FABAN_ROOT.length() - 1;
@@ -423,8 +418,9 @@ public class Config {
     }
 
     private static void ensureDirs(String[] dirNames) {
+        File dir = null;
         for (String dirName : dirNames) {
-            File dir = new File(dirName);
+            dir = new File(dirName);
             if (!dir.exists() && !dir.mkdirs())
                 // We do not have a logger yet. Just dump it
                 // to the Tomcat logs directly
@@ -440,9 +436,9 @@ public class Config {
         path = path.replace("\\", "\\\\");
 
         StringBuffer sb = new StringBuffer();
-	    sb.append("\nhandlers = java.util.logging.FileHandler\n");
-        sb.append("java.util.logging.FileHandler.pattern = ").append(path).append("\n");
-        sb.append("java.util.logging.FileHandler.append = true\n");
+        sb.append("\nhandlers = java.util.logging.FileHandler\n");
+        sb.append("java.util.logging.FileHandler.pattern = ").append(path);
+        sb.append("\njava.util.logging.FileHandler.append = true\n");
         sb.append("java.util.logging.FileHandler.limit = 102400\n");
         sb.append("java.util.logging.FileHandler.formatter = " +
                 "com.sun.faban.harness.logging.XMLFormatter\n");

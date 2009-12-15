@@ -17,8 +17,6 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id$
- *
  * Copyright 2005-2009 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.harness.webclient;
@@ -135,6 +133,12 @@ public class ContentReader extends HttpServlet {
             out.close();
             return;
         }
+        if (resource.endsWith(".html") || resource.endsWith(".htm"))
+            response.setContentType("text/html");
+
+        else if (resource.contains(".log.") || resource.contains(".xan.") ||
+                resource.endsWith(".log") || resource.endsWith(".xan"))
+            response.setContentType("text/plain");
 
         // We don't want to keep allocating 8K all the time, so we keep
         // our buffers in a pool.
