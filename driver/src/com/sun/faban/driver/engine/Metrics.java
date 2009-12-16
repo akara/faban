@@ -652,6 +652,11 @@ public class Metrics implements Serializable, Cloneable,
             double y = n * x - t;
             s = s + y * y / (n * (n - 1));
         }
+        if (s < 0) {
+            Logger.getLogger(Metrics.class.getName()).warning(
+                        "Doug - addSumSquare(s=" + s + ", n=" + n + ", t=" +
+                        t + ", x=" + x + ") returns NEGATIVE "+ s + " ");
+            }
         return s;
     }
 
@@ -689,6 +694,23 @@ public class Metrics implements Serializable, Cloneable,
         } else {
             s = (n2 / (double) n1) * t1 - t2;
             s = s1 + s2 + (n1 / (n2 * ((double) n1 + n2))) * s * s;
+            if (s < 0) {
+                Logger.getLogger(Metrics.class.getName()).warning(
+                        "Doug - addSumSquare(s1=" + s1 + ", n1=" + n1 +
+                        ", t1=" + t1 + ", s2=" + s2 + ", n2=" + n2 + ", t2=" +
+                        t2 + ") returns NEGATIVE " + s +
+                        "\nn2 / (double) n1 = " + (n2 / (double) n1) +
+                        "\n(n2 / (double) n1) * t1 = " + ((n2 / (double) n1) * t1) +
+                        "\n(n2 / (double) n1) * t1 - t2 = " + ((n2 / (double) n1) * t1 - t2) +
+                        "\ns1 + s2 = " + (s1 + s2) +
+                        "\n(double) n1 + n2 = " + ((double) n1 + n2) +
+                        "\nn2 * ((double) n1 + n2) = " + (n2 * ((double) n1 + n2)) +
+                        "\nn1 / (n2 * ((double) n1 + n2)) = " + (n1 / (n2 * ((double) n1 + n2))) +
+                        "\n(n1 / (n2 * ((double) n1 + n2))) * s = " + ((n1 / (n2 * ((double) n1 + n2))) * s) +
+                        "\n(n1 / (n2 * ((double) n1 + n2))) * s * s = " + ((n1 / (n2 * ((double) n1 + n2))) * s * s) +
+                        "\ns1 + s2 + (n1 / (n2 * ((double) n1 + n2))) * s * s = " + (s1 + s2 + (n1 / (n2 * ((double) n1 + n2))) * s * s)
+                );
+            }
         }
         if (Double.isNaN(s)) {
             Logger.getLogger(Metrics.class.getName()).
