@@ -89,6 +89,21 @@ public interface CmdAgent extends Remote {
 
 
     /**
+     * Similar to the which shell command, 'which' returns the actual path
+     * to the given command. If it maps to a series of commands, they will
+     * be returned as a single string separated by spaces. Note that 'which'
+     * does not actually try to check the underlying system for commands
+     * in the search path. It only checks the Faban infrastructure for
+     * existence of such a command.
+     * @param cmd The command to search for
+     * @param svcPath The service path, if any
+     * @return The actual command to execute, or null if not found.
+     * @throws RemoteException If there is a communication error to the
+     *                         remote agent
+     */
+    String which(String cmd, String svcPath) throws RemoteException;
+
+    /**
      * Executes a command from the remote command agent.
      * @param c The command to be executed
      * @param svcPath

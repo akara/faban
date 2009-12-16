@@ -114,7 +114,66 @@ public class RunContext {
     }
 
     /**
-     * Executes a command on the local system. This is one of the two
+     * Returns the location of this command on the local system. This is
+     * one of the few methods callable from tools and RemoteCallable.call().
+     * Similar to the which shell command, 'which' returns the actual path
+     * to the given command. If it maps to a series of commands, they will
+     * be returned as a single string separated by spaces. Note that 'which'
+     * does not actually try to check the underlying system for commands
+     * in the search path. It only checks the Faban infrastructure for
+     * existence of such a command.
+     * @param c The command to search for
+     * @return The actual command to execute, or null if not found.
+     * @throws IOException If there is a communication error to the
+     *                         remote agent
+     */
+    public static String which(String c) throws IOException {
+        CmdAgentImpl agent = CmdAgentImpl.getHandle();
+        if (agent != null) // Running on agent
+            return agent.which(c, Invoker.getContextLocation());
+        else // Running on master
+            return CmdService.getHandle().which(c,
+                    Invoker.getContextLocation());
+    }
+
+    /**
+     * Returns the location of this command on the target system.
+     * Similar to the which shell command, 'which' returns the actual path
+     * to the given command. If it maps to a series of commands, they will
+     * be returned as a single string separated by spaces. Note that 'which'
+     * does not actually try to check the underlying system for commands
+     * in the search path. It only checks the Faban infrastructure for
+     * existence of such a command.
+     * @param host The host to search
+     * @param c The command to search for
+     * @return The actual command to execute, or null if not found.
+     * @throws IOException If there is a communication error to the
+     *                         remote agent
+     */
+    public static String which(String host, String c) throws IOException {
+        return CmdService.getHandle().which(host, c,
+                Invoker.getContextLocation());
+    }
+
+    /**
+     * Returns the location of this command on the target systems.
+     * Similar to the which shell command, 'which' returns the actual path
+     * to the given command. If it maps to a series of commands, they will
+     * be returned as a single string separated by spaces. Note that 'which'
+     * does not actually try to check the underlying system for commands
+     * in the search path. It only checks the Faban infrastructure for
+     * existence of such a command.
+     * @param hosts The hosts to search
+     * @param c The command to search for
+     * @return The actual command paths to execute, or null elements if not found.
+     */
+    public static String[] which(String[] hosts, String c) {
+        return CmdService.getHandle().which(hosts, c,
+                Invoker.getContextLocation());
+    }
+
+    /**
+     * Executes a command on the local system. This is one of the few
      * methods callable from tools and RemoteCallable.call().
      * @param c The command to be executed
      * @return  A handle to the command

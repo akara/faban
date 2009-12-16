@@ -388,4 +388,18 @@ public class Utilities {
 
         return true;
     }
+
+    public static String print(Collection<?> c, String separator) {
+        StringBuilder b = new StringBuilder();
+        if (c.size() <= 0)
+            return "";
+
+        Iterator<?> i = c.iterator();
+        b.append(i.next().toString()); // Fetch first element
+        while (i.hasNext()) {
+            b.append(separator); // separated by separator,
+            b.append(i.next().toString()); // and subsequent elements
+        }
+        return b.toString();
+    }
 }

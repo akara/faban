@@ -208,6 +208,52 @@ public class CmdAgentImpl extends UnicastRemoteObject
     }
 
     /**
+     * Similar to the which shell command, 'which' returns the actual path
+     * to the given command. If it maps to a series of commands, they will
+     * be returned as a single string separated by spaces. Note that 'which'
+     * does not actually try to check the underlying system for commands
+     * in the search path. It only checks the Faban infrastructure for
+     * existence of such a command.
+     * @param cmd The command to search for
+     * @param svcPath The service path, if any
+     * @return The actual command to execute, or null if not found.
+     */
+    public String which(String cmd, String svcPath) {
+        Map<String, List<String>> extMap = null;
+        extMap = servicesBinMap.get(svcPath);
+        if (extMap != null && cmd.indexOf(File.separator) == -1) {
+            List<String> realCmd = extMap.get(cmd);
+            if (realCmd != null) {
+                return Utilities.print(realCmd, " ");
+            }
+        }
+        if (cmd.indexOf(File.separator) == -1) { // not an absolute path
+            List<String> realCmd = binMap.get(cmd);
+            if (realCmd != null) {
+                return Utilities.print(realCmd, " ");
+            }
+        } else { // Check for pathext in case of absolute path...
+            File f = new File(cmd);
+            if (!f.exists()) {
+                logger.finer(cmd + " does not exist as a file.");
+                String[] exts = CmdMap.getPathExt();
+                if (exts != null) {
+                    for (String ext : exts) {
+                        String cext = cmd + ext;
+                        logger.finer("Trying " + cext);
+                        f = new File(cext);
+                        if (f.exists()) {
+                            logger.finer("Found " + cext);
+                            return cext;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * Executes a command from the remote command agent.
      *
      * @param c The command to be executed

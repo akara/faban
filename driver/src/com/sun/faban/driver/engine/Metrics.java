@@ -688,7 +688,7 @@ public class Metrics implements Serializable, Cloneable,
             s = addSumSquare(s2, n2, t2, t1);
         } else {
             s = (n2 / (double) n1) * t1 - t2;
-            s = s1 + s2 + (n1 / (double) (n2 * (n1 + n2))) * s * s;
+            s = s1 + s2 + (n1 / (n2 * ((double) n1 + n2))) * s * s;
         }
         if (Double.isNaN(s)) {
             Logger.getLogger(Metrics.class.getName()).

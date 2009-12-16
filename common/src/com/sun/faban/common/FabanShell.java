@@ -38,7 +38,7 @@ public class FabanShell extends Thread {
 
     static final String FABAN_HOME = System.getenv("FABAN_HOME");
 
-    static String javaHome = System.getenv("javaHome");
+    static String javaHome = System.getenv("JAVA_HOME");
 
     private InputStream in;
     private OutputStream out;
@@ -108,13 +108,13 @@ public class FabanShell extends Thread {
             if (!isJDK) {
                 System.err.println("Could not find a JDK at " + javaHome +
                         ". Please make sure the JDK is installed and set " +
-                        "javaHome or PATH accordingly.");
+                        "JAVA_HOME or PATH accordingly.");
                 System.exit(1);
             }
         }
 
         if (!javaHomeEnv)
-            System.err.println("javaHome not set. Using " + javaHome + ".");
+            System.err.println("JAVA_HOME not set. Using " + javaHome + ".");
 
         String java = javaHome + File.separator + "bin" +
                                                     File.separator + "java";
