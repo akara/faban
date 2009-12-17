@@ -135,6 +135,7 @@
                             </tr>
                         </tbody>
                     </table><br></br>
+                    <xsl:if test="mix">
                     <h3>Operation Mix</h3>
                     <table border="0" cellpadding="4" cellspacing="3"
                         style="padding: 2px; border: 2px solid #cccccc; text-align: center; width: 100%;">
@@ -178,6 +179,8 @@
                             </xsl:for-each>
                         </tbody>
                     </table><br></br>
+                    </xsl:if>
+                    <xsl:if test="responseTimes">
                     <h3>Response Times
                         <xsl:if test="responseTimes/@unit">
                             (<xsl:value-of select="responseTimes/@unit"/>)
@@ -226,6 +229,7 @@
                             </xsl:for-each>
                         </tbody>
                     </table><br></br>
+                    </xsl:if>
                     <xsl:if test="delayTimes">
                     <h3>Cycle/Think Times (seconds)</h3>
                     <table border="0" cellpadding="4" cellspacing="3"

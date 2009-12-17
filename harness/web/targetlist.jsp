@@ -1,8 +1,3 @@
-<%-- 
-    Document   : targetlist
-    Created on : Jul 22, 2009, 4:16:14 PM
-    Author     : sp208304
---%>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <!--
 /* The contents of this file are subject to the terms
@@ -26,7 +21,12 @@
  *
  * Copyright 2005 Sun Microsystems Inc. All Rights Reserved
  */
+<!--
+    Document   : targetlist
+    Created on : Jul 22, 2009, 4:16:14 PM
+    Author     : sp208304
 -->
+
     <%@ page language="java" import="com.sun.faban.harness.webclient.RunResult,
                                      com.sun.faban.common.SortableTableModel,
                                      com.sun.faban.common.SortDirection,
@@ -112,10 +112,11 @@
     <%      } %>
               </tr>
     <%
+            String[] rowClasses = { "even", "odd" };
             for(int i = 0; i < rows; i++) {
                 Comparable[] row = targetTable.getRow(i);
     %>
-            <tr <%if(i % 2 == 0){%>class="even"<%}else{%>class="odd"<% } %>>
+            <tr class="<%= rowClasses[i % 2]%>">
 
     <%          String sortLink = "";
                 if(row[4] != null){
@@ -158,15 +159,19 @@
                 </td>
         <% }else{ %>
                 <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><%=val%></td>
-        <%      } %>
-    <%              }else if(j == 2){ %>
-                        <% if (Double.parseDouble(val) < red) {%>
-                            <td bgcolor="red" style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><%out.print(new DecimalFormat("#").format(Double.parseDouble(val)) + "%"); %></td>
-                        <% } else if (Double.parseDouble(val) > red && Double.parseDouble(val) < orange) { %>
+        <%      }
+                   }else if(j == 2){
+                        double v = Double.parseDouble(val);
+        %>
+                        <% if (v == 0d) { // No results %>
+                            <td bgcolor="black" style="color: white; font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><%out.print(new DecimalFormat("#").format(Double.parseDouble(val)) + "%"); %></td>
+                        <% } else if (v < red) {%>
+                            <td bgcolor="red" style="color: white; font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><%out.print(new DecimalFormat("#").format(Double.parseDouble(val)) + "%"); %></td>
+                        <% } else if (v >= red && v < orange) { %>
                             <td bgcolor="orange" style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><%out.print(new DecimalFormat("#").format(Double.parseDouble(val)) + "%"); %></td>
-                        <% } else if (Double.parseDouble(val) > orange && Double.parseDouble(val) < yellow) { %>
+                        <% } else if (v >= orange && v < yellow) { %>
                             <td bgcolor="yellow" style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><%out.print(new DecimalFormat("#").format(Double.parseDouble(val)) + "%"); %></td>
-                        <% } else if (Double.parseDouble(val) >= yellow) {%>
+                        <% } else if (v >= yellow) {%>
                             <td bgcolor="#00cc00" style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><%out.print(new DecimalFormat("#").format(Double.parseDouble(val)) + "%"); %></td>
                         <% } %>
     <%              } else if(j == 3){
