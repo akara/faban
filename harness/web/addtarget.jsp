@@ -165,7 +165,7 @@
                         <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell">&nbsp;</td>
                 </tr>
                 <tr class="odd">
-                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><input type="submit" value="Edit">&nbsp;&nbsp;<input type="reset" value="Reset"></td>
+                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><input type="submit" value="Save">&nbsp;&nbsp;<input type="reset" value="Reset"></td>
                         <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell">&nbsp;</td>
                 </tr>
                 </tbody>
