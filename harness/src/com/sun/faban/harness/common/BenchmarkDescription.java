@@ -23,6 +23,7 @@
  */
 package com.sun.faban.harness.common;
 
+import com.sun.faban.harness.util.DeployUtil;
 import org.w3c.dom.Node;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -33,11 +34,11 @@ import javax.xml.xpath.XPathFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import com.sun.faban.harness.util.DeployUtil;
 
 /**
  * This is a value class describing the benchmark.
@@ -372,7 +373,7 @@ public class BenchmarkDescription implements Serializable {
                 if (desc.benchmarkClass == null ||
                     desc.benchmarkClass.length() == 0)
                     desc.benchmarkClass =
-                            "com.sun.faban.harness.DefaultFabanBenchmark";
+                            "com.sun.faban.harness.DefaultFabanBenchmark2";
                 return true;
             } catch (Exception e) {
                 logger.log(Level.WARNING, "Error reading faban driver " +

@@ -35,6 +35,8 @@ import java.util.List;
  */
 public class ToolContext extends MasterToolContext {
 
+    private static final long serialVersionUID = 20091223L;
+
     String localOutputFile =
             Config.TMP_DIR + getToolName() + ".out." + this.hashCode();
     ToolWrapper wrapper;

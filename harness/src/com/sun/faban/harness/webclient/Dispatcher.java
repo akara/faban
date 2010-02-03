@@ -24,6 +24,7 @@
 package com.sun.faban.harness.webclient;
 
 import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
@@ -72,6 +73,13 @@ public class Dispatcher extends HttpServlet {
 
     static final ConcurrentHashMap<String, Method> METHOD_CACHE =
             new ConcurrentHashMap<String, Method>();
+
+    String controllerPkg;
+
+    @Override public void init(ServletConfig config) throws ServletException {
+        super.init(config);
+        controllerPkg = config.getInitParameter("controller.package");
+    }
 
     @Override protected void doGet(HttpServletRequest request,
                                     HttpServletResponse response)
@@ -138,7 +146,7 @@ public class Dispatcher extends HttpServlet {
         HttpSession session = request.getSession();
         Object controller = session.getAttribute(pathElements[1]);
         Class controllerClass = null;
-        String controllerName = "com.sun.faban.harness.webclient." +
+        String controllerName = controllerPkg + '.' +
                                     toClassName(pathElements[1]);
 
         // If controller not found in session...

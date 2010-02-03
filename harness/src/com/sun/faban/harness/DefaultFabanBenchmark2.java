@@ -25,13 +25,13 @@ package com.sun.faban.harness;
 
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
+import static com.sun.faban.harness.RunContext.*;
 import org.w3c.dom.Element;
 
+import java.net.InetAddress;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import static com.sun.faban.harness.RunContext.*;
 
 /**
  * The default benchmark class(based on annotations) for use with benchmarks
@@ -82,6 +82,20 @@ public class DefaultFabanBenchmark2 {
         // Second, obtain the systems to run the drivers.
         agentHosts = params.getTokenizedValue(
                                         "fa:runConfig/fa:hostConfig/fa:host");
+
+        // A blank means this master system
+        if (agentHosts == null || agentHosts.length == 0) {
+            agentHosts = new String[1];
+            agentHosts[0] = InetAddress.getLocalHost().getHostName();
+        }
+
+        // Convert "localhost" to master system name
+        InetAddress localhost = InetAddress.getByName(null);
+        for (int i = 0; i < agentHosts.length; i++) {
+            if ("localhost".equals(agentHosts[i]) ||
+                    localhost.equals(InetAddress.getByName(agentHosts[i])))
+                agentHosts[i] = InetAddress.getLocalHost().getHostName();
+        }
 
         hostAgents = new HashMap<String, List<String>>(agentHosts.length + 5);
 

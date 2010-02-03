@@ -28,16 +28,14 @@ import org.apache.commons.httpclient.*;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
 import org.apache.commons.httpclient.methods.multipart.Part;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.httpclient.protocol.Protocol;
 import org.apache.commons.httpclient.protocol.ProtocolSocketFactory;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
 import java.net.URL;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -279,7 +277,21 @@ public class ApacheHC3Transport extends HttpTransport {
         }
     }
 
-    private void setParameters(PostMethod method, String request) {
+    private void setParameters(PostMethod method, String request) throws UnsupportedEncodingException {
+        // Check whether request is XML or JSON
+        if (request.startsWith("<?xml") || request.startsWith("{")) {
+            Header h = method.getRequestHeader("Content-Type");
+            if (h == null) {
+                h = method.getRequestHeader("content-type");
+            }
+            if (h != null) {
+                method.setRequestEntity(new StringRequestEntity(request,
+                    h.getValue(), method.getRequestCharSet()));
+                return;
+            }
+        }
+
+        // If none of both, just treat it as html.
         int idx = 0;
         if (request == null || request.length() == 0)
             return;

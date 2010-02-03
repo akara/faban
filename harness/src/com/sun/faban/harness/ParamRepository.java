@@ -362,10 +362,20 @@ public class ParamRepository {
      * @return An array of hostnames.
      */
     public String[] getTokenizedValue(String xpath) {
-        StringTokenizer st = new StringTokenizer(reader.getValue(xpath));
-        String[] hosts = new String[st.countTokens()];
-        for (int i = 0; st.hasMoreTokens(); i++)
-            hosts[i] = st.nextToken();
+        String val = reader.getValue(xpath);
+        String[] hosts = null;
+        if (val != null) {
+            val = val.trim();
+            if (val.length() > 0) {
+                StringTokenizer st = new StringTokenizer(val);
+                hosts = new String[st.countTokens()];
+                for (int i = 0; st.hasMoreTokens(); i++)
+                    hosts[i] = st.nextToken();
+            }
+        }
+
+        if (hosts == null)
+            hosts = new String[0];
         return hosts;
     }
 
