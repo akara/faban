@@ -45,6 +45,10 @@
     <servlet>
         <servlet-name>Dispatcher</servlet-name>
         <servlet-class>com.sun.faban.harness.webclient.Dispatcher</servlet-class>
+        <init-param>
+            <param-name>controller.package</param-name>
+            <param-value>com.sun.faban.harness.webclient</param-value>
+        </init-param>
     </servlet>
     <servlet>
         <servlet-name>LogReader</servlet-name>
