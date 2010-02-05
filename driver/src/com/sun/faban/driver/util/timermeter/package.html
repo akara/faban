@@ -1,0 +1,44 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!--
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.sun.com/cddl/cddl.html or
+ * install_dir/legal/LICENSE
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL
+ * Header Notice in each file and include the License file
+ * at install_dir/legal/LICENSE.
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ * "Portions Copyrighted [year] [name of copyright owner]"
+ *
+ * $Id$
+ *
+ * Copyright 2005-2009 Sun Microsystems Inc. All Rights Reserved
+-->
+<html>
+<head>
+  <title></title>
+</head>
+<body>
+The TimerMeter is the work of, and contributed by Michael Kuperberg<br>
+Institute for Program Structures and Data Organisation (IPD),<br>
+Faculty of Informatics, University of Karlsruhe, Germany<br>
+<a href="http://sdq.ipd.uka.de">http://sdq.ipd.uka.de</a>
+<br><br>
+The TimerMeter checks and reports the cost and granularity of the timer, the
+essential core of Faban's latency measurements. The results are used for
+deducting the timer cost from the latency. This essentially eliminates a small
+but systematic error from the resulting measurements. The impact on
+coarse-grained measurements, (at the second or millisecond level) are
+negligible. There is however some impact on very fine-grained measurements
+at the low microsecond level accuracy.
+</body>
+</html>
