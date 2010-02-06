@@ -42,7 +42,7 @@ public interface Agent extends Remote {
      * Configures each agents with the properties passed.
      * @param master the remote interface to the Master
      * @param runInfo run information passed by Master
-     * @param driverType
+     * @param driverType the driver type id
      * @param timer BenchmarkDefinition Start time
      * @throws RemoteException A network error occurred
      */

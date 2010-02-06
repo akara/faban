@@ -85,9 +85,9 @@ public class AgentImpl extends UnicastRemoteObject
     // All threads should run at start.
     volatile int runningThreads = Integer.MAX_VALUE;
 
-
     VariableLoadHandlerThread threadController;
     private long earliestStartTime = Long.MIN_VALUE;
+
 
     /**
      * Constructs the AgentImpl object.
@@ -283,6 +283,9 @@ public class AgentImpl extends UnicastRemoteObject
      * @see java.lang.Runnable#run()
      */
     public void run() {
+
+        timer.idleTimerCheck(displayName);
+
         // Create the required number of threads
         long nsBetweenThreadStart = runInfo.msBetweenThreadStart * 1000000L;
         try {
@@ -415,8 +418,9 @@ public class AgentImpl extends UnicastRemoteObject
         }
 
         // After we know the start time, we calibrate
-        // the timer during the rampup.
-        timer.calibrate(displayName, time + runInfo.rampUp * 1000000000l);
+        // the timer during the ramp up.
+        timer.calibrate(displayName, startTime, 
+                        startTime + runInfo.rampUp * 1000000000l);
     }
     
     /**

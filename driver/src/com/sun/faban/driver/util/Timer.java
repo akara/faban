@@ -24,6 +24,7 @@
 package com.sun.faban.driver.util;
 
 import com.sun.faban.driver.FatalException;
+import com.sun.faban.driver.util.timermeter.TimerMeter;
 
 import java.io.Serializable;
 import java.util.Random;
@@ -43,7 +44,8 @@ public class Timer implements Serializable {
     transient long diffms; // The epoch difference, millisec part
     transient int diffns; // The epoch difference, nanosec part
 
-    private transient Logger logger;
+    private static transient Logger logger =
+            Logger.getLogger(Timer.class.getName());
     private long compensation = 5000000l;  // Some pretty good starting numbers
     private double deviation = 5000000d; // for both fields.
     private Boolean debug = null;
@@ -68,7 +70,7 @@ public class Timer implements Serializable {
         epochMillis = System.currentTimeMillis() + 10l;
         epochNanos = calibrateNanos(epochMillis);
 
-        getLogger().fine("Timer: baseTime ms: " + epochMillis +
+        logger.fine("Timer: baseTime ms: " + epochMillis +
                          ", ns: " + epochNanos);
 	}
 
@@ -90,7 +92,6 @@ public class Timer implements Serializable {
         int[] diffns = new int[iterations];
         int[] clockStep = new int[iterations];
         int msStep = Integer.MAX_VALUE;
-        Logger logger = getLogger();
         System.gc(); // We don't want gc during calibration. So we try to gc
                      // now, on best effort.
 
@@ -407,21 +408,36 @@ public class Timer implements Serializable {
             }
     }
 
+    public void idleTimerCheck(String id) {
+        // Currently, this is only informational. In the future,
+        // we could use the results to adjust the timer.
+        logger.info(id + ": Performing idle timer check");
+        logger.info(id + ": Idle timer characteristics:\n" + new TimerMeter(
+                1000000, 10, 1000, 2, 100, 2).printTimerCharacterization());
+    }
+
     /**
      * Runs a timer sleep time calibration for a certain amount of time.
      * @param id The agent identifier - used for logging purposes.
-     * @param endTime The time to end the calibration, referencing this JVMs
-     *        nanosec timer.
+     * @param startRamp The start of ramp up
+     * @param endRamp The end of ramp up
      */
-    public void calibrate(String id, long endTime) {
-        // Convert relative time to abs time.
-        endTime = toAbsTime(endTime);
+    public void calibrate(String id, long startRamp, long endRamp) {
+
+        // Start the meter.
+        BusyTimerMeter meter = new BusyTimerMeter(id, startRamp, endRamp);
+        meter.start();
+
         // Only calibrate if we have at least 5 secs to do so.
         // Otherwise it does not make sense at all.
-        if (endTime - System.nanoTime() > 5000000000l) {
-            Calibrator calibrator = new Calibrator(id, endTime);
+        if (endRamp - System.nanoTime() > 5000000000l) {
+            SleepCalibrator calibrator = new SleepCalibrator(id, endRamp);
             calibrator.start();
-        }
+        } else {
+            logger.warning(id + ": Rampup too short. " +
+                    "Could not run calibration. Please increase rampup " +
+                    "by at least 5 seconds");
+        }       
     }
 
     /**
@@ -441,7 +457,7 @@ public class Timer implements Serializable {
         epochNanos = System.nanoTime();
 
         // We use the provided offset to calculate the millis
-        // reprsenting the same timestamp on a remote system.
+        // representing the same timestamp on a remote system.
         epochMillis += offset;
 
         // And then calibrate the nanos based on the new millis.
@@ -467,7 +483,65 @@ public class Timer implements Serializable {
     }
 
     /**
-     * The Calibrator thread is used to calibrate the deviation of the sleep
+     * The busy timer meter waits till the right time in the middle of ramp
+     * up when the driver threads are busy and calls and reports the timer
+     * characteristics at that time.
+     */
+    class BusyTimerMeter extends Thread {
+
+        private String id;
+        private long startRamp;
+        private long endRamp;
+
+        /**
+         * Constructs the busy timer meter.
+         * @param id The id of this agent
+         * @param startRamp The start of ramp up, in absolute ns
+         * @param endRamp The end of ramp up, in absolute ns
+         */
+        BusyTimerMeter(String id, long startRamp, long endRamp) {
+            this.id = id;
+            this.startRamp = startRamp;
+            this.endRamp = endRamp;
+        }
+
+        /**
+         * Starts the busy timer meter thread.
+         */
+        @Override
+        public void run() {
+            // Start running in the middle of ramp up but not beyond
+            // 10 seconds before the end of ramp up.
+            long startTime = startRamp + (endRamp - startRamp)/2;
+            long maxStartTime = endRamp - 10000000000l;
+            if (startTime > maxStartTime)
+                startTime = maxStartTime;
+            if (startTime < startRamp)
+                startTime = startRamp;
+
+            wakeupAt(startTime);
+
+            // Currently, this is only informational. In the future,
+            // we could use the results to adjust the timer.
+            logger.info(id + ": Performing busy timer check");
+            logger.info(id + ": Busy timer characteristics:\n" + new TimerMeter(
+                    1000000, 10, 1000, 2, 100, 2).printTimerCharacterization());
+
+            // Now make sure we still have enough time to calibrate the sleep.
+            long timeExceeded = System.nanoTime() - endRamp;
+
+            if (timeExceeded > 0l) {
+                logger.warning(id + ": Rampup too short. " +
+                        "Could not run calibration. Please increase rampup " +
+                        "by at least " +
+                        (int) Math.ceil(timeExceeded / 500000000d) +" seconds");
+                // comes from 2 * timeExceeded / nano_to_seconds.
+            }
+        }
+    }
+
+    /**
+     * The SleepCalibrator thread is used to calibrate the deviation of the sleep
      * time for compensation purposes. We already know the semantics of sleep
      * points to the minimum sleep time. The actual time calculated from<ul>
      *      <li>System.currentTimeMillis()
@@ -479,14 +553,14 @@ public class Timer implements Serializable {
      * however expected to be in the 10s of milliseconds or less than 10
      * milliseconds range.<p>
      *
-     * The Calibrator must be run by each agent during the rampup time.
+     * The SleepCalibrator must be run by each agent during the rampup time.
      * Assuming the rampup is adequately long, it should capture a pretty good
      * average deviation which will include the effects of several garbage
      * collections and use this difference to compensate the sleep time.
      *
      * @author Akara Sucharitakul
      */
-    class Calibrator extends Thread {
+    class SleepCalibrator extends Thread {
 
         private String id;
         private long endTime;
@@ -496,10 +570,10 @@ public class Timer implements Serializable {
          * @param id An identifier for this calibrator
          * @param endTime The time to end the calibration, based on this timer
          */
-        Calibrator(String id, long endTime) {
+        SleepCalibrator(String id, long endTime) {
             this.id = id;
             this.endTime = endTime;
-            setName("Calibrator");
+            setName("SleepCalibrator");
         }
 
         /**
@@ -507,7 +581,7 @@ public class Timer implements Serializable {
          */
         public void run() {
             long timeAfter = Long.MIN_VALUE;
-            int maxSleep = -1; // Initial value
+            long maxSleep = -1; // Initial value
             Random random = new Random();
 
             int count = 0;
@@ -519,7 +593,8 @@ public class Timer implements Serializable {
                 // The avg sleep time is 20ms as a result.
                 int intendedSleep = random.nextInt(21) + 10;
                 if (maxSleep == -1) // Set maxSleep for first check.
-                    maxSleep = intendedSleep;
+                    // maxSleep is in ns
+                    maxSleep = intendedSleep * 1000000l;
                 if (timeAfter + maxSleep >= endTime) {
                     setDeviation((double) devSum/count); // Final one.
                     break;
@@ -532,30 +607,32 @@ public class Timer implements Serializable {
                 } catch (InterruptedException e) {
                 }
                 if (timeAfter > timeBefore) { // If not interrupted.
+                    // actualSleep is in ns, intendedSleep is in ms.
                     long actualSleep = timeAfter - timeBefore;
                     long deviation = actualSleep - intendedSleep * 1000000l;
                     devSum += deviation;
                     ++count;
+                    // deviation is in ns here
                     if (actualSleep > maxSleep)
-                        maxSleep = (int) (actualSleep / 1000000l);
+                        maxSleep = actualSleep;
                     // Keep converging the deviation to the final value
                     // until this thread exits, just before steady state.
                     if (count % 50 == 0) // Sets every 50 experiments, ~1 sec.
-                        setDeviation((double) devSum/count);
+                        setDeviation(devSum/(double) count);
                 }
             }
 
             // Test for qualifying final compensation...
             if (!isDebug() && compensation > 100000000l) {
-                getLogger().severe(id + ": System needed time compensation " +
+                logger.severe(id + ": System needed time compensation " +
                         "of " + compensation / 1000000l + ".\nValues over " +
                         "100ms are unacceptable for a driver. \nPlease use a " +
                         "faster system or tune the driver JVM/GC.\nExiting...");
                 System.exit(1);
             }
-            getLogger().fine(id + ": Calibration succeeded. Sleep time " +
-                    "deviation: " + getDeviation() + " ns, compensation: " +
-                    compensation + " ns.");
+            logger.info(id + ": Calibration succeeded. Sleep time " +
+                    "deviation: " + (getDeviation() / 1000000l) +
+                    " ms, compensation: " + (compensation / 1000000l) + " ms.");
         }
     }
 }

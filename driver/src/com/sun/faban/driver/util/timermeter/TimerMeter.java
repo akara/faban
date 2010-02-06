@@ -23,7 +23,6 @@
  */
 package com.sun.faban.driver.util.timermeter;
 
-import java.io.PrintStream;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -40,21 +39,10 @@ import java.util.logging.Logger;
 public class TimerMeter implements Runnable {
 
     /**
-     * When we cannot use a logging framework, this field simplifies coding
-     * using <code>System.out</code> :-)
-     */
-    protected static PrintStream o = System.out;
-
-    /**
      * This dummy variable is used for warmup; it is intentionally global
      * because of JIT / dead code elimination prevention.
      */
     protected static long publicDummy = 0L;
-
-    /**
-     * Used to describe results of a TimerMeter run
-     */
-    protected TimerCharacterisation characterisation;
 
     /**
      * See class description.
@@ -215,7 +203,7 @@ public class TimerMeter implements Runnable {
         tc.setClusters(
                 CommonUtilities.clusterTimerValuesFromHistogram(
                         allMeasurementsHistogram,
-                        this.clusterFormationThresholdDistance)); //TODO evaluate clusters
+                        clusterFormationThresholdDistance)); //TODO evaluate clusters
 
         tc.setAccuracy(CommonUtilities.computeAccuracyFromClusters(tc.getClusters(), false));
         tc.setInvocationCost(CommonUtilities.computeCharacteristics_detailed(invocationCostMeasurements, false));
@@ -309,26 +297,13 @@ public class TimerMeter implements Runnable {
         return allResults;
     }
 
-    public void run() {
-        System.out.println(this.getCharacterisation());
-
-        //1. start with direct invocation
-        System.out.println("Direct invocation: \n"+
-                computeTimerCharacterization(
-                        obtainMeasurementsUsingDirectInvocation(), false));
-
+    public String printTimerCharacterization() {
+        TimerCharacterisation ch = computeTimerCharacterization(
+                        obtainMeasurementsUsingDirectInvocation(), false);
+        return ch.toString();
     }
 
-    /**
-     * This getter uses obtainMeasurementsUsingDirectInvocation, i.e. neither
-     * reflection nor timerMethodToOverride
-     * @return  The timer characterization
-     */
-    public TimerCharacterisation getCharacterisation() {
-        if(characterisation==null){
-            characterisation = this.computeTimerCharacterization(
-                    this.obtainMeasurementsUsingDirectInvocation(), false);
-        }
-        return characterisation;
+    public void run() {
+        logger.info("Timer characteristics: \n" + printTimerCharacterization());
     }
 }
