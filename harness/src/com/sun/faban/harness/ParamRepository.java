@@ -315,10 +315,18 @@ public class ParamRepository {
      */
     public String[] getEnabledHosts(Element base) throws ConfigurationException {
         String[] enabledHosts;
-        if (getBooleanValue("fa:hostConfig/fh:enabled", base, true))
-            enabledHosts = getTokenizedValue("fa:hostConfig/fa:host", base);
-        else
+        if (getBooleanValue("fa:hostConfig/fh:enabled", base, true)) {
+            // TODO: Take care of managed hosts/ports
+            enabledHosts = getTokenizedValue("fa:hostConfig/fh:managedHosts",
+                                                base);
+            if (enabledHosts == null || enabledHosts.length == 0)
+                enabledHosts = getTokenizedValue("fa:hostConfig/fa:host", base);
+
+            if (enabledHosts == null)
+                enabledHosts = new String[0];
+        } else {
             enabledHosts = new String[0];
+        }
        return enabledHosts;
     }
 

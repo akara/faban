@@ -648,14 +648,16 @@ public class Metrics implements Serializable, Cloneable,
      * @return The new sum of squares
      */
     static double addSumSquare(double s, int n, double t, double x) {
+        double s0 = s;
         if (n > 1) {
             double y = n * x - t;
-            s = s + y * y / (n * (n - 1));
+            s = s + y * y / (n * (double) (n - 1));
         }
         if (s < 0) {
-            Logger.getLogger(Metrics.class.getName()).warning(
-                        "Doug - addSumSquare(s=" + s + ", n=" + n + ", t=" +
-                        t + ", x=" + x + ") returns NEGATIVE "+ s + " ");
+            Logger.getLogger(Metrics.class.getName()).log(Level.WARNING,
+                        "Doug - addSumSquare(s=" + s0 + ", n=" + n + ", t=" +
+                        t + ", x=" + x + ") returns NEGATIVE "+ s + " ",
+                        new Exception());
             }
         return s;
     }
