@@ -549,7 +549,7 @@ public class FabanHTTPBench {
             System.err.println("usage: " + cmd + " [program options] URL");
             System.err.println("       " + cmd + " -f file");
         }
-        System.err.println("Suported program options are: ");
+        System.err.println("Supported program options are: ");
         if (cmd != null) {
             System.err.println("\t-J jvm_option : Set particular JVM option");
             System.err.println("\t\tUse standard options (including -server) " +
