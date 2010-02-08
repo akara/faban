@@ -19,7 +19,7 @@
  *
  * $Id$
  *
- * Copyright 2005-2009 Sun Microsystems Inc. All Rights Reserved
+ * Copyright 2005-2010 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver.util;
 
@@ -92,6 +92,7 @@ public class FabanHTTPBench {
     private static String runXmlFileName;
     private static boolean save = false;
     private static boolean substitute = false;
+    private static String kbps = "-1";
     private static boolean isBinary = false;
     private static String thinkTime = "0";
     private static final int CYCLE_DEVIATION = 1;
@@ -222,6 +223,10 @@ public class FabanHTTPBench {
         tmp.setPrefix("");
         tmp.appendChild(doc.createTextNode(path));
         op.appendChild(tmp);
+		tmp = doc.createElementNS(RunInfo.DRIVERURI, "kbps");
+		tmp.setPrefix("");
+		tmp.appendChild(doc.createTextNode(kbps));
+		op.appendChild(tmp);
         if (postRequest) {
             tmp = doc.createElementNS(RunInfo.DRIVERURI, "post");
             tmp.setAttributeNS(null, "binary", Boolean.toString(isBinary));
@@ -501,6 +506,9 @@ public class FabanHTTPBench {
                 case 'k':
                     System.err.println("Warning: keep alive is always on");
                     break;
+				case 'K':
+					kbps = c.length > 2 ? args[i].substring(2) : args[++i];
+					break;
                 case 'V':
                     System.out.println("Faban cd: Version 0.1");
                     System.exit(0);
@@ -568,6 +576,7 @@ public class FabanHTTPBench {
                                                 "(application/octet-stream)");
         System.err.println("\t-S : Perform Faban data substitutions on GET " +
                                                 "query string or POST data");
+        System.err.println("\t-K Set speed of sockets to in kilobytes/sec");
         System.err.println("\t-k NOTE : Keep alive is always on");
         System.exit(-1);
     }

@@ -17,17 +17,16 @@
  * your own identifying information:
  * "Portions Copyrighted [year] [name of copyright owner]"
  *
- * $Id$
- *
- * Copyright 2005-2009 Sun Microsystems Inc. All Rights Reserved
+ * Copyright 2005-2010 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver.transport.util;
 
 import com.sun.faban.driver.engine.DriverContext;
+import com.sun.faban.driver.transport.util.Throttle.Direction;
 
 import java.io.FilterOutputStream;
-import java.io.OutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  * A pass-through output stream that records the time of the output.
@@ -39,6 +38,7 @@ import java.io.IOException;
 public class TimedOutputStream extends FilterOutputStream {
 
     DriverContext ctx;
+    private Throttle throttle;
 
     /**
      * Creates an output stream filter built on top of the specified
@@ -52,6 +52,7 @@ public class TimedOutputStream extends FilterOutputStream {
     public TimedOutputStream(OutputStream out) {
         super(out);
         ctx = DriverContext.getContext();
+        throttle = new Throttle(ctx);
     }
 
     /**
@@ -68,10 +69,17 @@ public class TimedOutputStream extends FilterOutputStream {
      */
     @Override
 	public void write(int b) throws IOException {
-        if (ctx != null)
+        long startWriteAt = 0L;
+        if (ctx != null) {
             ctx.recordStartTime();
+            if (throttle.isThrottled(Direction.UP))
+                startWriteAt = ctx.getNanoTime();
+        }
         super.write(b);
-    }
+		if (throttle.isThrottled(Direction.UP) && ctx != null)
+			throttle.throttle(1, ctx.getNanoTime() - startWriteAt,
+                                Direction.UP);
+     }
 
     /**
      * Writes <code>b.length</code> bytes to this output stream.
@@ -86,14 +94,12 @@ public class TimedOutputStream extends FilterOutputStream {
      * argument <code>b</code>.
      *
      * @param b the data to be written.
-     * @throws IOException {{@link IOException} if an I/O error occurs.
+     * @throws IOException {@link IOException} if an I/O error occurs.
      * @see java.io.FilterOutputStream#write(byte[], int, int)
      */
     @Override
 	public void write(byte b[]) throws IOException {
-        if (ctx != null && b.length > 0)
-            ctx.recordStartTime();
-        super.write(b);
+        this.write(b, 0, b.length);
     }
 
     /**
@@ -110,9 +116,16 @@ public class TimedOutputStream extends FilterOutputStream {
      * @throws IOException If there is an error writing
      */
     @Override
-	public void write(byte b[], int off, int len) throws IOException {
-        if (ctx != null && b.length > 0 && len > 0)
+    public void write(byte b[], int off, int len) throws IOException {
+        long startWriteAt = 0L;
+        if (ctx != null && b.length > 0 && len > 0) {
             ctx.recordStartTime();
+            if (throttle.isThrottled(Direction.UP))
+                startWriteAt = ctx.getNanoTime();
+        }
         out.write(b, off, len);
+        if (throttle.isThrottled(Direction.UP) && ctx != null)
+            throttle.throttle(len, ctx.getNanoTime() - startWriteAt,
+                                Direction.UP);
     }
 }

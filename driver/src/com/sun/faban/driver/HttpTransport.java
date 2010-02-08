@@ -19,7 +19,7 @@
  *
  * $Id$
  *
- * Copyright 2005-2009 Sun Microsystems Inc. All Rights Reserved
+ * Copyright 2005-2010 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver;
 
@@ -677,5 +677,35 @@ public class HttpTransport {
      */
     public int getResponseCode() {
         return delegate.getResponseCode();
+    }
+
+    /**
+     * Set the download speed for this HTTP transport object
+     *
+     * @param kbps desired speed in kilobytes per second
+     * @throws UnsupportedOperationException if the underlying HTTP transport
+     * doesn't support bandwidth-metered (throttled) sockets
+     */
+    public void setDownloadSpeed(int kbps) {
+        // Subclasses can throw UnsupportedOperationException if necessary
+        com.sun.faban.driver.engine.DriverContext engine =
+                (com.sun.faban.driver.engine.DriverContext)
+                        com.sun.faban.driver.DriverContext.getContext();
+        engine.setDownloadSpeed(kbps);
+    }
+
+    /**
+     * Set the upload speed for this HTTP transport object
+     *
+     * @param kbps desired speed in kilobytes per second
+     * @throws UnsupportedOperationException if the underlying HTTP transport
+     * doesn't support bandwidth-metered (throttled) sockets
+     */
+    public void setUploadSpeed(int kbps) {
+        // Subclasses can throw UnsupportedOperationException if necessary
+        com.sun.faban.driver.engine.DriverContext engine =
+                (com.sun.faban.driver.engine.DriverContext)
+                        com.sun.faban.driver.DriverContext.getContext();
+        engine.setUploadSpeed(kbps);
     }
 }

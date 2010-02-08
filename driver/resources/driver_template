@@ -64,6 +64,7 @@ public void @operationName@() throws Exception{
 
 	try{
             String url = @url@;
+	 	@doKbps@
 	    @doTiming@
             int bytesRead = httpTransport.readURL(url@postRequest@);
             //System.out.println("url:"+url);

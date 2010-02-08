@@ -19,7 +19,7 @@
  *
  * $Id$
  *
- * Copyright 2005-2009 Sun Microsystems Inc. All Rights Reserved
+ * Copyright 2005-2010 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver.engine;
 
@@ -27,6 +27,7 @@ import com.sun.faban.common.FabanNamespaceContext;
 import com.sun.faban.driver.CustomMetrics;
 import com.sun.faban.driver.CustomTableMetrics;
 import com.sun.faban.driver.Timing;
+import static com.sun.faban.driver.engine.AgentThread.TIME_NOT_SET;
 import com.sun.faban.driver.util.Random;
 import com.sun.faban.driver.util.Timer;
 import org.w3c.dom.Attr;
@@ -41,8 +42,6 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.logging.Logger;
-
-import static com.sun.faban.driver.engine.AgentThread.TIME_NOT_SET;
 
 /**
  * DriverContext is the point of communication between the
@@ -87,6 +86,12 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
 
     /** The XPath instance used to evaluate the XPaths. */
     private XPath xPathInstance;
+
+	/** Desired upload speed of this context */
+	private int kbpsUpload = -1;
+
+	/** Desired download speed of this context */
+	private int kbpsDownload = -1;
 
     /**
      * Obtains the DriverContext associated with this thread.
@@ -690,5 +695,53 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      */
     public String getResourceDir() {
         return agentThread.agent.driverBase + File.separator + "resources";
+    }
+
+    /**
+     * Set the desired upload speed for the thread using this context.
+     * This method is intended for use only by transport classes; drivers
+     * should call an apporpriate method on the transport to set this
+     * value. Note that not all transports support bandwidth throttling
+     * (so drivers that do call this method will have no idea if the value
+     * is used or not).
+     *
+     * @param kbps desired speed in kilobytes per second. If kbps is < 0,
+     * speed will be unlimited.
+     */
+    public void setUploadSpeed(int kbps) {
+        this.kbpsUpload = kbps;
+    }
+
+    /**
+     * Return the desired upload speed for the thread using this context.
+     *
+     * @return desired speed in kilobytes per second
+     */
+    public int getUploadSpeed() {
+        return kbpsUpload;
+    }
+
+    /**
+     * Set the desired downoad speed for the thread using this context.
+     * This method is intended for use only by transport classes; drivers
+     * should call an apporpriate method on the transport to set this
+     * value. Note that not all transports support bandwidth throttling
+     * (so drivers that do call this method will have no idea if the value
+     * is used or not).
+     *
+     * @param kbps desired speed in kilobytes per second. If kbps is < 0,
+     * speed will be unlimited.
+     */
+    public void setDownloadSpeed(int kbps) {
+        this.kbpsDownload = kbps;
+    }
+
+    /**
+     * Return the desired download speed for the thread using this context.
+     *
+     * @return desired speed in kilobytes per second
+     */
+    public int getDownloadSpeed() {
+        return kbpsDownload;
     }
 }

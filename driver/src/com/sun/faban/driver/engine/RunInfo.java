@@ -19,38 +19,25 @@
  *
  * $Id$
  *
- * Copyright 2005-2009 Sun Microsystems Inc. All Rights Reserved
+ * Copyright 2005-2010 Sun Microsystems Inc. All Rights Reserved
  */
 package com.sun.faban.driver.engine;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.io.Serializable;
+import com.sun.faban.common.ParamReader;
+import com.sun.faban.driver.ConfigurationException;
+import com.sun.faban.driver.RunControl;
+import org.w3c.dom.CDATASection;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.StringTokenizer;
 import java.util.logging.Handler;
-
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-
-import org.w3c.dom.CDATASection;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import com.sun.faban.common.ParamReader;
-import com.sun.faban.driver.ConfigurationException;
-import com.sun.faban.driver.RunControl;
 
 
 /**
@@ -493,6 +480,7 @@ public class RunInfo implements Serializable {
             boolean isBinary;
             String url;
             String data;
+            String kbps = "-1";
 
             abstract String getURL(int opNum);
 
@@ -502,17 +490,27 @@ public class RunInfo implements Serializable {
                     return "ctx.recordTime();";
                 return "";
             }
+
+            String getKbps(int opNum) {
+                if (kbps == null)
+                    return "";
+                if (Integer.parseInt(kbps) < 0)
+                    return "";
+                return "httpTransport.setDownloadSpeed(" + kbps + ");\n";
+            }
             
             abstract String getPostRequest(int opNum) throws Exception;
             
             abstract String getStatics(int opNum) throws Exception;
 
             public void init(boolean doSubst, boolean isBinary,
-                             String url, String data) {
+                             String url, String data, String kbps) {
                 this.doSubst = doSubst;
                 this.isBinary = isBinary;
                 this.url = url;
                 this.data = data;
+ 				if (kbps != null)
+ 					this.kbps = kbps;
             }
 
             @SuppressWarnings("cast")
@@ -690,7 +688,6 @@ public class RunInfo implements Serializable {
         }
 
         private String createDefinition(Object runConfigNode) throws Exception {
-
             Element benchDefNode = (Element) xp.evaluate(
                                     "fd:benchmarkDefinition", runConfigNode,
                                     XPathConstants.NODE);
@@ -774,6 +771,7 @@ public class RunInfo implements Serializable {
                 String operationName = xp.evaluate("fd:name", operationNode);
                 String url = xp.evaluate("fd:url", operationNode);
                 String max90th = xp.evaluate("fd:max90th", operationNode);
+				String kbps = xp.evaluate("fd:kbps", operationNode);
 
                 String requestString="";
 
@@ -847,7 +845,7 @@ public class RunInfo implements Serializable {
                 } else {
 					rid = new RunInfoGetDefinition();
 				}
-                rid.init(doSubst, isBinary, url, requestString);
+                rid.init(doSubst, isBinary, url, requestString, kbps);
 
                 //Create the benchmark Operation annotation
                 StringBuilder bmop = new StringBuilder(
@@ -876,7 +874,9 @@ public class RunInfo implements Serializable {
                 opTemplateClone = opTemplateClone.replaceAll(
                         "@Statics@", rid.getStatics(i));
 				opTemplateClone = opTemplateClone.replaceAll(
-						"@doTiming@", rid.doTiming(i, provider));
+						"@doKbps@", rid.getKbps(i));
+				opTemplateClone = opTemplateClone.replaceAll(
+ 						"@doTiming@", rid.doTiming(i, provider));
                 
                 operations.append(opTemplateClone);
                 
