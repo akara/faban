@@ -31,22 +31,21 @@ import com.sun.faban.driver.engine.DriverContext;
  * @author Scott Oaks
  */
 public class Throttle {
-	public static enum Direction { UP, DOWN };
+    public static final int UP = 0;
+    public static final int DOWN = 1;
 
 	private DriverContext ctx;
 
 	/* Time it should take to process 1 byte */
-	private double desiredUpNanoPerByte;
-	private double desiredDownNanoPerByte;
+    private double[] desiredNanoPerByte = new double[2];
 
 	/* Last timing value user */
-	private int lastUpSpeed;
-	private int lastDownSpeed;
+    private int[] lastSpeed = new int[2];
 
 	/* Amount of time we need to sleep but haven't yet (because we
 	 * can't sleep for really short nano-second measured periods of time)
 	 */
-	private long pendingNanoSleep;
+	private long[] pendingNanoSleep = new long[2];
 
     /**
      * Constructs a throttle.
@@ -54,8 +53,8 @@ public class Throttle {
      */
 	public Throttle(DriverContext ctx) {
 		this.ctx = ctx;
-		checkForChange(Direction.UP);
-		checkForChange(Direction.DOWN);
+		checkForChange(UP);
+		checkForChange(DOWN);
 	}
 
     /**
@@ -63,9 +62,8 @@ public class Throttle {
      * @param direction The direction to check
      * @return Whether the bandwidth is throttled
      */
-	public boolean isThrottled(Direction direction) {
-		return (direction == Direction.UP) ?
-			(lastUpSpeed > 0) : (lastDownSpeed > 0);
+	public boolean isThrottled(int direction) {
+		return lastSpeed[direction] > 0;
 	}
 
     /**
@@ -75,33 +73,29 @@ public class Throttle {
      * @param startTime The start time of the send/receive
      * @param direction The direction, up or down
      */
-	public void throttle(int bytes, long startTime, Direction direction) {
+	public void throttle(int bytes, long startTime, int direction) {
 		checkForChange(direction);
-		double desiredNanoPerByte = (direction == Direction.UP) ?
-				desiredUpNanoPerByte : desiredDownNanoPerByte;
-		double expectedTime = bytes * desiredNanoPerByte;
-        long wakeupTime = startTime + (long) expectedTime + pendingNanoSleep;
+		double expectedTime = bytes * desiredNanoPerByte[direction];
+        long wakeupTime = startTime + (long) expectedTime +
+                        pendingNanoSleep[direction];
         ctx.wakeupAt(wakeupTime);
         // If slept too long, the pendingNanoSleep will go negative.
         // If it wakes up too early, the pendingNanoSleep will go positive
         // needing to add a little more delay to the subsequent sleep.
-        pendingNanoSleep = wakeupTime - System.nanoTime();
+        pendingNanoSleep[direction] = wakeupTime - System.nanoTime();
 	}
 
-	private void checkForChange(Direction d) {
-	    if (d == Direction.UP) {
-			int last = ctx.getUploadSpeed();
-			if (last != lastUpSpeed) {
-				desiredUpNanoPerByte = calcNanoPerByte(last);
-				lastUpSpeed = last;
-			}
-		} else {
-			int last = ctx.getDownloadSpeed();
-			if (last != lastDownSpeed) {
-				desiredDownNanoPerByte = calcNanoPerByte(last);
-				lastDownSpeed = last;
-			}
-		}
+	private void checkForChange(int direction) {
+        int last;
+	    if (direction == UP)
+			last = ctx.getUploadSpeed();
+        else
+            last = ctx.getDownloadSpeed();
+
+        if (last != lastSpeed[direction]) {
+            desiredNanoPerByte[direction] = calcNanoPerByte(last);
+            lastSpeed[direction] = last;
+        }
 	}
 
 	private double calcNanoPerByte(int kbps) {

@@ -22,7 +22,6 @@
 package com.sun.faban.driver.transport.util;
 
 import com.sun.faban.driver.engine.DriverContext;
-import com.sun.faban.driver.transport.util.Throttle.Direction;
 
 import java.io.FilterOutputStream;
 import java.io.IOException;
@@ -74,14 +73,14 @@ public class TimedOutputStream extends FilterOutputStream {
         long startWriteAt = 0L;
         boolean isThrottled = false;
         if (ctx != null) {
-            isThrottled = throttle.isThrottled(Direction.UP);
+            isThrottled = throttle.isThrottled(Throttle.UP);
             startWriteAt = ctx.recordStartTime();
             if (isThrottled && startWriteAt == TIME_NOT_SET)
                 startWriteAt = ctx.getNanoTime();
         }
         super.write(b);
 		if (isThrottled)
-			throttle.throttle(1, startWriteAt, Direction.UP);
+			throttle.throttle(1, startWriteAt, Throttle.UP);
     }
 
     /**
@@ -123,7 +122,7 @@ public class TimedOutputStream extends FilterOutputStream {
         long startWriteAt = 0L;
         boolean isThrottled = false;
         if (ctx != null && b.length > 0 && len > 0) {
-            isThrottled = throttle.isThrottled(Direction.UP);
+            isThrottled = throttle.isThrottled(Throttle.UP);
             startWriteAt = ctx.recordStartTime();
 
             // Only take the time if throttling is on and time has
@@ -133,6 +132,6 @@ public class TimedOutputStream extends FilterOutputStream {
         }
         out.write(b, off, len);
         if (isThrottled)
-            throttle.throttle(len, startWriteAt, Direction.UP);
+            throttle.throttle(len, startWriteAt, Throttle.UP);
     }
 }

@@ -23,7 +23,6 @@
 package com.sun.faban.driver.transport.util;
 
 import com.sun.faban.driver.engine.DriverContext;
-import com.sun.faban.driver.transport.util.Throttle.Direction;
 
 import java.io.FilterInputStream;
 import java.io.IOException;
@@ -104,7 +103,7 @@ public class TimedInputStream extends FilterInputStream {
         long startReadAt = 0L;
         boolean isThrottled = false;
         if (ctx != null) {
-            isThrottled = throttle.isThrottled(Direction.DOWN);
+            isThrottled = throttle.isThrottled(Throttle.DOWN);
             if (isThrottled)
 	    	    startReadAt = ctx.getNanoTime();
         }
@@ -112,7 +111,7 @@ public class TimedInputStream extends FilterInputStream {
         if (ctx != null && b != -1) {
             ctx.recordEndTime();
 			if (isThrottled)
-	    		throttle.throttle(1, startReadAt, Direction.DOWN);
+	    		throttle.throttle(1, startReadAt, Throttle.DOWN);
         }
         return b;
     }
@@ -165,7 +164,7 @@ public class TimedInputStream extends FilterInputStream {
         long startReadAt = 0L;
         boolean isThrottled = false;
         if (ctx != null) {
-            isThrottled = throttle.isThrottled(Direction.DOWN);
+            isThrottled = throttle.isThrottled(Throttle.DOWN);
             if (isThrottled)
                 startReadAt = ctx.getNanoTime();
         }
@@ -173,7 +172,7 @@ public class TimedInputStream extends FilterInputStream {
         if (ctx != null && bytes > 0) {
             ctx.recordEndTime();
             if (isThrottled)
-                throttle.throttle(bytes, startReadAt, Direction.DOWN);
+                throttle.throttle(bytes, startReadAt, Throttle.DOWN);
         }
         return bytes;
     }
