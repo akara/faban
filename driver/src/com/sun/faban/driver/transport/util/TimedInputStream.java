@@ -78,7 +78,8 @@ public class TimedInputStream extends FilterInputStream {
     public TimedInputStream(InputStream in) {
         super(in);
         ctx = DriverContext.getContext();
-        throttle = new Throttle(ctx);
+        if (ctx != null)
+            throttle = new Throttle(ctx);
     }
 
     /**
@@ -101,15 +102,17 @@ public class TimedInputStream extends FilterInputStream {
     @Override
 	public int read() throws IOException {
         long startReadAt = 0L;
-		if (throttle.isThrottled(Direction.DOWN))
-	    	startReadAt = ctx.getNanoTime();
-
+        boolean isThrottled = false;
+        if (ctx != null) {
+            isThrottled = throttle.isThrottled(Direction.DOWN);
+            if (isThrottled)
+	    	    startReadAt = ctx.getNanoTime();
+        }
         int b = super.read();
         if (ctx != null && b != -1) {
             ctx.recordEndTime();
-			if (throttle.isThrottled(Direction.DOWN))
-	    		throttle.throttle(1, ctx.getNanoTime() - startReadAt,
-                                    Direction.DOWN);
+			if (isThrottled)
+	    		throttle.throttle(1, startReadAt, Direction.DOWN);
         }
         return b;
     }
@@ -159,16 +162,18 @@ public class TimedInputStream extends FilterInputStream {
      */
     @Override
 	public int read(byte b[], int off, int len) throws IOException {
-        		long startReadAt = 0L;
-        		if (throttle.isThrottled(Direction.DOWN))
-        	    	startReadAt = ctx.getNanoTime();
-
+        long startReadAt = 0L;
+        boolean isThrottled = false;
+        if (ctx != null) {
+            isThrottled = throttle.isThrottled(Direction.DOWN);
+            if (isThrottled)
+                startReadAt = ctx.getNanoTime();
+        }
         int bytes = super.read(b, off, len);
         if (ctx != null && bytes > 0) {
             ctx.recordEndTime();
-	    	if (throttle.isThrottled(Direction.DOWN))
-				throttle.throttle(bytes, ctx.getNanoTime() - startReadAt,
-                                    Direction.DOWN);
+            if (isThrottled)
+                throttle.throttle(bytes, startReadAt, Direction.DOWN);
         }
         return bytes;
     }

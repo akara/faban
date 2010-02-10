@@ -48,39 +48,44 @@ public class Throttle {
 	 */
 	private long pendingNanoSleep;
 
+    /**
+     * Constructs a throttle.
+     * @param ctx The driver context
+     */
 	public Throttle(DriverContext ctx) {
 		this.ctx = ctx;
 		checkForChange(Direction.UP);
 		checkForChange(Direction.DOWN);
 	}
 
+    /**
+     * Checks whether the bandwidth is throttled for the given direction
+     * @param direction The direction to check
+     * @return Whether the bandwidth is throttled
+     */
 	public boolean isThrottled(Direction direction) {
 		return (direction == Direction.UP) ?
 			(lastUpSpeed > 0) : (lastDownSpeed > 0);
 	}
 
-	public void throttle(int bytes, long elapsedTime, Direction direction) {
+    /**
+     * The throttle sleeps until the calculated time for the request has
+     * expired, before continuing with subsequent I/O.
+     * @param bytes The size of the data sent/received
+     * @param startTime The start time of the send/receive
+     * @param direction The direction, up or down
+     */
+	public void throttle(int bytes, long startTime, Direction direction) {
 		checkForChange(direction);
 		double desiredNanoPerByte = (direction == Direction.UP) ?
 				desiredUpNanoPerByte : desiredDownNanoPerByte;
 		double expectedTime = bytes * desiredNanoPerByte;
-		double sleepTime = (expectedTime - elapsedTime);
-		if (sleepTime > 0) {
-			pendingNanoSleep += sleepTime;
-			// Can't sleep for less than 50 ms
-			long msToSleep = 0;
-			if (pendingNanoSleep > (1000000L * 50)) {
-				msToSleep = pendingNanoSleep / 1000000L;
-				pendingNanoSleep -= (msToSleep * 1000000L);
-			}
-			if (msToSleep > 0) {
-				try {
-					Thread.currentThread().sleep(msToSleep);
-				} catch (InterruptedException ie) {
-				    Thread.currentThread().interrupt();
-			    }
-			}
-		}
+        long wakeupTime = startTime + (long) expectedTime + pendingNanoSleep;
+        ctx.wakeupAt(wakeupTime);
+        // If slept too long, the pendingNanoSleep will go negative.
+        // If it wakes up too early, the pendingNanoSleep will go positive
+        // needing to add a little more delay to the subsequent sleep.
+        pendingNanoSleep = wakeupTime - System.nanoTime();
 	}
 
 	private void checkForChange(Direction d) {

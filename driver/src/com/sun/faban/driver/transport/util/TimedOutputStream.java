@@ -27,6 +27,7 @@ import com.sun.faban.driver.transport.util.Throttle.Direction;
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import static com.sun.faban.driver.engine.AgentThread.TIME_NOT_SET;
 
 /**
  * A pass-through output stream that records the time of the output.
@@ -52,7 +53,8 @@ public class TimedOutputStream extends FilterOutputStream {
     public TimedOutputStream(OutputStream out) {
         super(out);
         ctx = DriverContext.getContext();
-        throttle = new Throttle(ctx);
+        if (ctx != null)
+            throttle = new Throttle(ctx);
     }
 
     /**
@@ -70,16 +72,17 @@ public class TimedOutputStream extends FilterOutputStream {
     @Override
 	public void write(int b) throws IOException {
         long startWriteAt = 0L;
+        boolean isThrottled = false;
         if (ctx != null) {
-            ctx.recordStartTime();
-            if (throttle.isThrottled(Direction.UP))
+            isThrottled = throttle.isThrottled(Direction.UP);
+            startWriteAt = ctx.recordStartTime();
+            if (isThrottled && startWriteAt == TIME_NOT_SET)
                 startWriteAt = ctx.getNanoTime();
         }
         super.write(b);
-		if (throttle.isThrottled(Direction.UP) && ctx != null)
-			throttle.throttle(1, ctx.getNanoTime() - startWriteAt,
-                                Direction.UP);
-     }
+		if (isThrottled)
+			throttle.throttle(1, startWriteAt, Direction.UP);
+    }
 
     /**
      * Writes <code>b.length</code> bytes to this output stream.
@@ -118,14 +121,18 @@ public class TimedOutputStream extends FilterOutputStream {
     @Override
     public void write(byte b[], int off, int len) throws IOException {
         long startWriteAt = 0L;
+        boolean isThrottled = false;
         if (ctx != null && b.length > 0 && len > 0) {
-            ctx.recordStartTime();
-            if (throttle.isThrottled(Direction.UP))
-                startWriteAt = ctx.getNanoTime();
+            isThrottled = throttle.isThrottled(Direction.UP);
+            startWriteAt = ctx.recordStartTime();
+
+            // Only take the time if throttling is on and time has
+            // not been taken by recordStartTime.
+            if (isThrottled && startWriteAt == TIME_NOT_SET)
+                startWriteAt = System.nanoTime();
         }
         out.write(b, off, len);
-        if (throttle.isThrottled(Direction.UP) && ctx != null)
-            throttle.throttle(len, ctx.getNanoTime() - startWriteAt,
-                                Direction.UP);
+        if (isThrottled)
+            throttle.throttle(len, startWriteAt, Direction.UP);
     }
 }
