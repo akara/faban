@@ -28,7 +28,7 @@ rem )
 
 REM TODO: Check file and rename, need to find way.
 
-set PROG=%FENXI_SCRIPTS/fenxi
+set PROG=%FENXI_SCRIPTS%\fenxi
 
 rmdir /s /q txt
 
