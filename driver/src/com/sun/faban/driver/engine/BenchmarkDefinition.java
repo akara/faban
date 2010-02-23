@@ -565,7 +565,7 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
 		String name;
         String metric;
         String opsUnit;
-        int threadPerScale;
+        float threadPerScale;
         TimeUnit responseTimeUnit;
         Mix[] mix = new Mix[2]; // Foreground (0) and background (1) mix.
         Cycle[] initialDelay = new Cycle[2]; // Foreground and background

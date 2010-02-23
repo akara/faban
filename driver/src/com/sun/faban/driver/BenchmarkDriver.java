@@ -47,9 +47,10 @@ public @interface BenchmarkDriver {
 
     /**
      * The number of threads this driver should launch for each
-     * benchmark scale.
+     * benchmark scale. The actual number of threads launched for this
+     * driver is a round(threadsPerScale x scale).
      */
-    int threadPerScale()    default 1;
+    float threadPerScale()    default 1f;
 
     /**
      * The time unit used for reporting response times.

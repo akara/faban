@@ -489,6 +489,14 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
     }
 
     /**
+     * Wakes up closest to a system nanosec time.
+     * @param time The time to wake up
+     */
+    public void wakeupAt(long time) {
+        timer.wakeupAt(time);
+    }
+
+    /**
      * Obtains the relative time - in milliseconds - that steady state starts,
      * if set. The if the time is not yet set, it will return 0.
      *
@@ -575,11 +583,12 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      * Records the start time of an operation. This method is not
      * exposed through the interface and is only used by the transport
      * facilities.
+     * @return The recorded time - system nanotime, or TIME_NOT_SET if not set
      */
-    public void recordStartTime() {
+    public long recordStartTime() {
         // Not in an operation, don't record time.
         if (agentThread.currentOperation == -1)
-            return;
+            return TIME_NOT_SET;
         if (timingInfo != null && agentThread.driverConfig.operations[
                 agentThread.currentOperation].timing == Timing.AUTO) {
             if (timingInfo.invokeTime == TIME_NOT_SET) {
@@ -589,6 +598,7 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
                 timer.wakeupAt(timingInfo.intendedInvokeTime);
                 // But since sleep may not be exact, we get the time again here.
                 timingInfo.invokeTime = System.nanoTime();
+                return timingInfo.invokeTime;
             } else if (pauseSupported && timingInfo.respondTime != TIME_NOT_SET) {
                 if (timingInfo.respondTime < timingInfo.invokeTime)
                     logger.warning("Respond time (" + timingInfo.respondTime +
@@ -603,42 +613,47 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
                 // We set the pause time only on the first byte transmitted.
                 timingInfo.respondTime = TIME_NOT_SET;
 
-                timingInfo.pauseTime +=
-                        System.nanoTime() - timingInfo.lastRespondTime;
+                long time = System.nanoTime();
+                timingInfo.pauseTime += time - timingInfo.lastRespondTime;
+                return time;
             }
             // Otherwise this can be a subsequent write.
             // Invoke time already set and respond time not set.
         }
+        return TIME_NOT_SET;
     }
 
     /**
      * Records the end time of an operation. This method is not
      * exposed through the interface and is only used by the transport
      * facilities.
+     * @return The recorded time - system nanotime, or TIME_NOT_SET if not set
      */
-    public void recordEndTime() {
+    public long recordEndTime() {
+        long tstamp = TIME_NOT_SET;
         // Not in an operation, don't record time.
-        if (agentThread.currentOperation == -1)
-            return;
-        if (timingInfo != null && agentThread.driverConfig.operations[
-                agentThread.currentOperation].timing == Timing.AUTO ) {
-            // Some stacks clear the connection by doing a read before a write
-            // in a request, normally a read of 0 bytes. We need to make sure
-            // such reads are not part of the response time.
-            if (timingInfo.invokeTime == TIME_NOT_SET) {
-                int[] previousOps = agentThread.previousOperation;
-                String name = agentThread.driverConfig.mix[0].
-                                operations[previousOps[0]].name;
-                if (previousOps.length > 1)
-                    name += ',' + agentThread.driverConfig.mix[1].
-                                  operations[previousOps[1]].name;
-                logger.warning("Read before write! Some input may still be in" +
-                        " the buffer from previous operation " + name +
-                        ". Ignoring such input.");
-            } else {
-			    timingInfo.respondTime = System.nanoTime();
+        if (agentThread.currentOperation != -1) {
+            if (timingInfo != null && agentThread.driverConfig.operations[
+                    agentThread.currentOperation].timing == Timing.AUTO ) {
+                // Some stacks clear the connection by doing a read before a
+                // write in a request, normally a read of 0 bytes. We need to
+                // make sure such reads are not part of the response time.
+                if (timingInfo.invokeTime == TIME_NOT_SET) {
+                    int[] previousOps = agentThread.previousOperation;
+                    String name = agentThread.driverConfig.mix[0].
+                            operations[previousOps[0]].name;
+                    if (previousOps.length > 1)
+                        name += ',' + agentThread.driverConfig.mix[1].
+                                operations[previousOps[1]].name;
+                    logger.warning("Read before write! Some input may still " +
+                            "be in the buffer from previous operation " +
+                            name + ". Ignoring such input.");
+                } else {
+                    timingInfo.respondTime = tstamp = System.nanoTime();
+                }
             }
-		}
+        }
+        return tstamp;
     }
 
     /**

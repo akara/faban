@@ -456,8 +456,8 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 
                 // We need to calculate the thread counts
                 if (runInfo.driverConfigs[i].numThreads == -1) {
-					runInfo.driverConfigs[i].numThreads = runInfo.scale *
-                            benchDef.drivers[i].threadPerScale;
+					runInfo.driverConfigs[i].numThreads = Math.round(
+                            runInfo.scale * benchDef.drivers[i].threadPerScale);
 				}
                 agentThreads[i] = runInfo.driverConfigs[i].numThreads /
                         runInfo.driverConfigs[i].numAgents;
@@ -509,8 +509,8 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 
         // We need to calculate the thread counts
         if (runInfo.driverConfigs[driverToRun].numThreads == -1) {
-			runInfo.driverConfigs[driverToRun].numThreads = runInfo.
-                    scale * benchDef.drivers[driverToRun].threadPerScale;
+			runInfo.driverConfigs[driverToRun].numThreads = Math.round(runInfo.
+                    scale * benchDef.drivers[driverToRun].threadPerScale);
 		}
         agentThreads[driverToRun] =
                 runInfo.driverConfigs[driverToRun].numThreads;
