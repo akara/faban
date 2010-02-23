@@ -29,10 +29,15 @@
                                  com.sun.faban.harness.security.AccessController"%>
 <jsp:useBean id="usrEnv" scope="session" class="com.sun.faban.harness.webclient.UserEnv"/>
 <%
-    Subject user = usrEnv.getSubject();
-    boolean submitAllowed = AccessController.isSubmitAllowed(user);
-    boolean rigAllowed = AccessController.isRigManageAllowed(user);
-    boolean manageAllowed = AccessController.isManageAllowed(user);
+    boolean submitAllowed = false;
+    boolean manageAllowed = false;
+    boolean rigAllowed = false;
+    if (Config.daemonMode != Config.DaemonModes.DISABLED) {
+        Subject user = usrEnv.getSubject();
+        submitAllowed = AccessController.isSubmitAllowed(user);
+        rigAllowed = AccessController.isRigManageAllowed(user);
+        manageAllowed = AccessController.isManageAllowed(user);
+    }
 %>
 <html>
     <head>
