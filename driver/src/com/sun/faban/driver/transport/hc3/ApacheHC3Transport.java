@@ -97,10 +97,10 @@ public class ApacheHC3Transport extends HttpTransport {
     private int contentSize;
 
     /** The byte buffer used for the reads in read* methods. */
-    private byte[] byteReadBuffer = new byte[8192];
+    private byte[] byteReadBuffer = new byte[BUFFER_SIZE];
 
     /** The char used for the reads in fetch* methods. */
-    private char[] charReadBuffer = new char[8192];
+    private char[] charReadBuffer = new char[BUFFER_SIZE];
 
     /** A cache for already-compiled regex patterns. */
     private HashMap<String, Pattern> patternCache;

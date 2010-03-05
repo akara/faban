@@ -24,11 +24,14 @@
 package com.sun.faban.driver.transport.util;
 
 import com.sun.faban.driver.engine.DriverContext;
+import com.sun.faban.driver.HttpTransport;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.*;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * The TimedSocket class extends the Socket class by timing the opening of
@@ -40,6 +43,53 @@ import java.net.*;
  * @author Akara Sucharitakul
  */
 public class TimedSocket extends Socket {
+
+    private static Logger logger = Logger.getLogger(TimedSocket.class.getName());
+    private static int bufferSize = -1;
+
+    // Check whether the buffer size is overridden by the system property.
+    static {
+        String bufferSizeString = System.getProperty(
+                "faban.socket.buffer.size");
+        if (bufferSizeString != null) {
+            int multiplier = 1;
+            if (bufferSizeString.endsWith("k") ||
+                    bufferSizeString.endsWith("K")) {
+                bufferSizeString = bufferSizeString.substring(0,
+                        bufferSizeString.length() - 1);
+                multiplier = 1024;
+            }
+            try {
+                bufferSize = Integer.parseInt(bufferSizeString) * multiplier;
+                logger.log(Level.INFO, "Trying to set socket receive buffer " +
+                        "size to " + bufferSize);
+
+            } catch (NumberFormatException e) {
+                logger.log(Level.WARNING, "faban.socket.buffer.size " +
+                        "property format must be 999 or 999k. " +
+                        "Leaving unset.");
+            }
+        }
+    }
+
+    static final int BUFFER_SIZE = bufferSize;
+
+    private void verifyReceiveBufferSize() {
+        if (BUFFER_SIZE != -1)
+            try {
+                setReceiveBufferSize(BUFFER_SIZE);
+                int bufSize = getReceiveBufferSize();
+                if (BUFFER_SIZE == bufSize) {
+                    logger.info("Socket receive buffer size set to " + BUFFER_SIZE);
+                } else {
+                    logger.warning("Socket receive buffer size set to " +
+                            bufSize + " despite requesting " + BUFFER_SIZE);
+                }
+            } catch (SocketException e) {
+                logger.log(Level.WARNING, "Error setting socket buffer size.",
+                        e);
+            }
+    }
 
     /**
      * Creates an unconnected socket, with the
@@ -231,6 +281,9 @@ public class TimedSocket extends Socket {
      */
     @Override
 	public void connect(SocketAddress endpoint, int timeout) throws IOException {
+
+        verifyReceiveBufferSize();
+
         // Here we intercept the connect and capture the start time.
         DriverContext ctx = DriverContext.getContext();
         if (ctx != null)

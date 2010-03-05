@@ -28,6 +28,8 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.net.URL;
 import java.util.Map;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * The HttpTransport provides initialization services and utility methods for
@@ -57,6 +59,36 @@ public class HttpTransport {
 
     static String provider =
             "com.sun.faban.driver.transport.sunhttp.SunHttpTransport";
+
+    private static int bufferSize = 8192;
+
+    // Check whether the buffer size is overridden by the system property.
+    static {
+        String bufferSizeString = System.getProperty("faban.socket.buffer.size");
+        if (bufferSizeString != null) {
+            int multiplier = 1;
+            if (bufferSizeString.endsWith("k") ||
+                    bufferSizeString.endsWith("K")) {
+                bufferSizeString = bufferSizeString.substring(0,
+                        bufferSizeString.length() - 1);
+                multiplier = 1024;
+            }
+            try {
+                bufferSize = Integer.parseInt(bufferSizeString) * multiplier;
+                Logger.getLogger(HttpTransport.class.getName()).
+                        log(Level.INFO, "HTTP buffer size set to " +
+                        bufferSize);
+
+            } catch (NumberFormatException e) {
+                Logger.getLogger(HttpTransport.class.getName()).
+                        log(Level.WARNING, "faban.http.buffer.size " +
+                        "property format must be 999 or 999k. " +
+                        "Leaving at default (8k).");
+            }
+        }
+    }
+
+    public static final int BUFFER_SIZE = bufferSize;
 
     HttpTransport delegate = null;
 
