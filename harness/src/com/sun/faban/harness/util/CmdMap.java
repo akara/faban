@@ -61,12 +61,18 @@ public class CmdMap {
             throws Exception {
         HashMap<String, List<String>> binMap =
                                         new HashMap<String, List<String>>();
+
         // The platform-specific and benchmark-specific binaries
         // take precedence, add last to map.
         File binDir = new File(Config.FABAN_HOME + "bin"); // $FABAN_HOME/bin
         addExecMap(binDir, binMap, null);
+
+        logger.finer("Scanning OS-specific binaries in " + Config.OS_DIR);
         File sbinDir = new File(binDir, Config.OS_DIR); // $FABAN_HOME/bin/SunOS
         addExecMap(sbinDir, binMap, null);
+
+        logger.finer("Scanning architecture-specific binaries in " +
+                     Config.ARCH_DIR);
         sbinDir = new File(binDir, Config.ARCH_DIR); // $FABAN_HOME/bin/SunOS/sparc
         addExecMap(sbinDir, binMap, null);
 
