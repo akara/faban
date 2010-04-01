@@ -200,6 +200,23 @@ final public class CmdService { 	// The final keyword prevents clones
 
         javaHome = home;
 
+        // Check whether the target JVM supports -XX:+DisableExplicitGC or not.
+        String egc = "-XX:+DisableExplicitGC";
+        Command probeCmd = new Command(javaHome + File.separator + "bin" +
+                File.separator + "java", "-version", egc);
+        probeCmd.setLogLevel(Command.STDOUT, Level.FINER);
+        probeCmd.setLogLevel(Command.STDERR, Level.FINER);
+        try {
+            CommandHandle handle = probeCmd.execute();
+            if (handle.exitValue() != 0)
+                egc = null;
+        } catch (IOException e) {
+            egc = null;
+        } catch (InterruptedException e) {
+        }
+
+        final String disableEGC = egc;
+
         // We need to be careful to escape properties having '\\' on win32
         String escapedHome = Config.FABAN_HOME.replace("\\", "\\\\");
         String fs = File.separatorChar == '\\' ? "\\\\" : File.separator;
@@ -288,8 +305,6 @@ final public class CmdService { 	// The final keyword prevents clones
         String jvmOpts =
                 par.getParameter("fh:jvmConfig/fh:jvmOptions");
 
-        final String disableEGC = "-XX:+DisableExplicitGC";
-
         if (jvmOpts != null)
             jvmOpts = jvmOpts.trim();
 
@@ -297,7 +312,7 @@ final public class CmdService { 	// The final keyword prevents clones
             jvmOpts = "";
 
         List<String> usrOpts = Command.parseArgs(jvmOpts);
-        if (!usrOpts.contains(disableEGC))
+        if (disableEGC != null && !usrOpts.contains(disableEGC))
             usrOpts.add(disableEGC);
         jvmOptions.addAll(usrOpts);
 
