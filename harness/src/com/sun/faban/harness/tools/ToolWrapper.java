@@ -70,6 +70,7 @@ public class ToolWrapper {
     boolean countedDown = false;
     boolean postprocessed = false;
     String outfile;	// Name of stdout,stderr from tool
+    String outputType;
     CommandHandle outputHandle;
     int outputStream;
     String toolName;
@@ -321,6 +322,9 @@ public class ToolWrapper {
      */
     protected void xferLog() {
         String logfile = null;
+        String outfile = this.outfile;
+        if (outputType != null)
+            outfile += '.' + outputType;
         try {
             FileTransfer transfer;
             if (outputHandle != null) {

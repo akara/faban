@@ -41,6 +41,7 @@ public class ToolContext extends MasterToolContext {
             Config.TMP_DIR + getToolName() + ".out." + this.hashCode();
     ToolWrapper wrapper;
     String toolPath = null;
+    String outputType = null;
 
     /**
      * Constructs the tool context.
@@ -99,6 +100,22 @@ public class ToolContext extends MasterToolContext {
      */
     public void setOutputFile(String path) {
         localOutputFile = path;
+    }
+
+    /**
+     * Gets the output type.
+     * @return The output type, or null if not specified
+     */
+    public String getOutputType() {
+        return wrapper.outputType;
+    }
+
+    /**
+     * Sets the output type.
+     * @param type The new output type
+     */
+    public void setOutputType(String type) {
+        wrapper.outputType = type;
     }
 
     /**
