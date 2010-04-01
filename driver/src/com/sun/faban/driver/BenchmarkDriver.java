@@ -53,6 +53,12 @@ public @interface BenchmarkDriver {
     float threadPerScale()    default 1f;
 
     /**
+     * The percentiles to measure against. Overrides 90th% setting
+     * (old style).
+     */
+    int[] percentiles()       default {};
+
+    /**
      * The time unit used for reporting response times.
      */
     TimeUnit responseTimeUnit() default TimeUnit.SECONDS;

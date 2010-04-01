@@ -317,18 +317,10 @@ public class Metrics implements Serializable, Cloneable,
         thruputGraph = new int[txTypes][graphBuckets];
         respGraph = new long[txTypes][graphBuckets];
 
-        // Find the maximum 90th% resp among all ops, in seconds
-        double max90th = driverConfig.operations[0].max90th;
-        for (int i = 1; i < txTypes; i++) {
-			if (driverConfig.operations[i].max90th > max90th) {
-				max90th = driverConfig.operations[i].max90th;
-			}
-		}
-
         // Calculate the response time histograms.
         double precision = driverConfig.responseTimeUnit.toNanos(1l);
-        long max90nanos = Math.round(max90th * precision);
-        fineRespBucketSize = max90nanos / 200l;  // 20% of scale of 1000
+        long maxPctNanos = Math.round(driverConfig.maxPercentile * precision);
+        fineRespBucketSize = maxPctNanos / 200l;  // 20% of scale of 1000
         fineRespHistMax = fineRespBucketSize * FINE_RESPBUCKETS;
         coarseRespBucketSize = fineRespBucketSize * RESPBUCKET_SIZE_RATIO;
 
@@ -924,13 +916,11 @@ public class Metrics implements Serializable, Cloneable,
         int sumFgTxCnt = 0;
         boolean success = true;
         double avg, tavg;
-        long resp90, resp99;
-        int sumtx, cnt90, cnt99;
+        long respPct, resp99;
+        int sumtx, cntPct, cnt99;
         RunInfo runInfo = RunInfo.getInstance();
         Formatter formatter = new Formatter(buffer);
         double[] ckSD = null;
-
-        Result result = Result.init(this);
 
         Logger logger = Logger.getLogger(Metrics.class.getName());
         Level crosscheck = Level.FINE;
@@ -944,6 +934,8 @@ public class Metrics implements Serializable, Cloneable,
         } else {
             driver = benchDef.drivers[driverType];
         }
+
+        Result result = Result.init(this, driver.percentiles.length);
 
         int fgTxTypes = driver.mix[0].operations.length;
 
@@ -1058,14 +1050,23 @@ public class Metrics implements Serializable, Cloneable,
             } else {
                 nameModifier = " &amp;";
             }
-            double max90 = driver.operations[i].max90th;
-            long max90nanos = Math.round(max90 * precision);
 
-            space(12, buffer);
-            formatter.format("<operation name=\"%s%s\" r90th=\"%5.3f\">\n",
-                    txNames[i], nameModifier, max90);
+            double max90 = 0d;
+            long max90nanos = 0l;
+            if (driver.percentiles.length > 0) { // New format
+                space(12, buffer);
+                formatter.format("<operation name=\"%s%s\">\n",
+                                 txNames[i], nameModifier);
+            } else { // Old format
+                max90 = driver.operations[i].max90th;
+                max90nanos = Math.round(max90 * precision);
+
+                space(12, buffer);
+                formatter.format("<operation name=\"%s%s\" r90th=\"%5.3f\">\n",
+                        txNames[i], nameModifier, max90);
+            }
             if (txCntStdy[i] > 0) {
-                boolean pass90 = true;
+                boolean passPct = true;
                 space(16, buffer);
                 result.avgResp[i] = (respSumStdy[i]/txCntStdy[i]) / precision;
                 formatter.format("<avg>%5.3f</avg>\n", result.avgResp[i]);
@@ -1081,72 +1082,131 @@ public class Metrics implements Serializable, Cloneable,
                     ckSD[i] = estimateStdev(i, result.avgResp[i], precision);
                 }
 
-                sumtx = 0;
-                cnt90 = (int)(txCntStdy[i] * .90d);
-                int j = 0;
-                for (; j < respHist[i].length; j++) {
-                    sumtx += respHist[i][j];
-                    if (sumtx >= cnt90)	{	/* 90% of tx. got */
-                        break;
-                    }
-                }
-                // We report the base of the next bucket.
-                ++j;
-                if (j < FINE_RESPBUCKETS)
-                    resp90 = j * fineRespBucketSize;
-                else if (j < RESPBUCKETS)
-                    resp90 = (j - FINE_RESPBUCKETS) * coarseRespBucketSize +
-                            fineRespHistMax;
-                else // Report the overflow bucket.
-                     // Ensure no mistakes due to floating point errors.
-                    resp90 = 2 * coarseRespBucketSize + coarseRespHistMax;
+                int k = 0;
+                if (driver.percentiles.length > 0) {
+                    for (int j = 0; j < driver.percentiles.length; j++) {
+                        int pct = driver.percentiles[j];
+                        sumtx = 0;
+                        cntPct = (int)(txCntStdy[i] * (pct / 100d));
+                        k = 0;
+                        for (; k < respHist[i].length; k++) {
+                            sumtx += respHist[i][k];
+                            if (sumtx >= cntPct)	{	/* n% of tx. got */
+                                break;
+                            }
+                        }
+                        // We report the base of the next bucket.
+                        ++k;
+                        if (k < FINE_RESPBUCKETS)
+                            respPct = k * fineRespBucketSize;
+                        else if (k < RESPBUCKETS)
+                            respPct = (k - FINE_RESPBUCKETS) *
+                                    coarseRespBucketSize + fineRespHistMax;
+                        else // Report the overflow bucket.
+                             // Ensure no mistakes due to floating point errors.
+                            respPct =
+                                  2 * coarseRespBucketSize + coarseRespHistMax;
 
-                space(16, buffer);
-                if (resp90 > coarseRespHistMax + coarseRespBucketSize) {
-                    result.p90Resp[i] = coarseRespHistMax / precision;
-                    formatter.format("<p90th>&gt; %5.3f</p90th>\n",
-                                     result.p90Resp[i]);
+                        double limit = driver.operations[i].percentileLimits[j];
+                        String limitString = "";
+                        if (limit > 0d)
+                            limitString =
+                                    String.format(" limit=\"%5.3f\"", limit);
+
+                        space(16, buffer);
+
+                        String indicator;
+                        if (respPct > coarseRespHistMax + coarseRespBucketSize){
+                            result.percentiles[i][j] =
+                                                coarseRespHistMax / precision;
+                            indicator = "&gt; ";
+                        } else {
+                            result.percentiles[i][j] = respPct / precision;
+                            indicator = "";
+                        }
+                        formatter.format("<percentile nth=\"%d\" " +
+                                "suffix=\"%s\"%s>%s%5.3f</percentile>\n",
+                                pct, getSuffix(pct), limitString, indicator,
+                                result.percentiles[i][j]);
+
+                        if (limit > 0d) {
+                            long limitNanos = Math.round(limit * precision);
+                            if (respPct > limitNanos) {
+                                passPct = false;
+                                success = false;
+                            }
+                        }
+                    }
+                    space(16, buffer).append("<passed>").append(passPct).
+                            append("</passed>\n");
                 } else {
-                    result.p90Resp[i] = resp90 / precision;
-                    formatter.format("<p90th>%5.3f</p90th>\n",
-                                     result.p90Resp[i]);
-                }
-                if (resp90 > max90nanos) {
-                    pass90 = false;
-                    success = false;
-                }
-                space(16, buffer).append("<passed>").append(pass90).
-                        append("</passed>\n");
-
-                // 99th% hack for Berkeley.
-                sumtx = 0;
-                cnt99 = (int)(txCntStdy[i] * .99d);
-                j = 0;
-                for (; j < respHist[i].length; j++) {
-                    sumtx += respHist[i][j];
-                    if (sumtx >= cnt99)	{	/* 90% of tx. got */
-                        break;
+                    sumtx = 0;
+                    cntPct = (int)(txCntStdy[i] * .90d);
+                    k = 0;
+                    for (; k < respHist[i].length; k++) {
+                        sumtx += respHist[i][k];
+                        if (sumtx >= cntPct)	{	/* 90% of tx. got */
+                            break;
+                        }
                     }
-                }
-                // We report the base of the next bucket.
-                ++j;
-                if (j < FINE_RESPBUCKETS)
-                    resp99 = j * fineRespBucketSize;
-                else if (j < RESPBUCKETS)
-                    resp99 = (j - FINE_RESPBUCKETS) * coarseRespBucketSize +
-                            fineRespHistMax;
-                else // Report the overflow bucket
-                     // Ensure no mistakes due to floating point errors.
-                    resp99 = 2 * coarseRespBucketSize + coarseRespHistMax;
+                    // We report the base of the next bucket.
+                    ++k;
+                    if (k < FINE_RESPBUCKETS)
+                        respPct = k * fineRespBucketSize;
+                    else if (k < RESPBUCKETS)
+                        respPct = (k - FINE_RESPBUCKETS) *
+                                coarseRespBucketSize + fineRespHistMax;
+                    else // Report the overflow bucket.
+                         // Ensure no mistakes due to floating point errors.
+                        respPct = 2 * coarseRespBucketSize + coarseRespHistMax;
 
-                space(16, buffer);
-                if (resp99 > coarseRespHistMax + coarseRespBucketSize)
-                    formatter.format("<p99th>&gt; %5.3f</p99th>\n",
-                                     coarseRespHistMax / precision);
-                else
-                    formatter.format("<p99th>%5.3f</p99th>\n",
-                                     resp99 / precision);
-                // end hack.
+                    space(16, buffer);
+                    if (respPct > coarseRespHistMax + coarseRespBucketSize) {
+                        result.p90Resp[i] = coarseRespHistMax / precision;
+                        formatter.format("<p90th>&gt; %5.3f</p90th>\n",
+                                         result.p90Resp[i]);
+                    } else {
+                        result.p90Resp[i] = respPct / precision;
+                        formatter.format("<p90th>%5.3f</p90th>\n",
+                                         result.p90Resp[i]);
+                    }
+                    if (respPct > max90nanos) {
+                        passPct = false;
+                        success = false;
+                    }
+                    space(16, buffer).append("<passed>").append(passPct).
+                            append("</passed>\n");
+
+                    // 99th% hack for Berkeley.
+                    sumtx = 0;
+                    cnt99 = (int)(txCntStdy[i] * .99d);
+                    k = 0;
+                    for (; k < respHist[i].length; k++) {
+                        sumtx += respHist[i][k];
+                        if (sumtx >= cnt99)	{	/* 90% of tx. got */
+                            break;
+                        }
+                    }
+                    // We report the base of the next bucket.
+                    ++k;
+                    if (k < FINE_RESPBUCKETS)
+                        resp99 = k * fineRespBucketSize;
+                    else if (k < RESPBUCKETS)
+                        resp99 = (k - FINE_RESPBUCKETS) * coarseRespBucketSize +
+                                fineRespHistMax;
+                    else // Report the overflow bucket
+                    // Ensure no mistakes due to floating point errors.
+                        resp99 = 2 * coarseRespBucketSize + coarseRespHistMax;
+
+                    space(16, buffer);
+                    if (resp99 > coarseRespHistMax + coarseRespBucketSize)
+                        formatter.format("<p99th>&gt; %5.3f</p99th>\n",
+                                coarseRespHistMax / precision);
+                    else
+                        formatter.format("<p99th>%5.3f</p99th>\n",
+                                resp99 / precision);
+                    // end hack.
+                }
             } else {
                 space(16, buffer).append("<avg/>\n");
                 space(16, buffer).append("<max/>\n");
@@ -1342,7 +1402,23 @@ public class Metrics implements Serializable, Cloneable,
 
         return success;
     }
-    
+
+    private String getSuffix(int n) {
+        String suffix;
+        // In the 10ths, all suffix is th
+        if (((n % 100) / 10) == 1) {
+            suffix = "th";
+        } else {
+            switch (n % 10) {
+                case 1  : suffix = "st"; break;
+                case 2  : suffix = "nd"; break;
+                case 3  : suffix = "rd"; break;
+                default : suffix = "th";
+            }
+        }
+        return suffix;
+    }
+
     /**
      * Estimates the standard deviation of response time based on the histogram.
      * This is primarily used for cross-checking the more accurate algorithms

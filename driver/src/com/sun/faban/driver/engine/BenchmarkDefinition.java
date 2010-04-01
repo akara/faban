@@ -160,6 +160,7 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
             def.drivers[i].metric = benchDriver.metric();
             def.drivers[i].opsUnit = benchDriver.opsUnit();
             def.drivers[i].threadPerScale = benchDriver.threadPerScale();
+            def.drivers[i].percentiles = benchDriver.percentiles();
             def.drivers[i].responseTimeUnit = benchDriver.responseTimeUnit();
             if (def.drivers[i].responseTimeUnit.equals(TimeUnit.NANOSECONDS))
                 throw new DefinitionException("@BenchmarkDriver " +
@@ -175,7 +176,7 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
 			}
 
             // Copy operation references into a flat array.
-            def.drivers[i].operations = 
+            def.drivers[i].operations =
                     new BenchmarkDefinition.Operation[totalOps];
             for (int j = 0; j < def.drivers[i].mix[0].operations.length; j++) {
 				def.drivers[i].operations[j] =
@@ -187,6 +188,36 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
 				            length] = def.drivers[i].mix[1].operations[j];
 				}
 			}
+
+            // Check the percentile limit on each operation
+            double maxPctLimit = Double.MIN_VALUE;
+            for (Operation op : def.drivers[i].operations) {
+                if (op.percentileLimits.length !=
+                        def.drivers[i].percentiles.length) {
+                    throw new DefinitionException("@BenchmarkOperation " +
+                            op.name + " percentileLimits array must be the " +
+                            "same length as @BenchmarkDriver percentiles");
+                }
+                for (double limit : op.percentileLimits) {
+                    if (limit > 0d && limit > maxPctLimit) {
+                        maxPctLimit = limit;
+                    }
+                }
+            }
+            if (def.drivers[i].percentiles.length > 0) {
+                if (maxPctLimit <= 0d)
+                    throw new DefinitionException("At least one percentile " +
+                            "limit must be specified.");
+            } else { // Old style...
+                for (Operation op : def.drivers[i].operations)
+                    if (op.max90th > 0d && op.max90th > maxPctLimit)
+                        maxPctLimit = op.max90th;
+                 if (maxPctLimit <= 0d)
+                     throw new DefinitionException("At least one max90th " +
+                             "must be specified.");
+            }
+
+            def.drivers[i].maxPercentile = maxPctLimit;
 
             def.drivers[i].driverClass = driverClasses[i];
         }
@@ -351,6 +382,7 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
                         BenchmarkOperation.class);
                 Operation op = new Operation();
                 op.name = benchOp.name();
+                op.percentileLimits = benchOp.percentileLimits();
                 op.max90th = benchOp.max90th();
                 op.timing = benchOp.timing();
                 op.countToMetric = benchOp.countToMetric();
@@ -381,6 +413,7 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
                         BenchmarkOperation.class);
                 Operation op = new Operation();
                 op.name = benchOp.name();
+                op.percentileLimits = benchOp.percentileLimits();
                 op.max90th = benchOp.max90th();
                 op.timing = benchOp.timing();
                 op.countToMetric = benchOp.countToMetric();
@@ -566,6 +599,7 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
         String metric;
         String opsUnit;
         float threadPerScale;
+        int[] percentiles;
         TimeUnit responseTimeUnit;
         Mix[] mix = new Mix[2]; // Foreground (0) and background (1) mix.
         Cycle[] initialDelay = new Cycle[2]; // Foreground and background
@@ -573,6 +607,7 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
         DriverMethod preRun;
         DriverMethod postRun;
         String className;
+        double maxPercentile;
 
         // We try to send the whole driver class over to the agents so that all
         // agents will run consistent drivers. In case this is slow or does not
@@ -720,6 +755,7 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
 		private static final long serialVersionUID = 1L;
 		
 		String name;
+        double[] percentileLimits;
         double max90th;
         Timing timing;
         boolean countToMetric;

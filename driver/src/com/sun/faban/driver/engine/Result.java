@@ -36,6 +36,7 @@ public class Result extends com.sun.faban.driver.Result {
     double[] mixRatio;
     double[] avgResp;
     double[] maxResp;
+    double[][] percentiles;
     double[] p90Resp;
     double[] respSD;
 
@@ -48,17 +49,18 @@ public class Result extends com.sun.faban.driver.Result {
         return instance;
     }
 
-    static Result init(Metrics m) { // Only called by Metrics
-        instance = new Result(m);
+    static Result init(Metrics m, int numPct) { // Only called by Metrics
+        instance = new Result(m, numPct);
         return instance;
     }
 
-    private Result(Metrics m) {
+    private Result(Metrics m, int numPct) {
         this.m = m;
         mixRatio = new double[m.txTypes];
         avgResp = new double[m.txTypes];
         maxResp = new double[m.txTypes];
         p90Resp = new double[m.txTypes];
+        percentiles = new double[m.txTypes][numPct];
         respSD = new double[m.txTypes];
 
         // Initialize them all to NaN.

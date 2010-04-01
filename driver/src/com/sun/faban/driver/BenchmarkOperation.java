@@ -40,16 +40,27 @@ public @interface BenchmarkOperation {
     String name()     default "";
 
     /**
+     * The maximum limit of the percentiles set in the BenchmarkDriver
+     * annotation. Overrides max90th if set. Please specify the limit of 0
+     * if there is no limit. At least one limit needs to be specified in a
+     * driver or a DefinitionException will be thrown.<br>
+     * The unit of measure is dependent on the response time unit specified
+     * in the BenchmarkDriver annotation.
+     *
+     * @see BenchmarkDriver#responseTimeUnit()
+     */
+    double[] percentileLimits()   default {};
+
+    /**
      * The maximum 90th percentile allowed for this operation.
      * The benchmark run will fail if the 90th percentile of this
-     * operation exceeds the given limit.
-     * 
+     * operation exceeds the given limit.<br>
      * The unit of measure is dependent on the response time unit specified
      * in the BenchmarkDriver annotation.
      * 
      * @see BenchmarkDriver#responseTimeUnit()
      */
-    double max90th();
+    double max90th()    default -1;
 
     /**
      * Sets the timing mode of this operation to manual or automatic.
