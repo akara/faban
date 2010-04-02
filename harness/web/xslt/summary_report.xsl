@@ -194,15 +194,18 @@
                                 <th class="header">Avg</th>
                                 <th class="header">Max</th>
                                 <th class="header">SD</th>
-                                <xsl:if test="responseTimes/operation[1]/@r90th">
-                                    <th class="header">90th%</th>
-                                    <th class="header">Reqd. 90th%</th>
-                                </xsl:if>
                                 <xsl:if test="responseTimes/operation[1]/percentile">
                                     <xsl:for-each select="responseTimes/operation[1]/percentile">
                                         <th class="header"><xsl:value-of select="@nth"/><xsl:value-of select="@suffix"/>%</th>
-                                        <th class="header"><xsl:value-of select="@nth"/><xsl:value-of select="@suffix"/>%<br/>limit</th>
+                                        <xsl:variable name="pct" select="@nth"/>
+                                        <xsl:if test="../../operation/percentile[@nth=$pct]/@limit">
+                                            <th class="header"><xsl:value-of select="@nth"/><xsl:value-of select="@suffix"/>%<br/>limit</th>
+                                        </xsl:if>
                                     </xsl:for-each>
+                                </xsl:if>
+                                <xsl:if test="responseTimes/operation[1]/@r90th">
+                                    <th class="header">90th%</th>
+                                    <th class="header">Reqd. 90th%</th>
                                 </xsl:if>
                                 <th class="header">Pass/Fail</th>
                             </tr>
@@ -227,7 +230,10 @@
                                     <xsl:if test="percentile">
                                         <xsl:for-each select="percentile">
                                             <td class="tablecell"><xsl:value-of select="."/></td>
+                                        <xsl:variable name="pct" select="@nth"/>
+                                        <xsl:if test="../../operation/percentile[@nth=$pct]/@limit">
                                             <td class="tablecell"><xsl:value-of select="@limit"/></td>
+                                        </xsl:if>
                                         </xsl:for-each>
                                     </xsl:if>
                                     <xsl:choose>
@@ -298,8 +304,12 @@
                             <tr style="vertical-align: top;">
                                 <th class="header" style="text-align: left;">Description</th>
                                 <th class="header">Results</th>
-                                <th class="header">Targeted<br></br>Results</th>
-                                <th class="header">Allowed<br></br>Deviation</th>
+                                <xsl:if test="miscStats/stat/target">
+                                    <th class="header">Targeted<br/>Results</th>
+                                </xsl:if>
+                                <xsl:if test="miscStats/stat/allowedDeviation">
+                                    <th class="header">Allowed<br/>Deviation</th>
+                                </xsl:if>
                                 <th class="header">Pass/Fail</th>
                             </tr>
                             <xsl:for-each select="miscStats/stat">
@@ -314,19 +324,25 @@
                                     </xsl:choose>
                                     <td class="tablecell" style="text-align: left;"><xsl:value-of select="description"/></td>
                                     <td class="tablecell"><xsl:value-of select="result"/></td>
-                                    <td class="tablecell"><xsl:value-of select="target"/></td>
-                                    <td class="tablecell"><xsl:value-of select="allowedDeviation"/></td>
-                                    <xsl:choose>
-                                        <xsl:when test="passed='true'">
-                                            <td class="tablecell" style="color: rgb(0, 192, 0);">PASSED</td>
-                                        </xsl:when>
-                                        <xsl:when test="passed='false'">
-                                            <td class="tablecell" style="color: rgb(255, 0, 0);">FAILED</td>
-                                        </xsl:when>
-                                        <xsl:otherwise>
-                                            <td class="tablecell"></td>
-                                        </xsl:otherwise>
-                                    </xsl:choose>
+                                    <xsl:if test="../stat/target">
+                                        <td class="tablecell"><xsl:value-of select="target"/></td>
+                                    </xsl:if>
+                                    <xsl:if test="../stat/allowedDeviation">
+                                        <td class="tablecell"><xsl:value-of select="allowedDeviation"/></td>
+                                    </xsl:if>
+                                    <xsl:if test="../stat/passed">
+                                        <xsl:choose>
+                                            <xsl:when test="passed='true'">
+                                                <td class="tablecell" style="color: rgb(0, 192, 0);">PASSED</td>
+                                            </xsl:when>
+                                            <xsl:when test="passed='false'">
+                                                <td class="tablecell" style="color: rgb(255, 0, 0);">FAILED</td>
+                                            </xsl:when>
+                                            <xsl:otherwise>
+                                                <td class="tablecell"></td>
+                                            </xsl:otherwise>
+                                        </xsl:choose>
+                                    </xsl:if>
                                 </tr>
                             </xsl:for-each>
                         </tbody>
@@ -340,9 +356,15 @@
                             <tr style="vertical-align: top;">
                                 <th class="header" style="text-align: left;">Description</th>
                                 <th class="header">Results</th>
-                                <th class="header">Targeted<br></br>Results</th>
-                                <th class="header">Allowed<br></br>Deviation</th>
-                                <th class="header">Pass/Fail</th>
+                                <xsl:if test="stat/target">
+                                    <th class="header">Targeted<br></br>Results</th>
+                                </xsl:if>
+                                <xsl:if test="stat/allowedDeviation">
+                                    <th class="header">Allowed<br></br>Deviation</th>
+                                </xsl:if>
+                                <xsl:if test="stat/passed">
+                                    <th class="header">Pass/Fail</th>
+                                </xsl:if>
                             </tr>
                             <xsl:for-each select="stat">
                                 <tr>
@@ -356,19 +378,25 @@
                                     </xsl:choose>
                                     <td class="tablecell" style="text-align: left;"><xsl:value-of select="description"/></td>
                                     <td class="tablecell"><xsl:value-of select="result"/></td>
-                                    <td class="tablecell"><xsl:value-of select="target"/></td>
-                                    <td class="tablecell"><xsl:value-of select="allowedDeviation"/></td>
-                                    <xsl:choose>
-                                        <xsl:when test="passed='true'">
-                                            <td class="tablecell" style="color: rgb(0, 192, 0);">PASSED</td>
-                                        </xsl:when>
-                                        <xsl:when test="passed='false'">
-                                            <td class="tablecell" style="color: rgb(255, 0, 0);">FAILED</td>
-                                        </xsl:when>
-                                        <xsl:otherwise>
-                                            <td class="tablecell"></td>
-                                        </xsl:otherwise>
-                                    </xsl:choose>
+                                    <xsl:if test="../stat/target">
+                                        <td class="tablecell"><xsl:value-of select="target"/></td>
+                                    </xsl:if>
+                                    <xsl:if test="../stat/allowedDeviation">
+                                        <td class="tablecell"><xsl:value-of select="allowedDeviation"/></td>
+                                    </xsl:if>
+                                    <xsl:if test="../stat/passed">
+                                        <xsl:choose>
+                                            <xsl:when test="passed='true'">
+                                                <td class="tablecell" style="color: rgb(0, 192, 0);">PASSED</td>
+                                            </xsl:when>
+                                            <xsl:when test="passed='false'">
+                                                <td class="tablecell" style="color: rgb(255, 0, 0);">FAILED</td>
+                                            </xsl:when>
+                                            <xsl:otherwise>
+                                                <td class="tablecell"></td>
+                                            </xsl:otherwise>
+                                        </xsl:choose>
+                                    </xsl:if>
                                 </tr>
                             </xsl:for-each>
                         </tbody>
