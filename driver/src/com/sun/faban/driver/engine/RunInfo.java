@@ -338,6 +338,7 @@ public class RunInfo implements Serializable {
 
             className = driverDef.className;
             driverClass = driverDef.driverClass;
+            maxPercentile = driverDef.maxPercentile;
         }
     }
 

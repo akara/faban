@@ -526,7 +526,7 @@ public class Metrics implements Serializable, Cloneable,
      */
 	public void add(Metrics s) {
         // Check whether the host is the same. If not, set host to null
-        if (host != s.host) {
+        if (!host.equals(s.host)) {
             if (host != null && !host.equals(s.host))
                 host = null;
             if (s.host != null && !s.host.equals(host))
@@ -859,41 +859,47 @@ public class Metrics implements Serializable, Cloneable,
     public String toString() {
         StringBuilder buffer = new StringBuilder();
 
-        buffer.append("sumusers=" + threadCnt);
-        buffer.append("\nruntime=" + stdyState);
+        buffer.append("sumusers=").append(threadCnt);
+        buffer.append("\nruntime=").append(stdyState);
 
         for (int i = 0; i < txTypes; i++) {
-            buffer.append("\nsum" + txNames[i] + "Count=" + txCntStdy[i]);
-            buffer.append("\nsum" + txNames[i] + "Resp=" + respSumStdy[i]);
-            buffer.append("\nmax" + txNames[i] + "Resp=" + respMax[i]);
-            buffer.append("\nsum" + txNames[i] + "Delay=" + delaySum[i]);
-            buffer.append("\nmax" + txNames[i] + "Delay=" + delayMax[i]);
-            buffer.append("\nmin" + txNames[i] + "Delay=" + delayMin[i]);
+            buffer.append("\nsum").append(txNames[i]);
+            buffer.append("Count=").append(txCntStdy[i]);
+            buffer.append("\nsum").append(txNames[i]);
+            buffer.append("Resp=").append(respSumStdy[i]);
+            buffer.append("\nmax").append(txNames[i]);
+            buffer.append("Resp=").append(respMax[i]);
+            buffer.append("\nsum").append(txNames[i]);
+            buffer.append("Delay=").append(delaySum[i]);
+            buffer.append("\nmax").append(txNames[i]);
+            buffer.append("Delay=").append(delayMax[i]);
+            buffer.append("\nmin").append(txNames[i]);
+            buffer.append("Delay=").append(delayMin[i]);
             buffer.append('\n');
         }
 
-        buffer.append("Total cycle time = " + cycleSum);
+        buffer.append("Total cycle time = ").append(cycleSum);
 
         /* Now print out the histogram data */
         for (int i = 0; i < txTypes; i++) {
-            buffer.append(txNames[i] + " Response Times Histogram\n");
+            buffer.append(txNames[i]).append(" Response Times Histogram\n");
             for (int j = 0; j < RESPBUCKETS; j++) {
-                buffer.append(" " + respHist[i][j]);
+                buffer.append(' ').append(respHist[i][j]);
 			}
             buffer.append('\n');
-            buffer.append(txNames[i] + " Throughput Graph\n");
+            buffer.append(txNames[i]).append(" Throughput Graph\n");
             for (int j = 0; j < graphBuckets; j++) {
-                buffer.append(" " + thruputGraph[i][j]);
+                buffer.append(' ').append(thruputGraph[i][j]);
 			}
             buffer.append('\n');
-            buffer.append(txNames[i] + " Response Time Graph\n");
+            buffer.append(txNames[i]).append(" Response Time Graph\n");
             for (int j = 0; j < graphBuckets; j++) {
-                buffer.append(" " + respGraph[i][j]);
+                buffer.append(' ').append(respGraph[i][j]);
 			}
             buffer.append('\n');
-            buffer.append(txNames[i] + " Cycle Times Histogram\n");
+            buffer.append(txNames[i]).append(" Cycle Times Histogram\n");
             for (int j = 0; j < DELAYBUCKETS; j++) {
-                buffer.append(" " + delayHist[i][j]);
+                buffer.append(" ").append(delayHist[i][j]);
 			}
             buffer.append('\n');
         }
@@ -1051,7 +1057,7 @@ public class Metrics implements Serializable, Cloneable,
                 nameModifier = " &amp;";
             }
 
-            double max90 = 0d;
+            double max90;
             long max90nanos = 0l;
             if (driver.percentiles.length > 0) { // New format
                 space(12, buffer);
@@ -1082,7 +1088,7 @@ public class Metrics implements Serializable, Cloneable,
                     ckSD[i] = estimateStdev(i, result.avgResp[i], precision);
                 }
 
-                int k = 0;
+                int k;
                 if (driver.percentiles.length > 0) {
                     for (int j = 0; j < driver.percentiles.length; j++) {
                         int pct = driver.percentiles[j];
@@ -1294,7 +1300,7 @@ public class Metrics implements Serializable, Cloneable,
                     metricAttachments.entrySet();
             for (Map.Entry<String, CustomMetrics> entry : entries) {
                 CustomMetrics attachment = entry.getValue();
-                CustomMetrics.Element[] elements = null;
+                CustomMetrics.Element[] elements;
                 try {
                     elements = attachment.getResults();
                 } catch (Exception e) { // Ensure the getResults
@@ -1343,7 +1349,7 @@ public class Metrics implements Serializable, Cloneable,
                             space(16, buffer).append("<passed>").append(
                                     element.passed.booleanValue()).
                                     append("</passed>\n");
-                            if (!element.passed.booleanValue()) {
+                            if (!element.passed) {
                                 success = false;
                             }
                         }
@@ -1549,8 +1555,8 @@ public class Metrics implements Serializable, Cloneable,
             for (int i = 0; i < txTypes; i++) {
 
                 // Copy the fine buckets unchanged.
-                for (int j = 0; j < FINE_RESPBUCKETS; j++)
-                    respHist[i][j] = this.respHist[i][j];
+                System.arraycopy(this.respHist[i], 0, respHist[i], 0,
+                                 FINE_RESPBUCKETS);
 
                 for (int j = FINE_RESPBUCKETS; j < limit; j++) {
                     int count = this.respHist[i][j];
