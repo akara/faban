@@ -194,15 +194,15 @@
                                 <th class="header">Avg</th>
                                 <th class="header">Max</th>
                                 <th class="header">SD</th>
+                                <xsl:if test="responseTimes/operation[1]/@r90th">
+                                    <th class="header">90th%</th>
+                                    <th class="header">Reqd. 90th%</th>
+                                </xsl:if>
                                 <xsl:if test="responseTimes/operation[1]/percentile">
                                     <xsl:for-each select="responseTimes/operation[1]/percentile">
                                         <th class="header"><xsl:value-of select="@nth"/><xsl:value-of select="@suffix"/>%</th>
                                         <th class="header"><xsl:value-of select="@nth"/><xsl:value-of select="@suffix"/>%<br/>limit</th>
                                     </xsl:for-each>
-                                </xsl:if>
-                                <xsl:if test="responseTimes/operation[1]/@r90th">
-                                    <th class="header">90th%</th>
-                                    <th class="header">Reqd. 90th%</th>
                                 </xsl:if>
                                 <th class="header">Pass/Fail</th>
                             </tr>
