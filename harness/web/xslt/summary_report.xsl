@@ -194,8 +194,16 @@
                                 <th class="header">Avg</th>
                                 <th class="header">Max</th>
                                 <th class="header">SD</th>
-                                <th class="header">90th%</th>
-                                <th class="header">Reqd. 90th%</th>
+                                <xsl:if test="responseTimes/operation[1]/percentile">
+                                    <xsl:for-each select="responseTimes/operation[1]/percentile">
+                                        <th class="header"><xsl:value-of select="@nth"/><xsl:value-of select="@suffix"/>%</th>
+                                        <th class="header"><xsl:value-of select="@nth"/><xsl:value-of select="@suffix"/>%<br/>limit</th>
+                                    </xsl:for-each>
+                                </xsl:if>
+                                <xsl:if test="responseTimes/operation[1]/@r90th">
+                                    <th class="header">90th%</th>
+                                    <th class="header">Reqd. 90th%</th>
+                                </xsl:if>
                                 <th class="header">Pass/Fail</th>
                             </tr>
                             <xsl:for-each select="responseTimes/operation">
@@ -212,8 +220,16 @@
                                     <td class="tablecell"><xsl:value-of select="avg"/></td>
                                     <td class="tablecell"><xsl:value-of select="max"/></td>
                                     <td class="tablecell"><xsl:value-of select="sd"/></td>
-                                    <td class="tablecell"><xsl:value-of select="p90th"/></td>
-                                    <td class="tablecell"><xsl:value-of select="@r90th"/></td>
+                                    <xsl:if test="@r90th">
+                                        <td class="tablecell"><xsl:value-of select="p90th"/></td>
+                                        <td class="tablecell"><xsl:value-of select="@r90th"/></td>
+                                    </xsl:if>
+                                    <xsl:if test="percentile">
+                                        <xsl:for-each select="percentile">
+                                            <td class="tablecell"><xsl:value-of select="."/></td>
+                                            <td class="tablecell"><xsl:value-of select="@limit"/></td>
+                                        </xsl:for-each>
+                                    </xsl:if>
                                     <xsl:choose>
                                         <xsl:when test="passed='true'">
                                             <td class="tablecell" style="color: rgb(0, 192, 0);">PASSED</td>
