@@ -40,7 +40,8 @@ import java.util.logging.Logger;
 )
 @BenchmarkDriver (
     name           = "WebDriver",
-    threadPerScale    = 1
+    threadPerScale    = 1,
+    percentiles = { 90, 95, 99}
 )
 @MatrixMix (
     operations = {"MyOperation1", "MyOperation2", "MyOperation3"},
@@ -118,7 +119,7 @@ public class WebDriver {
      */
     @BenchmarkOperation (
         name    = "MyOperation1",
-        max90th = 2,
+        percentileLimits = { 0, 1.75, 2 },
         timing  = Timing.AUTO
     )
     public void doMyOperation1() throws IOException {
@@ -135,7 +136,7 @@ public class WebDriver {
      */
     @BenchmarkOperation (
         name    = "MyOperation2",
-        max90th = 2,
+        percentileLimits = { 0, 1.75, 2 },
         timing  = Timing.AUTO
     )
     public void doMyOperation2() throws IOException {
@@ -152,7 +153,7 @@ public class WebDriver {
      */
     @BenchmarkOperation (
         name    = "MyOperation3",
-        max90th = 2,
+        percentileLimits = { 0, 0, 2 },
         timing  = Timing.AUTO
     )
     public void doMyOperation3() throws IOException {
