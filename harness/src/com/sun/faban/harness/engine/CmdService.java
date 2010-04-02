@@ -203,7 +203,7 @@ final public class CmdService { 	// The final keyword prevents clones
         // Check whether the target JVM supports -XX:+DisableExplicitGC or not.
         String egc = "-XX:+DisableExplicitGC";
         Command probeCmd = new Command(javaHome + File.separator + "bin" +
-                File.separator + "java", "-version", egc);
+                File.separator + "java", egc, "-version");
         probeCmd.setLogLevel(Command.STDOUT, Level.FINER);
         probeCmd.setLogLevel(Command.STDERR, Level.FINER);
         try {
