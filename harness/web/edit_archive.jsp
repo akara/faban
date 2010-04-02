@@ -1,4 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <!--
 /* The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -48,9 +48,9 @@
             style="padding:2px; border: 2px solid #cccccc;">
       <tbody>
         <tr>
-          <th style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="header">RunId</th>
-          <th style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="header">Tags</th>
-          <th style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="header">Description</th>
+          <th class="header">RunId</th>
+          <th class="header">Tags</th>
+          <th class="header">Description</th>
         </tr>
         <%
         final String[] rowType = {"even", "odd"};
@@ -68,7 +68,7 @@
             }
         %>
             <tr class="<%=rowType[i % 2]%>">
-              <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif; vertical-align: top;" class="tablecell"><%=runId%>
+              <td style="vertical-align: top;" class="tablecell"><%=runId%>
                 <input type="hidden" name="select" value="<%=runId%>"/><br>
      <%
             if (model.duplicates.contains(runId)) {
@@ -80,13 +80,13 @@
             }
      %>
               </td>
-              <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif; vertical-align: top;" class="tablecell">
+              <td style="vertical-align: top;" class="tablecell">
                   <textarea name="<%=runId%>_tags"
                        title="Tags associated for run <%=runId%>"
                        rows="2" style="width: 98%;"
                        ><% if(tags != null && !"".equals(tags)){ %><%=tags%><% } %></textarea>
               </td>
-              <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif; vertical-align: top;" class="tablecell">
+              <td style="vertical-align: top;" class="tablecell">
                 <textarea name="<%=runId%>_description"
                        title="Input/modify the description of run <%=runId%>"
                        rows="3" style="width: 98%;"

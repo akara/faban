@@ -76,7 +76,7 @@ class TableHandler extends LogParseHandler {
                 logRecord.clear();
             }
         }else{
-            if (headerWritten == false) {
+            if (!headerWritten) {
                 printHeader(null);
                 headerWritten = true;
             }
@@ -114,23 +114,26 @@ class TableHandler extends LogParseHandler {
             // Prepare the navigation links
             StringBuilder naviBuffer = new StringBuilder(256);
             if (begin > 0l) {
-                naviBuffer.append("<a href=\"" + requestBase + "\">Top</a>\n");
+                naviBuffer.append("<a href=\"").append(requestBase).
+                        append("\">Top</a>\n");
                 long prevPage = begin - logBuffer.capacity() / 2l;
                 if (prevPage < 0l) {
                     prevPage = 0l;
                 }
-                naviBuffer.append("<a href=\"" + requestBase + "&startId=" +
-                        prevPage + "\">PgUp</a>\n");
+                naviBuffer.append("<a href=\"").append(requestBase).
+                        append("&startId=").append(prevPage).
+                        append("\">PgUp</a>\n");
             } else {
                 naviBuffer.append("Top PgUp ");
             }
 
             long nextPage = begin + logBuffer.size() / 2l;
-            naviBuffer.append("<a href=\"" + requestBase + "&startId=" +
-                    nextPage + "\">PgDn</a>\n");
+            naviBuffer.append("<a href=\"").append(requestBase).
+                    append("&startId=").append(nextPage).
+                    append("\">PgDn</a>\n");
 
-            naviBuffer.append("<a href=\"" + requestBase +
-                    "&startId=end#end\">Bottom</a>");
+            naviBuffer.append("<a href=\"").append(requestBase).
+                    append("&startId=end#end\">Bottom</a>");
             naviBar = naviBuffer.toString();
 
             printHeader(naviBar);
@@ -146,6 +149,7 @@ class TableHandler extends LogParseHandler {
     
     private void printHeader(String naviBar) throws IOException {
         // Write the header.
+        out.println("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\">");
         out.println("<html>");
         out.print("<head><title>Logs: RunID " + runId);
         out.println("</title>");
@@ -188,7 +192,7 @@ class TableHandler extends LogParseHandler {
 
     private void printRow(long sequence, LogRecord record, String requestBase)
             throws IOException {
-        String dt = record.date.toString();
+        String dt = record.date;
         dt = dt.substring(dt.lastIndexOf("T")+1, dt.length());
         String thread = "Thread: " + record.thread;
         String source = "Source: " + record.clazz + '.' + record.method;       

@@ -1,4 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <!--
 /* The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -108,7 +108,7 @@
                   if(targetInSearch != null && targetInSearch.length() > 0)
                       sortLink = "/controller/results/targetlist?viewMy=" + viewMy + "&viewAll="+ viewAll+ "&inputtarget="+ targetInSearch.trim() +"&sortColumn=" + i + "&sortDirection=" + sortDirection.trim();
     %>
-                  <th style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="header"><a href="<%= sortLink %>" target="main"><%= targetTable.getHeader(i)%></a></th>
+                  <th class="header"><a href="<%= sortLink %>" target="main"><%= targetTable.getHeader(i)%></a></th>
     <%      } %>
               </tr>
     <%
@@ -153,32 +153,32 @@
                         String deleteTargetLink = "/controller/results/add_edit_target?viewMy=" + viewMy + "&viewAll="+ viewAll+ "&flag=delete&targetname=" + row[0].toString()+ "&targetowner=" + row[1].toString() + "&targetmetric=" + row[4].toString() + "&targettags=" + row[5].toString();
         %>
         <% if(row[1].toString().equalsIgnoreCase(usrEnv.getUser())){ %>
-                <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><%=val%>&nbsp;&nbsp;
+                <td class="tablecell"><%=val%>&nbsp;&nbsp;
                     (<a href="<%= addTargetLink %>" target="main">Edit</a>&nbsp;
                     <a href="<%= deleteTargetLink %>" onclick="return confirm('You are about to delete a target. Are you sure?');" target="main">Delete</a>)
                 </td>
         <% }else{ %>
-                <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><%=val%></td>
+                <td class="tablecell"><%=val%></td>
         <%      }
                    }else if(j == 2){
                         double v = Double.parseDouble(val);
         %>
                         <% if (v == 0d) { // No results %>
-                            <td bgcolor="black" style="color: white; font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><%out.print(new DecimalFormat("#").format(Double.parseDouble(val)) + "%"); %></td>
+                            <td bgcolor="black" style="color: white;" class="tablecell"><%out.print(new DecimalFormat("#").format(Double.parseDouble(val)) + "%"); %></td>
                         <% } else if (v < red) {%>
-                            <td bgcolor="red" style="color: white; font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><%out.print(new DecimalFormat("#").format(Double.parseDouble(val)) + "%"); %></td>
+                            <td bgcolor="red" style="color: white;" class="tablecell"><%out.print(new DecimalFormat("#").format(Double.parseDouble(val)) + "%"); %></td>
                         <% } else if (v >= red && v < orange) { %>
-                            <td bgcolor="orange" style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><%out.print(new DecimalFormat("#").format(Double.parseDouble(val)) + "%"); %></td>
+                            <td bgcolor="orange" class="tablecell"><%out.print(new DecimalFormat("#").format(Double.parseDouble(val)) + "%"); %></td>
                         <% } else if (v >= orange && v < yellow) { %>
-                            <td bgcolor="yellow" style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><%out.print(new DecimalFormat("#").format(Double.parseDouble(val)) + "%"); %></td>
+                            <td bgcolor="yellow" class="tablecell"><%out.print(new DecimalFormat("#").format(Double.parseDouble(val)) + "%"); %></td>
                         <% } else if (v >= yellow) {%>
-                            <td bgcolor="#00cc00" style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><%out.print(new DecimalFormat("#").format(Double.parseDouble(val)) + "%"); %></td>
+                            <td bgcolor="#00cc00" class="tablecell"><%out.print(new DecimalFormat("#").format(Double.parseDouble(val)) + "%"); %></td>
                         <% } %>
     <%              } else if(j == 3){
     %>
-                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><a href="<%= sortLink %>" target="main"><%=val%></a></td>
+                        <td class="tablecell"><a href="<%= sortLink %>" target="main"><%=val%></a></td>
     <%              } else { %>
-                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><%=val%></td>
+                        <td class="tablecell"><%=val%></td>
     <%              }
                 }      %>
             </tr>

@@ -39,7 +39,7 @@ class RecordHandler extends LogParseHandler {
     LogRecordDetail detail = new LogRecordDetail();
     ExceptionRecord exception = new ExceptionRecord();
     StackFrame frame = new StackFrame();
-    ArrayList stackFrames = new ArrayList();
+    ArrayList<StackFrame> stackFrames = new ArrayList<StackFrame>();
 
     /**
      * Handles the records.
@@ -87,8 +87,7 @@ class RecordHandler extends LogParseHandler {
         } else if ("exception".equals(qName)) {
             StackFrame[] frameArray =
                     new StackFrame[stackFrames.size()];
-            exception.stackFrames =
-                    (StackFrame[]) stackFrames.toArray(frameArray);
+            exception.stackFrames = stackFrames.toArray(frameArray);
             stackFrames.clear();
             logRecord.exceptionFlag = true;
         }
@@ -99,7 +98,7 @@ class RecordHandler extends LogParseHandler {
      * @throws java.io.IOException
      */
     public void printHtml() throws IOException {
-
+        out.println("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\">");
         out.println("<html>");
         out.println("<head><title>LogRecord: RunID " + runId + "</title>");
         out.println("<link rel=\"icon\" type=\"image/gif\" href=\"" +

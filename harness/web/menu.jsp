@@ -1,4 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <!--
 /* The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -43,6 +43,7 @@
     <head>
         <title>Faban Menu [<%= Config.FABAN_HOST %>]</title>
         <link rel="icon" type="image/gif" href="img/faban.gif">
+        <link rel="stylesheet" type="text/css" href="/css/style.css" />
     </head>
     <body>
         <table BORDER="0" WIDTH="100%" BGCOLOR="#FFFFFF" color="#666699" >

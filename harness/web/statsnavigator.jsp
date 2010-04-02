@@ -1,4 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <!--
 /* The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -259,13 +259,13 @@
 
                                 // Do the html link
                                 for (String fileName : htmlFiles) { %>
-                                    <font size="-1"><i><a href="<%= path + fileName %>">html</a></i></font>
+                                    <small><i><a href="<%= path + fileName %>">html</a></i></small>
                              <% }
                                 htmlFiles.clear();
 
                                 // Do the raw link
                                 for (String fileName : toolHostFiles) { %>
-                                    <font size="-1"><i><a href="<%= path + fileName %>">raw</a></i></font>
+                                    <small><i><a href="<%= path + fileName %>">raw</a></i></small>
                              <% }
                      %>
                                 </td>

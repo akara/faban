@@ -1,4 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <!--
 /* The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -59,6 +59,7 @@
     <head>
         <title>Result for Run <%=runId%> [<%= Config.FABAN_HOST %>]</title>
         <link rel="icon" type="image/gif" href="img/faban.gif">
+        <link rel="stylesheet" type="text/css" href="/css/style.css" />
         <% if (!finished) { %>
             <meta http-equiv="refresh" content="10">
         <% } %>
@@ -108,7 +109,7 @@
         <br><br><table border="0" cellspacing="0" cellpadding="0" width="100%">
             <tr>
                 <td width="30%" style="text-align: left; vertical-align: bottom;"><%= desc.scaleName %><%= desc.scaleName == null ? "" : ":" %> <%= scale %> <%= desc.scaleUnit %></td>
-                <td width="40%" style="text-align: center; vertical-align: bottom;"><b><big><big>RunID: <%= runId %></big></big></b></td>
+                <td width="40%" style="text-align: center; vertical-align: bottom;"><b><big>RunID: <%= runId %></big></b></td>
                 <td width="30%" style="text-align: right; vertical-align: bottom;">&nbsp;</td>
             </tr>
         </table>

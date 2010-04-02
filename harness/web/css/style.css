@@ -1,4 +1,6 @@
-
+body {
+    font: 10px "Verdana", sans-serif;
+}
 .even {
     background-color:#ffffff;
     margin-left:10px;

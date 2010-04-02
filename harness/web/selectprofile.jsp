@@ -1,4 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <!--
 /* The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -38,6 +38,7 @@
 <html>
      <head>
          <link rel="icon" type="image/gif" href="img/faban.gif">
+         <link rel="stylesheet" type="text/css" href="/css/style.css" />
          <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
          <meta name="Author" content="Ramesh Ramachandran"/>
          <meta name="Description" content="Form to display profile selection"/>

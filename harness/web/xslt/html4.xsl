@@ -58,7 +58,7 @@
 
 
     <xsl:output method="html" version="4.0" encoding="UTF-8" indent="yes"
-        doctype-public="-//W3C//DTD HTML 4.01 Transitional//EN"/>
+        doctype-public="-//W3C//DTD HTML 4.01//EN"/>
     <!-- ### transcodes the XHMTL namespaced elements to HTML ### -->
     <xsl:namespace-alias stylesheet-prefix="xhtml" result-prefix="#default"/>
 

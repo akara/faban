@@ -1,4 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
    "http://www.w3.org/TR/html4/loose.dtd">
 <!--
 /* The contents of this file are subject to the terms
@@ -42,6 +42,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <title>Archived Runs [<%= Config.FABAN_HOST %>]</title>
+        <link rel="stylesheet" type="text/css" href="/css/style.css" />
     </head>
     <body>
         <%if( !(uploadedRuns.isEmpty()) ) {%>

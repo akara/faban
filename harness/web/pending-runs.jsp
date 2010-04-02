@@ -1,4 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <!--
 /* The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -67,9 +67,9 @@
                     <table BORDER=0 CELLPADDING=4 CELLSPACING=3 width="80%" align="center" style="padding:2px; border: 2px solid #cccccc;">
                     <tbody>
                     <tr>
-                        <th style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="header">Run ID</th>
-                        <th style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="header">Benchmark</th>
-                        <th style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="header">Description</th>
+                        <th class="header">Run ID</th>
+                        <th class="header">Benchmark</th>
+                        <th class="header">Description</th>
                     </tr>
         <%
                 final String[] rowType = {"even", "odd"};
@@ -78,7 +78,7 @@
 
         %>
                     <tr class="<%=rowType[i % 2]%>">
-                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell" style="text-align: right;">
+                        <td class="tablecell" style="text-align: right;">
         <%
                         if (killAllowed[i]) {
         %>
@@ -87,8 +87,8 @@
                         }
         %>
                             <%= pending[i][0] %></td>
-                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><%= pending[i][1]%></td>
-                        <td style="font-size: 12px; font-family: 'Times New Roman',Times,serif;" class="tablecell"><%= pending[i][2]%></td>
+                        <td class="tablecell"><%= pending[i][1]%></td>
+                        <td class="tablecell"><%= pending[i][2]%></td>
                     </tr>
          <%     } %>
                  </tbody>
