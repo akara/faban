@@ -390,8 +390,8 @@ public class RunInfo implements Serializable {
         
         private String getRequestLagTime(Object node) throws Exception {
             
-            Element rltNode = (Element) xp.evaluate("fd:requestLagTime/*[1]", node,
-                    XPathConstants.NODE);
+            Element rltNode = (Element) xp.evaluate("fd:requestLagTime/*[1]",
+                    node, XPathConstants.NODE);
             
             if(rltNode == null){
                 return "";
