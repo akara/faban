@@ -467,6 +467,26 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
                 totalAgentCnt += agentCnt;
             }
         }
+
+        // Check that no threads in an active driver should be 0 or less.
+        ArrayList<Integer> minList = new ArrayList<Integer>();
+        for (int i = 0; i < benchDef.drivers.length; i++) {
+            if (runInfo.driverConfigs[i].numAgents > 0 &&
+                    runInfo.driverConfigs[i].numThreads < 1) {
+                minList.add(Math.round(1f / benchDef.drivers[i].threadPerScale));
+            }
+        }
+
+        int maxMinScale = Integer.MIN_VALUE;
+        // Scan for max of minList and report it as a min scale.
+        if (minList.size() > 0) {
+            for (int minScale : minList)
+                if (minScale > maxMinScale)
+                    maxMinScale = minScale;
+            throw new ConfigurationException("Scale must be at least " +
+                    maxMinScale + ".");
+        }
+
         return totalAgentCnt;
     }
 
