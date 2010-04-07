@@ -576,7 +576,7 @@ final public class CmdService { 	// The final keyword prevents clones
                 } else { // Nothing read, check stderr
                     bufR = new BufferedReader(
                             new InputStreamReader(p.getErrorStream()));
-                    logger.severe(bufR.readLine());
+                    logger.severe(host + ": " + bufR.readLine());
                     ifMap.put(host, "");
                     continue;
                 }
