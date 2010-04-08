@@ -1091,7 +1091,7 @@ public class Metrics implements Serializable, Cloneable,
                 int k;
                 if (driver.percentiles.length > 0) {
                     for (int j = 0; j < driver.percentiles.length; j++) {
-                        int pct = driver.percentiles[j];
+                        double pct = driver.percentiles[j];
                         sumtx = 0;
                         cntPct = (int)(txCntStdy[i] * (pct / 100d));
                         k = 0;
@@ -1130,10 +1130,13 @@ public class Metrics implements Serializable, Cloneable,
                             result.percentiles[i][j] = respPct / precision;
                             indicator = "";
                         }
-                        formatter.format("<percentile nth=\"%d\" " +
+                        String pctSuffix = driver.pctSuffix[j];
+                        if (pctSuffix == null)
+                            pctSuffix = getSuffix(driver.pctString[j]);
+                        formatter.format("<percentile nth=\"%s\" " +
                                 "suffix=\"%s\"%s>%s%5.3f</percentile>\n",
-                                pct, getSuffix(pct), limitString, indicator,
-                                result.percentiles[i][j]);
+                                driver.pctString[j], pctSuffix, limitString,
+                                indicator, result.percentiles[i][j]);
 
                         if (limit > 0d) {
                             long limitNanos = Math.round(limit * precision);
@@ -1409,17 +1412,23 @@ public class Metrics implements Serializable, Cloneable,
         return success;
     }
 
-    private String getSuffix(int n) {
+    private String getSuffix(String pct) {
         String suffix;
-        // In the 10ths, all suffix is th
-        if (((n % 100) / 10) == 1) {
+        // When we have decimals, suffix is th
+        if (pct.indexOf('.') >= 0) {
             suffix = "th";
         } else {
-            switch (n % 10) {
-                case 1  : suffix = "st"; break;
-                case 2  : suffix = "nd"; break;
-                case 3  : suffix = "rd"; break;
-                default : suffix = "th";
+            int n = Integer.parseInt(pct);
+            // In the 10ths, all suffix is th
+            if (((n % 100) / 10) == 1) {
+                suffix = "th";
+            } else {
+                switch (n % 10) {
+                    case 1  : suffix = "st"; break;
+                    case 2  : suffix = "nd"; break;
+                    case 3  : suffix = "rd"; break;
+                    default : suffix = "th";
+                }
             }
         }
         return suffix;

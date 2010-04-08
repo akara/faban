@@ -160,7 +160,45 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
             def.drivers[i].metric = benchDriver.metric();
             def.drivers[i].opsUnit = benchDriver.opsUnit();
             def.drivers[i].threadPerScale = benchDriver.threadPerScale();
-            def.drivers[i].percentiles = benchDriver.percentiles();
+
+            String[] percentiles = benchDriver.percentiles();
+            def.drivers[i].percentiles = new double[percentiles.length];
+            def.drivers[i].pctString = new String[percentiles.length];
+            def.drivers[i].pctSuffix = new String[percentiles.length];
+
+            // Parse the percentiles.
+            for (int j = 0; j < percentiles.length; j++) {
+                String percentile = percentiles[i];
+                int length = percentile.length();
+                if (percentile.endsWith("%"))
+                    --length;
+                if (!Character.isDigit(percentile.charAt(length - 1))) {
+                    String suffix = percentile.substring(length - 2, length);
+                    if (!suffix.equals("th") && !suffix.equals("st") &&
+                            !suffix.equals("nd") && !suffix.equals("rd"))
+                        throw new DefinitionException(
+                                "Invalid percentile suffix " + suffix);
+                    def.drivers[i].pctSuffix[j] = suffix;
+                    length -= 2;
+                }
+                def.drivers[i].pctString[j] = percentile;
+                percentile = percentile.substring(0, length);
+
+                try {
+                    def.drivers[i].percentiles[j] =
+                            Double.parseDouble(percentile);
+                } catch (NumberFormatException e) {
+                    throw new DefinitionException(percentile + " not a number.",
+                            e);
+                }
+
+                if (def.drivers[i].percentiles[j] <= 0d ||
+                        def.drivers[i].percentiles[j] >= 100d) {
+                    throw new DefinitionException("Percentile " + percentile +
+                            " must be greater than 0 and less than 100.");
+                }
+            }
+
             def.drivers[i].responseTimeUnit = benchDriver.responseTimeUnit();
             if (def.drivers[i].responseTimeUnit.equals(TimeUnit.NANOSECONDS))
                 throw new DefinitionException("@BenchmarkDriver " +
@@ -599,7 +637,9 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
         String metric;
         String opsUnit;
         float threadPerScale;
-        int[] percentiles;
+        double[] percentiles;
+        String[] pctString;
+        String[] pctSuffix;
         TimeUnit responseTimeUnit;
         Mix[] mix = new Mix[2]; // Foreground (0) and background (1) mix.
         Cycle[] initialDelay = new Cycle[2]; // Foreground and background
@@ -687,6 +727,10 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
             if (mix[1] != null) {
 				clone.mix[1] = (Mix) mix[1].clone();
 			}
+
+            clone.percentiles = percentiles.clone();
+            clone.pctString = pctString.clone();
+            clone.pctSuffix = pctSuffix.clone();
 
             clone.initialDelay[0] = (Uniform) initialDelay[0].clone();
             if (initialDelay[1] != null) {

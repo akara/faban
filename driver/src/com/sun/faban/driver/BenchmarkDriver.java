@@ -54,9 +54,21 @@ public @interface BenchmarkDriver {
 
     /**
      * The percentiles to measure against. Overrides 90th% setting
-     * (old style).
+     * (old style). The percentiles must be numeric strings representing
+     * the percentiles of interest. The number must be greater than 0 and less
+     * than 100. Decimal digits can be used. The number may optionally have a
+     * suffix of 'th', 'st', 'nd', or 'rd' which will be used in the reporting.
+     * It can also end with the '%' sign. The following are valid percentiles.
+     * <ul>
+     *   <li>99</li>
+     *   <li>99th</li>
+     *   <li>99th%</li>
+     *   <li>99.99</li>
+     *   <li>99.99th</li>
+     *   <li>99.99th%</li>
+     * </ul>
      */
-    int[] percentiles()       default {};
+    String[] percentiles()       default {};
 
     /**
      * The time unit used for reporting response times.

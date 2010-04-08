@@ -41,7 +41,7 @@ import java.util.logging.Logger;
 @BenchmarkDriver (
     name           = "WebDriver",
     threadPerScale    = 1,
-    percentiles = { 90, 95, 99}
+    percentiles = { "90", "95th", "99.9th%"} // Show different supported formats
 )
 @MatrixMix (
     operations = {"MyOperation1", "MyOperation2", "MyOperation3"},
