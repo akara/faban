@@ -63,7 +63,7 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
         String className = def.getClass().getName();
         Logger logger = Logger.getLogger(className);
 
-        Class<?> defClass = null;
+        Class<?> defClass;
         try {
             defClass = Class.forName(defClassName);
         } catch (ClassNotFoundException e) {
@@ -90,11 +90,11 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
 
             URLClassLoader loader = new URLClassLoader(url, BenchmarkDefinition.class.getClassLoader());
             
-            try{
+            try {
                 
                 defClass=loader.loadClass(defClassName);
                 
-            }catch(ClassNotFoundException cnfex){
+            } catch(ClassNotFoundException cnfex) {
                 ConfigurationException ce = new ConfigurationException(e);
                 logger.log(Level.SEVERE, e.getMessage(), ce);
                 throw ce;
@@ -168,7 +168,7 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
 
             // Parse the percentiles.
             for (int j = 0; j < percentiles.length; j++) {
-                String percentile = percentiles[i];
+                String percentile = percentiles[j];
                 int length = percentile.length();
                 if (percentile.endsWith("%"))
                     --length;
@@ -181,8 +181,8 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
                     def.drivers[i].pctSuffix[j] = suffix;
                     length -= 2;
                 }
-                def.drivers[i].pctString[j] = percentile;
                 percentile = percentile.substring(0, length);
+                def.drivers[i].pctString[j] = percentile;
 
                 try {
                     def.drivers[i].percentiles[j] =
@@ -216,15 +216,14 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
             // Copy operation references into a flat array.
             def.drivers[i].operations =
                     new BenchmarkDefinition.Operation[totalOps];
-            for (int j = 0; j < def.drivers[i].mix[0].operations.length; j++) {
-				def.drivers[i].operations[j] =
-                        def.drivers[i].mix[0].operations[j];
-			}
+            System.arraycopy(def.drivers[i].mix[0].operations, 0,
+                    def.drivers[i].operations, 0,
+                    def.drivers[i].mix[0].operations.length);
             if (def.drivers[i].mix[1] != null) {
-				for (int j = 0; j < def.drivers[i].mix[1].operations.length; j++) {
-					def.drivers[i].operations[j + def.drivers[i].mix[0].operations.
-				            length] = def.drivers[i].mix[1].operations[j];
-				}
+                System.arraycopy(def.drivers[i].mix[1].operations, 0,
+                        def.drivers[i].operations,
+                        def.drivers[i].mix[0].operations.length,
+                        def.drivers[i].mix[1].operations.length);
 			}
 
             // Check the percentile limit on each operation
@@ -266,12 +265,14 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
     /**
      * Reads the Faban definition annotations and prints a DD to file.
      * @param defClassName The defining class name
+     * @throws ConfigurationException Error in the benchmark configuration
+     * @throws DefinitionException Error in the benchmark definition
      */
     public static void printFabanDD(String defClassName)
             throws ConfigurationException, DefinitionException {
         Logger logger = Logger.getLogger(BenchmarkDefinition.class.getName());
         logger.fine("Generating Faban DD.");
-        Class<?> defClass = null;
+        Class<?> defClass;
         try {
             defClass = Class.forName(defClassName);
             logger.fine("Found benchmark definition class " + defClassName);
@@ -298,18 +299,20 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
         b.append("<!-- Generated Faban Driver Framework DD, please do not " +
                  "modify -->\n");
         b.append("<fabanDriver>\n");
-        b.append("    <name>" + benchDefAnnotation.name() + "</name>\n");
-        b.append("    <version>" + benchDefAnnotation.version() +
-                 "</version>\n");
-        b.append("    <runControl>" + benchDefAnnotation.runControl() +
-                 "</runControl>\n");
-        b.append("    <metric>" + benchDefAnnotation.metric() + "</metric>\n");
-        b.append("    <scaleName>" + benchDefAnnotation.scaleName() +
-                 "</scaleName>\n");
-        b.append("    <scaleUnit>" + benchDefAnnotation.scaleUnit() +
-                 "</scaleUnit>\n");
-        b.append("    <configPrecedence>" + benchDefAnnotation.
-                 configPrecedence() + "</configPrecedence>\n");
+        b.append("    <name>").append(benchDefAnnotation.name()).
+                append("</name>\n");
+        b.append("    <version>").append(benchDefAnnotation.version()).
+                append("</version>\n");
+        b.append("    <runControl>").append(benchDefAnnotation.runControl()).
+                append("</runControl>\n");
+        b.append("    <metric>").append(benchDefAnnotation.metric()).
+                append("</metric>\n");
+        b.append("    <scaleName>").append(benchDefAnnotation.scaleName()).
+                append("</scaleName>\n");
+        b.append("    <scaleUnit>").append(benchDefAnnotation.scaleUnit()).
+                append("</scaleUnit>\n");
+        b.append("    <configPrecedence>").append(benchDefAnnotation.
+                configPrecedence()).append("</configPrecedence>\n");
         b.append("</fabanDriver>\n");
 
         String outputFile = System.getProperty("benchmark.ddfile");
@@ -740,13 +743,10 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
             // Copy operation references into a flat array.
             int totalOps = operations.length;
             clone.operations = new BenchmarkDefinition.Operation[totalOps];
-            for (int j = 0; j < mix[0].operations.length; j++) {
-				clone.operations[j] = clone.mix[0].operations[j];
-			}
-            for (int j = 0; j < mix[1].operations.length; j++) {
-				clone.operations[j + mix[0].operations.length] = 
-                        clone.mix[1].operations[j];
-			}
+            System.arraycopy(clone.mix[0].operations, 0, clone.operations, 0,
+                    mix[0].operations.length);
+            System.arraycopy(clone.mix[1].operations, 0, clone.operations,
+                    mix[0].operations.length, mix[1].operations.length);
 
             return clone;
         }
@@ -782,7 +782,7 @@ public class BenchmarkDefinition implements Serializable, Cloneable {
          * @see Cloneable
          */
         @Override
-		public Object clone() {
+		public final Object clone() {
             Object clone = null;
             try {
                 clone = super.clone();
