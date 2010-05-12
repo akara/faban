@@ -526,12 +526,9 @@ public class Metrics implements Serializable, Cloneable,
      */
 	public void add(Metrics s) {
         // Check whether the host is the same. If not, set host to null
-        if (!host.equals(s.host)) {
-            if (host != null && !host.equals(s.host))
-                host = null;
-            if (s.host != null && !s.host.equals(host))
-                host = null;
-        }
+        if (host != null && !host.equals(s.host))
+            host = null;
+
         // Add up the thread count
 		threadCnt += s.threadCnt;
 

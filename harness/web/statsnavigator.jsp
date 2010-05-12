@@ -69,10 +69,10 @@
 
     fileSearchLoop:
     for (String fileName : outDir.list()) {
-        // Screen out all image files and files to be ignored...
+        // Screen out all image files, hidden files, and files to be ignored...
         if (fileName.endsWith(".png") || fileName.endsWith(".jpg") ||
             fileName.endsWith(".jpeg") || fileName.endsWith(".gif") ||
-            ignoreFiles.contains(fileName))
+            fileName.startsWith(".") || ignoreFiles.contains(fileName))
             continue;
 
         // Then proces the sysinfo files...
@@ -128,6 +128,11 @@
                     String fullName = hostName;
                     hostName = fullName.substring(0, domainIdx);
                 }
+            }
+            if (hostName == null) {
+                response.sendError(500, "Error mapping stats. Offending file: "
+                                        + fileName);
+                return;
             }
 
             String toolHostKey = hostName + ':' + toolName;
