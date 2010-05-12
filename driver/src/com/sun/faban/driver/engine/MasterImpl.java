@@ -394,7 +394,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
         // Get all agents for all drivers
         for (int i = 0; i < benchDef.drivers.length && !runAborted; i++) {
             // Only for drivers to run...
-            if (runInfo.driverConfigs[i].numAgents != 0) {
+            if (runInfo.driverConfigs[i].numAgents > 0) {
 
                 // Get all the agentImpl refs
                 String agentName = benchDef.drivers[i].name + "Agent";
@@ -432,25 +432,19 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
                 // Re-adjust the agent count to eliminate duplicates.
                 agentCnt = sortMap.size();
 
-                // Now assign the agent refs to the global agent array.
-                agentRefs[i] = new Agent[agentCnt];
-                agentRefs[i] = sortMap.values().toArray(agentRefs[i]);
-
                 if (agentCnt != runInfo.driverConfigs[i].numAgents) {
-                    if (runInfo.driverConfigs[i].numAgents > 0) {
-                        logger.warning("Configured " + runInfo.driverConfigs[i].
-                                numAgents + ' ' + benchDef.drivers[i].name +
-                                "Agents but found " + agentCnt + '.');
-                        if (agentCnt > runInfo.driverConfigs[i].numAgents) {
-							logger.warning("Some unkown agents managed to " +
-                                    "sneak in! We'll use'em!");
-						} else {
-							logger.warning("Some agents surely didn't get " +
-                                   "started. We'll just use the ones we have.");
-						}
+                    logger.warning("Configured " + runInfo.driverConfigs[i].
+                            numAgents + ' ' + benchDef.drivers[i].name +
+                            "Agents but found " + agentCnt + '.');
+                    if (agentCnt > runInfo.driverConfigs[i].numAgents) {
+                        logger.warning("Some unkown agents managed to " +
+                                "sneak in! We'll use'em!");
+                    } else {
+                        logger.warning("Some agents surely didn't get " +
+                                "started. We'll just use the ones we have.");
                     }
 
-                    // Now we need to adjust the runInfo according to realty
+                    // Now we need to adjust the runInfo according to reality
                     runInfo.driverConfigs[i].numAgents = agentCnt;
                 }
 
@@ -459,6 +453,30 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 					runInfo.driverConfigs[i].numThreads = Math.round(
                             runInfo.scale * benchDef.drivers[i].threadPerScale);
 				}
+
+                // Adjust the agent count to not exceed the thread count.
+                if (runInfo.driverConfigs[i].numAgents >
+                        runInfo.driverConfigs[i].numThreads) {
+                    logger.warning("Reducing agents from " +
+                            runInfo.driverConfigs[i].numAgents + " to " +
+                            runInfo.driverConfigs[i].numThreads +
+                            " due to too low scale.");
+                    agentCnt = runInfo.driverConfigs[i].numThreads;
+                    runInfo.driverConfigs[i].numAgents = agentCnt;
+                }
+
+                // Now assign the agent refs to the agentRefs array,
+                // just for the agents being used.
+                agentRefs[i] = new Agent[agentCnt];
+
+                int j = 0;
+                for (Agent agent : sortMap.values()) {
+                    if (j >= agentCnt)
+                        break;
+                    agentRefs[i][j++] = agent;
+                }
+
+                // Finally, calculate the agent and overflow threads.
                 agentThreads[i] = runInfo.driverConfigs[i].numThreads /
                         runInfo.driverConfigs[i].numAgents;
                 remainderThreads[i] = runInfo.driverConfigs[i].numThreads -
