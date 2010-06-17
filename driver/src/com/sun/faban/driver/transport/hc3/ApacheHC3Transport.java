@@ -26,9 +26,7 @@ package com.sun.faban.driver.transport.hc3;
 import com.sun.faban.driver.HttpTransport;
 import org.apache.commons.httpclient.*;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.apache.commons.httpclient.methods.*;
 import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
 import org.apache.commons.httpclient.methods.multipart.Part;
 import org.apache.commons.httpclient.params.HttpMethodParams;
@@ -1143,6 +1141,247 @@ public class ApacheHC3Transport extends HttpTransport {
         return matchResponse(regex);
     }
 
+    /**
+     * Makes a PUT request to the URL. Reads data back and returns the data
+     * read. Note that this method only works with text data as it does the
+     * byte-to-char conversion. This method will return null for responses
+     * with binary MIME types. The addTextType(String) method is used to
+     * register additional MIME types as text types. Use getContentSize() to
+     *  obtain the bytes of binary data read.
+     *
+     * @param url The URL to read from
+     * @param buffer containing the PUT data
+     * @param contentType the content type, or null
+     * @param headers The request headers, or null
+     * @return The StringBuilder buffer containing the resulting document
+     * @throws java.io.IOException
+     */
+    public StringBuilder putURL(String url, byte[] buffer, String contentType,
+                                Map<String, String> headers)
+            throws IOException {
+        PutMethod method = new PutMethod(url);
+        method.setFollowRedirects(followRedirects);
+        setHeaders(method, headers);
+        method.setRequestEntity(
+                new ByteArrayRequestEntity(buffer, contentType));
+        try {
+            responseCode = hc.executeMethod(method);
+            buildResponseHeaders(method);
+            return fetchResponse(method);
+        } finally {
+            method.releaseConnection();
+        }
+    }
+
+    /**
+     * Makes a PUT request to the URL. Reads data back and returns the data
+     * read. Note that this method only works with text data as it does the
+     * byte-to-char conversion. This method will return null for responses
+     * with binary MIME types. The addTextType(String) method is used to
+     * register additional MIME types as text types. Use getContentSize() to
+     *  obtain the bytes of binary data read.
+     *
+     * @param url The URL to read from
+     * @param buffer containing the PUT data
+     * @return The StringBuilder buffer containing the resulting document
+     * @throws java.io.IOException
+     */
+    public StringBuilder putURL(String url, byte[] buffer) throws IOException {
+        return putURL(url, buffer, null, null);
+    }
+
+    /**
+     * Makes a PUT request to the URL. Reads data back and returns the data
+     * read. Note that this method only works with text data as it does the
+     * byte-to-char conversion. This method will return null for responses
+     * with binary MIME types. The addTextType(String) method is used to
+     * register additional MIME types as text types. Use getContentSize() to
+     *  obtain the bytes of binary data read.
+     *
+     * @param url The URL to read from
+     * @param buffer containing the PUT data
+     * @param contentType the content type, or null
+     * @return The StringBuilder buffer containing the resulting document
+     * @throws java.io.IOException
+     */
+    public StringBuilder putURL(String url, byte[] buffer, String contentType)
+            throws IOException {
+        return putURL(url, buffer, contentType, null);
+    }
+
+    /**
+     * Makes a PUT request to the URL. Reads data back and returns the data
+     * read. Note that this method only works with text data as it does the
+     * byte-to-char conversion. This method will return null for responses
+     * with binary MIME types. The addTextType(String) method is used to
+     * register additional MIME types as text types. Use getContentSize() to
+     *  obtain the bytes of binary data read.
+     *
+     * @param url The URL to read from
+     * @param buffer containing the PUT data
+     * @param headers The request headers, or null
+     * @return The StringBuilder buffer containing the resulting document
+     * @throws java.io.IOException
+     */
+    public StringBuilder putURL(String url, byte[] buffer,
+                                Map<String, String> headers)
+            throws IOException {
+        return putURL(url, buffer, null, headers);
+    }
+
+    /**
+     * Makes a PUT request to the URL. Reads data back and returns the data
+     * read. Note that this method only works with text data as it does the
+     * byte-to-char conversion. This method will return null for responses
+     * with binary MIME types. The addTextType(String) method is used to
+     * register additional MIME types as text types. Use getContentSize() to
+     *  obtain the bytes of binary data read.
+     *
+     * @param url The URL to read from
+     * @param buffer containing the PUT data
+     * @param contentType the content type, or null
+     * @param headers The request headers, or null
+     * @return The StringBuilder buffer containing the resulting document
+     * @throws java.io.IOException
+     */
+    public StringBuilder putURL(URL url, byte[] buffer, String contentType,
+                                Map<String, String> headers)
+            throws IOException {
+        return putURL(url.toString(), buffer, contentType, headers);
+    }
+
+    /**
+     * Makes a PUT request to the URL. Reads data back and returns the data
+     * read. Note that this method only works with text data as it does the
+     * byte-to-char conversion. This method will return null for responses
+     * with binary MIME types. The addTextType(String) method is used to
+     * register additional MIME types as text types. Use getContentSize() to
+     *  obtain the bytes of binary data read.
+     *
+     * @param url The URL to read from
+     * @param buffer containing the PUT data
+     * @return The StringBuilder buffer containing the resulting document
+     * @throws java.io.IOException
+     */
+    public StringBuilder putURL(URL url, byte[] buffer) throws IOException {
+        return putURL(url.toString(), buffer, null, null);
+    }
+
+    /**
+     * Makes a PUT request to the URL. Reads data back and returns the data
+     * read. Note that this method only works with text data as it does the
+     * byte-to-char conversion. This method will return null for responses
+     * with binary MIME types. The addTextType(String) method is used to
+     * register additional MIME types as text types. Use getContentSize() to
+     *  obtain the bytes of binary data read.
+     *
+     * @param url The URL to read from
+     * @param buffer containing the PUT data
+     * @param contentType the content type, or null
+     * @return The StringBuilder buffer containing the resulting document
+     * @throws java.io.IOException
+     */
+    public StringBuilder putURL(URL url, byte[] buffer, String contentType)
+            throws IOException {
+        return putURL(url.toString(), buffer, contentType, null);
+    }
+
+    /**
+     * Makes a PUT request to the URL. Reads data back and returns the data
+     * read. Note that this method only works with text data as it does the
+     * byte-to-char conversion. This method will return null for responses
+     * with binary MIME types. The addTextType(String) method is used to
+     * register additional MIME types as text types. Use getContentSize() to
+     *  obtain the bytes of binary data read.
+     *
+     * @param url The URL to read from
+     * @param buffer containing the PUT data
+     * @param headers The request headers, or null
+     * @return The StringBuilder buffer containing the resulting document
+     * @throws java.io.IOException
+     */
+    public StringBuilder putURL(URL url, byte[] buffer,
+                                Map<String, String> headers)
+            throws IOException {
+        return putURL(url.toString(), buffer, null, headers);
+    }
+
+    /**
+     * Makes a DELETE request to the URL. Reads data back and returns the data
+     * read. Note that this method only works with text data as it does the
+     * byte-to-char conversion. This method will return null for responses
+     * with binary MIME types. The addTextType(String) method is used to
+     * register additional MIME types as text types. Use getContentSize() to
+     *  obtain the bytes of binary data read.
+     *
+     * @param url The URL to read from
+     * @param headers The request headers, or null
+     * @return The StringBuilder buffer containing the resulting document
+     * @throws java.io.IOException
+     */
+    public StringBuilder deleteURL(String url, Map<String, String> headers)
+            throws IOException {
+        DeleteMethod method = new DeleteMethod(url);
+        method.setFollowRedirects(followRedirects);
+        setHeaders(method, headers);
+        try {
+            responseCode = hc.executeMethod(method);
+            buildResponseHeaders(method);
+            return fetchResponse(method);
+        } finally {
+            method.releaseConnection();
+        }
+    }
+
+    /**
+     * Makes a DELETE request to the URL. Reads data back and returns the data
+     * read. Note that this method only works with text data as it does the
+     * byte-to-char conversion. This method will return null for responses
+     * with binary MIME types. The addTextType(String) method is used to
+     * register additional MIME types as text types. Use getContentSize() to
+     *  obtain the bytes of binary data read.
+     *
+     * @param url The URL to read from
+     * @return The StringBuilder buffer containing the resulting document
+     * @throws java.io.IOException
+     */
+    public StringBuilder deleteURL(String url) throws IOException {
+        return deleteURL(url, null);
+    }
+
+    /**
+     * Makes a DELETE request to the URL. Reads data back and returns the data
+     * read. Note that this method only works with text data as it does the
+     * byte-to-char conversion. This method will return null for responses
+     * with binary MIME types. The addTextType(String) method is used to
+     * register additional MIME types as text types. Use getContentSize() to
+     *  obtain the bytes of binary data read.
+     *
+     * @param url The URL to read from
+     * @param headers The request headers, or null
+     * @return The StringBuilder buffer containing the resulting document
+     * @throws java.io.IOException
+     */
+    public StringBuilder deleteURL(URL url, Map<String, String> headers)
+            throws IOException {
+        return deleteURL(url.toString(), headers);
+    }
+
+    /**
+     * Makes a DELETE request to the URL. Reads data back and returns the data
+     * read. Note that this method only works with text data as it does the
+     * byte-to-char conversion. This method will return null for responses
+     * with binary MIME types. The addTextType(String) method is used to
+     * register additional MIME types as text types. Use getContentSize() to
+     *  obtain the bytes of binary data read.
+     *
+     * @param url The URL to read from
+     * @return The StringBuilder buffer containing the resulting document
+     * @throws java.io.IOException
+     */
+    public StringBuilder deleteURL(URL url) throws IOException {
+        return deleteURL(url.toString());
+    }
 
     /**
      * Obtains the list of cookie values by the name of the cookies.

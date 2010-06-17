@@ -30,6 +30,8 @@ import java.net.UnknownHostException;
 import java.net.InetAddress;
 import java.net.Proxy;
 import java.io.IOException;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * Socket factory to create new timed socket.
@@ -37,6 +39,34 @@ import java.io.IOException;
  * @author Akara Sucharitakul
  */
 public class TimedSocketFactory extends SocketFactory {
+
+    /**
+     * Obtains an instance of the appropriate TimedSocketFactory.
+     * @return The instance.
+     */
+    public static SocketFactory getInstance() {
+        javax.net.SocketFactory userFactory = null;
+        String sf = System.getProperty("faban.client.socket.factory");
+        if (sf != null)
+            try {
+                userFactory = Class.forName(sf).asSubclass(
+                        javax.net.SocketFactory.class).newInstance();
+            } catch (Exception e) {
+                Logger.getLogger(TimedSocketWrapperFactory.class.getName()).log(
+                        Level.SEVERE, "Error creating socket factory, " +
+                        "using default. - " + e, e);
+            }
+        if (userFactory != null) {
+            Logger.getLogger(TimedSocketWrapperFactory.class.getName()).log(
+                    Level.INFO, "Using client socket factory " + sf);            
+            return new TimedSocketWrapperFactory(userFactory);
+        } else {
+            return new TimedSocketFactory();
+        }
+    }
+
+    private TimedSocketFactory() {
+    }
 
     /**
      * Creates a socket through the given proxy.

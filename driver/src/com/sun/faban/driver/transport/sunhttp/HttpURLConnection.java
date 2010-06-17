@@ -137,7 +137,7 @@ public class HttpURLConnection
      */
     public static SocketFactory getDefaultSocketFactory() {
         if (defaultSocketFactory == null) {
-			defaultSocketFactory = new TimedSocketFactory();
+			defaultSocketFactory = TimedSocketFactory.getInstance();
 		}
         return defaultSocketFactory;
     }
