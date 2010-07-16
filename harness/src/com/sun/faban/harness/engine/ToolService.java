@@ -55,7 +55,6 @@ final public class ToolService {
     private ToolAgent[] toolAgents;
     private String[] hostNames;
     private Logger logger;
-    private CmdService cmds;
     private boolean runTools;
 
     private static ToolService toolService;
@@ -93,12 +92,12 @@ final public class ToolService {
      */
     public boolean setup(ParamRepository par, String outDir,
                          ServiceManager serviceMgr) {
-        
-        cmds = CmdService.getHandle();
+
+        CmdService cmds = CmdService.getHandle();
 
         /* Get tool related parameters */
 
-        List<ParamRepository.HostConfig> hostConfigs = null;
+        List<ParamRepository.HostConfig> hostConfigs;
         try {
             hostConfigs = par.getHostConfigs();
         } catch (ConfigurationException e) {
@@ -111,7 +110,7 @@ final public class ToolService {
                 new HashMap<String, List<MasterToolContext>>();
 
         List<MasterToolContext> tools = serviceMgr.getTools();
-        List<MasterToolContext> hostToolList = null;
+        List<MasterToolContext> hostToolList;
         for (MasterToolContext tool : tools) {
             String[] hosts = tool.getToolServiceContext().getUniqueHosts();
             for (String host : hosts) {
@@ -151,9 +150,8 @@ final public class ToolService {
                     toolset.add(st.nextToken().trim());
                 }
             }
-            
-            for (int j = 0; j < hosts.length; j++) {
-                String host = hosts[j];
+
+            for (String host : hosts) {
                 // Now get the tools list for this host,
                 // or allocate if non-existent
                 hostToolList = hostMap.get(host);
@@ -161,10 +159,10 @@ final public class ToolService {
                     hostToolList = new ArrayList<MasterToolContext>();
                     hostMap.put(host, hostToolList);
                 }
-                if(osHostMap.containsKey(host)){
+                if (osHostMap.containsKey(host)) {
                     toolset.addAll(osHostMap.get(host));
                     osHostMap.put(host, toolset);
-                }else{
+                } else {
                     osHostMap.put(host, toolset);
                 }
             }      
@@ -182,11 +180,10 @@ final public class ToolService {
 
         // Start the tools.
         try {
-            for (int i = 0; i < hostNames.length; i++) {
-                logger.info("Setting up tools on machine " + hostNames[i]);
-                cmds.startAgent(hostNames[i], ToolAgentImpl.class,
+            for (String hostName : hostNames) {
+                logger.info("Setting up tools on machine " + hostName);
+                cmds.startAgent(hostName, ToolAgentImpl.class,
                         Config.TOOL_AGENT);
-
             }
         } catch (Exception e) {
             logger.log(Level.WARNING, "Failed to setup tools.", e);
@@ -240,7 +237,7 @@ final public class ToolService {
      */
     public void start(int delay) {
 
-        if (runTools == false || toolAgents == null || toolAgents.length  == 0)
+        if (!runTools || toolAgents == null || toolAgents.length  == 0)
             return;
 
         for (int i = 0; i < toolAgents.length; i++) {
@@ -261,7 +258,7 @@ final public class ToolService {
      */
     public void start(int delay, int duration) {
 
-        if (runTools == false || toolAgents == null || toolAgents.length == 0)
+        if (!runTools || toolAgents == null || toolAgents.length == 0)
             return;
 
         for (int i = 0; i < toolAgents.length; i++) {
@@ -280,7 +277,7 @@ final public class ToolService {
      *
      */
     public void stop() {
-        if (runTools == false || toolAgents == null || toolAgents.length <= 0)
+        if (!runTools || toolAgents == null || toolAgents.length <= 0)
             return;
 
         for (int i = 0; i < toolAgents.length; i++) {
@@ -310,12 +307,12 @@ final public class ToolService {
      * or at the end of a benchmark run.
      */
     public void kill() {
-        if (runTools == false || toolAgents == null || toolAgents.length <= 0)
+        if (!runTools || toolAgents == null || toolAgents.length <= 0)
             return;
-        for (int i = 0; i < toolAgents.length; i++) {
-            if (toolAgents[i] != null)
+        for (ToolAgent toolAgent : toolAgents) {
+            if (toolAgent != null)
                 try {
-                    toolAgents[i].kill();
+                    toolAgent.kill();
                 } catch (Exception r) { // Ignore Errors
                 }
         }
@@ -327,7 +324,7 @@ final public class ToolService {
      * Wait for all tools.
 =     */
     public void waitFor() {
-        if (runTools == false || toolAgents == null || toolAgents.length <= 0)
+        if (!runTools || toolAgents == null || toolAgents.length <= 0)
             return;
 
         for (int i = 0; i < toolAgents.length; i++) {

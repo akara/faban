@@ -39,6 +39,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CountDownLatch;
@@ -70,7 +71,6 @@ public class ToolWrapper {
     boolean countedDown = false;
     boolean postprocessed = false;
     String outfile;	// Name of stdout,stderr from tool
-    String outputType;
     CommandHandle outputHandle;
     int outputStream;
     String toolName;
@@ -82,11 +82,14 @@ public class ToolWrapper {
 
     ToolContext tc = null;
 
+    private String outDir;
+    private String host;
+
     /**
      * Constructor.
-     * @param toolClass
-     * @param ctx
-     * @throws java.lang.Exception
+     * @param toolClass The tool class
+     * @param ctx The master tool context
+     * @throws Exception Error creating the tool
      */
     public ToolWrapper(Class toolClass, MasterToolContext ctx)
             throws Exception {
@@ -166,8 +169,8 @@ public class ToolWrapper {
     }
 
     /**
-     * This method is responsible for postprocessing.
-     * @throws java.lang.Exception
+     * This method is responsible for post-processing.
+     * @throws Exception Any exception thrown by the wrapped method
      */
     public void postprocess() throws Exception {
         if (postprocessed)
@@ -192,7 +195,7 @@ public class ToolWrapper {
 
     /**
      * This method is responsible for starting a tool.
-     * @throws java.lang.Exception
+     * @throws Exception Any exception thrown by the wrapped method
      */
     private void start() throws Exception {
         Invoker.invoke(tool, startMethod, tc.toolPath);
@@ -223,6 +226,9 @@ public class ToolWrapper {
 
         if (path != null)
             this.path = path;
+
+        this.outDir = outDir;
+        this.host = host;
 
         // Get output logfile name
         this.outfile = outDir + toolName + ".log." + host;
@@ -290,7 +296,7 @@ public class ToolWrapper {
 
     /**
      * This method is responsible for stopping the tool utility.
-     * @throws java.lang.Exception
+     * @throws Exception Any exception thrown by the wrapped method
      */
     public void stop() throws Exception {
         stop(true);
@@ -299,13 +305,13 @@ public class ToolWrapper {
     /**
      * This method is responsible for stopping the tool utility.
      * @param warn Whether to warn if the tool already ended.
-     * @throws java.lang.Exception
+     * @throws Exception Any exception thrown by the wrapped method
      */
     protected void stop(boolean warn) throws Exception{
         if (toolStatus == STARTED){
             Invoker.setContextLocation(tc.toolPath);
             try {
-                stopMethod.invoke(this.tool,new Object[] {});
+                stopMethod.invoke(this.tool);
             } finally {
                 Invoker.setContextLocation(null);
             }
@@ -322,32 +328,52 @@ public class ToolWrapper {
      */
     protected void xferLog() {
         String logfile = null;
-        String outfile = this.outfile;
-        if (outputType != null)
-            outfile += '.' + outputType;
         try {
-            FileTransfer transfer;
+            FileTransfer[] transfer;
             if (outputHandle != null) {
-                transfer = outputHandle.fetchOutput(outputStream, outfile);
+                transfer = new FileTransfer[1];
+                transfer[0] = outputHandle.fetchOutput(outputStream, outfile);
+            } else if (tc.localOutputFiles != null) {
+                transfer = new FileTransfer[tc.localOutputFiles.size()];
+                int idx = 0;
+                for (Map.Entry<String, String> entry :
+                        tc.localOutputFiles.entrySet()) {
+                    String key = entry.getKey();
+                    String path = entry.getValue();
+                    String ext;
+                    if (path.endsWith(".xan") || path.contains(".xan."))
+                        ext = ".xan.";
+                    else
+                        ext = ".log.";
+                    if (! new File(path).exists()) {
+                        logger.warning(toolName + ": Transfer file " + logfile + " not found.");
+                        continue;
+                    }
+                    String outFile = outDir + toolName + '-' + key + ext + host;
+                    transfer[idx++] = new FileTransfer(logfile, outFile);
+                }
             } else {
+                transfer = new FileTransfer[1];
                 logfile = tc.getOutputFile();
                 if (!new File(logfile).exists()) {
                     logger.warning(toolName + ": Transfer file " + logfile +
                             " not found.");
                     return;
                 }
-                transfer = new FileTransfer(logfile, outfile);
+                transfer[0] = new FileTransfer(logfile, outfile);
             }
-            logger.fine(toolName + ": Transferring log from " + logfile +
-                    " to " + outfile);
 
-            // Use FileAgent on master machine to copy log
-            if (transfer != null) {
-                String s = Config.FILE_AGENT;
-                FileAgent fa =
-                        (FileAgent) CmdAgentImpl.getRegistry().getService(s);
-                if (fa.push(transfer) != transfer.getSize())
-                    logger.info(toolName + ": Invalid transfer size");
+            String s = Config.FILE_AGENT;
+            FileAgent fa = (FileAgent) CmdAgentImpl.getRegistry().getService(s);
+            for (FileTransfer t : transfer) {
+                logger.fine(toolName + ": Transferring log from " + logfile +
+                        " to " + t.getDest());
+
+                // Use FileAgent on master machine to copy log
+                if (t != null) {
+                    if (fa.push(t) != t.getSize())
+                        logger.info(toolName + ": Invalid transfer size");
+                }
             }
         } catch (IOException e) {
             if (logfile == null)
@@ -371,7 +397,7 @@ public class ToolWrapper {
 
     /**
      * This method is responsible for killing the tool utility.
-     * @throws java.lang.Exception
+     * @throws Exception Any exception thrown by the wrapped method
      */
     public void kill() throws Exception {
         // For most tools, we try to collect the output no matter what.

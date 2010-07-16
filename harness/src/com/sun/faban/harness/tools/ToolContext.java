@@ -23,11 +23,15 @@ package com.sun.faban.harness.tools;
 
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
+import com.sun.faban.common.NameValuePair;
 import com.sun.faban.harness.common.Config;
 import com.sun.faban.harness.services.ServiceContext;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class is a subclass of MasterToolContext.
@@ -39,9 +43,11 @@ public class ToolContext extends MasterToolContext {
 
     String localOutputFile =
             Config.TMP_DIR + getToolName() + ".out." + this.hashCode();
+
+    HashMap<String, String> localOutputFiles;
+
     ToolWrapper wrapper;
     String toolPath = null;
-    String outputType = null;
 
     /**
      * Constructs the tool context.
@@ -95,7 +101,7 @@ public class ToolContext extends MasterToolContext {
     }
 
     /**
-     * Sets the output file with the given path.
+     * Sets the default output file with the given path.
      * @param path The output file path.
      */
     public void setOutputFile(String path) {
@@ -103,19 +109,52 @@ public class ToolContext extends MasterToolContext {
     }
 
     /**
-     * Gets the output type.
-     * @return The output type, or null if not specified
+     * Set output file with an id. This id will be displayed in the output
+     * stats screen as an additional identifier for multiple output files
+     * from one tool.
+     * @param id The id
+     * @param path The path
      */
-    public String getOutputType() {
-        return wrapper.outputType;
+    public void setOutputFile(String id, String path) {
+        if (localOutputFiles == null)
+            localOutputFiles = new HashMap<String, String>();
+        localOutputFiles.put(id, path);
     }
 
     /**
-     * Sets the output type.
-     * @param type The new output type
+     * Obtains one of the multiple output files identified by the id.
+     * If id is null or of zero length, the single output file name is
+     * returned.
+     * @param id The id
+     * @return The associated local output file name
      */
-    public void setOutputType(String type) {
-        wrapper.outputType = type;
+    public String getOutputFile(String id) {
+        if (id == null || id.length() == 0)
+            return localOutputFile;
+        if (localOutputFiles == null)
+            return null;
+        return localOutputFiles.get(id);
+    }
+
+    /**
+     * Gets a list of output files. If files are never set by id,
+     * the single output file name is returned with the key of an
+     * empty string.
+     * @return The output files names identified by the key
+     */
+    public List<NameValuePair<String>> getOutputFiles() {
+        ArrayList<NameValuePair<String>> outputList =
+                new ArrayList<NameValuePair<String>>();
+
+        if (localOutputFiles == null) {
+            outputList.add(new NameValuePair<String>("", localOutputFile));
+        } else {
+            for (Map.Entry<String, String> entry : localOutputFiles.entrySet()) {
+                outputList.add(new NameValuePair<String>(
+                        entry.getKey(), entry.getValue()));
+            }
+        }
+        return outputList;
     }
 
     /**

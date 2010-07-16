@@ -32,7 +32,6 @@ import com.sun.faban.harness.engine.DeployImageClassLoader;
 import com.sun.faban.harness.tools.MasterToolContext;
 import com.sun.faban.harness.tools.ToolDescription;
 import com.sun.faban.harness.util.XMLReader;
-import java.rmi.RemoteException;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -41,8 +40,8 @@ import org.w3c.dom.NodeList;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.rmi.RemoteException;
 import java.util.*;
-import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -84,7 +83,7 @@ public class ServiceManager {
     /**
      * Obtains the set of active services and tools deployments used in the
      * current run.
-     * @return The set of active deployements or null if there is no current run
+     * @return The set of active deployments or null if there is no current run
      */
     public static Set<String> getActiveDeployments() {
         Set<String> deployments = null;
@@ -158,8 +157,7 @@ public class ServiceManager {
         if (!metaInfDir.isDirectory()) {
             return;
         }
-        File serviceXml = new File(metaInf + File.separator +
-                    "services-tools.xml");
+        File serviceXml = new File(metaInf, "services-tools.xml");
         try {
             if (serviceXml.exists()) {
                 XMLReader reader = new XMLReader(metaInf + File.separator +
@@ -246,13 +244,14 @@ public class ServiceManager {
                             String key = id;
                             if (serviceName != null) {
                                 key += '/' + serviceName;
-                                if (toolMap.containsKey(key)) {
-                                    logger.log(Level.WARNING,
-                                            "Ignoring duplicate tool" + id);
-                                } else {
-                                    toolMap.put(key, new ToolDescription(id,
-                                            serviceName, toolClass, type, dir));
-                                }
+                            }
+
+                            if (toolMap.containsKey(key)) {
+                                logger.log(Level.WARNING,
+                                        "Ignoring duplicate tool" + id);
+                            } else {
+                                toolMap.put(key, new ToolDescription(id,
+                                        serviceName, toolClass, type, dir));
                             }
                         }
                     }
@@ -384,12 +383,12 @@ public class ServiceManager {
                 String toolCmds = par.getParameter("fh:tools", serviceElement);
                 Set<String> tools = new LinkedHashSet<String>();
                 if (toolCmds.toUpperCase().equals("NONE")) {
-                }else if(toolCmds.length() != 0){
+                } else if(toolCmds.length() != 0){
                     StringTokenizer st = new StringTokenizer(toolCmds, ";");
                     while (st.hasMoreTokens()) {
                         tools.add(st.nextToken().trim());
                     }
-                }else if ("".equals(toolCmds) && toolCmds.length() == 0){
+                } else if ("".equals(toolCmds) && toolCmds.length() == 0) {
                     String key = "default" + '/' + serviceName;
                     Set<String> toolset_tools = new LinkedHashSet<String>();
                     if(toolSetsMap.containsKey(key)){
