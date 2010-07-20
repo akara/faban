@@ -64,8 +64,8 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
     CountDownLatch latch;
 
     /**
-     * Constructor.
-     * @throws java.rmi.RemoteException
+     * Constructor for Tool agent implementation.
+     * @throws java.rmi.RemoteException Error constructing ToolAgentImpl
      */
     public ToolAgentImpl() throws RemoteException {
         super();
@@ -86,36 +86,36 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
      * @throws IOException
      *
      */
-    public void configure(List<MasterToolContext> toolList, Set<String> osToolSet, String outDir)
+    public void configure(List<MasterToolContext> toolList,
+                          Set<String> osToolSet, String outDir)
             throws IOException {
         List<MasterToolContext> toollist = new ArrayList<MasterToolContext>();
-        if(toolList != null){
+        if(toolList != null)
             toollist.addAll(toolList);
-        }
+
         LinkedHashMap<String, List<String>> toolSetsMap = parseOSToolSets();
         if (osToolSet != null) {
-                for (String tool : osToolSet) {
-                    StringTokenizer tt = new StringTokenizer(tool);
-                    String toolId = tt.nextToken();
-                    String toolKey = toolId;
-                    Set<String> toolset_tools = new LinkedHashSet<String>();
-                    if (toolSetsMap.containsKey(toolKey)) {
-                        toolset_tools.addAll(toolSetsMap.get(toolKey));
-                        for (String t1 : toolset_tools) {
-                            MasterToolContext tCtx = new MasterToolContext(
-                                    t1, null, null);
-                            if (tCtx != null) {
-                                toollist.add(tCtx);
-                            }
-                        }
-                    } else {
+            for (String tool : osToolSet) {
+                StringTokenizer tt = new StringTokenizer(tool);
+                String toolId = tt.nextToken();
+                Set<String> toolsetTools = new LinkedHashSet<String>();
+                if (toolSetsMap.containsKey(toolId)) {
+                    toolsetTools.addAll(toolSetsMap.get(toolId));
+                    for (String t1 : toolsetTools) {
                         MasterToolContext tCtx = new MasterToolContext(
-                                tool, null, null);
+                                t1, null, null);
                         if (tCtx != null) {
                             toollist.add(tCtx);
                         }
                     }
+                } else {
+                    MasterToolContext tCtx = new MasterToolContext(
+                            tool, null, null);
+                    if (tCtx != null) {
+                        toollist.add(tCtx);
+                    }
                 }
+            }
         }
         numTools = toollist.size();
         toolNames = new String[numTools];
@@ -147,7 +147,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
                 toolClass = toolDesc.getToolClass();
 
             // Now, create the tool object and call its configure method            
-            if(toolClass != null){                
+            if (toolClass != null) {
                 try {
                     DeployImageClassLoader loader = DeployImageClassLoader.
                             getInstance(toolDesc.getLocationType(),
@@ -294,9 +294,9 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
      * @param t The tools to stop.
      */ 
     public void stop(String t[]) {
-        for (int j = 0; j < t.length; j++) {
+        for (String tool : t) {
             for (int i = 0; i < tools.length; i++) {
-                if (tools[i] != null && toolNames[i].equals(t[j])) {
+                if (tools[i] != null && toolNames[i].equals(tool)) {
                     try {
                         tools[i].stop();
                     } catch (Exception ex) {
@@ -377,7 +377,7 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
         try {
             if(toolsetsXml.exists()){
                 XMLReader reader = new XMLReader(Config.CONFIG_DIR + Config.OS_DIR + "toolsets.xml");
-                Element root = null;
+                Element root;
                 if (reader != null) {
                     root = reader.getRootNode();
                     // First, parse the services.
@@ -414,12 +414,11 @@ public class ToolAgentImpl extends UnicastRemoteObject implements ToolAgent, Unr
                         }
                         if (!"".equals(name) &&
                                 (toolIncludes != null || base != null)) {
-                            String key = name;
-                            if (toolSetsMap.containsKey(key)) {
+                            if (toolSetsMap.containsKey(name)) {
                                 logger.log(Level.WARNING,
-                                        "Ignoring duplicate toolset = " + key);
+                                        "Ignoring duplicate toolset = " + name);
                             } else {
-                                toolSetsMap.put(key, toolsCmds);
+                                toolSetsMap.put(name, toolsCmds);
                             }
                         }
                     }

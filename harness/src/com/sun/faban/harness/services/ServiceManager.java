@@ -95,9 +95,9 @@ public class ServiceManager {
 
     /**
      * Constructor.
-     * @param par
-     * @param run
-     * @throws java.lang.Exception
+     * @param par The param repository
+     * @param run The run object
+     * @throws java.lang.Exception If there is an error constructing
      */
     public ServiceManager(ParamRepository par, Run run)
             throws Exception{
@@ -107,8 +107,8 @@ public class ServiceManager {
         parseAvailableServices(benchmark);
 
         // Obtain the active service list.
-        parseRequestedServices(par);
-        
+        parseRequestedServicesAndTools(par);
+
         initiateDownload();
 
         for (ServiceContext ctx : ctxList) {            
@@ -162,7 +162,7 @@ public class ServiceManager {
             if (serviceXml.exists()) {
                 XMLReader reader = new XMLReader(metaInf + File.separator +
                         "services-tools.xml");
-                Element root = null;
+                Element root;
                 if (reader != null) {
                     root = reader.getRootNode();
 
@@ -264,10 +264,7 @@ public class ServiceManager {
     }
 
     private void bindServices() {
-        Iterator<Map.Entry<String, ToolDescription>> iter =
-                toolMap.entrySet().iterator();
-        while (iter.hasNext()) {
-            Map.Entry<String, ToolDescription> entry = iter.next();
+        for (Map.Entry<String, ToolDescription> entry : toolMap.entrySet()) {
             ToolDescription toolDesc = entry.getValue();
             if (!toolDesc.bind(serviceMap))
                 logger.warning("Tool " + toolDesc.getId() + " at " +
@@ -279,7 +276,7 @@ public class ServiceManager {
     }
 
 
-    private void parseRequestedServices(ParamRepository par)
+    private void parseRequestedServicesAndTools(ParamRepository par)
             throws IOException, ConfigurationException {
         HashSet<NameValuePair<String>> hostDeploymentSet =
                 new HashSet<NameValuePair<String>>();
@@ -333,7 +330,7 @@ public class ServiceManager {
                             NodeList props = propElement.getChildNodes();
                             int propValueLength = props.getLength();
                             for (int l = 0; l < propValueLength; l++) {
-                                Node valueNode = (Node) props.item(l);
+                                Node valueNode = props.item(l);
                                 if (valueNode.getNodeType() == Node.TEXT_NODE) {
                                     String value =
                                             valueNode.getNodeValue().trim();
@@ -383,62 +380,63 @@ public class ServiceManager {
                 String toolCmds = par.getParameter("fh:tools", serviceElement);
                 Set<String> tools = new LinkedHashSet<String>();
                 if (toolCmds.toUpperCase().equals("NONE")) {
-                } else if(toolCmds.length() != 0){
+                } else if (toolCmds.length() != 0){
                     StringTokenizer st = new StringTokenizer(toolCmds, ";");
                     while (st.hasMoreTokens()) {
                         tools.add(st.nextToken().trim());
                     }
-                } else if ("".equals(toolCmds) && toolCmds.length() == 0) {
+                } else {
                     String key = "default" + '/' + serviceName;
-                    Set<String> toolset_tools = new LinkedHashSet<String>();
+                    Set<String> toolsetTools = new LinkedHashSet<String>();
                     if(toolSetsMap.containsKey(key)){
-                            toolset_tools.addAll(toolSetsMap.get(key));
-                            for (String t1 : toolset_tools){
-                                StringTokenizer tt1 = new StringTokenizer(t1);
-                                String toolId1 = tt1.nextToken();
-                                String toolKey1 = toolId1 + '/' + serviceName;
-                                ToolDescription toolDesc = toolMap.get(toolKey1);
-                                MasterToolContext toolCtx = null;
-                                if (toolDesc != null) {
-                                    toolCtx = new MasterToolContext(t1, ctx,
-                                            toolDesc);
-                                } else {
-                                    toolDesc = toolMap.get(toolId1);
-                                    if (toolDesc != null) {
-                                        toolCtx = new MasterToolContext(
-                                                t1, ctx, toolDesc);
-                                        activeDeployments.add(
-                                                toolDesc.getLocationType() +
-                                                File.separator +
-                                                toolDesc.getLocation());
-                                    } else {
-                                        //logger.info("No Tool Description for tool: " + t1);
-                                        logger.fine("No Tool Description for tool: "
-                                                + t1 +" ,so it's a command line tool");
-                                        toolCtx = new MasterToolContext(
-                                                t1, ctx, null);
-                                    }
-                                }
-                                if (toolCtx != null) {
-                                    toolList.add(toolCtx);
-                                }
-                            }
-                        }
-
-                }
-                for (String tool : tools) {
-                    StringTokenizer tt = new StringTokenizer(tool);
-                    String toolId = tt.nextToken();
-                    String toolKey = toolId + '/' + serviceName;
-                    Set<String> toolset_tools = new LinkedHashSet<String>();
-                    if (toolSetsMap.containsKey(toolKey)) {
-                        toolset_tools.addAll(toolSetsMap.get(toolKey));
-                        for (String t1 : toolset_tools) {
+                        toolsetTools.addAll(toolSetsMap.get(key));
+                        for (String t1 : toolsetTools) {
                             StringTokenizer tt1 = new StringTokenizer(t1);
                             String toolId1 = tt1.nextToken();
                             String toolKey1 = toolId1 + '/' + serviceName;
                             ToolDescription toolDesc = toolMap.get(toolKey1);
-                            MasterToolContext toolCtx = null;
+                            MasterToolContext toolCtx;
+                            if (toolDesc != null) {
+                                toolCtx = new MasterToolContext(t1, ctx,
+                                        toolDesc);
+                            } else {
+                                toolDesc = toolMap.get(toolId1);
+                                if (toolDesc != null) {
+                                    toolCtx = new MasterToolContext(
+                                            t1, ctx, toolDesc);
+                                    activeDeployments.add(
+                                            toolDesc.getLocationType() +
+                                                    File.separator +
+                                                    toolDesc.getLocation());
+                                } else {
+                                    //logger.info("No Tool Description for tool: " + t1);
+                                    logger.fine("No Tool Description for tool: "
+                                            + t1 +" ,so it's a command line tool");
+                                    toolCtx = new MasterToolContext(
+                                            t1, ctx, null);
+                                }
+                            }
+                            if (toolCtx != null) {
+                                toolList.add(toolCtx);
+                            }
+                        }
+                    }
+
+                }
+                // Analyze the list of tools for toolset references.
+                for (String tool : tools) {
+                    StringTokenizer tt = new StringTokenizer(tool);
+                    String toolId = tt.nextToken();
+                    String toolKey = toolId + '/' + serviceName;
+                    Set<String> toolsetTools = new LinkedHashSet<String>();
+                    if (toolSetsMap.containsKey(toolKey)) {
+                        toolsetTools.addAll(toolSetsMap.get(toolKey));
+                        for (String t1 : toolsetTools) {
+                            StringTokenizer tt1 = new StringTokenizer(t1);
+                            String toolId1 = tt1.nextToken();
+                            String toolKey1 = toolId1 + '/' + serviceName;
+                            ToolDescription toolDesc = toolMap.get(toolKey1);
+                            MasterToolContext toolCtx;
                             if (toolDesc != null) {
                                 toolCtx = new MasterToolContext(t1, ctx, toolDesc);
                             } else {
@@ -447,8 +445,9 @@ public class ServiceManager {
                                     toolCtx = new MasterToolContext(
                                             t1, ctx, toolDesc);
                                 } else {
-                                    //logger.info("No Tool Description for tool: " + t1);
-                                    logger.fine("No Tool Description for tool: " + t1 + " ,so it's a command line tool");
+                                    logger.fine("No Tool Description for tool: "
+                                            + t1 +
+                                            " ,so it's a command line tool");
                                     toolCtx = new MasterToolContext(
                                             t1, ctx, null);
                                 }
@@ -459,7 +458,7 @@ public class ServiceManager {
                         }
                     } else {
                         ToolDescription toolDesc = toolMap.get(toolKey);
-                        MasterToolContext toolCtx = null;
+                        MasterToolContext toolCtx;
                         if (toolDesc != null) {
                             toolCtx = new MasterToolContext(tool, ctx, toolDesc);
                         } else {
@@ -480,8 +479,8 @@ public class ServiceManager {
                     }
                 }
                 for (MasterToolContext toolCtx : toolList) {
-                    String locationType = null;
-                    if(toolCtx.getToolDescription() != null) {
+                    String locationType;
+                    if (toolCtx.getToolDescription() != null) {
                         locationType =
                             toolCtx.getToolDescription().getLocationType();
                         if ("services".equals(locationType)) {
@@ -525,7 +524,7 @@ public class ServiceManager {
             if(toolsetsXml.exists()){
                 XMLReader reader = new XMLReader(metaInf + File.separator +
                         "toolsets.xml");
-                Element root = null;
+                Element root;
                 if (reader != null) {
                     root = reader.getRootNode();
 
@@ -566,7 +565,7 @@ public class ServiceManager {
 
                         if (!"".equals(service) && !"".equals(name) &&
                                 (toolIncludes != null || base != null)) {
-                            String key = name+"/"+service;
+                            String key = name + "/" + service;
                             if (toolSetsMap.containsKey(key)) {
                                 logger.log(Level.WARNING,
                                         "Ignoring duplicate toolset = " + key);

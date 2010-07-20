@@ -159,13 +159,11 @@ final public class ToolService {
                     hostToolList = new ArrayList<MasterToolContext>();
                     hostMap.put(host, hostToolList);
                 }
-                if (osHostMap.containsKey(host)) {
+                if (osHostMap.containsKey(host))
                     toolset.addAll(osHostMap.get(host));
-                    osHostMap.put(host, toolset);
-                } else {
-                    osHostMap.put(host, toolset);
-                }
-            }      
+
+                osHostMap.put(host, toolset);
+            }
         }
 
         if (hostMap.size() == 0) {
@@ -212,10 +210,10 @@ final public class ToolService {
                 logger.fine("Configuring ToolAgent at " + serviceName);
 
                 List<MasterToolContext> toolList = hostMap.get(hostNames[i]);
-                Set<String> osToolList = osHostMap.get(hostNames[i]);
+                Set<String> osToolSet = osHostMap.get(hostNames[i]);
                 if ((toolList != null && toolList.size() > 0) ||
-                    (osToolList != null && osToolList.size() > 0) ) {
-                    toolAgents[i].configure(toolList, osToolList, outDir);
+                    (osToolSet != null && osToolSet.size() > 0) ) {
+                    toolAgents[i].configure(toolList, osToolSet, outDir);
                 }
             }
 
