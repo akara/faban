@@ -25,11 +25,10 @@ import com.sun.faban.common.NameValuePair;
 import com.sun.faban.harness.ConfigurationException;
 import com.sun.faban.harness.ParamRepository;
 import com.sun.faban.harness.engine.CmdService;
+import org.w3c.dom.Element;
 
 import java.io.Serializable;
 import java.util.*;
-
-import org.w3c.dom.Element;
 
 /**
  * This class provides the context for every service. Each service has only one
@@ -166,8 +165,8 @@ public class ServiceContext implements Serializable {
 
     /**
      * Obtains the property for a given key.
-     * @param key
-     * @return the property value
+     * @param key The property key
+     * @return The property value
      */
     public String getProperty(String key) {
         if(properties != null){
@@ -175,6 +174,16 @@ public class ServiceContext implements Serializable {
         }else{
             return null;
         }
+    }
+
+    /**
+     * Sets a property in the service context. This can then be accessed by
+     * tools through the tool context.
+     * @param key The property key
+     * @param value The property value
+     */
+    public void setProperty(String key, String value) {
+        properties.setProperty(key, value);
     }
 
     /**
