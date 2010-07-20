@@ -51,6 +51,7 @@ public class ServiceContext implements Serializable {
     boolean restart;
 
     private Properties properties = new Properties();
+    private HashMap<String, Object> attributeMap = new HashMap<String, Object>();
 
     /**
      * Constructs the service context.
@@ -184,6 +185,25 @@ public class ServiceContext implements Serializable {
      */
     public void setProperty(String key, String value) {
         properties.setProperty(key, value);
+    }
+
+    /**
+     * Obtains the attribute of a given key.
+     * @param key They attribute key
+     * @return The attribute
+     */
+    public Object getAttribute(String key) {
+        return attributeMap.get(key);
+    }
+
+    /**
+     * Sets an object attribute in the service context.
+     * This can then be accessed by tools through the tool context.
+     * @param key The attribute key
+     * @param value The attribute
+     */
+    public void setAttribute(String key, Object value) {
+        attributeMap.put(key, value);
     }
 
     /**
