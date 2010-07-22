@@ -50,7 +50,7 @@ public class ServiceContext implements Serializable {
     String servicePath = null;
     boolean restart;
 
-    private Properties properties = new Properties();
+    private Properties properties;
     private HashMap<String, Object> attributeMap = new HashMap<String, Object>();
 
     /**
@@ -60,7 +60,7 @@ public class ServiceContext implements Serializable {
      * @param roleElement The top level element defining the role
      * @param properties The service configuration properties
      * @param restart Whether the server should be restarted or not
-     * @throws com.sun.faban.harness.ConfigurationException
+     * @throws ConfigurationException A configuration error occurred
      */
     ServiceContext(ServiceDescription desc, ParamRepository par, 
                     Element roleElement, Properties properties, boolean restart)
@@ -170,9 +170,9 @@ public class ServiceContext implements Serializable {
      * @return The property value
      */
     public String getProperty(String key) {
-        if(properties != null){
+        if(properties != null) {
             return properties.getProperty(key);
-        }else{
+        } else {
             return null;
         }
     }
@@ -184,6 +184,8 @@ public class ServiceContext implements Serializable {
      * @param value The property value
      */
     public void setProperty(String key, String value) {
+        if (properties == null)
+            properties = new Properties();
         properties.setProperty(key, value);
     }
 

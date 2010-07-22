@@ -346,11 +346,12 @@ public class ToolWrapper {
                     else
                         ext = ".log.";
                     if (! new File(path).exists()) {
-                        logger.warning(toolName + ": Transfer file " + logfile + " not found.");
+                        logger.warning(toolName + ": Transfer file " + path +
+                                " not found.");
                         continue;
                     }
                     String outFile = outDir + toolName + '-' + key + ext + host;
-                    transfer[idx++] = new FileTransfer(logfile, outFile);
+                    transfer[idx++] = new FileTransfer(path, outFile);
                 }
             } else {
                 transfer = new FileTransfer[1];
@@ -366,8 +367,8 @@ public class ToolWrapper {
             String s = Config.FILE_AGENT;
             FileAgent fa = (FileAgent) CmdAgentImpl.getRegistry().getService(s);
             for (FileTransfer t : transfer) {
-                logger.fine(toolName + ": Transferring log from " + logfile +
-                        " to " + t.getDest());
+                logger.fine(toolName + ": Transferring log from " +
+                        t.getSource() + " to " + t.getDest());
 
                 // Use FileAgent on master machine to copy log
                 if (t != null) {
