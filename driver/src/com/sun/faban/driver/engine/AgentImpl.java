@@ -337,8 +337,8 @@ public class AgentImpl extends UnicastRemoteObject
                         numThreads + " driver threads.");
 			}
             if (runInfo.variableLoad) {
-                runInfo.variableLoadHandler =
-                        new VariableLoadHandler(runInfo.variableLoadFile);
+                runInfo.variableLoadHandler = new VariableLoadHandler(
+                        runInfo.driverConfig.variableLoadFile);
                 threadController = new VariableLoadHandlerThread(this);
                 threadController.start();
             }

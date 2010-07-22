@@ -296,6 +296,9 @@ public class RunInfo implements Serializable {
         /** Root element of the configuration DOM tree. */
         public Element rootElement;
 
+        /** Driver level variable load file. */
+        public String variableLoadFile;
+
         /** Property element of the configuration DOM tree. */
         public Element properties;
 
@@ -1032,11 +1035,6 @@ public class RunInfo implements Serializable {
             if (runInfo.variableLoad) {
                 runInfo.variableLoadFile = xp.evaluate(
                         "fa:runControl/fa:variableLoadFile", runConfigNode);
-                if (runInfo.variableLoadFile == null ||
-                    runInfo.variableLoadFile.length() == 0) {
-                    throw new ConfigurationException(
-                            "Element <variableLoadFile> not found.");
-                }
             }
 
             runInfo.resultsDir = xp.evaluate("fd:outputDir", runConfigNode);
@@ -1206,6 +1204,22 @@ public class RunInfo implements Serializable {
                             driverConfig.runtimeStatsTarget = null;
                     }
                 }
+
+                if (runInfo.variableLoad) {
+                    driverConfig.variableLoadFile = xp.evaluate(
+                            "fd:variableLoadFile", driverConfigNode);
+                    if (driverConfig.variableLoadFile == null ||
+                        driverConfig.variableLoadFile.length() == 0) {
+                        driverConfig.variableLoadFile = runInfo.variableLoadFile;
+                    }
+                    if (driverConfig.variableLoadFile == null ||
+                         driverConfig.variableLoadFile.length() == 0) {
+                         throw new ConfigurationException(
+                                "Element <variableLoadFile> not found.");
+                    }
+                }
+
+
                 driverConfig.rootElement = rootElement;
                 driverConfig.properties = (Element) xp.evaluate("fd:properties",
                         driverConfigNode, XPathConstants.NODE);
