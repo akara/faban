@@ -312,7 +312,8 @@ public class ServiceManager {
                 String serviceName = par.getParameter("fh:name",
                                                         serviceElement);
 
-                boolean enabled = par.getBooleanValue("fh:enabled", true);
+                //boolean enabled = par.getBooleanValue("fh:enabled", true);
+                boolean enabled = par.getBooleanValue("fh:enabled", serviceElement);
                 if (!enabled)
                     continue;
                 
