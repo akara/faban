@@ -72,7 +72,7 @@ public class CommandHandleImpl implements CommandHandle {
     }
 
     /**
-     * Forfully terminates the command.
+     * Forcefully terminates the command.
      */
     public void destroy() {
         command.killed = true;
