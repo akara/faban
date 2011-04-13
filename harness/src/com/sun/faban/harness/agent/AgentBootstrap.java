@@ -317,7 +317,7 @@ public class AgentBootstrap {
         if (agent == null) { // If not found, reregister new agent.
             boolean agentCreated = false;
             if (cmd == null) {
-                cmd = new CmdAgentImpl();
+                cmd = new CmdAgentImpl(Config.AGENT_SERVER_PORT);
                 agentCreated = true;
                 logger.fine(hostname + "(Realname: " + host +
                                                 ") created CmdAgentImpl");
@@ -341,7 +341,7 @@ public class AgentBootstrap {
 
                 // Create and reregister FileAgent
                 if (file == null)
-                    file = new FileAgentImpl();
+                    file = new FileAgentImpl(Config.AGENT_SERVER_PORT);
                 reregister(Config.FILE_AGENT + "@" + host, file);
 
                 // Register a blank Config.FILE_AGENT for the master's

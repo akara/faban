@@ -103,6 +103,15 @@ public class CmdAgentImpl extends UnicastRemoteObject
     CmdAgentImpl() throws RemoteException {
         super();
     }
+    
+    /**
+     * This constructor controls the port allocated to sockets. 
+     * @param port
+     * @throws RemoteException
+     */
+    CmdAgentImpl(int port) throws RemoteException {
+       super(port);
+    }
 
     /**
      * Sets the benchmark name in the command map file.
