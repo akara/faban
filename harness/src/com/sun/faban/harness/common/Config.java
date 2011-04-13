@@ -126,6 +126,9 @@ public class Config {
     /** The agent daemon port. */
     public static int AGENT_PORT = 9981;
 
+    /** The agent stub socket port. */
+   public static int AGENT_SERVER_PORT = 9982;
+
     /** resultinfo contains a single line summary result. */
     public static final String RESULT_INFO = "resultinfo";
 

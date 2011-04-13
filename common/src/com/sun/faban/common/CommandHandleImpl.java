@@ -59,7 +59,7 @@ public class CommandHandleImpl implements CommandHandle {
     CommandHandleImpl(Command command) throws RemoteException {
         this.command = command;
         if (command.remote)
-            UnicastRemoteObject.exportObject(this);
+            UnicastRemoteObject.exportObject(this, RegistryLocator.AGENT_SERVER_PORT);
     }
 
     /**
