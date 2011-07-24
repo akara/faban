@@ -57,7 +57,9 @@
         <javac destdir="${compile.output}" debug="${compiler.debug}"
             nowarn="${compiler.generate.no.warnings}"
             target="${compiler.target.version}"
-            memoryMaximumSize="${compiler.max.memory}" fork="true">
+            memoryMaximumSize="${compiler.max.memory}"
+            includeAntRuntime="false"
+            fork="true">
             <compilerarg line="${compiler.args}"/>
             <src refid="source.path"/>
         </javac>
