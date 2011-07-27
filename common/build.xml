@@ -56,7 +56,7 @@
         <mkdir dir="${compile.output}"/>
         <javac destdir="${compile.output}" debug="${compiler.debug}"
             nowarn="${compiler.generate.no.warnings}"
-            target="${compiler.target.version}"
+            target="${compiler.target.version}" includeantruntime="false"
             memoryMaximumSize="${compiler.max.memory}" fork="true">
             <compilerarg line="${compiler.args}"/>
             <src refid="source.path"/>
@@ -68,7 +68,7 @@
         <mkdir dir="${compile.test.output}"/>
         <javac destdir="${compile.test.output}" debug="${compiler.debug}"
             nowarn="${compiler.generate.no.warnings}"
-            target="${compiler.target.version}"
+            target="${compiler.target.version}" includeantruntime="false"
             memoryMaximumSize="${compiler.max.memory}" fork="true">
             <compilerarg line="${compiler.args}"/>
             <classpath refid="test.class.path"/>
@@ -79,7 +79,7 @@
     <target name="compile-selected-files-in-src">
         <fail unless="files">Must set property "files"</fail>
         <mkdir dir="${compile.output}"/>
-        <javac destdir="build" includes="${files}" srcdir="src"/>
+        <javac destdir="build" includes="${files}" srcdir="src" includeantruntime="false"/>
     </target>
 
 

@@ -69,7 +69,7 @@
         <mkdir dir="${compile.output}"/>
         <javac destdir="${compile.output}" debug="${compiler.debug}"
             nowarn="${compiler.generate.no.warnings}"
-            target="${compiler.target.version}"
+            target="${compiler.target.version}" includeantruntime="false"
             memoryMaximumSize="${compiler.max.memory}" fork="true">
             <compilerarg line="${compiler.args}"/>
             <classpath refid="class.path"/>
@@ -83,7 +83,7 @@
         <mkdir dir="${compile.test.output}"/>
         <javac destdir="${compile.test.output}" debug="${compiler.debug}"
             nowarn="${compiler.generate.no.warnings}"
-            target="${compiler.target.version}"
+            target="${compiler.target.version}" includeantruntime="false"
             memoryMaximumSize="${compiler.max.memory}" fork="true">
             <compilerarg line="${compiler.args}"/>
             <classpath refid="test.class.path"/>

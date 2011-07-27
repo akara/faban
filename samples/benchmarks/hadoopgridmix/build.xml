@@ -50,7 +50,8 @@
                       TasktrackerRecord,
                       HadoopStats,
                       HadoopService" description="Compile GridMix" name="GridMix">
-        <javac destdir="${classes.dir}" debug="on" deprecation="on" srcdir="${src.dir}">
+        <javac destdir="${classes.dir}" includeantruntime="false" 
+             debug="on" deprecation="on" srcdir="${src.dir}">
     	     <include name="com/sun/hadoop/harness/GridMix.java"/>
              <compilerarg value="-Xlint:unchecked"/>
      	     <classpath refid="classpath"/>
@@ -58,58 +59,67 @@
      </target>
 
      <target depends="init" description="Compile HadoopService" name="HadoopService">
-        <javac destdir="${classes.dir}" debug="on" deprecation="on" srcdir="${src.dir}">
+        <javac destdir="${classes.dir}" includeantruntime="false"
+             debug="on" deprecation="on" srcdir="${src.dir}">
     	     <include name="com/sun/hadoop/services/HadoopService.java"/>
      	     <classpath refid="classpath"/>
         </javac>
      </target>
 
      <target depends="init" description="Compile HadoopStats" name="HadoopStats">
-        <javac destdir="${classes.dir}" debug="on" deprecation="on" srcdir="${src.dir}">
+        <javac destdir="${classes.dir}" includeantruntime="false" 
+             debug="on" deprecation="on" srcdir="${src.dir}">
     	     <include name="com/sun/hadoop/services/HadoopStats.java"/>
      	     <classpath refid="classpath"/>
         </javac>
      </target>
 
      <target depends="init" description="Compile MRLogParser" name="MRLogParser">
-        <javac destdir="${classes.dir}" debug="on" deprecation="on" srcdir="${src.dir}">
+        <javac destdir="${classes.dir}" includeantruntime="false" 
+             debug="on" deprecation="on" srcdir="${src.dir}">
     	     <include name="com/sun/hadoop/MRLogParser.java"/>
      	     <classpath refid="classpath"/>
         </javac>
      </target>
 
      <target depends="init" description="Compile LogEntry" name="LogEntry">
-        <javac destdir="${classes.dir}" debug="on" deprecation="on" srcdir="${src.dir}">
+        <javac destdir="${classes.dir}" includeantruntime="false"
+             debug="on" deprecation="on" srcdir="${src.dir}">
     	     <include name="com/sun/hadoop/harness/LogEntry.java"/>
      	     <classpath refid="classpath"/>
         </javac>
      </target>
      <target depends="init" description="Compile LogFileFilter" name="LogFileFilter">
-        <javac destdir="${classes.dir}" debug="on" deprecation="on" srcdir="${src.dir}">
+        <javac destdir="${classes.dir}" includeantruntime="false"
+              debug="on" deprecation="on" srcdir="${src.dir}">
     	     <include name="com/sun/hadoop/harness/LogFileFilter.java"/>
      	     <classpath refid="classpath"/>
         </javac>
      </target>
      <target depends="init" description="Compile LogTarFileFilter" name="LogTarFileFilter">
-        <javac destdir="${classes.dir}" debug="on" deprecation="on" srcdir="${src.dir}">
+        <javac destdir="${classes.dir}" includeantruntime="false"
+              debug="on" deprecation="on" srcdir="${src.dir}">
     	     <include name="com/sun/hadoop/harness/LogTarFileFilter.java"/>
      	     <classpath refid="classpath"/>
         </javac>
      </target>
      <target depends="init" description="Compile LogMRLogParser" name="LogMRLogParser">
-        <javac destdir="${classes.dir}" debug="on" deprecation="on" srcdir="${src.dir}">
+        <javac destdir="${classes.dir}" includeantruntime="false"
+              debug="on" deprecation="on" srcdir="${src.dir}">
     	     <include name="com/sun/hadoop/harness/HadoopLogMRLogParser.java"/>
      	     <classpath refid="classpath"/>
         </javac>
      </target>
      <target depends="init" description="Compile MetricsFileFilter" name="MetricsFileFilter">
-        <javac destdir="${classes.dir}" debug="on" deprecation="on" srcdir="${src.dir}">
+        <javac destdir="${classes.dir}" includeantruntime="false"
+             debug="on" deprecation="on" srcdir="${src.dir}">
     	     <include name="com/sun/gridmix/harness/MetricsFileFilter.java"/>
      	     <classpath refid="classpath"/>
         </javac>
      </target>
      <target depends="init" description="Compile MetricsGenericLogParser" name="MetricsGenericLogParser">
-        <javac destdir="${classes.dir}" debug="on" deprecation="on" srcdir="${src.dir}">
+        <javac destdir="${classes.dir}" includeantruntime="false"
+             debug="on" deprecation="on" srcdir="${src.dir}">
     	     <include name="com/sun/hadoop/harness/MetricsGenericLogParser.java"/>
      	     <classpath refid="classpath"/>
         </javac>
