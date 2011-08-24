@@ -1362,7 +1362,7 @@ final public class CmdService { 	// The final keyword prevents clones
         } catch (RemoteException e) {
             Throwable t = e;
             Throwable cause = t.getCause();
-            while (cause != null) {
+            if (cause != null) {
                 t = cause;
             }
 
@@ -1419,7 +1419,7 @@ final public class CmdService { 	// The final keyword prevents clones
         } catch (RemoteException e) {
             Throwable t = e;
             Throwable cause = t.getCause();
-            while (cause != null) {
+            if (cause != null) {
                 t = cause;
             }
 
