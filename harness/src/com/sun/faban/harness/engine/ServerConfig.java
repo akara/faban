@@ -316,18 +316,21 @@ class ServerConfig {
                         syslog.write(messages);
                     syslog.println("\n");
                 } catch (RemoteException e) {
-                    Throwable cause = e.getCause();
-                    while (cause != null)
-                        cause = cause.getCause();
+                    Throwable t = e;
+                    Throwable cause = t.getCause();
+                    while (cause != null) {
+                        t = cause;
+                        cause = t.getCause();
+                    }
                     String message = "Error processing system messages for " +
                                                                     host;
                     // A remote IOException usually means the messages script
                     // is not available for the target OS. We want to log
                     // at a lower level.
-                    if (cause instanceof IOException)
-                        logger.log(Level.FINE, message, cause);
+                    if (t instanceof IOException)
+                        logger.log(Level.FINE, message, t);
                     else
-                        logger.log(Level.WARNING, message, cause);
+                        logger.log(Level.WARNING, message, t);
                 } catch (Exception e) {
                     logger.log(Level.WARNING,
                             "Error collecting system messages from " + host,
