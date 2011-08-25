@@ -1514,8 +1514,7 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 					}
                     for (int i = 0; i < agentRefs.length; i++) {
 						if (agentRefs[i] != null) {
-							if (agentRefs[i] != null &&
-                                    agentRefs[i][0] != null) {
+							if (agentRefs[i][0] != null) {
 								try {
                                     agentRefs[i][0].postRun();
                                 } catch (RemoteException e) {
