@@ -1362,8 +1362,9 @@ final public class CmdService { 	// The final keyword prevents clones
         } catch (RemoteException e) {
             Throwable t = e;
             Throwable cause = t.getCause();
-            if (cause != null) {
+            while (cause != null) {
                 t = cause;
+                cause = t.getCause();
             }
 
             logger.log(Level.SEVERE, "CmdService: Pushing - " +
@@ -1419,8 +1420,9 @@ final public class CmdService { 	// The final keyword prevents clones
         } catch (RemoteException e) {
             Throwable t = e;
             Throwable cause = t.getCause();
-            if (cause != null) {
+            while (cause != null) {
                 t = cause;
+                cause = t.getCause();
             }
 
             logger.log(Level.SEVERE, "CmdService: Getting - " +
