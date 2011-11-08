@@ -18,3 +18,6 @@ interface.
 For developers, deployment through the and deploy task and IDE is
 preferred. Please see the Faban Harness Developers Guide for more
 information.
+
+NOTE: SPEC and SPECweb2005 are trademarks of th Standard Performance 
+Evaluation Corporation.
