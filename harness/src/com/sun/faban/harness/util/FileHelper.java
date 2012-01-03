@@ -161,8 +161,8 @@ public class FileHelper {
         if(!FileHelper.copyFile(fileName, backupFileName, false))
             return false; // Failed to backup the file
 
-        System.out.println("Token : " + token);
-        System.out.println("Replacement : " + replacement);
+        logger.fine("Token : " + token);
+        logger.fine("Replacement : " + replacement);
 
         try {
             BufferedReader in = new BufferedReader(new FileReader(backupFileName));
@@ -696,7 +696,6 @@ public class FileHelper {
      */
     public static void main(String[] args) {
         if (args.length < 3) {
-//            System.out.println("Usage: java FileHelper File Key Value");
             System.out.println("Usage: java FileHelper File token replacement");
             return;
         }
