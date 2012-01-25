@@ -302,7 +302,8 @@ class ServerConfig {
 
         for (ParamRepository.HostConfig hostConfig : hostConfigs) {
             for(String host : hostConfig.hosts) {
-                File f = new File(sysfile + "." + host);
+                String machineName = cmds.getHostName(host);
+                File f = new File(sysfile + "." + machineName);
                 f.delete();
                 try {
                     syslog = new PrintStream(new FileOutputStream(f));
