@@ -30,6 +30,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
 
 /**
  * The implementation of the fixed sequence annotation.
@@ -59,9 +60,10 @@ public class FixedSequence extends Mix {
 
     /**
      * Configures/overrides the mix from the driverConfig DOM node
-     * read from the configuration file. The FixedSequence does not
-     * allow mix configurations so any operationMix element will
-     * cause this method to throw a ConfigurationException
+     * read from the configuration file.
+     * To specify a new mix in the configuration file, use
+     * <operationMix>op1 op2 op3</operationMix>
+     *    where op1, op2, op3, etc. are the names of the operations
      *
      * @param driverConfigNode The driverConfig DOM node
      * @throws ConfigurationException If operationMix element exists
@@ -70,14 +72,50 @@ public class FixedSequence extends Mix {
             throws ConfigurationException {
         NodeList operationList = driverConfigNode.
                 getElementsByTagNameNS(RunInfo.DRIVERURI, "operationMix");
-        if (operationList.getLength() > 0) {
-            String msg = "Illegal operationMix configuration - " +
-                    "not allowed for @FixedSequence driver.";
-            getLogger().severe(msg);
-            ConfigurationException e = new ConfigurationException(msg);
-            getLogger().throwing(className, "configure", e);
-            throw e;
+
+        int size0 = operationList.getLength();
+        ArrayList<String> opsInSequence = new ArrayList<String>();
+
+        // First we retrieve all names in the sequence
+        if (size0 <= 0)
+            return;
+        if (size0 > 1) {
+            getLogger().warning("More than 1 <operationMix> element not allowed. Ignoring the rest");
         }
+        Element opMix = (Element) operationList.item(0);
+        String s = opMix.getFirstChild().getNodeValue();
+        String tokens[] = s.split("\\s");
+        for (String name: tokens) {
+            opsInSequence.add(name);
+        }
+
+        if (opsInSequence.size() == 0) {
+            getLogger().warning("No sequence specified in <operationMix>. Using default from driver");
+            return;
+        }
+
+        // We now check the names against the operations
+        ArrayList<BenchmarkDefinition.Operation> newOps = new ArrayList<BenchmarkDefinition.Operation>();
+        StringBuilder sb = new StringBuilder();
+        for (String n : opsInSequence) {
+            boolean found = false;
+            for (BenchmarkDefinition.Operation o : operations) {
+                if (n.contentEquals(o.name)) {
+                    newOps.add(o);
+                    found = true;
+                    sb.append(n).append(" ");
+                    break;
+                }
+            }
+            if (!found) {
+                throw new ConfigurationException("Invalid <name> " + n + " in operationMix");
+            }
+        }
+        // We now have the new set of operations in the sequence
+        getLogger().info("FixedSequence Mix set to: " + sb);
+        operations = new BenchmarkDefinition.Operation[newOps.size()];
+        newOps.toArray(operations);
+
     }
 
     /**
