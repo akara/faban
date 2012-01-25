@@ -304,10 +304,15 @@ public class AgentBootstrap {
         // The host name is widely used in result files, tools, etc. We
         // do not want that baggage. So we make sure to crop it off.
         // i.e. brazilian.sfbay.Sun.COM should just show as brazilian.
-        int dotIdx = host.indexOf('.');
-        if (dotIdx > 0)
-            host = host.substring(0, dotIdx);
 
+        // Keep just the one dot after the host. In example above, brazilian.sfbay
+        logger.finer("Original host is " + host);
+        int dotIdx = host.indexOf(".");
+        int nextDotIdx = host.substring(dotIdx+1).indexOf('.');
+        if (nextDotIdx > 0)
+            host = host.substring(0, dotIdx + nextDotIdx + 1);
+        logger.finer("dotIdx is " + dotIdx + ", nextDotIdx is " + nextDotIdx +
+                ", Modified Host is " + host);
         //ident will be unique
         ident = Config.CMD_AGENT + "@" + host;
 
