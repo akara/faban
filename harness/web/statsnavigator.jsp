@@ -78,16 +78,7 @@
         // Then proces the sysinfo files...
         if (fileName.startsWith("sysinfo.")) {
             String hostName = fileName.substring(8, fileName.length() - 5);
-
-            // drop the domain part of the host.
-            int domainIdx = hostName.indexOf('.');
-            if (domainIdx != -1) {
-                String fullName = hostName;
-                hostName = fullName.substring(0, domainIdx);
-                infoHostMap.put(hostName, fullName);
-            } else {
-                infoHostMap.put(hostName, hostName); // Points to it's own name
-            }
+            infoHostMap.put(hostName, hostName); // Points to it's own name
             allHosts.add(hostName);
 
         // Process the real stats files.
