@@ -386,6 +386,21 @@ public class HttpTransport {
     }
 
     /**
+     * Retrieve large response from the URL and returns the data read. Use this
+     * method for any arbitrary return data type e.g. file downloads. This method will only
+     * download upto 1 MB to conserve memory. However, it will read all of the response and
+     * update contentSize appropriately.
+     *
+     * @param url The URL to read from
+     * @return The byte array containing the resulting data
+     * @throws java.io.IOException
+     * @see #getContentSize()
+     */
+    public byte[] downloadURL(String url) throws IOException {
+        return delegate.downloadURL(url);
+    }
+
+    /**
      * Makes a POST request to the URL. Reads data back and returns the data
      * read. Note that this method only works with text data as it does the
      * byte-to-char conversion. This method will return null for responses
