@@ -441,6 +441,43 @@ public class SunHttpTransport extends HttpTransport {
     }
 
     /**
+     * Retrieve large response from the URL and returns the data read. Use this
+     * method for any arbitrary return data type e.g. file downloads. This method will only
+     * download upto 1 MB to conserve memory. However, it will read all of the response and
+     * update contentSize appropriately.
+     *
+     * @param url The URL to read from
+     * @return The byte array containing the resulting data
+     * @throws java.io.IOException
+     * @see #getContentSize()
+     */
+    public byte[] downloadURL(String url) throws IOException {
+        HttpURLConnection connection = getConnection(new URL(url));
+        responseCode = connection.getResponseCode();
+        responseHeader = connection.getHeaderFields();
+        InputStream is = connection.getInputStream();
+        byte buffer[] = new byte[1048576];
+        if (is != null) {
+            int totalLength = 0, bufferLen = 0;
+            int length = is.read(buffer);
+            while (length != -1) {
+                totalLength += length;
+                if (totalLength >= buffer.length) {
+                    // we read the remaining data but discard it
+                    length = is.read(byteReadBuffer);
+                } else {
+                    bufferLen += length;
+                    length = is.read(buffer, bufferLen, buffer.length - bufferLen);
+                }
+            }
+            is.close();
+            contentSize = totalLength;
+            return(Arrays.copyOf(buffer, bufferLen));
+        } else
+            return null;
+    }
+
+    /**
      * Makes a POST request to the URL. Reads data back and returns the data
      * read. Note that this method only works with text data as it does the
      * byte-to-char conversion. This method will return null for responses
