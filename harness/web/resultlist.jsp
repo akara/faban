@@ -64,6 +64,7 @@
 
             <form name="processrun" method="post" action="/controller/result_action/take_action">
               <center>
+                <input type="submit" name="process" value="Delete">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 <input type="submit" name="process" value="Compare">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 <!-- Commented out until FenXi supports averaging again.
                 <input type="submit" name="process" value="Average">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -152,6 +153,7 @@
      <br/>
      <br/>
      <center>
+     <input type="submit" name="process" value="Delete">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
      <input type="submit" name="process" value="Compare">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
      <!-- Commented out until FenXi supports averaging again.
      <input type="submit" name="action" value="edit_average>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
