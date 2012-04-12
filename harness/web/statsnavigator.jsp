@@ -23,6 +23,9 @@
  *
  * Copyright 2005-2009 Sun Microsystems Inc. All Rights Reserved
  */
+ /**
+  * Modified by Shanti Subramanyam to support graphing through xan_view
+  */
 -->
 <%@ page language="java" import="java.io.FileReader,
                                  com.sun.faban.harness.common.Config,
@@ -206,8 +209,10 @@
                      <% } %>
                  </tr>
                  <% String[] rowclass = { "even", "odd" };
-                    String path = "output/" + runId + '/';
+                    String path = "/output/" + runId + '/';
+                    String xanPath = "/controller/view/xan_view/" + runId + '/';
                     ArrayList<String> htmlFiles = new ArrayList<String>(1);
+                    ArrayList<String> graphLinks = new ArrayList<String>(1);
 
                     for (int i = 0; i < hosts.length; i++) {
                         String mouseover = "";
@@ -220,7 +225,7 @@
                      <% String fullName = infoHostMap.get(hosts[i]);
                         if (fullName != null) {
                      %>
-                        <td class="tablecell" style="text-align: left;"><a href="output/<%= runId %>/sysinfo.<%= fullName %>.html"><%= hosts[i] %></a></td>
+                        <td class="tablecell" style="text-align: left;"><a href="<%= path %>sysinfo.<%= fullName %>.html"><%= hosts[i] %></a></td>
                      <% } else { %>
                         <td class="tablecell" style="text-align: left;"><%= hosts[i] %></td>
                      <% }
@@ -230,12 +235,16 @@
                             if (toolHostFiles != null && toolHostFiles.size() > 0) {
                      %>
                                 <td class="tablecell" style="text-align: center;">
-                     <%
+                                <%
                                 // Separate html files out from the raw files in toolHostFiles.
                                 toolFileLoop:
                                 for (Iterator<String> iter = toolHostFiles.iterator(); iter.hasNext();) {
                                     String fileName = iter.next();
-                                    if (fileName.endsWith(".html") || fileName.endsWith(".htm")) {
+                                    if (fileName.indexOf(".xan.") > 0 || fileName.endsWith(".xan")) {
+                                        iter.remove();
+                                        graphLinks.add(fileName);
+                                    }
+                                    else if (fileName.endsWith(".html") || fileName.endsWith(".htm")) {
                                         iter.remove();
                                         htmlFiles.add(fileName);
                                     } else {
@@ -252,6 +261,12 @@
                                         }
                                     }
                                 }
+                                // Do the graph link
+                                for (String fileName : graphLinks) {
+                                %>
+                                    <small><i><a href="<%= xanPath + fileName %>">graphs</a></i></small>
+                                <% }
+                                graphLinks.clear();
 
                                 // Do the html link
                                 for (String fileName : htmlFiles) { %>

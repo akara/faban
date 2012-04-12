@@ -331,16 +331,19 @@ public class ToolWrapper {
         try {
             FileTransfer[] transfer;
             if (outputHandle != null) {
+                logger.finer("outputHandle is not null. outfile is " + outfile);
                 transfer = new FileTransfer[1];
                 transfer[0] = outputHandle.fetchOutput(outputStream, outfile);
             } else if (tc.localOutputFiles != null) {
                 transfer = new FileTransfer[tc.localOutputFiles.size()];
+                logger.finer("tc.localOutputFiles is not null. Size is " + tc.localOutputFiles.size());
                 int idx = 0;
                 for (Map.Entry<String, String> entry :
                         tc.localOutputFiles.entrySet()) {
                     String key = entry.getKey();
                     String path = entry.getValue();
                     String ext;
+                    logger.finer("localOutputFiles path = " + path);
                     if (path.endsWith(".xan") || path.contains(".xan."))
                         ext = ".xan.";
                     else
@@ -350,12 +353,18 @@ public class ToolWrapper {
                                 " not found.");
                         continue;
                     }
-                    String outFile = outDir + toolName + '-' + key + ext + host;
+                    // The multiple files may simply be raw and xan. If so, treat as one
+                    String outFile;
+                    if ("raw".equals(key) || "xan".equals(key))
+                        outFile = outDir + toolName + ext + host;
+                    else
+                        outFile = outDir + toolName + '-' + key + ext + host;
                     transfer[idx++] = new FileTransfer(path, outFile);
                 }
             } else {
                 transfer = new FileTransfer[1];
                 logfile = tc.getOutputFile();
+                logger.finer("single file transfer. logfile is " + logfile);
                 if (!new File(logfile).exists()) {
                     logger.warning(toolName + ": Transfer file " + logfile +
                             " not found.");

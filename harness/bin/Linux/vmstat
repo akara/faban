@@ -3,7 +3,7 @@ addtime() {
     while read a
     do
         case $a in
-            [sd]*)
+            [0-9]*)
                 DATE=`date +%I:%M:%S`
                 echo "$DATE  $a";;
             *)  echo "          $a";;
@@ -11,8 +11,7 @@ addtime() {
     done
 }
 
-exec /usr/bin/iostat $@ | addtime &
+exec /usr/bin/vmstat $@ | addtime &
 pid=$!
 trap "kill $pid" 2 9 15
 wait
-
