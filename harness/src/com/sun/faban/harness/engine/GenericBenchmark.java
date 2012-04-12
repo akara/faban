@@ -414,6 +414,7 @@ public class GenericBenchmark {
             return false;
 
 		// Process the text using FenXi.
+        /** Not required. We generate the graphs dynamically
 		Command fenxi = new Command ("fenxi", "process", outDir, postDir,
                                                             run.getRunId());
         fenxi.setWorkingDirectory(Config.FABAN_HOME + "logs");
@@ -427,6 +428,7 @@ public class GenericBenchmark {
                     " failed.", e);
             return false;
         }
+         */
         return true;
     }
 }
