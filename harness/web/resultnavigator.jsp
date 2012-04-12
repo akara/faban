@@ -77,13 +77,13 @@
         <%
            }
            outputRef = null;
-           String[] detailFiles = { Config.POST_DIR + "detail.xan.html",
+           String[] detailFiles = { "detail.xan", Config.POST_DIR + "detail.xan.html",
                                     "detail.xan.html", "detail.html",
                                     "detail.xml.html" };
            for (int i = 0; i < detailFiles.length; i++) {
                File detailOutput = new File (Config.OUT_DIR + runId, detailFiles[i]);
                if (detailOutput.exists()) {
-                   outputRef = "output/" + runId + '/' + detailFiles[i];
+                   outputRef = "/controller/view/xan_view/" + runId + '/' + detailFiles[i];
                    break;
                }
            }

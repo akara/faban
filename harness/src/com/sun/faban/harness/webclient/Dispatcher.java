@@ -107,7 +107,7 @@ public class Dispatcher extends HttpServlet {
         // taken out.
         path = uri.substring(path.length());
 
-        // Now we have a controller i.e. /controllers/resultaction/editarchive
+        // Now we have a controller e.g. /controller/output/...
         // We need to know the resource type by extracting the next level.
         ArrayList<String> pathList = new ArrayList<String>();
         StringTokenizer t = new StringTokenizer(path, "/");
