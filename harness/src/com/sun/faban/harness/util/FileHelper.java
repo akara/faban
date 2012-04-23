@@ -161,8 +161,8 @@ public class FileHelper {
         if(!FileHelper.copyFile(fileName, backupFileName, false))
             return false; // Failed to backup the file
 
-        logger.fine("Token : " + token);
-        logger.fine("Replacement : " + replacement);
+        logger.finest("Token : " + token);
+        logger.finest("Replacement : " + replacement);
 
         try {
             BufferedReader in = new BufferedReader(new FileReader(backupFileName));
