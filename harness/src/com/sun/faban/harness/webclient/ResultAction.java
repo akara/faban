@@ -23,6 +23,7 @@
 */
 package com.sun.faban.harness.webclient;
 
+import com.sun.faban.common.SortableTableModel;
 import com.sun.faban.harness.ParamRepository;
 import com.sun.faban.harness.common.BenchmarkDescription;
 import com.sun.faban.harness.common.Config;
@@ -38,6 +39,7 @@ import org.apache.commons.httpclient.methods.multipart.StringPart;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.*;
 import java.net.URL;
 import java.text.ParseException;
@@ -77,6 +79,8 @@ public class ResultAction {
             return editAnalysis(process, request, response);
         if ("Archive".equals(process))
             return editArchive(request, response);
+        if ("Delete".equals(process))
+            return deleteResults(request, response);
         return null;
     }
 
@@ -454,6 +458,29 @@ public class ResultAction {
         request.setAttribute("uploadedRuns", uploadedRuns);
         request.setAttribute("duplicateRuns", duplicateSet);
         return "/archive_results.jsp";
+    }
+
+    public String deleteResults(HttpServletRequest request,
+                        HttpServletResponse response) {
+        String[] runIds = request.getParameterValues("select");
+        if (runIds != null) {
+            for (String r : runIds) {
+                RunResult runResult = RunResult.getInstance(new RunId(r));
+                runResult.delete(r);
+            }
+        }
+        HttpSession session = request.getSession();
+        UserEnv usrEnv = (UserEnv) session.getAttribute("usrEnv");
+        if (usrEnv == null) {
+            usrEnv = new UserEnv();
+            session.setAttribute("usrEnv", usrEnv);
+        }
+        SortableTableModel resultTable = RunResult.getResultTable(usrEnv.getSubject(), 5, "DESCENDING");
+        String feedURL = "/controller/results/feed";
+        request.setAttribute("feedURL", feedURL );
+        request.setAttribute("table.model", resultTable);
+        return "/resultlist.jsp";
+
     }
 
     @SuppressWarnings("empty-statement")

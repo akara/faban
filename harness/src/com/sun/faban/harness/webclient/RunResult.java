@@ -699,6 +699,20 @@ public class RunResult {
         return table;
     }
 
+    /*
+     * Deletes a certain run.
+     * @param RunId of run run to delete
+     * @return true if delete succeeds, false otherwise
+     */
+    public boolean delete(String runIdStr) {
+        RunId runId = new RunId(runIdStr);
+        File f = runId.getResultDir();
+        if (f.isDirectory()) {
+            return(FileHelper.recursiveDelete(f));
+        }
+        return(true);
+    }
+
      private static HashMap<String, String> getAchievedMetricForTarget(String tags)
             throws IOException {
         HashMap<String, String> achievedMetricMap = new HashMap<String, String>();
