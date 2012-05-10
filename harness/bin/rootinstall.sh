@@ -6,9 +6,9 @@ if [ -x "/usr/xpg4/bin/id" ] ; then
     IDCMD=/usr/xpg4/bin/id
 fi
 
-UID=`$IDCMD -u`
+uid=`$IDCMD -u`
 
-if [ $UID != 0 ] ; then
+if [ $uid != 0 ] ; then
     echo "$0: Needs to be run as superuser" >&2
     exit 1
 fi
@@ -16,7 +16,7 @@ fi
 BINDIR=`dirname $0`
 cd $BINDIR
 
-FILELIST="SunOS/x86/fastsu SunOS/sparc/fastsu Linux/i386/nicstat"
+FILELIST="SunOS/x86/fastsu SunOS/sparc/fastsu Linux/*/nicstat*"
 
 for i in $FILELIST
 do
