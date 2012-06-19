@@ -403,8 +403,8 @@ public class RunResult {
                     } catch (Exception e) {
                         logger.log(Level.WARNING, "Cannot remove run " + runid, e);
                     }
-                }
-                resultList.add(res);
+                } else
+                    resultList.add(res);
             } catch (Exception e) {
                 logger.log(Level.WARNING, "Cannot read result dir " + runid, e);
             }
