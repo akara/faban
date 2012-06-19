@@ -461,12 +461,21 @@ public class ResultAction {
     }
 
     public String deleteResults(HttpServletRequest request,
-                        HttpServletResponse response) {
+                        HttpServletResponse response) throws IOException {
         String[] runIds = request.getParameterValues("select");
         if (runIds != null) {
+            TagEngine tagEngine;
+            try {
+                tagEngine = TagEngine.getInstance();
+            } catch (ClassNotFoundException ex) {
+                logger.log(Level.SEVERE, "Cannot find tag engine class", ex);
+                throw new IOException("Cannot find tag engine class", ex);
+            }
             for (String r : runIds) {
                 RunResult runResult = RunResult.getInstance(new RunId(r));
                 runResult.delete(r);
+                tagEngine.removeRun(r);
+                tagEngine.save();
             }
         }
         HttpSession session = request.getSession();
