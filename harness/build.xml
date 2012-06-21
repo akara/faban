@@ -42,6 +42,7 @@
     <path id="class.path">
         <fileset dir="lib" includes="*.jar"/>
         <fileset dir="../stage/master/common/lib" includes="*.jar"/>
+        <fileset dir="${jdk.home}/lib" includes="tools.jar"/>
     </path>
 
     <path id="test.class.path">
