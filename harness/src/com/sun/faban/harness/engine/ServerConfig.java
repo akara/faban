@@ -117,6 +117,7 @@ class ServerConfig {
                         for (String cmdString : cmdStrings) {
                             Command c = new Command(cmdString);
                             c.setStreamHandling(Command.STDOUT,Command.CAPTURE);
+                            logger.info("Executing '" + cmdString + "'");
                             handle = cmds.execute(host, c, null);
                             info = handle.fetchOutput(Command.STDOUT);
                             if (info != null) {
