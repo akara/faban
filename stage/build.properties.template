@@ -10,7 +10,7 @@ workspace.dir=..
 
 # The directory where the finished kit should go.
 # By default, the nightly build download area.
-kit.dir=../../../www/nightly
+kit.dir=../../../nightly
 
 # The base directory for public web site output
 public.dir=../../../www
