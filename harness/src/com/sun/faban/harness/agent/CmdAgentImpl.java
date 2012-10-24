@@ -176,7 +176,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
             }
 
             ArrayList<String> libList = new ArrayList<String>();
-            getClassPath(Config.SERVICE_DIR + path, libList);
+            getClassPath(Config.SERVICE_DIR + path + "/lib/", libList);
             if (libList.size() > 0) {
                 if (servicesClassPath.get(path) == null) {
                     servicesClassPath.put(path, libList);
