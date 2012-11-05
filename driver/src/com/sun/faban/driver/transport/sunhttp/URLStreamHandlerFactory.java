@@ -69,7 +69,7 @@ class KeepAliveCache extends sun.net.www.http.KeepAliveCache {
      * @return An object in the cache, or null if there is none.
      */
     @Override
-	public Object get(URL url, Object obj) {
+	public HttpClient get(URL url, Object obj) {
         Map<KeepAliveKey, List<HttpClient>> map = localHash.get();
         KeepAliveKey dkak = new KeepAliveKey(url);
         List<HttpClient> clientVector = map.get(dkak);
