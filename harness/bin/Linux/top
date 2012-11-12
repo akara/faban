@@ -1,0 +1,32 @@
+#!/bin/sh
+# This script does two things: adds a timestamp at the top of every iteration of 'top' and truncates the listing to 20 lines total.
+
+addtime() {
+	CNT=0
+	while read a
+	do
+		case $a in
+			[top]*) 
+			    echo $a
+			    CNT=0;;
+			[PID]*)
+			DATE=`date +%I:%M:%S`
+			echo "$DATE  $a";;
+			*)  
+			CNT=`expr $CNT + 1`
+			if [ $CNT -lt 21 ]
+			then
+				echo "          $a"
+			fi;;
+		esac
+	done
+}
+
+if [ $# -eq 1 ]
+then
+    NUM="-n $1"
+else
+    NUM=""
+fi
+top $NUM -d 10 -b | addtime
+

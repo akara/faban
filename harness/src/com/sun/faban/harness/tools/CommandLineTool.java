@@ -23,11 +23,8 @@ package com.sun.faban.harness.tools;
 
 import com.sun.faban.common.Command;
 import com.sun.faban.common.CommandHandle;
-import com.sun.faban.harness.Configure;
-import com.sun.faban.harness.Context;
+import com.sun.faban.harness.*;
 
-import com.sun.faban.harness.Start;
-import com.sun.faban.harness.Stop;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +48,9 @@ public class CommandLineTool {
     CommandHandle processRef;
     ArrayList<String> toolCmd;
     String toolName;
+    String postCmd;
     List<String> toolArgs;
+    protected long stopTime;
 
     /**
      * Configures the command line tool.
@@ -60,6 +59,7 @@ public class CommandLineTool {
      */
     @Configure public void config() {
         toolName = ctx.getToolName();
+        postCmd = toolName + "-post";
         toolArgs = ctx.getToolArgs();
         toolCmd = new ArrayList<String>();
         toolCmd.add(toolName);
@@ -77,7 +77,15 @@ public class CommandLineTool {
      * @throws InterruptedException Interrupted waiting for commands
      */
     @Start public void start() throws IOException, InterruptedException {
-        processRef = ctx.exec(cmd, true);
+        // If we are going to postProcess this command's output, don't set the outputHandle
+        if (RunContext.which(postCmd) != null) {
+            logger.fine("Setting outputFile for " + toolCmd + " to be " + ctx.getOutputFile());
+            cmd.setOutputFile(Command.STDOUT, ctx.getOutputFile());
+            cmd.setStreamHandling(Command.STDOUT, Command.CAPTURE);
+            processRef = ctx.exec(cmd, false);
+        } else {
+            processRef = ctx.exec(cmd, true);
+        }
         logger.fine(toolName + " Started with Cmd = " + toolCmd);
     }
 
@@ -90,5 +98,36 @@ public class CommandLineTool {
         logger.fine("Stopping tool " + this.toolCmd);
         processRef.destroy();
         processRef.waitFor(10000);
+        stopTime = System.currentTimeMillis();
     }
+
+     /**
+     * This method is responsible for post-processing. Command line tool
+     * post-processing scripts will turn the output file into a xan format.
+     * @throws IOException Error post-processing cpustat
+     * @throws InterruptedException Interrupted waiting for commands
+     */
+    @Postprocess public void postprocess()
+            throws IOException, InterruptedException {
+        // Check if post-processing cmd exists. If not, quietly return
+        logger.fine("In postprocess for " + toolName + " postCmd = " + postCmd);
+        if (RunContext.which(postCmd) != null) {
+            String rawFile = ctx.getOutputFile();
+            String postFile = rawFile.replace(".out.", ".xan.");
+            postCmd += " " + rawFile;
+            ctx.setOutputFile("xan", postFile);
+            logger.finer("postCmd = " + postCmd + ", postFile = " + postFile);
+            long sleepTime = stopTime + 500 - System.currentTimeMillis();
+            if (sleepTime > 0)
+                Thread.sleep(sleepTime);
+            cmd = new Command(postCmd);
+            cmd.setStreamHandling(Command.STDOUT, Command.CAPTURE);
+            cmd.setOutputFile(Command.STDOUT, postFile);
+            ctx.exec(cmd, false);
+
+            // We want both the raw output and xan output files
+            ctx.setOutputFile("raw", rawFile);
+        }
+    }
+    /**/
 }

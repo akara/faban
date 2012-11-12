@@ -1,0 +1,132 @@
+#!/bin/awk -f
+# Script to parse iostat output on linux
+# We assume that the default faban linux parameters are used to run
+# iostat i.e. iostat -
+# Output from iostat should look like (time col optional):
+#         Device:         rrqm/s   wrqm/s     r/s     w/s    rkB/s    wkB/s avgrq-sz avgqu-sz   await  svctm  %util
+# 02:04:02  sdb               0.14   278.92    0.96   85.28    17.16  1456.98    34.18     7.26   84.20   0.89   7.67
+
+# Note that we don't do any syntax checking so if the output is in a 
+# different format, strange things/erros may occur. We do however account
+# for cpu data being present (since that's the default vmstat output)
+
+BEGIN {
+    # number of disks
+    numdisks = 0;
+    inhdr = 0;
+    rows = 0;
+    col1 = 0;
+}
+
+# Skip possible headers and data we don't care about
+/Linux/ {
+    next; 
+}
+/avg-cpu/ {
+# If cpu data is present, we need to skip data row
+    incpu = 1;
+    next;
+}
+
+/Device/ {
+    if (inhdr == 0 && numdisks == 0) {
+        inhdr = 1;
+    } else {
+# Need to add the stats
+        inhdr = 0;
+        rows++;
+    }
+   next;
+}
+
+# Normal dataset - we use the first set to find out the disks
+{
+# We skip cpu data if that's what this is
+    if (incpu == 1) {
+        incpu = 0;
+    } else if (inhdr == 1) {
+       # Determine if row includes a timestamp
+        n = split($1,time,":");
+        if ( n == 3 ) {
+            # Rows have time col. Shift all columns by 1
+            col1 = 1;
+        }
+        disks[++numdisks] = $(col1 + 1);
+    }  else {
+    # Now start processing stats
+        # If time exists, use it. Otherwise, use row# 
+        if (col1 == 1)
+            time[rows] = $1;
+        else
+            time[rows] = rows;
+        # we use disk name to index
+        d = $(col1 + 1);
+        rrqm[d "," rows] = $(col1 + 2);
+        wrqm[d "," rows] = $(col1 + 3);
+        rds[d "," rows] = $(col1 + 4);
+        tot_rds[d] += $(col1 + 4);
+        wts[d "," rows] = $(col1 + 5);
+        tot_wts[d] += $(col1 + 5);
+        rKB[d "," rows] = $(col1 + 6);
+        tot_rKB[d] += $(col1 + 6);
+        wKB[d "," rows] = $(col1 + 7);
+        tot_wKB[d] += $(col1 + 7);
+        rqsz[d "," rows] = $(col1 + 8);
+        qusz[d "," rows] = $(col1 + 9);
+        wait[d "," rows] = $(col1 + 10);
+	tot_wsvct[d] += $(col1 + 10);
+        svct[d "," rows] = $(col1 + 11);
+	tot_asvct[d] += $(col1 + 11);
+        util[d "," rows] = $(col1 + 12);
+	tot_util[d] += $(col1 + 12);
+    }
+}
+
+# In the end, let's print out the data
+END {
+    print "Title: Iostat Output\n";
+    print_summary();
+    print_col("Read Throughput in KB/s", rdKB);
+    print_col("Write Throughput in KB/s", wtKB);
+    print_col("Avg. Service Time (ms)", svct);
+    print_col("Avg. Wait Time (ms)", wait);
+    print_col("%Utilization", util);
+    print_col("Read Throughput in requests/s", rds);
+    print_col("Write Throughput in requests/s", wts);
+    print_col("Avg. Queue Length", qusz);
+    print_col("Avg. Request Size (bytes)", rqsz);
+    print_col("Avg. Read Requests Merged/s", rrqm);
+    print_col("Avg. Write Requests Merged/s", wrqm);
+}
+
+function print_summary() {
+    print "Section: Disk Summary";
+    print "Device    Avg_rds    Avg_wts    Avg_rd_KB    Avg_wt_KB    Avg_wsvct    Avg_asvct    Avg_util%";
+    for (i = 1; i <= numdisks; i++) {
+        device = disks[i];
+        printf("%s    %.02f    %.02f    %.02f        %.02f   %.02f    %.02f     %.02f\n", 
+            device, tot_rds[device]/rows, tot_wts[device]/rows, tot_rKB[device]/rows, 
+            tot_wKB[device]/rows, tot_wsvct[device]/rows, tot_asvct[device]/rows, tot_util[device]/rows);
+    }
+    printf("\n");
+}
+
+function print_col(str, var) {
+    printf("Section: %s\n", str);
+    print "Display: Line";
+    printf( "Time    ");
+    for ( j = 1; j <= numdisks; j++) 
+        printf("%s    ",disks[j]);
+    printf("\n");
+    # Now print the data
+    for (i = 1; i <= rows; i++) {
+        printf("%s", time[i]);
+        for (j = 1; j <= numdisks; j++) {
+            disk = disks[j];
+            printf("    %0.2f", var[disk "," i]);
+       }
+       printf("\n");
+    }
+    printf ("\n");
+}
+

@@ -1,0 +1,162 @@
+#!/bin/awk -f
+# Script to parse Linux vmstat output and generate xan output
+# We assume that vmstat is run with the default faban parameters.
+# But includes timestamp
+# Sample output should look like:
+#          procs -----------memory---------- ---swap-- -----io---- -system-- ----cpu----
+#          r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa
+#02:04:02  2  0      0 1262140  35492 210048    0    0     4    11  113  114  1  0 98  0
+#02:04:12  0  0      0 1261644  35500 210040    0    0     0    20 1231  853  3  0 93  0
+
+BEGIN {
+    rows = 0;
+    tot_usr = 0; tot_sys = 0; tot_idle = 0; tot_wait = 0;
+    min_usr = 100; min_sys = 100; min_idle = 100; min_wait = 100;
+    max_usr = 0; max_sys = 0; max_idle = 0; max_wait = 0;
+    col1 = 0; 
+    first = 1;
+}
+
+/procs/ {
+   next;
+}
+
+/r  b/ {
+   next;
+}
+
+# Normal dataset
+{
+    rows++;
+    if (first == 1) {
+        # Determine if row includes a timestamp
+        n = split($1,time,":");
+        if ( n == 3 ) {
+            # Rows have time col. Shift all columns by 1
+            col1 = 1;
+        }
+        first = 0;
+    }
+    # If time exists, use it. Otherwise, use row# 
+    if (col1 == 1)
+        time[rows] = $1;
+    else
+        time[rows] = rows;
+    runq[rows] = $(col1 + 1);
+    blk[rows] = $(col1 + 2);
+  # memory
+    swpd[rows] = $(col1 + 3);
+    free[rows] = $(col1 + 4);
+    buff[rows] = $(col1 + 5);
+    cache[rows] = $(col1 + 6);
+ # swap
+    si[rows] = $(col1 + 7);
+    so[rows] = $(col1 + 8);
+ # io
+    bi[rows] = $(col1 + 9);
+    bo[rows] = $(col1 + 10);
+# system
+    intr[rows] = $(col1 + 11);
+    cs[rows] = $(col1 + 12);
+    usrcol = col1 + 13;
+    usr[rows] = $usrcol;
+    if ($usrcol < min_usr)
+        min_usr = $usrcol;
+    if ($usrcol > max_usr)
+       max_usr = $usrcol;
+    tot_usr += $usrcol;
+    syscol = col1 + 14;
+    sys[rows] = $syscol;
+    if ($syscol < min_sys)
+        min_sys = $syscol;
+    if ($syscol > max_sys)
+       max_sys = $syscol;
+    tot_sys += $syscol;
+    idlecol = col1 + 15;
+    idle[rows] = $idlecol;
+    if ($idlecol < min_idle)
+        min_idle = $idlecol;
+    if ($idlecol > max_idle)
+       max_idle = $idlecol;
+    tot_idle += $idlecol;
+    waitcol = col1 + 16;
+    wait[rows] = $waitcol;
+    if ($waitcol < min_wait)
+        min_wait = $waitcol;
+    if ($waitcol > max_wait)
+       max_wait = $waitcol;
+    tot_wait += $waitcol;
+}
+
+# In the end, let's print out the data
+END {
+    print "Title: Vmstat Output\n";
+    print_cpu();
+    print_system();
+    print_memory();
+    print_procs();
+    print_swap();
+}
+
+function print_cpu() {
+    print "Section: CPU Utilization (Total)";
+    print "Metric     Average   Max     Min";
+    avg_usr = tot_usr / rows;
+    avg_sys = tot_sys / rows;
+    avg_idle = tot_idle / rows;
+    avg_wait = tot_wait / rows;
+    printf("CPU (usr)   %4.2d   %4.2d   %4.2d\n", avg_usr, max_usr, min_usr);
+    printf("CPU (sys)   %4.2d   %4.2d   %4.2d\n", avg_sys, max_sys, min_sys);
+    printf("CPU (idle)   %4.2d   %4.2d   %4.2d\n", avg_idle, max_idle, min_idle);
+    printf("CPU (wait)   %4.2d   %4.2d   %4.2d\n\n", avg_wait, max_wait, min_wait);
+
+    # Now print graph of cpu util.
+    print "Section: CPU Utilization";
+    print "Display: Line";
+    print "Time    Usr    Sys    Idle    Wait";
+    for (i = 1; i <= rows; i++) {
+        printf ("%s    %d    %d    %d    %d\n", time[i], usr[i], sys[i], idle[i], wait[i]);
+    }
+    printf ("\n");
+}
+
+function print_system() {
+    print "Section: System";
+    print "Display: Line";
+    print "Time    Intrs    Cswtches";
+    for (i = 1; i <= rows; i++) {
+        printf ("%s    %d    %d\n", time[i], intr[i], cs[i]);
+    }
+    printf ("\n");
+}
+
+function print_memory() {
+    print "Section: Memory";
+    print "Display: Line";
+    print "Time    Swpd      Free    Buff    Cache";
+    for (i = 1; i <= rows; i++) {
+        printf ("%s    %d    %d    %d    %d\n", time[i], swpd[i], free[i], buff[i], cache[i]);
+    }
+    printf ("\n");
+}
+
+function print_swap() {
+    print "Section: Swap";
+    print "Display: Line";
+    print "Time    Swapin    Swapout";
+    for (i = 1; i <= rows; i++) {
+        printf ("%s    %d    %d\n", time[i], si[i], so[i]);
+    }
+    printf ("\n");
+}
+
+function print_procs() {
+    print "Section: Procs";
+    print "Display: Line";
+    print "Time    Runq      Block";
+    for (i = 1; i <= rows; i++) {
+        printf ("%s    %d    %d\n", time[i], runq[i], blk[i]);
+    }
+    printf ("\n");
+}
+

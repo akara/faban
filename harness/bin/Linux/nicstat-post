@@ -1,0 +1,141 @@
+#!/bin/awk -f
+# Script to parse nicstat output and generate xan output
+# We assume that nicstat is run with the default faban parameters.
+# Sample output should look like:
+#    Time      Int   rKB/s   wKB/s   rPk/s   wPk/s    rAvs    wAvs %Util    Sat
+#21:53:38       lo    0.01    0.01    0.07    0.07   93.63   93.63  0.00   0.00
+#21:53:38     eth0   51.30   83.64   738.3   618.8   71.16   138.4  0.00   0.00
+
+
+BEGIN {
+    rows = 0;
+    num_intf = 0; #number of interfaces
+    inhdr = 0;
+}
+
+/Time/ {
+   if (inhdr == 0 && num_intf == 0) {
+     inhdr = 1;
+   } else {
+     # Need to add the stats
+     inhdr = 0;
+     rows++;
+  }
+  next;
+}
+
+# Normal dataset
+{
+    # We use the 1st set to get the interfaces
+    if (inhdr == 1) {
+        interfaces[++num_intf] = $2;
+        tot_util[$2] = 0;
+        tot_rdKB[$2] = 0; tot_wtKB[$2] = 0;
+    }  
+    # Now start processing stats
+    time[rows] = $1;
+  # rd/wt KBs
+    rdKB[$2 "," rows] = $3;
+    wtKB[$2 "," rows] = $4;
+    tot_rdKB[$2] += $3;
+    tot_wtKB[$2] += $4;
+ # rd/wt packets. 
+    rdPkt[$2 "," rows] = $5;
+    wtPkt[$2 "," rows] = $6;
+ # rd/wt avg. size
+    rdAsz[$2 "," rows] = $7;
+    wtAsz[$2 "," rows] = $8;
+# util
+    util[$2 "," rows] = $9;
+    tot_util[$2] += $9;
+# We ignore sat column
+}
+
+# In the end, let's print out the data
+END {
+    print "Title: Nicstat Output\n";
+    print_summary();
+    print_rdKB();
+    print_wtKB();
+    print_rdPkt();
+    print_wtPkt();
+    print_rdAsz();
+    print_wtAsz();
+    print_util();
+}
+
+function print_summary() {
+    print "Section: Network Summary";
+    print "Interface    Avg_Read_KB    Avg_Write_KB    Avg_Util%";
+    for (i = 1; i <= num_intf; i++) {
+        intf = interfaces[i];
+        printf("%s        %.02f        %.02f        %.02f\n", intf, tot_rdKB[intf]/rows, 
+         tot_wtKB[intf]/rows, tot_util[intf]/rows);
+    }
+    printf("\n");
+}
+
+function print_rdKB() {
+    print "Section: Read Throughput in KB";
+    print_col(rdKB);
+}
+
+function print_wtKB() {
+    print "Section: Write Throughput in KB";
+    print_col(wtKB);
+}
+
+function print_rdPkt() {
+    print "Section: Read Throughput in Packets";
+    print_col(rdPkt);
+}
+
+function print_wtPkt() {
+    print "Section: Write Throughput in Packets";
+    print_col(wtPkt);
+}
+
+function print_rdAsz() {
+    print "Section: Average Bytes Per Read";
+    print_col(rdAsz);
+}
+
+function print_wtAsz() {
+    print "Section: Average Bytes Per Write";
+    print_col(wtAsz);
+}
+
+function print_util() {
+    # Print util. only if not 0. On Linux, nicstat can't determine util. sometimes
+    printUtil = 0;
+    for (j = 1; j <= num_intf; j++) {
+        intf = interfaces[j];
+	if (tot_util[intf] > 0) {
+            printUtil = 1;
+            break;
+        }
+    }
+    if (printUtil == 1) {
+        print "Section: Utilization";
+        print_col(util);
+    }
+}
+
+function print_col(var) {
+    print "Display: Line";
+    printf( "Time    ");
+    for ( j = 1; j <= num_intf; j++) 
+        printf("%s    ",interfaces[j]);
+    printf("\n");
+    # Now print the data
+    for (i = 1; i <= rows; i++) {
+        printf("%s", time[i]);
+        for (j = 1; j <= num_intf; j++) {
+            intf = interfaces[j];
+            printf("    %0.2f", var[intf "," i]);
+       }
+       printf("\n");
+    }
+    printf ("\n");
+}
+
