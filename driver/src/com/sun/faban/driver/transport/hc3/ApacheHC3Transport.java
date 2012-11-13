@@ -1444,6 +1444,14 @@ public class ApacheHC3Transport extends HttpTransport {
     }
 
     /**
+     * Returns all the cookies
+     * @return array of Cookie objects
+     */
+    public Cookie[] getCookies() {
+         return hc.getState().getCookies();
+    }
+
+    /**
      * Obtains the header fields of the last request's response.
      * @param name The response header field of interest
      * @return An array of response header values
