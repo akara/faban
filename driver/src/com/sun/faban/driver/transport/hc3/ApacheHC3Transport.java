@@ -38,6 +38,7 @@ import java.net.URL;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPInputStream;
 
 /**
  * The ApacheHC3Transport provides initialization services and utility methods
@@ -166,6 +167,7 @@ public class ApacheHC3Transport extends HttpTransport {
     public boolean isFollowRedirects() {
         return followRedirects;
     }
+
 
     /**
      * Initializes or re-initializes the buffer.
@@ -846,6 +848,13 @@ public class ApacheHC3Transport extends HttpTransport {
         return fetchURL(new URL(page), imgURLs, postRequest);
     }
 
+    /**
+     * Fetch the response. If it is gzipped, unzip it. Checking encoding to
+     * ensure data is read correctly
+     * @param method
+     * @return text response
+     * @throws IOException
+     */
     private StringBuilder fetchResponse(HttpMethod method) throws IOException {
         Header contentTypeHdr = method.getResponseHeader("content-type");
         String contentType = null;
@@ -865,12 +874,26 @@ public class ApacheHC3Transport extends HttpTransport {
                 }
             }
         }
+        Header contentEncodingHdr = method.getResponseHeader("content-encoding");
+        String contentEncoding = null;
+        boolean isGzip = false;
+        if (contentEncodingHdr != null) {
+            contentEncoding = contentEncodingHdr.getValue();
+            if ("gzip".matches(contentEncoding.toLowerCase()))
+                isGzip = true;
+            else
+                throw new IOException("cannot handle content-encoding " + contentEncoding);
+        }
         if (contentType != null && (contentType.startsWith("text/") ||
                                     texttypes.contains(contentType))) {
             InputStream is = method.getResponseBodyAsStream();
             if (is != null) {
-                Reader reader = new InputStreamReader(is, encoding);
-
+                Reader reader;
+                if (isGzip) {
+                   reader  = new InputStreamReader(new GZIPInputStream(is), encoding);
+                } else {
+                    reader = new InputStreamReader(is, encoding);
+                }
                 // We have to close the input stream in order to return it to
                 // the cache, so we get it for all content, even if we don't
                 // use it. It's (I believe) a bug that the content handlers
@@ -895,17 +918,20 @@ public class ApacheHC3Transport extends HttpTransport {
      * @return The number of bytes read
      * @throws java.io.IOException
      */
+
     private int readResponse(HttpMethod method) throws IOException {
         int totalLength = 0;
-        InputStream in = method.getResponseBodyAsStream();
+        InputStream in;
+
+        in = method.getResponseBodyAsStream();
         if (in != null) {
-        int length = in.read(byteReadBuffer);
-        while (length != -1) {
-            totalLength += length;
-            length = in.read(byteReadBuffer);
-        }
-        in.close();
-        contentSize = totalLength;
+           int length = in.read(byteReadBuffer);
+            while (length != -1) {
+                totalLength += length;
+                length = in.read(byteReadBuffer);
+            }
+            in.close();
+            contentSize = totalLength;
         }
         return totalLength;
     }
@@ -1448,7 +1474,7 @@ public class ApacheHC3Transport extends HttpTransport {
      * @return array of Cookie objects
      */
     public Cookie[] getCookies() {
-         return hc.getState().getCookies();
+        return hc.getState().getCookies();
     }
 
     /**
