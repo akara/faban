@@ -23,6 +23,8 @@
  */
 package com.sun.faban.driver;
 
+import org.apache.commons.httpclient.Cookie;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -697,6 +699,14 @@ public class HttpTransport {
      */
     public String[] getCookieValuesByName(String name) {
         return delegate.getCookieValuesByName(name);
+    }
+
+    /**
+     * Obtains the list of all cookies
+     * @return array of Cookie objects
+     */
+    public Cookie[] getCookies() {
+        return delegate.getCookies();
     }
 
     /**
