@@ -1,4 +1,4 @@
-jdk.home=/apps/JVMs/jdk1.5.0
+jdk.home=/apps/JVMs/jdk1.6.0
 compiler.debug=on
 compiler.generate.no.warnings=off
 compiler.args=
