@@ -27,6 +27,8 @@
 
     <!-- Compiler options -->
     <property file="build.properties"/>
+    <property file="build-defaults.properties"/>
+    <property environment="env"/>
     <property name="compile.output" value="build/classes"/>
     <property name="compile.test.output" value="build/test/classes"/>
     <property name="test.results.dir" value="build/test/output"/>
@@ -38,7 +40,7 @@
 
     <path id="class.path">
         <fileset dir="lib" includes="*.jar"/>
-        <fileset dir="${jdk.home}/lib" includes="tools.jar"/>
+        <fileset dir="${env.JDK_HOME}/lib" includes="tools.jar"/>
     </path>
 
     <path id="test.class.path">
