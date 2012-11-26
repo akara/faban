@@ -165,8 +165,9 @@ public class TimedInputStream extends FilterInputStream {
         boolean isThrottled = false;
         if (ctx != null) {
             isThrottled = throttle.isThrottled(Throttle.DOWN);
-            if (isThrottled)
-                startReadAt = ctx.getNanoTime();
+            if (isThrottled) {
+                startReadAt = System.nanoTime();
+            }
         }
         int bytes = super.read(b, off, len);
         if (ctx != null && bytes > 0) {
