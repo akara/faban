@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<project default="build">
+
+  <target name="build">
+    <ant dir="common"/>
+    <ant dir="driver"/>
+    <ant dir="harness"/>
+    <ant dir="stage"/>
+  </target>
+
+  <target name="clean">
+    <ant dir="common" target="clean"/>
+    <ant dir="driver" target="clean"/>
+    <ant dir="harness" target="clean"/>
+    <ant dir="stage" target="clean-all"/>
+  </target>
+
+</project>

@@ -26,6 +26,7 @@
 <project name="Faban Kit" default="all">
 
     <property file="build.properties"/>
+    <property file="build-defaults.properties"/>
     <property name="jar.output" value="build/lib"/>
     <property name="lib.dir" value="lib"/>
     <property name="docs.dir" value="${tmp.dir}/fabandocs"/>

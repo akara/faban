@@ -5,9 +5,9 @@ Faban is distributed under the Common Development and Distribution
 License (CDDL). A copy of the CDDL license can be found at in
 stage/legal/LICENSE.
 
-To build, go to each of common,driver,harness: copy build.properties.template
-to build.properties and edit for your envrionment.
-Typing 'an't will build each of these modules.
+To build an installable tarball, just run ant from the top level directory.
+Be sure environment variable JDK_HOME points to a suitable JDK installation.
 
-To package, go to 'stage', create build.properties from build.properties.template
- and type 'ant'.
+Local customization of the build options can be done by copying the
+build-defaults.properties file in each source directory to
+build.properties and making local changes there.
