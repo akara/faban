@@ -183,6 +183,10 @@ $(function () {
                 show: true
             }
         });
+        //Hack to prevent jqplot from changing frame name in Chrome
+        if(window.name="y9axis"){
+            window.name="display";
+        }
     <% } %>
 });
 </script>
