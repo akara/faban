@@ -576,8 +576,25 @@ public class ApacheHC3Transport extends HttpTransport {
      * @see #getContentSize()
      */
     public byte[] downloadURL(String url) throws IOException {
+        return(downloadURL(url, null));
+    }
+
+    /**
+     * Retrieve large response from the URL and returns the data read. Use this
+     * method for any arbitrary return data type e.g. file downloads. This method will only
+     * download upto 1 MB to conserve memory. However, it will read all of the response and
+     * update contentSize appropriately.
+     *
+     * @param url The URL to read from
+     * @param headers List of request headers
+     * @return The byte array containing the resulting data
+     * @throws java.io.IOException
+     * @see #getContentSize()
+     */
+    public byte[] downloadURL(String url, Map<String, String> headers) throws IOException {
         GetMethod method = new GetMethod(url);
         method.setFollowRedirects(followRedirects);
+        setHeaders(method, headers);
         try {
             responseCode = hc.executeMethod(method);
             buildResponseHeaders(method);
