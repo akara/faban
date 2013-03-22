@@ -313,6 +313,12 @@ public class AgentBootstrap {
             host = host.substring(0, dotIdx + nextDotIdx + 1);
         logger.finer("dotIdx is " + dotIdx + ", nextDotIdx is " + nextDotIdx +
                 ", Modified Host is " + host);
+
+        String shortHost = host.substring(0, dotIdx);   // eliminate all dots
+
+        // Check which host is the valid name
+        host = checkHost(host, shortHost);
+        logger.finer("checkHost returned " + host);
         //ident will be unique
         ident = Config.CMD_AGENT + "@" + host;
 
@@ -472,6 +478,25 @@ public class AgentBootstrap {
         String delimiter = "" + pathSeparator;
 
         return path.split(delimiter);
+    }
+
+    private static String checkHost(String longHost, String shortHost) {
+        InetAddress[] host1Ip = new InetAddress[0];
+        String h;
+        try {
+            host1Ip = InetAddress.getAllByName(shortHost);
+            h = shortHost;
+        } catch (UnknownHostException e) {
+            logger.finer("Host " + shortHost + " not found. Trying " + longHost);
+            try {
+                host1Ip = InetAddress.getAllByName(longHost);
+                h = longHost;
+            } catch (UnknownHostException un) {
+                logger.warning("Host " + longHost + " not found.");
+                return null;
+            }
+        }
+        return(h);
     }
 
     private static boolean sameHost(String host1, String host2) {
