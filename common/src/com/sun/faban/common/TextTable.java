@@ -29,14 +29,23 @@ import java.io.IOException;
  * The text table assists in formatting tabular data for text output.
  * I takes care of column alignments. The output format is compatible with
  * FenXi's Xan format.
+ *
  * @author Akara Sucharitakul
  */
 public class TextTable {
 
-    static final String PAD = "                                              " +
-                              "                                              ";
-    static final String LN = "-----------------------------------------------" +
-                             "-----------------------------------------------";
+    static final String PAD =
+            "                                                                " +
+                    "                                                                " +
+                    "                                                                " +
+                    "                                                                ";
+
+    static final String LN =
+            "----------------------------------------------------------------" +
+                    "----------------------------------------------------------------" +
+                    "----------------------------------------------------------------" +
+                    "----------------------------------------------------------------";
+
     static final String FS = "  ";
 
     static final String NULL_FIELD = "NULL";
@@ -45,7 +54,8 @@ public class TextTable {
 
     /**
      * Constructs a text table with predefined number of rows and columns.
-     * @param rows The number of rows
+     *
+     * @param rows    The number of rows
      * @param columns The number of columns
      */
     public TextTable(int rows, int columns) {
@@ -55,6 +65,7 @@ public class TextTable {
 
     /**
      * Sets the header fields' value.
+     *
      * @param column The column to set the header
      * @param header The header
      */
@@ -64,6 +75,7 @@ public class TextTable {
 
     /**
      * Gets the header field's value.
+     *
      * @param column The colund to get the header
      * @return The current field value
      */
@@ -73,17 +85,21 @@ public class TextTable {
 
     /**
      * Sets the data fields' value.
-     * @param row The row index of the data
+     *
+     * @param row    The row index of the data
      * @param column The column index of the data
-     * @param field The data field
+     * @param field  The data field
      */
     public void setField(int row, int column, CharSequence field) {
+        if (field == null || field.length() == 0)
+            field = "--";
         table[++row][column] = field;
     }
 
     /**
      * Obtains the field so formatters can insert values directly.
-     * @param row The row index
+     *
+     * @param row    The row index
      * @param column The column index
      * @return The CharSequence representing this field.
      */
@@ -152,6 +168,7 @@ public class TextTable {
     /**
      * StringBuilder version of format. Same as format(Appendable) but
      * does not throw exceptions.
+     *
      * @param b The StringBuilder to append to
      * @return The same StringBuilder
      */
@@ -167,6 +184,7 @@ public class TextTable {
     /**
      * StringBuffer version of format. Same as format(Appendable) but
      * does not throw exceptions.
+     *
      * @param b The StringBuffer to append to
      * @return The same StringBuffer
      */
@@ -181,9 +199,10 @@ public class TextTable {
 
     /**
      * Formats the TextTable and outputs to an Appendable.
+     *
      * @param a The Appendable to output the text
      * @return The same Appendable
-     * @exception IOException Problems writing to the Appendable
+     * @throws IOException Problems writing to the Appendable
      */
     public Appendable format(Appendable a) throws IOException {
         _format(a);

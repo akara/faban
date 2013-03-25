@@ -400,7 +400,7 @@ public class Config {
         BIN_DIR = " " + FABAN_HOME + "bin" + File.separator;
         LIB_DIR = FABAN_HOME + "lib" + File.separator;
         OUT_DIR = FABAN_HOME + "output" + File.separator;
-        ANALYSIS_DIR = FABAN_HOME + "analysis" + File.separator;
+        ANALYSIS_DIR = OUT_DIR + "analysis" + File.separator;
         CONFIG_DIR = FABAN_HOME + "config" + File.separator;
         RUNQ_DIR = CONFIG_DIR  + "runq" + File.separator;
         SEQUENCE_FILE = CONFIG_DIR  + "sequence";

@@ -354,7 +354,7 @@ public class ResultAction {
                 RunAnalyzer.clear(model.name);
                 UserEnv usrEnv = (UserEnv) request.getSession().
                                                 getAttribute("usrEnv");
-                RunAnalyzer.analyze(type, model.runIds, model.name,
+                new RunAnalyzer().analyze(type, model.runIds, model.name,
                                                     usrEnv.getUser());
             } catch (IOException e) {
                 String msg = e.getMessage();
@@ -365,7 +365,9 @@ public class ResultAction {
             }
 
         if (redirect)
-            response.sendRedirect("/analysis/" + model.name + "/index.html");
+            //response.sendRedirect("/analysis/" + model.name + "/index.html");
+            response.sendRedirect("/controller/view/xan_view/analysis/" +
+                    model.name + "/" + model.type + ".xan");
 
         return null;
     }

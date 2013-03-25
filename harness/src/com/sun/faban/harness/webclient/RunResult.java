@@ -430,7 +430,7 @@ public class RunResult {
             }
             String runIdS = runDir.getName();
             try {
-                if (!AccessController.isViewAllowed(user, runIdS)) {
+                if (!AccessController.isViewAllowed(user, runIdS) || runIdS.contains("analysis")) {
                     continue;
                 }
                 RunId runId = new RunId(runIdS);
