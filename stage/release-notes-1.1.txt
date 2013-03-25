@@ -1,0 +1,27 @@
+The following bug fixes went into the 1.1 release:
+
+Description:  Fix for Issue #51. Need downloadURL() in apache http client to accept optional headers
+
+Description  Fix for Issue #50. Fix issue with Detailed Results breaking link target
+
+Description:  Fix for Issue #49. TimedInputStream can sleep "forever" if throttling is used
+
+Description:  Fix for Issue #47. A freshly checked out faban source tree is not as convenient to build as it could be
+
+Description:  Fix for Issue #45. build.properties should not be part of repository
+
+Description:  Fix for Issue #41: Add support for retrieving all cookies in HttpTransport
+    
+Description:  Fix for Issue #40: Issue 'NoSuchFieldError: TRACE' from log4j
+
+Description:  Fix for Issue 38: ClassNotFoundException when invoking RemoteCallable in a service on an agent
+              Agent with different FABAN_HOME than master would not find serice jars because it scanned ${ServiceName} and not ${ServiceName}/lib.
+
+Description:  Fix for Issue #35: Add a message in the log when a user command is being executed
+
+Description:  Fix for Issue #36: "After a delete run, tag search throws exception"
+
+Description:  Fix for RFE #33: Add a 'Delete' button in the results view
+    Added support for deletion of runs in the Results view. The selected runs output directories will be deleted.
+
+Description:  Fix for Issue #32: nicstat permissions not being fixed for all Linux versions during install
