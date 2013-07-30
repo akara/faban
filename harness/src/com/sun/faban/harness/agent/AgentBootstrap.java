@@ -314,7 +314,10 @@ public class AgentBootstrap {
         logger.finer("dotIdx is " + dotIdx + ", nextDotIdx is " + nextDotIdx +
                 ", Modified Host is " + host);
 
-        String shortHost = host.substring(0, dotIdx);   // eliminate all dots
+        String shortHost = host;
+        if (dotIdx > 0) {
+          shortHost = host.substring(0, dotIdx);   // eliminate all dots
+        }
 
         // Check which host is the valid name
         host = checkHost(host, shortHost);
