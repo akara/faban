@@ -382,7 +382,13 @@ public class AgentImpl extends UnicastRemoteObject
             } catch (Exception e) {
                 // Just make sure we don't get stuck here.
             }
-
+        if (preRunLatch != null)
+            try {
+                preRunLatch.countDown();
+            } catch (Exception e) {
+                // Just make sure we don't get stuck here.
+            }
+        
         try {
             master.abortRun();
         } catch (RemoteException e) {
