@@ -31,7 +31,7 @@
 
     <target name="compile" depends="init" description="Compiling all source files">
         <javac srcdir="${src.dir}" includeantruntime="false"
-            deprecation="on" target="${compiler.target.version}"
+            deprecation="on" source="${compiler.source.version}"
             destdir="${classes.dir}" debug="on">
             <include name="**/*.java" />
             <classpath refid="classpath"/>

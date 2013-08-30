@@ -76,7 +76,7 @@
         <mkdir dir="${compile.output}"/>
         <javac destdir="${compile.output}" debug="${compiler.debug}"
             nowarn="${compiler.generate.no.warnings}"
-            target="${compiler.target.version}" includeantruntime="false" 
+            source="${compiler.source.version}" includeantruntime="false"
             memoryMaximumSize="${compiler.max.memory}" fork="true">
             <compilerarg line="${compiler.args}"/>
             <classpath refid="class.path"/>
@@ -89,7 +89,7 @@
         <mkdir dir="${compile.test.output}"/>
         <javac destdir="${compile.test.output}" debug="${compiler.debug}"
             nowarn="${compiler.generate.no.warnings}"
-            target="${compiler.target.version}" includeantruntime="false"
+            source="${compiler.source.version}" includeantruntime="false"
             memoryMaximumSize="${compiler.max.memory}" fork="true">
             <compilerarg line="${compiler.args}"/>
             <classpath refid="test.class.path"/>
@@ -167,7 +167,7 @@
     <target name="rmic" depends="compile"
         description="Create rmi stubs and skeletons">
         <rmic base="${compile.output}"
-            stubversion="${compiler.target.version}"
+            stubversion="1.2"
             includes="**/*Impl.class"
             excludes="**/*$*.class">
             <classpath refid="class.path"/>
