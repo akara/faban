@@ -61,6 +61,7 @@ public class ServiceWrapper {
      */
     ServiceWrapper(Class serviceClass, ServiceContext ctx) throws Exception {
         this.ctx = ctx;
+        String serviceClassName = serviceClass.getName();
         Method[] methods = serviceClass.getMethods();
         for (Method method : methods) {
             // Check annotation.
@@ -70,7 +71,7 @@ public class ServiceWrapper {
                 if (clearLogsMethod == null) {
                     clearLogsMethod = method;
                 } else {
-                    logger.severe("Error: Multiple @ClearLogs methods.");
+                    logger.severe("Error: Multiple @ClearLogs methods in "+serviceClassName+".");
                     //throw new Error ("Multiple @Validate methods.");
                 }
             }
@@ -80,7 +81,7 @@ public class ServiceWrapper {
                 if (configureMethod == null) {
                     configureMethod = method;
                 } else {
-                    logger.severe("Error: Multiple @Configure methods.");
+                    logger.severe("Error: Multiple @Configure methods in "+serviceClassName+".");
                     //throw new Error ("Multiple @Configure methods.");
                 }
             }
@@ -90,7 +91,7 @@ public class ServiceWrapper {
                 if (getConfigMethod == null) {
                     getConfigMethod = method;
                 } else {
-                    logger.severe("Error: Multiple @Start methods.");
+                    logger.severe("Error: Multiple @Start methods in "+serviceClassName+".");
                     //throw new Error ("Multiple @Start methods.");
                 }
             }
@@ -100,7 +101,7 @@ public class ServiceWrapper {
                 if (getLogsMethod == null) {
                     getLogsMethod = method;
                 } else {
-                    logger.severe("Error: Multiple @End methods.");
+                    logger.severe("Error: Multiple @End methods in "+serviceClassName+".");
                     //throw new Error ("Multiple @End methods.");
                 }
             }
@@ -110,7 +111,7 @@ public class ServiceWrapper {
                 if (startupMethod == null) {
                     startupMethod = method;
                 } else {
-                    logger.severe("Error: Multiple @PostRun methods.");
+                    logger.severe("Error: Multiple @PostRun methods in "+serviceClassName+".");
                     //throw new Error ("Multiple @PostRun methods.");
                 }
             }
@@ -120,7 +121,7 @@ public class ServiceWrapper {
                 if (shutdownMethod == null) {
                     shutdownMethod = method;
                 } else {
-                    logger.severe("Error: Multiple @Kill methods.");
+                    logger.severe("Error: Multiple @Kill methods in "+serviceClassName+".");
                     //throw new Error ("Multiple @Kill methods.");
                 }
             }
@@ -134,7 +135,7 @@ public class ServiceWrapper {
                     ctxField = field;
                 else
                     logger.warning(
-                            "More than one valid @Context annotation.");
+                            "More than one valid @Context annotation in "+serviceClassName+".");
             }
         }
         Invoker.setContextLocation(ctx.servicePath);
@@ -159,7 +160,7 @@ public class ServiceWrapper {
                 logger.info("Cleared " + ctx.desc.id + " service logs.");
             } catch (Exception e) {
                 logger.log(Level.WARNING, "Failed to clear service logs " +
-                        "for service " + ctx.desc.id, e);
+                        "for service " + ctx.getHostRole() + ":" + ctx.desc.id, e);
             }
     }
 
@@ -172,7 +173,7 @@ public class ServiceWrapper {
             configured = true;
             logger.info("Configured " + ctx.desc.id + " service.");
         } catch (Exception e) {
-            logger.log(Level.WARNING, "Failed to configure service " +
+            logger.log(Level.WARNING, "Failed to configure service " + ctx.getHostRole()+":"+
                     ctx.desc.id, e);
         }
     }
@@ -186,7 +187,7 @@ public class ServiceWrapper {
                 Invoker.invoke(service, getConfigMethod, ctx.servicePath);
                 logger.fine("Got " + ctx.desc.id + " service configuration.");
             } catch (Exception e) {
-                logger.log(Level.WARNING, "Failed to obtain service " +
+                logger.log(Level.WARNING, "Failed to obtain service " + ctx.getHostRole()+":"+
                         "configuration for service " + ctx.desc.id, e);
             }
     }
@@ -201,7 +202,7 @@ public class ServiceWrapper {
                logger.info("Transfered " + ctx.desc.id + " service logs.");
            } catch (Exception e) {
                logger.log(Level.WARNING, "Failed to obtain service logs " +
-                       "for service " + ctx.desc.id, e);
+                       "for service " + ctx.getHostRole() + ":" + ctx.desc.id, e);
            }
    }
 
@@ -214,7 +215,7 @@ public class ServiceWrapper {
                 Invoker.invoke(service, startupMethod, ctx.servicePath);
                 logger.info("Started " + ctx.desc.id + " service.");
             } catch (Exception e) {
-                logger.log(Level.WARNING, "Failed to startup service " +
+                logger.log(Level.WARNING, "Failed to startup service " + ctx.getHostRole()+":"+
                         ctx.desc.id, e);
             }
     }
@@ -228,7 +229,7 @@ public class ServiceWrapper {
                 Invoker.invoke(service, shutdownMethod, ctx.servicePath);
                 logger.info("Stopped " + ctx.desc.id + " service.");
             } catch (Exception e) {
-                logger.log(Level.WARNING, "Failed to shutdown service " +
+                logger.log(Level.WARNING, "Failed to shutdown service " + ctx.getHostRole()+":"+
                         ctx.desc.id, e);
             }
     }
