@@ -58,6 +58,7 @@ public class GenericBenchmark {
     private CmdService cmds = null;
     private ToolService tools = null;
     private ServiceManager serviceMgr = null;
+    private boolean needLogs = true;
     //private Benchmark bm = null;
     private static BenchmarkWrapper bmw = null;
 
@@ -321,6 +322,7 @@ public class GenericBenchmark {
             }
 
             serviceMgr.getLogs();
+            needLogs=false;
 
             try {
                 // Postprocessing may need tools output. So the postRun
@@ -345,8 +347,12 @@ public class GenericBenchmark {
             logger.log(Level.SEVERE,
                     "Unexpected Exception processing benchmark.", t);
         } finally { // Ensure we kill the processes in any case.
-            if (serviceMgr != null)
+            if (serviceMgr != null){
+            	if(needLogs){
+            		serviceMgr.getLogs();
+            	}
                 serviceMgr.shutdown();
+            }
             postProcess();
             _kill();
             // We need to place a marker into the Benchmark's META-INF directory
