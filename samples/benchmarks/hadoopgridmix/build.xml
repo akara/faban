@@ -195,7 +195,7 @@
 
     <target name="compile" depends="init,GridMix" description="Compiling all source files">
         <javac srcdir="${src.dir}"
-            deprecation="on" target="${compiler.target.version}"
+            deprecation="on" target="${compiler.source.version}"
             destdir="${classes.dir}" debug="on">
             <include name="com/sun/hadoop/harness/GridMix.java" />
             <classpath refid="classpath"/>
