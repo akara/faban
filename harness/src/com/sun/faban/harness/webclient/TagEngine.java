@@ -267,8 +267,10 @@ public class TagEngine implements Serializable{
         wlock.lock();
         try {
             HashSet<Entry> removeSet = runEntries.get(runId);
-            for (Entry entry : removeSet) {
-                entry.runIds.remove(runId);
+            if (removeSet != null) {
+                for (Entry entry : removeSet) {
+                    entry.runIds.remove(runId);
+                }
             }
             runEntries.remove(runId);
         } finally {
