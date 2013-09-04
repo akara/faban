@@ -136,14 +136,13 @@ public class RegistryImpl extends UnicastRemoteObject implements Registry {
      */
     public synchronized boolean register(String name, Remote service) {
 
-        logger.fine("Registry: Registering " + name +
-                " on machine " + getCaller());
         if (servicesTable.get(name) == null) {
+            logger.info("Registering " + name + " on " + getCaller());
             servicesTable.put(name, service);
             return true;
         } else {
-            logger.fine("Failed registering. Service " + name +
-                        " already exists");
+            logger.warning("Failed registering. Service " + name +
+                           " already exists");
             return false;
         }
     }
@@ -163,6 +162,7 @@ public class RegistryImpl extends UnicastRemoteObject implements Registry {
      */
     public synchronized boolean register(String type, String name,
                                          Remote service) {
+
         if (service == null)
             throw new NullPointerException("Type: " + type + ", Name: " +
                     name + "| Service reference is null");
@@ -173,12 +173,12 @@ public class RegistryImpl extends UnicastRemoteObject implements Registry {
             h = new HashMap<String, Remote>();
             servicesTypeTable.put(type, h);
         } else if (h.get(name) != null) {
-            logger.fine("Failed registering. Service " + name +
-                        " already exists");
+            logger.warning("Failed registering. Service " + name +
+                           " already exists");
             return false;
         }
-        logger.fine("Registry: Registering " + name +
-                " on machine " + getCaller());
+        logger.info("Registering " + name + " (type: " + type + ") on " +
+                    getCaller());
         h.put(name, service);
         return true;
     }
@@ -195,8 +195,7 @@ public class RegistryImpl extends UnicastRemoteObject implements Registry {
       */
     public synchronized void reregister(String name, Remote service)
     {
-        logger.fine("Registry: Registering " + name +
-                " on machine " + getCaller());
+        logger.info("Registering " + name + " on " + getCaller());
         servicesTable.put(name, service);
     }
 
@@ -223,8 +222,8 @@ public class RegistryImpl extends UnicastRemoteObject implements Registry {
             servicesTypeTable.put(type, h);
         }
 
-        logger.fine("Registry: Registering " + name +
-                " on machine " + getCaller());
+        logger.info("Registering " + name + " (type: " + type + ") on " +
+                    getCaller());
         h.put(name, service);
     }
 
@@ -236,6 +235,7 @@ public class RegistryImpl extends UnicastRemoteObject implements Registry {
       * @param name public driverName of service
       */
     public synchronized void unregister(String name) {
+        logger.info("Unregistering " + name);
         servicesTable.remove(name);
     }
 
@@ -256,6 +256,7 @@ public class RegistryImpl extends UnicastRemoteObject implements Registry {
                     "Cannot find Service type : " + type);
         }
         else {
+            logger.info("Unregistering " + name + "(type: " + type + ")");
             h.remove(name);
         }
     }
@@ -270,6 +271,7 @@ public class RegistryImpl extends UnicastRemoteObject implements Registry {
       * @return remote reference
       */
     public synchronized Remote getService(String name) {
+        logger.info("Get service by name: " + name);
         return servicesTable.get(name);
     }
 
@@ -283,6 +285,8 @@ public class RegistryImpl extends UnicastRemoteObject implements Registry {
       * @return remote reference
       */
     public synchronized Remote getService(String type, String name) {
+
+        logger.info("Get service by name: " + name + ", type: " + type);
         Remote r = null;
         // First check if the type of service exists
         HashMap<String, Remote> h = servicesTypeTable.get(type);
@@ -306,6 +310,8 @@ public class RegistryImpl extends UnicastRemoteObject implements Registry {
       * @return remote references
       */
     public synchronized Remote[] getServices(String type) {
+
+        logger.info("Get services by type: " + type);
         Remote[] r = null;
         // First check if the type of service exists
         HashMap<String, Remote> h = servicesTypeTable.get(type);
