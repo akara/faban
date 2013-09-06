@@ -350,6 +350,7 @@ public class GenericBenchmark {
             if (serviceMgr != null){
             	if(needLogs){
             		serviceMgr.getLogs();
+            		needLogs=false;
             	}
                 serviceMgr.shutdown();
             }
@@ -374,6 +375,13 @@ public class GenericBenchmark {
      */
     public void kill() {
         runStatus = Run.KILLED;
+        if (serviceMgr != null){
+        	if(needLogs){
+        		serviceMgr.getLogs();
+        		needLogs=false;
+        	}
+            serviceMgr.shutdown();
+        }
         _kill();
     }
 
