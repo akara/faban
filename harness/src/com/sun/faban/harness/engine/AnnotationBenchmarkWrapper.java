@@ -48,6 +48,7 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
 
     AnnotationBenchmarkWrapper(Class benchmarkClass) throws Exception {
         Method[] methods = benchmarkClass.getMethods();
+        String benchmarkClassName = benchmarkClass.getName();
         for (Method method : methods) {
             // Check annotation.
             if (method.getAnnotation(Validate.class) != null) {
@@ -56,7 +57,7 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
                 if (validateMethod == null) {
                     validateMethod = method;
                 } else {
-                    logger.severe("Error: Multiple @Validate methods.");
+                    logger.severe("Error: Multiple @Validate methods in "+benchmarkClassName+".");
                     //throw new Error ("Multiple @Validate methods.");
                 }
             }
@@ -66,7 +67,7 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
                 if (configureMethod == null) {
                     configureMethod = method;
                 } else {
-                    logger.severe("Error: Multiple @Configure methods.");
+                    logger.severe("Error: Multiple @Configure methods in "+benchmarkClassName+".");
                     //throw new Error ("Multiple @Configure methods.");
                 }
             }
@@ -76,7 +77,7 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
                 if (preRunMethod == null) {
                     preRunMethod = method;
                 } else {
-                    logger.severe("Error: Multiple @PreRun methods.");
+                    logger.severe("Error: Multiple @PreRun methods in "+benchmarkClassName+".");
                     //throw new Error ("Multiple @PostRun methods.");
                 }
             }
@@ -86,7 +87,7 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
                 if (startMethod == null) {
                     startMethod = method;
                 } else {
-                    logger.severe("Error: Multiple @Start methods.");
+                    logger.severe("Error: Multiple @Start methods in "+benchmarkClassName+".");
                     //throw new Error ("Multiple @Start methods.");
                 }
             }
@@ -96,7 +97,7 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
                 if (endMethod == null) {
                     endMethod = method;
                 } else {
-                    logger.severe("Error: Multiple @End methods.");
+                    logger.severe("Error: Multiple @End methods in "+benchmarkClassName+".");
                     //throw new Error ("Multiple @End methods.");
                 }
             }
@@ -106,7 +107,7 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
                 if (postRunMethod == null) {
                     postRunMethod = method;
                 } else {
-                    logger.severe("Error: Multiple @PostRun methods.");
+                    logger.severe("Error: Multiple @PostRun methods in "+benchmarkClassName+".");
                     //throw new Error ("Multiple @PostRun methods.");
                 }
             }
@@ -116,7 +117,7 @@ public class AnnotationBenchmarkWrapper extends BenchmarkWrapper {
                 if (killMethod == null) {
                     killMethod = method;
                 } else {
-                    logger.severe("Error: Multiple @Kill methods.");
+                    logger.severe("Error: Multiple @Kill methods in "+benchmarkClassName+".");
                     //throw new Error ("Multiple @Kill methods.");
                 }
             }
