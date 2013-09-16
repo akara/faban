@@ -1470,6 +1470,42 @@ public class ApacheHC3Transport extends HttpTransport {
     }
 
     /**
+     * Makes a OPTIONS request to the URL. Reads data back and returns the data
+     * read. Note that this method only works with text data as it does the
+     * byte-to-char conversion. This method will return null for responses
+     * with binary MIME types. The addTextType(String) method is used to
+     * register additional MIME types as text types. Use getContentSize() to
+     * obtain the bytes of binary data read.
+     *
+     * @param url     The URL to read from
+     * @param headers The request headers, or null
+     * @return The StringBuilder buffer containing the resulting document
+     * @throws java.io.IOException
+     */
+    public StringBuilder optionsURL(String url, Map<String, String> headers)
+            throws IOException {
+        OptionsMethod method = new OptionsMethod(url);
+        method.setFollowRedirects(followRedirects);
+        setHeaders(method, headers);
+        try {
+            responseCode = hc.executeMethod(method);
+            buildResponseHeaders(method);
+            return fetchResponse(method);
+        } finally {
+            method.releaseConnection();
+        }
+    }
+
+    public StringBuilder optionsURL(URL url, Map<String, String> headers)
+            throws IOException {
+        return optionsURL(url.toString(), headers);
+    }
+
+    public StringBuilder optionsURL(URL url) throws IOException {
+        return optionsURL(url.toString(), null);
+    }
+
+    /**
      * Obtains the list of cookie values by the name of the cookies.
      * @param name The cookie name
      * @return An array of non-duplicating cookie values.
