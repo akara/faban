@@ -157,6 +157,13 @@ public class ServiceContext implements Serializable {
     }
 
     /**
+     * Check if service restart is enabled
+     * @return <code>true</code> if restart is enabled
+     */
+    public boolean isRestart(){
+    	return restart;
+    }
+    /**
      * Obtains host role.
      * @return host role
      */
