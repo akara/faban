@@ -175,14 +175,16 @@ public class CmdAgentImpl extends UnicastRemoteObject
                 logger.log(Level.INFO, ex.getMessage() , ex);
             }
 
-            ArrayList<String> libList = new ArrayList<String>();
-            getClassPath(Config.SERVICE_DIR + path + "/lib/", libList);
-            if (libList.size() > 0) {
-                if (servicesClassPath.get(path) == null) {
-                    servicesClassPath.put(path, libList);
-                    allClassPathList.addAll(libList);
-                }
+            List<String> libList = servicesClassPath.get(path);
+            //servicesClassPath will return null if the service has not been seen before
+            if (libList==null){
+            	libList = new ArrayList<String>();
+            	getClassPath(Config.SERVICE_DIR + path + "/lib/", libList);
+            	servicesClassPath.put(path, libList);
             }
+
+            allClassPathList.addAll(libList);
+            
         }
         for (String classPath : baseClassPath)
             allClassPathList.add(classPath);
@@ -611,7 +613,7 @@ public class CmdAgentImpl extends UnicastRemoteObject
     }
 
     private static void getClassPath(String libDirPath,
-                                     ArrayList<String> libList) {
+                                     List<String> libList) {
         File libDir = new File(libDirPath);
         if (libDir.isDirectory()) {
             File[] libFiles = libDir.listFiles();
