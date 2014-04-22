@@ -24,6 +24,7 @@
 package com.sun.faban.driver.transport.sunhttp;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.*;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -40,8 +41,14 @@ import java.security.PrivilegedAction;
  */
 public class HttpClient extends sun.net.www.http.HttpClient {
 
+    private static Method getMethod;
     static {
         kac = new KeepAliveCache();
+	try {
+	    getMethod = kac.getClass().getMethod("get", new Class[]{ URL.class, Object.class } );
+	} catch (NoSuchMethodException nsme) {
+	    throw new ExceptionInInitializerError(nsme);
+	}
     }
 
     /** Superclass' inCache is private. Needed to define and check usage. */
@@ -84,7 +91,11 @@ public class HttpClient extends sun.net.www.http.HttpClient {
         HttpClient ret = null;
         /* see if one's already around */
         if (useCache) {
-            ret = (HttpClient) kac.get(url, null);
+	    try {
+                ret = (HttpClient) getMethod.invoke(kac, new Object[]{url, null});
+	    } catch (Exception iae) {
+	        throw new IOException("Can't invoke on KeepAliveCache", iae);
+	    }
             if (ret != null) {
                 if ((ret.proxy != null && ret.proxy.equals(p)) ||
                         (ret.proxy == null && p == null)) {
