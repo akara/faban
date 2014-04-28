@@ -1,5 +1,7 @@
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.logging.Logger; // debug only
 
@@ -11,6 +13,7 @@ import com.sun.faban.driver.util.Random;
 
 @BenchmarkDriver (
  name  = "@BenchmarkDriverName@",
+ percentiles = { "90th", "95th", "99th" },
  threadPerScale = 1 
 )
 
@@ -22,6 +25,7 @@ private HttpTransport httpTransport;
 private DriverContext ctx;
 private Random random;
 private ContentSizeStats contentStats = null;
+private Map<String,String> headers = new HashMap<String,String>();
 
 public @DriverClassName@(){
      HttpTransport.setProvider("@ProviderClass@");
@@ -30,6 +34,7 @@ public @DriverClassName@(){
      random = ctx.getRandom();
      contentStats = new ContentSizeStats(ctx.getOperationCount());
      ctx.attachMetrics(contentStats);
+     headers.put("Accept-Language", "en-us,en;q=0.5");
 }
 
 private static String doEncode(String s) {
@@ -65,8 +70,9 @@ public void @operationName@() throws Exception{
 	try{
             String url = @url@;
 	 	@doKbps@
+		@doHeaders@
 	    @doTiming@
-            int bytesRead = httpTransport.readURL(url@postRequest@);
+            int bytesRead = httpTransport.readURL(url@postRequest@, headers);
             //System.out.println("url:"+url);
 
 	    @doTiming@

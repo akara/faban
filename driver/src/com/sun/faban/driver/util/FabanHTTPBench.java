@@ -27,8 +27,10 @@ import com.sun.faban.driver.engine.RunInfo;
 import com.sun.faban.driver.ConfigurationException;
 import com.sun.faban.common.TextTable;
 import com.sun.faban.common.ParamReader;
+import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -93,6 +95,7 @@ public class FabanHTTPBench {
     private static boolean save = false;
     private static boolean substitute = false;
     private static String kbps = "-1";
+    private static String accept = null;
     private static boolean isBinary = false;
     private static String thinkTime = "0";
     private static final int CYCLE_DEVIATION = 1;
@@ -227,6 +230,12 @@ public class FabanHTTPBench {
 		tmp.setPrefix("");
 		tmp.appendChild(doc.createTextNode(kbps));
 		op.appendChild(tmp);
+        if (accept != null) { 
+            tmp = doc.createElementNS(RunInfo.DRIVERURI, "accept");
+            tmp.setPrefix("");
+            tmp.appendChild(doc.createTextNode(accept));
+            op.appendChild(tmp);
+        }
         if (postRequest) {
             tmp = doc.createElementNS(RunInfo.DRIVERURI, "post");
             tmp.setAttributeNS(null, "binary", Boolean.toString(isBinary));
@@ -378,30 +387,38 @@ public class FabanHTTPBench {
         if (txCount <= 1) {
             System.out.println("avg. time: " + getValue(doc, "avg"));
             System.out.println("max time: " + getValue(doc, "max"));
-            String p90th = getValue(doc, "p90th");
-            System.out.println("90th %: " + p90th);
-            if (p90th.startsWith(">") || Double.parseDouble(p90th) > ninetyPct)
+            String percentile = getValue(doc, "percentile", "nth", "90");
+            System.out.println("90th %: " + percentile);
+            if (percentile.startsWith(">") || Double.parseDouble(percentile) > ninetyPct)
                 System.out.println("ERROR: Missed target 90% of " + ninetyPct);
+		    percentile = getValue(doc, "percentile", "nth", "95");
+			System.out.println("95th %: " + percentile);
+			percentile = getValue(doc, "percentile", "nth", "99");
+			System.out.println("99th %: " + percentile);
         } else {
-            TextTable table = new TextTable(txCount, 5);
+            TextTable table = new TextTable(txCount, 7);
             table.setHeader(0, "Response Times");
             table.setHeader(1, "Avg");
             table.setHeader(2, "Max");
             table.setHeader(3, "90th%");
-            table.setHeader(4, "");
+            table.setHeader(4, "95th%");
+            table.setHeader(5, "99th%");
+            table.setHeader(6, "");
 
             for (int i = 0; i < txCount; i++) {
                 Node opNode = nodeList.item(i);
                 table.setField(i, 0, xPath.evaluate("@name", opNode));
                 table.setField(i, 1, xPath.evaluate("avg", opNode));
                 table.setField(i, 2, xPath.evaluate("max", opNode));
-                table.setField(i, 3, xPath.evaluate("p90th", opNode));
+                table.setField(i, 3, getValue(opNode, "percentile", "nth", "90"));
+                table.setField(i, 4, getValue(opNode, "percentile", "nth", "95"));
+                table.setField(i, 5, getValue(opNode, "percentile", "nth", "99"));
                 boolean passed = Boolean.parseBoolean(
                                     xPath.evaluate("passed", opNode));
                 if (passed)
-                    table.setField(i, 4, "PASSED");
+                    table.setField(i, 6, "PASSED");
                 else
-                    table.setField(i, 4, "FAILED");
+                    table.setField(i, 6, "FAILED");
             }
             table.format(System.out);
         }
@@ -435,6 +452,24 @@ public class FabanHTTPBench {
     private static String getValue(Document doc, String s) {
         return doc.getElementsByTagName(s).item(0).getChildNodes().
                 item(0).getNodeValue().trim();
+    }
+
+    private static String getValue(Node node, String s, String attr, String value) {
+		NodeList nl = node.getChildNodes();
+        for (int i = 0; i < nl.getLength(); i++) {
+            Node n = nl.item(i);
+            NamedNodeMap nnm = n.getAttributes();
+		    if (nnm == null) {
+				continue;
+			}
+            for (int j = 0; j < nnm.getLength(); j++) {
+                Attr a = (Attr) nnm.item(j);
+                if (a.getName().equals(attr) && a.getValue().equals(value)) {
+                    return n.getChildNodes().item(0).getNodeValue().trim();
+                }
+            }
+        }
+        return null;
     }
 
     private static void cleanUp() {
@@ -512,6 +547,9 @@ public class FabanHTTPBench {
                 case 'V':
                     System.out.println("Faban cd: Version 0.1");
                     System.exit(0);
+				case 'z':
+				    accept = args[++i];
+					break;
                 case 'h':
                 default:
                     usage();
@@ -578,6 +616,7 @@ public class FabanHTTPBench {
                                                 "query string or POST data");
         System.err.println("\t-K Set speed of sockets to in kilobytes/sec");
         System.err.println("\t-k NOTE : Keep alive is always on");
+        System.err.println("\t-z mime-type :  Include the given mime-type(s) in the accept-headers");
         System.exit(-1);
     }
 }
