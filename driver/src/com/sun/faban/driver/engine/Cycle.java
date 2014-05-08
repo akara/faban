@@ -23,21 +23,35 @@
  */
 package com.sun.faban.driver.engine;
 
+import com.sun.faban.driver.ConfigurationException;
 import com.sun.faban.driver.CycleType;
 import com.sun.faban.driver.DefinitionException;
 import com.sun.faban.driver.util.Random;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
+import java.util.logging.Logger;
 
 /**
  * Super class of all distributions.
  */
 public abstract class Cycle implements Serializable, Cloneable {
 
-    CycleType cycleType;
+    CycleType cycleType = CycleType.CYCLETIME;
     double cycleDeviation;
 
+    protected transient Logger logger;
+
+    public Cycle() {
+        logger = Logger.getLogger(this.getClass().getName());
+    }
+
+    protected Logger getLogger() {
+    	return logger;
+    }
    
     /**
      * Makes a deep copy of this cycle object.
@@ -149,4 +163,43 @@ public abstract class Cycle implements Serializable, Cloneable {
      * @return The max reasonable delay to be presented in the output histogram.
      */
     public abstract double getHistogramMax();
+
+    public final void configure(Element e) throws ConfigurationException {
+        NodeList nl = e.getElementsByTagNameNS(
+                        RunInfo.DRIVERURI, "cycleType");
+        if (nl.getLength() > 1) {
+            String msg = "Bad cycleType definition; must have only one per cycle Time";
+            getLogger().severe(msg);
+            ConfigurationException ce = new ConfigurationException(msg);
+            getLogger().throwing(getClass().getName(), "configure", ce);
+            throw ce;
+        }
+        if (nl.getLength() == 1) {
+            String s = nl.item(0).getFirstChild().getNodeValue();
+            if ("CYCLETIME".equals(s)) {
+                cycleType = CycleType.CYCLETIME;
+            } else if ("THINKTIME".equals(s)) {
+                cycleType = CycleType.THINKTIME;
+            }
+            else getLogger().warning("Ignoring unknown cycletype " + s);
+        }
+        nl = e.getElementsByTagNameNS(
+		RunInfo.DRIVERURI, "cycleDeviation");
+        if (nl.getLength() > 1) {
+            String msg = "Bad cycleDeviation definition; must have only one per cycle Time";
+            getLogger().severe(msg);
+            ConfigurationException ce = new ConfigurationException(msg);
+            getLogger().throwing(getClass().getName(), "configure", ce);
+            throw ce;
+        }
+        if (nl.getLength() == 1) {
+            cycleDeviation = Double.parseDouble(nl.item(0).getFirstChild().getNodeValue());
+	}
+	configureSubclass(e);
+    }
+
+    protected void configureSubclass(Element e) throws ConfigurationException {
+        throw new UnsupportedOperationException(this.getClass().getName() + 
+	     " does not support overriding configuration information");
+    }
 }

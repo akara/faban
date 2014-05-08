@@ -26,7 +26,9 @@ package com.sun.faban.driver.engine;
 import com.sun.faban.driver.ConfigurationException;
 import com.sun.faban.driver.DefinitionException;
 import com.sun.faban.driver.util.Random;
+
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
@@ -238,5 +240,85 @@ public abstract class Mix implements Serializable, Cloneable {
          * if applicable.
          */
         public abstract void reset();
+    }
+
+
+    /**
+     * Allows the cycle times for each operation in the mix to be overridden
+     * by the configuration file. It is assumed that the cycle times for the
+     * operations have already been initialized (from the annotations, when
+     * the init method was called).
+     *
+     * Ideally this could be part of the configure() method, but the
+     * implementation here is common to all Mix classes, while the configure
+     * method is specific to each Mix.
+	 *
+	 * The format is as follows:
+	 * <pre>
+	 *   <cycleTime>
+	 *     <classname>fully-qualified class name</classname>
+	 *	   <values>
+	 *	     ... xml fields to set specific value for mix ...
+	 *	   </values>
+	 *     <name>operation name</name>
+	 *		... can have 0 or more names ...
+	 *      ... if no name is specified, apply to all operations ...
+	 *   </cycleTime>
+	 *   .. can have 0 or more cycle times ...
+	 * </pre>
+     */
+    public void configureCycles(Element driverConfigNode) throws ConfigurationException {
+	    NodeList cycleTimes = driverConfigNode.getElementsByTagNameNS(
+								RunInfo.DRIVERURI,
+								"cycleTime");
+		int nCycles = cycleTimes.getLength();
+		for (int i = 0; i < nCycles; i++) {
+		    Element cycleTime = (Element) cycleTimes.item(i);
+			NodeList nl = cycleTime.getElementsByTagNameNS(
+							RunInfo.DRIVERURI, "classname");
+		    if (nl.getLength() != 1) {
+			    String msg = "Badly configured cycle time; you must have one and only one classname";
+				getLogger().severe(msg);
+				ConfigurationException ce = new ConfigurationException(msg);
+				getLogger().throwing(className, "configure", ce);
+				throw ce;
+		    }
+			Cycle cycle;
+			try {
+			    String className = nl.item(0).getFirstChild().getNodeValue();
+			    Class clazz = Class.forName(className);
+				cycle = (Cycle) clazz.newInstance();
+				cycle.configure(cycleTime);
+		    } catch (Exception e) {
+			    String msg = "Can't create cycle";
+				getLogger().severe(msg);
+				ConfigurationException ce = new ConfigurationException(msg, e);
+				getLogger().throwing(className, "configure", ce);
+				throw ce;
+			}
+			NodeList names = cycleTime.getElementsByTagNameNS(
+					RunInfo.DRIVERURI, "name");
+		    int nNames = names.getLength();
+			if (nNames == 0) {
+			    // Apply to all operations
+				for (int curOp = 0; curOp < operations.length; curOp++) {
+				    operations[curOp].cycle = cycle;
+				}
+			}
+			else for (int curName = 0; curName < nNames; curName++) {
+				String name = names.item(curName).getFirstChild().getNodeValue();
+				boolean found = false;
+				for (int curOp = 0; curOp < operations.length; curOp++) {
+				    if (operations[curOp].name.equals(name)) {
+					    found = true;
+						operations[curOp].cycle = cycle;
+						break;
+					}
+				}
+				if (!found) {
+				    getLogger().warning("No benchmark operation found for " + name);
+				}
+			}
+		}
     }
 }

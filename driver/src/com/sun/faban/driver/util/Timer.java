@@ -23,6 +23,7 @@
  */
 package com.sun.faban.driver.util;
 
+import com.sun.faban.common.Utilities;
 import com.sun.faban.driver.FatalException;
 import com.sun.faban.driver.util.timermeter.TimerMeter;
 
@@ -124,8 +125,8 @@ public class Timer implements Serializable {
                 continue;
             }
 
-            diffms[i] = millis - nanos / 1000000l;
-            diffns[i] = (int) (nanos % 1000000l);
+            diffms[i] = millis - nanos / Utilities.TO_NANOS;
+            diffns[i] = (int) (nanos % Utilities.TO_NANOS);
             logger.finer("iter: " + i + ", millis: " + millis +
                     ", nanos: " + nanos + ", diffms: " + diffms[i] +
                     ", diffns: " + diffns[i] + ", stepms: " + clockStep[i]);
@@ -190,7 +191,7 @@ public class Timer implements Serializable {
             if (clockStep[i] > msStep) // again, ignore bad records
                 continue;
             if (diffms[i] < maxDiffMs) {
-                diffns[i] += (maxDiffMs - diffms[i]) * 1000000l;
+                diffns[i] += (maxDiffMs - diffms[i]) * Utilities.TO_NANOS;
                 diffms[i] = maxDiffMs;
             }
         }
@@ -260,7 +261,7 @@ public class Timer implements Serializable {
 
         // Based on our local differences between the nanos and millis clock
         // clock, we calculate the base nanose based on the given base millis.
-        return (baseMillis - this.diffms) * 1000000l + this.diffns;
+        return (baseMillis - this.diffms) * Utilities.TO_NANOS + this.diffns;
     }
 
     /**
@@ -279,7 +280,7 @@ public class Timer implements Serializable {
         long avgNs = (ns2 - ns1) / 2 + ns1;
         this.diffms = ms - avgNs / 1000000;
         this.diffns = (int) (avgNs % 1000000);
-        return (baseMillis - this.diffms) * 1000000l + this.diffns;
+        return (baseMillis - this.diffms) * Utilities.TO_NANOS + this.diffns;
     }
 
     private Logger getLogger() {
@@ -294,7 +295,7 @@ public class Timer implements Serializable {
      * @return The corresponding nanosec time
      */
     public long toAbsNanos(int relTimeMillis) {
-        return (relTimeMillis + epochMillis - diffms) * 1000000l + diffns;
+        return (relTimeMillis + epochMillis - diffms) * Utilities.TO_NANOS + diffns;
     }
 
     /**
@@ -304,7 +305,7 @@ public class Timer implements Serializable {
      * @return The absolute time in millisecs
      */
     public long toAbsMillis(long relTimeNanos) {
-        return (relTimeNanos + epochNanos) / 1000000l + diffms;
+        return (relTimeNanos + epochNanos) / Utilities.TO_NANOS + diffms;
     }
 
     /**
@@ -365,7 +366,7 @@ public class Timer implements Serializable {
         // But that's better than not rounding up at all.
 
         // Make a single atomic int assignment in order to avoid race conditions
-        this.compensation = compensation * 1000000l;
+        this.compensation = compensation * Utilities.TO_NANOS;
     }
 
     /**
@@ -399,7 +400,7 @@ public class Timer implements Serializable {
         if ((currentTime = System.nanoTime()) < wakeupTime - compensation)
             try {
                 long sleepTime = wakeupTime - currentTime - compensation;
-                Thread.sleep(sleepTime / 1000000l, (int) (sleepTime % 1000000l));
+                Thread.sleep(sleepTime / Utilities.TO_NANOS, (int) (sleepTime % Utilities.TO_NANOS));
             } catch (InterruptedException e) {
                 throw new RuntimeException(
                         "Sleep interrupted. Run terminating.");
@@ -594,7 +595,7 @@ public class Timer implements Serializable {
                 int intendedSleep = random.nextInt(21) + 10;
                 if (maxSleep == -1) // Set maxSleep for first check.
                     // maxSleep is in ns
-                    maxSleep = intendedSleep * 1000000l;
+                    maxSleep = intendedSleep * Utilities.TO_NANOS;
                 if (timeAfter + maxSleep >= endTime) {
                     setDeviation((double) devSum/count); // Final one.
                     break;
@@ -609,7 +610,7 @@ public class Timer implements Serializable {
                 if (timeAfter > timeBefore) { // If not interrupted.
                     // actualSleep is in ns, intendedSleep is in ms.
                     long actualSleep = timeAfter - timeBefore;
-                    long deviation = actualSleep - intendedSleep * 1000000l;
+                    long deviation = actualSleep - intendedSleep * Utilities.TO_NANOS;
                     devSum += deviation;
                     ++count;
                     // deviation is in ns here
@@ -625,14 +626,14 @@ public class Timer implements Serializable {
             // Test for qualifying final compensation...
             if (!isDebug() && compensation > 100000000l) {
                 logger.severe(id + ": System needed time compensation " +
-                        "of " + compensation / 1000000l + ".\nValues over " +
+                        "of " + compensation / Utilities.TO_NANOS + ".\nValues over " +
                         "100ms are unacceptable for a driver. \nPlease use a " +
                         "faster system or tune the driver JVM/GC.\nExiting...");
                 System.exit(1);
             }
             logger.info(id + ": Calibration succeeded. Sleep time " +
-                    "deviation: " + (getDeviation() / 1000000l) +
-                    " ms, compensation: " + (compensation / 1000000l) + " ms.");
+                    "deviation: " + (getDeviation() / Utilities.TO_NANOS) +
+                    " ms, compensation: " + (compensation / Utilities.TO_NANOS) + " ms.");
         }
     }
 }

@@ -23,9 +23,15 @@
  */
 package com.sun.faban.driver.engine;
 
+import com.sun.faban.common.Utilities;
+import com.sun.faban.driver.ConfigurationException;
 import com.sun.faban.driver.util.Random;
 import com.sun.faban.driver.DefinitionException;
 import com.sun.faban.driver.CycleType;
+
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
 import java.lang.annotation.Annotation;
 import java.io.IOException;
 
@@ -38,7 +44,7 @@ public class FixedTime extends Cycle {
 
 	private static final long serialVersionUID = 1L;
     
-	long cycleTime;
+	long cycleTime = 1000 * Utilities.TO_NANOS;
 
     /**
      * Initializes this cycle according to the annotation.
@@ -50,7 +56,7 @@ public class FixedTime extends Cycle {
                 (com.sun.faban.driver.FixedTime) a;
         cycleType = cycleDef.cycleType();
         cycleDeviation = cycleDef.cycleDeviation();
-        cycleTime = cycleDef.cycleTime() * 1000000l;
+        cycleTime = cycleDef.cycleTime() * Utilities.TO_NANOS;
 
         // Now check parameters for validity.
         if (cycleTime == 0 && cycleType == CycleType.CYCLETIME) {
@@ -93,5 +99,28 @@ public class FixedTime extends Cycle {
     private void readObject(java.io.ObjectInputStream in)
             throws IOException, ClassNotFoundException {
         in.defaultReadObject();
+    }
+
+    /**
+     * Configure the cycle based on an XML fragment from the configuration
+     * file. The format of the fragment is:
+     *
+     * <pre>
+     * <cycleTime>min</cycleTime>
+     * </pre>
+     */
+    protected void configureSubclass(Element e) throws ConfigurationException {
+        NodeList nl = e.getElementsByTagNameNS(
+                        RunInfo.DRIVERURI, "cycleTime");
+	if (nl.getLength() > 1) {
+            String msg = "Bad cycleTime definition; must have only one per cycleTime";
+            getLogger().severe(msg);
+            ConfigurationException ce = new ConfigurationException(msg);
+            getLogger().throwing(getClass().getName(), "configure", ce);
+            throw ce;
+        }
+        if (nl.getLength() == 1) {
+            cycleTime = Long.parseLong(nl.item(0).getFirstChild().getNodeValue()) * Utilities.TO_NANOS;
+        }
     }
 }

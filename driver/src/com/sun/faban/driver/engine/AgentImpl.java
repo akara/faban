@@ -260,7 +260,7 @@ public class AgentImpl extends UnicastRemoteObject
                 preRunLatch = null;
 
                 earliestStartTime = System.nanoTime() +
-                        runInfo.msBetweenThreadStart * 1000000L;
+                        runInfo.msBetweenThreadStart * Utilities.TO_NANOS;
             }
             if (runAborted) {
                 logger.warning(displayName +
@@ -287,7 +287,7 @@ public class AgentImpl extends UnicastRemoteObject
         timer.idleTimerCheck(displayName);
 
         // Create the required number of threads
-        long nsBetweenThreadStart = runInfo.msBetweenThreadStart * 1000000L;
+        long nsBetweenThreadStart = runInfo.msBetweenThreadStart * Utilities.TO_NANOS;
         try {
             // We use System.nanoTime() here directly
             // instead of timer.getTime().
@@ -734,7 +734,7 @@ public class AgentImpl extends UnicastRemoteObject
                         logger.warning("Null RuntimeStats");
                     try {
                         rtm.timestamp = (int) ((System.nanoTime() - startTime) /
-                                1000000l);
+                                Utilities.TO_NANOS);
                         rtm.sequence = sequence;
                         master.updateMetrics(rtm);
                     } catch (RemoteException e) {

@@ -24,6 +24,7 @@
 package com.sun.faban.driver.engine;
 
 import com.sun.faban.common.FabanNamespaceContext;
+import com.sun.faban.common.Utilities;
 import com.sun.faban.driver.CustomMetrics;
 import com.sun.faban.driver.CustomTableMetrics;
 import com.sun.faban.driver.Timing;
@@ -503,7 +504,7 @@ public class DriverContext extends com.sun.faban.driver.DriverContext {
      * @return The relative time steady state starts
      */
 	public int getSteadyStateStart() {
-        return (int) (timer.toRelTime(agentThread.endRampUp) / 1000000l);
+        return (int) (timer.toRelTime(agentThread.endRampUp) / Utilities.TO_NANOS);
     }
 
     /**

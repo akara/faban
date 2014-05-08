@@ -146,7 +146,6 @@ public class FlatMix extends Mix {
      */
 	public void configure(Element driverConfigNode)
             throws ConfigurationException {
-
         /* The format is as follows:
         <operationMix>
             <name>operationF</name><r>40</r>

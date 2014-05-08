@@ -515,7 +515,7 @@ public class Metrics implements Serializable, Cloneable,
      * further processing.
      */
     public void wrap() {
-        endTime = (endTimeNanos - thread.agent.startTime) / 1000000l;
+        endTime = (endTimeNanos - thread.agent.startTime) / Utilities.TO_NANOS;
     }
 
     /**

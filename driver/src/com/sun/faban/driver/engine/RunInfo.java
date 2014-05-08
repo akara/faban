@@ -396,7 +396,6 @@ public class RunInfo implements Serializable {
         }
         
         private String getRequestLagTime(Object node) throws Exception {
-            
             Element rltNode = (Element) xp.evaluate("fd:requestLagTime/*[1]",
                     node, XPathConstants.NODE);
             
@@ -1224,6 +1223,7 @@ public class RunInfo implements Serializable {
                 driverConfig.properties = (Element) xp.evaluate("fd:properties",
                         driverConfigNode, XPathConstants.NODE);
                 driverConfig.mix[0].configure(driverConfigNode);
+                driverConfig.mix[0].configureCycles(driverConfigNode);
                 driverConfig.mix[0].normalize();
                 runInfo.driverConfigs[i] = driverConfig;
                 

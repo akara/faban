@@ -34,6 +34,8 @@ import java.util.regex.Matcher;
  */
 public class Utilities {
 
+    public static final long TO_NANOS = 1000000L;
+
     /** The file separator on the master. */
     public static String masterFileSeparator;
 

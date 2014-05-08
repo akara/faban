@@ -23,9 +23,14 @@
  */
 package com.sun.faban.driver.engine;
 
+import com.sun.faban.common.Utilities;
 import com.sun.faban.driver.util.Random;
-import com.sun.faban.driver.DefinitionException;
+import com.sun.faban.driver.ConfigurationException;
 import com.sun.faban.driver.CycleType;
+import com.sun.faban.driver.DefinitionException;
+
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import java.lang.annotation.Annotation;
 
@@ -37,8 +42,8 @@ import java.lang.annotation.Annotation;
 public class Uniform extends Cycle {
 
 	private static final long serialVersionUID = 1L;
-	long cycleMin;
-    long cycleMax;
+	long cycleMin = 1000 * Utilities.TO_NANOS;
+    long cycleMax = 1000 * Utilities.TO_NANOS;
 
     /**
      * Initializes this cycle according to the annotation.
@@ -68,8 +73,8 @@ public class Uniform extends Cycle {
                     "@Uniform CYCLETIME cycleMax cannot be 0");
 		}
         // Adjust time to nanosec.
-        cycleMin *= 1000000l;
-        cycleMax *= 1000000l;
+        cycleMin *= Utilities.TO_NANOS;
+        cycleMax *= Utilities.TO_NANOS;
 
     }
 
@@ -99,5 +104,43 @@ public class Uniform extends Cycle {
         // This case can only happen for think time. Giving a histogram
         // max of 2 seconds for data prep should be enough.
         return 2d;
+    }
+
+    /**
+     * Configure the cycle based on an XML fragment from the configuration
+     * file. The format of the fragment is:
+     *
+     * <pre>
+     * <cycleType>CYCLETIME</cycleType>  -- or THINKTIME
+     * <cycleMin>min</cycleMin>
+     * <cycleMax>max</cycleMax>
+     * <cycleDeviation>deviation</cycleDeviation>
+     * </pre>
+     */
+    protected void configureSubclass(Element e) throws ConfigurationException {
+        NodeList nl = e.getElementsByTagNameNS(
+                        RunInfo.DRIVERURI, "cycleMin");
+        if (nl.getLength() > 1) {
+            String msg = "Bad cycleMin definition; must have only one per cycleTime";
+            getLogger().severe(msg);
+            ConfigurationException ce = new ConfigurationException(msg);
+            getLogger().throwing(getClass().getName(), "configure", ce);
+            throw ce;
+        }
+        if (nl.getLength() == 1) {
+            cycleMin = Long.parseLong(nl.item(0).getFirstChild().getNodeValue())* Utilities.TO_NANOS;
+        }
+        nl = e.getElementsByTagNameNS(
+                        RunInfo.DRIVERURI, "cycleMax");
+        if (nl.getLength() > 1) {
+            String msg = "Bad cycleMax definition; must have only one per cycleTime";
+            getLogger().severe(msg);
+            ConfigurationException ce = new ConfigurationException(msg);
+            getLogger().throwing(getClass().getName(), "configure", ce);
+            throw ce;
+        }
+        if (nl.getLength() == 1) {
+            cycleMax = Long.parseLong(nl.item(0).getFirstChild().getNodeValue())* Utilities.TO_NANOS;
+        }
     }
 }
