@@ -24,6 +24,7 @@
 package com.sun.faban.driver.transport.hc3;
 
 import com.sun.faban.driver.HttpTransport;
+
 import org.apache.commons.httpclient.*;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.apache.commons.httpclient.methods.*;
@@ -291,6 +292,7 @@ public class ApacheHC3Transport extends HttpTransport {
             }
         }
 
+        List<NameValuePair> parameters = new ArrayList<NameValuePair>();
         // If none of both, just treat it as html.
         int idx = 0;
         if (request == null || request.length() == 0)
@@ -303,13 +305,13 @@ public class ApacheHC3Transport extends HttpTransport {
                 endIdx = request.length();
             int eqIdx = request.indexOf('=', idx);
             if (eqIdx != -1 && eqIdx < endIdx) {
-                method.setParameter(request.substring(idx, eqIdx),
-                                    request.substring(eqIdx + 1, endIdx));
+                parameters.add(new NameValuePair(request.substring(idx, eqIdx), request.substring(eqIdx + 1, endIdx)));
             } else {
-                method.setParameter(request.substring(idx, endIdx), null);
+                parameters.add(new NameValuePair(request.substring(idx, endIdx), null));
             }
             idx = endIdx + 1;
         } while (idx < request.length());
+        method.addParameters(parameters.toArray(new NameValuePair[parameters.size()]));
     }
 
     private void buildResponseHeaders(HttpMethod method) {
