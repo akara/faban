@@ -488,6 +488,7 @@ public class RunInfo implements Serializable {
             String url;
             String data;
             String kbps = "-1";
+            String headers = "";
 
             abstract String getURL(int opNum);
 
@@ -505,19 +506,31 @@ public class RunInfo implements Serializable {
                     return "";
                 return "httpTransport.setDownloadSpeed(" + kbps + ");\n";
             }
+
+            String getHeaders(int opNum) {
+               return headers;
+            }
             
             abstract String getPostRequest(int opNum) throws Exception;
             
             abstract String getStatics(int opNum) throws Exception;
 
             public void init(boolean doSubst, boolean isBinary,
-                             String url, String data, String kbps) {
+                             String url, String data, String kbps, String accept) {
                 this.doSubst = doSubst;
                 this.isBinary = isBinary;
                 this.url = url;
                 this.data = data;
- 				if (kbps != null)
+ 				if (kbps != null) {
  					this.kbps = kbps;
+                }
+                if (accept != null && accept.length() > 0) {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("headers.put(\"Accept-Encoding\", \"");
+                    sb.append(accept);
+                    sb.append("\");");
+                    this.headers = sb.toString();
+                }
             }
 
             @SuppressWarnings("cast")
@@ -779,6 +792,7 @@ public class RunInfo implements Serializable {
                 String url = xp.evaluate("fd:url", operationNode);
                 String max90th = xp.evaluate("fd:max90th", operationNode);
 				String kbps = xp.evaluate("fd:kbps", operationNode);
+                String accept = xp.evaluate("fd:accept", operationNode);
 
                 String requestString="";
 
@@ -852,13 +866,15 @@ public class RunInfo implements Serializable {
                 } else {
 					rid = new RunInfoGetDefinition();
 				}
-                rid.init(doSubst, isBinary, url, requestString, kbps);
+                rid.init(doSubst, isBinary, url, requestString, kbps, accept);
 
                 //Create the benchmark Operation annotation
                 StringBuilder bmop = new StringBuilder(
                         "@BenchmarkOperation(name = \"").append(operationName);
-                bmop.append("\", max90th=").append(max90th).append(
-                        ", ");
+                bmop.append("\", percentileLimits={ ").
+                     append(max90th).append(", ").
+                     append(max90th).append(", ").
+                     append(max90th).append("}, ");
 				if (provider == TransportProvider.SUN &&
                         url.startsWith("https"))
 					bmop.append("timing = com.sun.faban.driver.Timing.MANUAL");
@@ -882,6 +898,8 @@ public class RunInfo implements Serializable {
                         "@Statics@", rid.getStatics(i));
 				opTemplateClone = opTemplateClone.replaceAll(
 						"@doKbps@", rid.getKbps(i));
+				opTemplateClone = opTemplateClone.replaceAll(
+						"@doHeaders@", rid.getHeaders(i));
 				opTemplateClone = opTemplateClone.replaceAll(
  						"@doTiming@", rid.doTiming(i, provider));
                 
