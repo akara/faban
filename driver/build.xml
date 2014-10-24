@@ -40,7 +40,7 @@
 
     <path id="class.path">
         <fileset dir="lib" includes="*.jar"/>
-        <!--fileset dir="${env.JDK_HOME}/lib" includes="tools.jar"/-->
+        <fileset dir="${env.JDK_HOME}/lib" includes="tools.jar"/>
     </path>
 
     <path id="test.class.path">
