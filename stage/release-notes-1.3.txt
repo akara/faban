@@ -1,0 +1,13 @@
+The following bug fixes went into the 1.3 release. See github.com/akara/faban for details
+
+Description:  Fix for Issue #66. All run.xml should override cycletime/thinktime in benchmark 
+
+Description  Fix for Issue #67. Sun Transport fails under JDK 7
+
+Description:  Fix for Issue #71. Adding multiple parameters to a POST http request is broken. 
+
+Description:  Fix for Issue #73. Driver build error due to commented out env.JDK_HOME 
+
+Description:  Fix for Issue #75. ping -R does not work from Fedora 20 for all hosts
+
+Description:  Fix for Issue #76: fabancli wait command does not return.

@@ -1,0 +1,24 @@
+The following fixes went into the 1.2 release. For detailed information, please see the Issues List on http://github.com/akara/faban
+
+Description:  Fix for Issue #52. Add support for runs comparison using new graphing module
+ This is the one major feature enhancement with detailed comparison of runs
+
+Description  Fix for Issue #53. Allow using JDK 1.7 to compile faban
+
+Description:  Fix for Issue #55. Fix handling of hosts for the common case where the hostname has no dots
+
+Description:  Fix for Issue #56. A freshly checked out faban source tree is not as convenient to build as it could be
+
+Description:  Fix for Issue #57. Service lifecycle (GetLog) interrupted if benchmark throws an exception
+
+Description:  Fix for Issue #59: include service name and host role in log messages
+    
+Description:  Fix for Issue #60: Make registry activity log more info
+
+Description:  Fix for Issue #61: Fix null pointer exception when deleting a run from the web UI
+
+Description:  Fix for Issue #62: add Class name to Annotation error messages
+
+Description:  Fix for Issue #63: Get service logs when benchmark is killed by user
+
+Description:  Fix for Issue #64: Add support for OPTIONS request in ApacheHc3Transport
