@@ -200,10 +200,11 @@ public class CLI {
         GetMethod get = new GetMethod(url);
         for (;;) {
             String status = makeStringRequest(get);
-            if ( "COMPLETED".equals(status) ||
-                    "FAILED".equals(status) ||
-                    "KILLED".equals(status) ) {
+            if ( (status.indexOf("COMPLETED") > -1) ||
+                  (status.indexOf("FAILED") > -1) ||
+                  (status.indexOf("KILLED") > -1) ) {
                 System.out.println(status);
+                break;
             } else {
                 try {
                     Thread.sleep(2000);
