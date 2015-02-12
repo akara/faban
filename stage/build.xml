@@ -73,6 +73,9 @@
             tofile="ant/lib/faban-ant.jar"
             overwrite="true" preservelastmodified="true"
             includeEmptyDirs="true" verbose="true"/>
+        <copy todir="." overwrite="true" preservelastmodified="true">
+            <fileset dir="${workspace.dir}" includes="release-notes-*"/>
+        </copy>
         <mkdir dir="benchmarks"/>
         <mkdir dir="services"/>
         <mkdir dir="bin"/>
