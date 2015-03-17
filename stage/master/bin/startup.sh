@@ -21,11 +21,6 @@ JAVA_VER_STRING=`${JAVA_HOME}/bin/java -version 2>&1`
 JAVA_VERSION=`echo $JAVA_VER_STRING | \
                awk '{ print substr($3, 2, length($3) - 2)}'`
 
-JAVA_VER_STRING=`${JAVA_HOME}/bin/java -version 2>&1`
-
-JAVA_VERSION=`echo $JAVA_VER_STRING | \
-               awk '{ print substr($3, 2, length($3) - 2)}'`
-
 MAJORVER=`echo $JAVA_VERSION | \
                awk '{ split($1, a, "."); print(a[1])}'`
 
