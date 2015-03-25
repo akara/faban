@@ -21,14 +21,17 @@ JAVA_VER_STRING=`${JAVA_HOME}/bin/java -version 2>&1`
 JAVA_VERSION=`echo $JAVA_VER_STRING | \
                awk '{ print substr($3, 2, length($3) - 2)}'`
 
-case $JAVA_VERSION in
-    1.5*);;
-    1.6*);;
-    1.7*);;
-    *) echo "Java version is ${JAVA_VERSION}. Faban needs 1.5 or later." >&2
-       echo "Please install the appropriate JDK and set JAVA_HOME accordingly." >&2
-       exit 1;;
-esac
+MAJORVER=`echo $JAVA_VERSION | \
+               awk '{ split($1, a, "."); print(a[1])}'`
+
+MINORVER=`echo $JAVA_VERSION | \
+               awk '{ split($1, a, "."); print(a[2])}'`
+
+if [ "$MAJORVER" -lt 1 ] || [ "$MAJORVER" -eq 1 ] && [ "$MINORVER" -lt 5 ]; then
+  echo "Java version is ${JAVA_VERSION}. Faban needs 1.5 or later." >&2
+  echo "Please install the appropriate JDK and set JAVA_HOME accordingly." >&2
+  exit 1
+fi
 
 # resolve links - $0 may be a softlink
 PRGDIR=`dirname $0`
