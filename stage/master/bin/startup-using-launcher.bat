@@ -34,6 +34,6 @@ goto setArgs
 :doneSetArgs
 
 rem Execute the Launcher using the "catalina" target
-"%JAVA_HOME%\bin\java.exe" -classpath %PRG%\..;"%PATH%";. LauncherBootstrap -launchfile catalina.xml -verbose catalina %CMD_LINE_ARGS% start
+"%JAVA_HOME%\bin\java.exe" -classpath "%PRG%\..;%PATH%;." LauncherBootstrap -launchfile catalina.xml -verbose catalina %CMD_LINE_ARGS% start
 
 :end
