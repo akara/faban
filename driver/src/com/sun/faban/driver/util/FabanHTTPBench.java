@@ -387,13 +387,13 @@ public class FabanHTTPBench {
         if (txCount <= 1) {
             System.out.println("avg. time: " + getValue(doc, "avg"));
             System.out.println("max time: " + getValue(doc, "max"));
-            String percentile = getValue(doc, "percentile", "nth", "90");
+            String percentile = getValue(nodeList.item(0), "percentile", "nth", "90");
             System.out.println("90th %: " + percentile);
             if (percentile.startsWith(">") || Double.parseDouble(percentile) > ninetyPct)
                 System.out.println("ERROR: Missed target 90% of " + ninetyPct);
-		    percentile = getValue(doc, "percentile", "nth", "95");
+		    percentile = getValue(nodeList.item(0), "percentile", "nth", "95");
 			System.out.println("95th %: " + percentile);
-			percentile = getValue(doc, "percentile", "nth", "99");
+			percentile = getValue(nodeList.item(0), "percentile", "nth", "99");
 			System.out.println("99th %: " + percentile);
         } else {
             TextTable table = new TextTable(txCount, 7);
@@ -455,6 +455,9 @@ public class FabanHTTPBench {
     }
 
     private static String getValue(Node node, String s, String attr, String value) {
+        if (node == null) {
+            return null;
+        }
 		NodeList nl = node.getChildNodes();
         for (int i = 0; i < nl.getLength(); i++) {
             Node n = nl.item(i);
