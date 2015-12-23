@@ -241,7 +241,9 @@ public class RunQ {
      *
      */
     public String[][] listRunQ() {
-        String[][] data = null;
+        //this causes unexpected nullpointer exception later
+    	//String[][] data = null;
+    	String [][] data = new String[0][0];
 
         try {
             File runqDirPath = new File(Config.RUNQ_DIR);
