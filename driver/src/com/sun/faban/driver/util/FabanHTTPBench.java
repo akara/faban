@@ -117,21 +117,24 @@ public class FabanHTTPBench {
      */
     public static void main(String[] args) throws Exception {
 
-        parseArgs(args);
-
-        Document doc;
-        if (runXmlFileName == null) {
-            doc = makeRunXml();
-        } else {
-            doc = editRunXml();
+        try {
+            parseArgs(args);
+   
+            Document doc;
+            if (runXmlFileName == null) {
+                 doc = makeRunXml();
+            } else {
+                 doc = editRunXml();
+            }
+   
+            saveRunXml(doc);
+   
+            run();
+            reportResults();
+        } finally {
+            cleanUp();
+            System.exit(0);
         }
-
-        saveRunXml(doc);
-
-        run();
-        reportResults();
-        cleanUp();
-        System.exit(0);
     }
 
     private static Document makeRunXml() throws ParserConfigurationException {
@@ -387,13 +390,19 @@ public class FabanHTTPBench {
         if (txCount <= 1) {
             System.out.println("avg. time: " + getValue(doc, "avg"));
             System.out.println("max time: " + getValue(doc, "max"));
-            String percentile = getValue(nodeList.item(0), "percentile", "nth", "90");
+            String percentile = (String) xPath.evaluate(
+               "//responseTimes/operation/percentile[@nth='90']", doc,
+                  XPathConstants.STRING);
             System.out.println("90th %: " + percentile);
             if (percentile.startsWith(">") || Double.parseDouble(percentile) > ninetyPct)
                 System.out.println("ERROR: Missed target 90% of " + ninetyPct);
-		    percentile = getValue(nodeList.item(0), "percentile", "nth", "95");
-			System.out.println("95th %: " + percentile);
-			percentile = getValue(nodeList.item(0), "percentile", "nth", "99");
+            percentile = (String) xPath.evaluate(
+            "//responseTimes/operation/percentile[@nth='95']", doc, 
+               XPathConstants.STRING);
+            System.out.println("95th %: " + percentile);
+            percentile = (String) xPath.evaluate(
+            "//responseTimes/operation/percentile[@nth='99']", doc,
+               XPathConstants.STRING);
 			System.out.println("99th %: " + percentile);
         } else {
             TextTable table = new TextTable(txCount, 7);
