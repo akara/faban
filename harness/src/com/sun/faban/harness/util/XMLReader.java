@@ -526,7 +526,7 @@ public class XMLReader {
         }
 
         DOMSource source = new DOMSource(doc);
-        StreamResult result = new StreamResult(new File(file));
+        StreamResult result = new StreamResult(new File(file).getAbsolutePath());
         transformer.transform(source, result);
 
         return true;
