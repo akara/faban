@@ -48,6 +48,9 @@ public class RegistryLocator {
      */
     public static final int DEFAULT_PORT = 9998;
 
+    /** The agent stub socket port. */
+    public static int AGENT_SERVER_PORT = 9982;
+    
     /**
      * The rmi registry bind name used to find the registry - FabanRegistry.
      */

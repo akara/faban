@@ -30,6 +30,7 @@ import com.sun.faban.harness.util.CmdMap;
 import com.sun.faban.harness.util.Invoker;
 
 import java.io.*;
+import java.lang.reflect.Constructor;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
@@ -102,6 +103,15 @@ public class CmdAgentImpl extends UnicastRemoteObject
     // This class must be created only through the main method.
     CmdAgentImpl() throws RemoteException {
         super();
+    }
+    
+    /**
+     * This constructor controls the port allocated to sockets. 
+     * @param port
+     * @throws RemoteException
+     */
+    CmdAgentImpl(int port) throws RemoteException {
+       super(port);
     }
 
     /**
@@ -339,7 +349,8 @@ public class CmdAgentImpl extends UnicastRemoteObject
      */
     public boolean startAgent(Class agentClass, String identifier) throws Exception {
         try {
-            Remote agent = (Remote)agentClass.newInstance();
+        	Constructor<Remote> con = agentClass.getConstructor(Integer.class);
+            Remote agent = con.newInstance(Config.AGENT_SERVER_PORT);
             logger.fine("Agent class " + agent.getClass().getName() + " created");
             AgentBootstrap.registry.reregister(identifier, agent);
             logger.fine("Agent started and Registered as " + identifier);
