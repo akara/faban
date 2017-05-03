@@ -34,9 +34,11 @@
     <property name="test.results.dir" value="build/test/output"/>
     <property name="jar.output" value="build/lib"/>
     <property name="jar.file" value="fabanagents.jar"/>
+    <property name="driver.jar.file" value="fabanagents.jar"/>
     <property name="war.file" value="faban.war"/>
     <property name="ant.jar.file" value="faban-ant.jar"/>
     <property name="lib.dir" value="lib"/>
+    <property name="driver.lib.dir" value="../driver/build/lib"/>
     <property name="deploy.dir" value="deploy"/>
     <property name="web.dir" value="web"/>
 
@@ -202,6 +204,7 @@
 	    the Faban Harness in JDK 1.5, it conflicts with 1.5 libs. -->
 	    <lib     dir="${lib.dir}" excludes="dom3-*, xalan.jar"/>
 	    <lib     dir="${jar.output}" includes="${jar.file}"/>
+	    <lib     dir="${driver.lib.dir}" includes="${driver.jar.file}"/>
 	    <webinf  dir="${deploy.dir}" includes="chiba-config.xml"/>
 	    <classes dir="${compile.output}"
 		     includes="**/webclient/**, **/logging/**"/>

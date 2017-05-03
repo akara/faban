@@ -58,6 +58,16 @@ public class FileAgentImpl extends UnicastRemoteObject
         logger = Logger.getLogger(this.getClass().getName());
     }
 
+   /**
+   * Constructs the file agent.
+   * @param int - The port number allocated to the socket.
+   * @throws RemoteException A communications error occurred.
+   */
+   public FileAgentImpl(int port) throws RemoteException {
+       super(port);
+       logger = Logger.getLogger(this.getClass().getName());
+   }
+
     /**
      *
      * This method creates a new FileServiceImpl object and returns a 
@@ -321,7 +331,7 @@ public class FileAgentImpl extends UnicastRemoteObject
     // Registration for RMI serving - used only for stand-alone testing.
 
     /**
-     * Starts a standalong file agent.
+     * Starts a standalone file agent.
      * @param argv Command line arguments, not used
      */
     public static void main(String [] argv) {
@@ -330,7 +340,7 @@ public class FileAgentImpl extends UnicastRemoteObject
         System.setSecurityManager (new RMISecurityManager());
 
         try {
-            FileAgentImpl log = new FileAgentImpl();
+            FileAgentImpl log = new FileAgentImpl(Config.AGENT_SERVER_PORT);
             System.out.println("FileAgentImpl object created");
             String host = (InetAddress.getLocalHost()).getHostName();
             String s = "//" + host  + "/FileAgent";
