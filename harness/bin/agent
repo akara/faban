@@ -60,6 +60,7 @@ $JAVA -classpath $CLASSPATH \
 -Djava.rmi.server.RMIClassLoaderSpi=com.sun.faban.harness.agent.RMIClassLoaderProvider \
 -Dfaban.cli.command=$0 -Dfaban.home=$FABAN_HOME \
 -Djava.security.policy=$FABAN_HOME"/config/faban.policy" \
+-Djava.rmi.dgc.leaseValue=1440000000 \
 com.sun.faban.harness.agent.AgentBootstrap $* >>agent.${HOSTNAME}.log 2>&1 &
 
 if [ "$#" -lt "4" ] ; then
