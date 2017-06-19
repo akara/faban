@@ -37,10 +37,10 @@ if NOT ERRORLEVEL 1 set JAVA=%JAVA% -client
 
 if "%2"=="" goto ONEARG
 REM Here we see how we rely on the exact arg sequence
-start /b %JAVA% -cp %CLASSPATH% -Djava.rmi.server.RMIClassLoaderSpi=com.sun.faban.harness.agent.RMIClassLoaderProvider -Dfaban.cli.command=%0 %5=%6 %7=%8 -Dfaban.pathext=%PATHEXT% com.sun.faban.harness.agent.AgentBootstrap %* >>agent.log 2>&1
+start /b %JAVA% -cp %CLASSPATH% -Djava.rmi.server.RMIClassLoaderSpi=com.sun.faban.harness.agent.RMIClassLoaderProvider -Dfaban.cli.command=%0 %5=%6 %7=%8 -Dfaban.pathext=%PATHEXT% -Djava.rmi.dgc.leaseValue=1440000000 com.sun.faban.harness.agent.AgentBootstrap %* >>agent.log 2>&1
 goto :EOF
 
 :ONEARG
 REM This is either daemon mode or just querying for help
-start /b %JAVA% -cp %CLASSPATH% -Djava.rmi.server.RMIClassLoaderSpi=com.sun.faban.harness.agent.RMIClassLoaderProvider -Dfaban.cli.command=%0 -Djava.security.policy=%FABAN_HOME%\\config\\faban.policy -Djava.util.logging.config.file=%FABAN_HOME%\\config\\logging.properties -Dfaban.pathext=%PATHEXT% com.sun.faban.harness.agent.AgentBootstrap %* >>agent.log 2>&1
+start /b %JAVA% -cp %CLASSPATH% -Djava.rmi.server.RMIClassLoaderSpi=com.sun.faban.harness.agent.RMIClassLoaderProvider -Dfaban.cli.command=%0 -Djava.security.policy=%FABAN_HOME%\\config\\faban.policy -Djava.util.logging.config.file=%FABAN_HOME%\\config\\logging.properties -Dfaban.pathext=%PATHEXT% -Djava.rmi.dgc.leaseValue=1440000000 com.sun.faban.harness.agent.AgentBootstrap %* >>agent.log 2>&1
 FOR /F "tokens=2" %%i in ('%JAVA_HOME%\bin\jps') do IF /i %%i==AgentBootstrap echo Faban Agent started successfully in daemon mode.  Close this window to terminate the agent.
