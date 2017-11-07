@@ -648,11 +648,8 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
      */
     private void executeRun() throws Exception {
 
-        // Now wait for all threads to start if it is parallel.
-        if (runInfo.parallelAgentThreadStart) {
-			waitForThreadStart();
-		}
-        
+		waitForThreadStart();
+
         // Start thread to dump stats for charting
         if (runInfo.runtimeStatsEnabled)
             statsWriter = new StatsWriter();
