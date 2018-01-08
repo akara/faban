@@ -67,10 +67,7 @@ endorse() {
     fi
 }
 
-case $JAVA_VER_STRING in
-    *IBM*) unendorse;;
-    *)     endorse;;
-esac
+unendorse
 
 JAVA_OPTS="-Xms64m -Xmx1024m -Djava.awt.headless=true"
 export JAVA_OPTS

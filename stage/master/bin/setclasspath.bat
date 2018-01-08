@@ -33,9 +33,6 @@ echo This environment variable is needed to run this program
 goto exit
 :okBasedir
 
-rem Set the default -Djava.endorsed.dirs argument
-set JAVA_ENDORSED_DIRS=%BASEDIR%\common\endorsed
-
 rem Set standard CLASSPATH
 rem Note that there are no quotes as we do not want to introduce random
 rem quotes into the CLASSPATH
