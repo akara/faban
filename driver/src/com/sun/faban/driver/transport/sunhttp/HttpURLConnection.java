@@ -50,7 +50,7 @@ public class HttpURLConnection
      * @param proxy Proxy, if any
      * @param handler The protocol handler
      */
-    protected HttpURLConnection(URL url, Proxy proxy, Handler handler) {
+    protected HttpURLConnection(URL url, Proxy proxy, Handler handler) throws IOException {
         super(url, proxy, handler);
     }
 
