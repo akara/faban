@@ -21,6 +21,17 @@ echo This environment variable is needed to run this program
 goto end
 :okHome
 
+for /f "tokens=3" %%g in ('java -version 2^>^&1 ^| findstr /i "version"') do (
+    set JAVAVER=%%g
+)
+set JAVAVER=%JAVAVER:"=%
+
+for /f "delims=. tokens=1-3" %%v in ("%JAVAVER%") do (
+    set MAJORVER %%v
+    set MINORVER %%w
+    set BUILD %%x
+)
+
 set EXECUTABLE=%CATALINA_HOME%\bin\catalina.bat
 
 rem Check that target executable exists

@@ -22,6 +22,17 @@ echo NB: JAVA_HOME should point to a JDK not a JRE
 goto exit
 :okJavaHome
 
+for /f "tokens=3" %%g in ('java -version 2^>^&1 ^| findstr /i "version"') do (
+    set JAVAVER=%%g
+)
+set JAVAVER=%JAVAVER:"=%
+
+for /f "delims=. tokens=1-3" %%v in ("%JAVAVER%") do (
+    set MAJORVER %%v
+    set MINORVER %%w
+    set BUILD %%x
+)
+
 if not "%BASEDIR%" == "" goto gotBasedir
 echo The BASEDIR environment variable is not defined
 echo This environment variable is needed to run this program
@@ -32,6 +43,9 @@ echo The BASEDIR environment variable is not defined correctly
 echo This environment variable is needed to run this program
 goto exit
 :okBasedir
+
+rem Set the default -Djava.endorsed.dirs argument
+set JAVA_ENDORSED_DIRS=%BASEDIR%\common\endorsed
 
 rem Set standard CLASSPATH
 rem Note that there are no quotes as we do not want to introduce random
