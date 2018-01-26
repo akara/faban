@@ -123,12 +123,24 @@ if $cygwin; then
   JAVA_ENDORSED_DIRS=`cygpath --path --windows "$JAVA_ENDORSED_DIRS"`
 fi
 
+#echo "MAJORVER:$MAJORVER"
+#echo "MINORVER:$MINORVER"
+
+# add java.endorsed.dirs for pre JRE 9 image
+if  (("$MAJORVER" > 8))  || [ -z "$MAJORVER" ]; then
+    ENDORSED_OPTS=""
+else
+    ENDORSED_OPTS=" -Djava.endorsed.dirs=$JAVA_ENDORSED_DIRS "
+fi
+
 # ----- Execute The Requested Command -----------------------------------------
 
 #echo "Using CATALINA_BASE:   $CATALINA_BASE"
 #echo "Using CATALINA_HOME:   $CATALINA_HOME"
 #echo "Using CATALINA_TMPDIR: $CATALINA_TMPDIR"
 #echo "Using JAVA_HOME:       $JAVA_HOME"
+#echo "Using ENDORSED_OPTS:   $ENDORSED_OPTS"
+#echo "Using CLASSPATH:       $CLASSPATH"
 
 if [ "$1" = "jpda" ] ; then
   if [ -z "$JPDA_TRANSPORT" ]; then
@@ -154,7 +166,7 @@ if [ "$1" = "debug" ] ; then
     if [ "$1" = "-security" ] ; then
       echo "Using Security Manager"
       shift
-      exec "$_RUNJDB" $JAVA_OPTS $CATALINA_OPTS \
+      exec "$_RUNJDB" $JAVA_OPTS $CATALINA_OPTS $ENDORSED_OPTS \
         -classpath "$CLASSPATH" \
         -sourcepath "$CATALINA_HOME"/../../jakarta-tomcat-catalina/catalina/src/share \
         -Djava.security.manager \
@@ -165,7 +177,7 @@ if [ "$1" = "debug" ] ; then
         --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED \
         org.apache.catalina.startup.Bootstrap "$@" start
     else
-      exec "$_RUNJDB" $JAVA_OPTS $CATALINA_OPTS \
+      exec "$_RUNJDB" $JAVA_OPTS $CATALINA_OPTS $ENDORSED_OPTS \
         -classpath "$CLASSPATH" \
         -sourcepath "$CATALINA_HOME"/../../jakarta-tomcat-catalina/catalina/src/share \
         -Dcatalina.base="$CATALINA_BASE" \
@@ -182,7 +194,7 @@ elif [ "$1" = "run" ]; then
   if [ "$1" = "-security" ] ; then
     echo "Using Security Manager"
     shift
-    exec "$_RUNJAVA" $JAVA_OPTS $CATALINA_OPTS \
+    exec "$_RUNJAVA" $JAVA_OPTS $CATALINA_OPTS $ENDORSED_OPTS \
       -classpath "$CLASSPATH" \
       -Djava.security.manager \
       -Djava.security.policy=="$CATALINA_BASE"/conf/catalina.policy \
@@ -192,7 +204,7 @@ elif [ "$1" = "run" ]; then
       --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED \
       org.apache.catalina.startup.Bootstrap "$@" start
   else
-    exec "$_RUNJAVA" $JAVA_OPTS $CATALINA_OPTS \
+    exec "$_RUNJAVA" $JAVA_OPTS $CATALINA_OPTS $ENDORSED_OPTS \
       -classpath "$CLASSPATH" \
       -Dcatalina.base="$CATALINA_BASE" \
       -Dcatalina.home="$CATALINA_HOME" \
@@ -208,7 +220,7 @@ elif [ "$1" = "start" ] ; then
   if [ "$1" = "-security" ] ; then
     echo "Using Security Manager"
     shift
-    "$_RUNJAVA" $JAVA_OPTS $CATALINA_OPTS \
+    "$_RUNJAVA" $JAVA_OPTS $CATALINA_OPTS $ENDORSED_OPTS \
       -classpath "$CLASSPATH" \
       -Djava.security.manager \
       -Djava.security.policy=="$CATALINA_BASE"/conf/catalina.policy \
@@ -223,7 +235,7 @@ elif [ "$1" = "start" ] ; then
         echo $! > $CATALINA_PID
       fi
   else
-    "$_RUNJAVA" $JAVA_OPTS $CATALINA_OPTS \
+    "$_RUNJAVA" $JAVA_OPTS $CATALINA_OPTS $ENDORSED_OPTS \
       -classpath "$CLASSPATH" \
       -Dcatalina.base="$CATALINA_BASE" \
       -Dcatalina.home="$CATALINA_HOME" \
@@ -246,7 +258,7 @@ elif [ "$1" = "stop" ] ; then
   fi
 
   "$_RUNJAVA" $JAVA_OPTS $CATALINA_OPTS \
-    -Djava.endorsed.dirs="$JAVA_ENDORSED_DIRS" -classpath "$CLASSPATH" \
+    -classpath "$CLASSPATH" \
     -Dcatalina.base="$CATALINA_BASE" \
     -Dcatalina.home="$CATALINA_HOME" \
     -Djava.io.tmpdir="$CATALINA_TMPDIR" \
