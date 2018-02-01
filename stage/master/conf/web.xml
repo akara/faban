@@ -194,6 +194,10 @@
             <param-name>xpoweredBy</param-name>
             <param-value>false</param-value>
         </init-param>
+        <init-param>
+            <param-name>suppressSmap</param-name>
+            <param-value>true</param-value>
+        </init-param>
         <load-on-startup>3</load-on-startup>
     </servlet>
 
