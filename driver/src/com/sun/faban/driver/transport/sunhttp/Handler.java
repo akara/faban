@@ -23,6 +23,7 @@
  */
 package com.sun.faban.driver.transport.sunhttp;
 
+import java.io.IOException;
 import java.net.Proxy;
 import java.net.URL;
 
@@ -34,7 +35,7 @@ import java.net.URL;
 public class Handler extends sun.net.www.protocol.http.Handler {
 
     @Override
-	protected java.net.URLConnection openConnection(URL u, Proxy p) {
+	protected java.net.URLConnection openConnection(URL u, Proxy p) throws IOException {
 	    return new HttpURLConnection(u, p, this);
     }
 }
