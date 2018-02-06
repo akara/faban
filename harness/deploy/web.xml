@@ -41,6 +41,22 @@
             <param-name>xsltDir</param-name>
             <param-value>xslt</param-value>
         </init-param>
+        <init-param>
+            <param-name>internalXercesImpl</param-name>
+            <param-value>com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl</param-value>
+        </init-param>
+        <init-param>
+            <param-name>xercesImpl</param-name>
+            <param-value>org.apache.xerces.jaxp.DocumentBuilderFactoryImpl</param-value>
+        </init-param>
+        <init-param>
+            <param-name>internalXalanImpl</param-name>
+            <param-value>com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl</param-value>
+        </init-param>
+        <init-param>
+            <param-name>xalanImpl</param-name>
+            <param-value>org.apache.xalan.processor.TransformerFactoryImpl</param-value>
+        </init-param>
     </servlet>
     <servlet>
         <servlet-name>Dispatcher</servlet-name>

@@ -200,7 +200,7 @@
 	    <fileset dir="${web.dir}"/>
 	    <!-- Note: Dom and Xalan libs need to go into "endorsed" to run
 	    the Faban Harness in JDK 1.5, it conflicts with 1.5 libs. -->
-	    <lib     dir="${lib.dir}" excludes="dom3-*, xalan.jar"/>
+	    <lib     dir="${lib.dir}"/>
 	    <lib     dir="${jar.output}" includes="${jar.file}"/>
 	    <webinf  dir="${deploy.dir}" includes="chiba-config.xml"/>
 	    <classes dir="${compile.output}"

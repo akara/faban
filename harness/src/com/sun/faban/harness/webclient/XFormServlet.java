@@ -48,7 +48,6 @@ import javax.servlet.http.HttpSession;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLEncoder;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -62,6 +61,8 @@ public class XFormServlet extends HttpServlet {
 
     private static Logger logger = Logger.getLogger(
             "com.sun.faban.harness.webclient.XFormServlet");
+    private static final String XML_PARSER_FACTORY = "javax.xml.parsers.DocumentBuilderFactory";
+    private static final String XSLT_TRANSFORMER_FACTORY = "javax.xml.transform.TransformerFactory";
 
     private String configFile;
     private String ctxRoot;
@@ -69,6 +70,8 @@ public class XFormServlet extends HttpServlet {
     private String xsltDir;
     private String errPage;
     ServletContext ctx;
+    private static String internalXercesImpl, xercesImpl;
+    private static String internalXalanImpl, xalanImpl;
 
     /**
      * Initializes the servlet.
@@ -104,6 +107,11 @@ public class XFormServlet extends HttpServlet {
             xsltDir = ctx.getRealPath(path);
 
         errPage = cfg.getInitParameter("errorPage");
+
+        internalXercesImpl = cfg.getInitParameter("internalXercesImpl");
+        xercesImpl = cfg.getInitParameter("xercesImpl");
+        internalXalanImpl = cfg.getInitParameter("internalXalanImpl");
+        xalanImpl = cfg.getInitParameter("xalanImpl");
     }
 
     /**
@@ -231,6 +239,8 @@ public class XFormServlet extends HttpServlet {
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Exception processing XForms", e);
             shutdown(adapter, session, e, request, response);
+        } finally {
+           System.setProperty(XML_PARSER_FACTORY, internalXercesImpl);
         }
     }
 
@@ -319,6 +329,8 @@ public class XFormServlet extends HttpServlet {
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Exception processing XForms", e);
             shutdown(adapter, session, e, request, response);
+        } finally {
+            System.setProperty(XML_PARSER_FACTORY, internalXercesImpl);
         }
     }
 
@@ -521,7 +533,12 @@ public class XFormServlet extends HttpServlet {
             }
 
             generator.setInputNode(chibaBean.getXMLContainer());
-            generator.generate();
+            System.setProperty(XSLT_TRANSFORMER_FACTORY, xalanImpl);
+            try {
+                generator.generate();
+            } finally {
+                System.setProperty(XSLT_TRANSFORMER_FACTORY, internalXalanImpl);
+            }
         }
 
 
