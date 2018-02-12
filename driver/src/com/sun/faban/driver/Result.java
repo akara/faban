@@ -96,12 +96,46 @@ public abstract class Result {
     public abstract int getOpsCountTotal(String opsName);
 
     /**
-     * Obtains the number of operatioins of each type successfully executed
+     * Obtains the number of operations of each type successfully executed
      * during the whole run. The index into the array returned corresponds
      * to the index of getOpsNames().
      * @return The number of successful operations for each type
      */
     public abstract int[] getOpsCountTotal();
+
+    /**
+     * Obtains the number of errors in operations of a certain type executed
+     * during steady state.
+     *
+     * @param opsName The name of the operation to query
+     * @return The number of unsuccessful operations
+     */
+    public abstract int getErrorCountSteady(String opsName);
+
+    /**
+     * Obtains the number of errors in operations of each type
+     * executed during steady state. The index into the array returned
+     * corresponds to the index of getOpsNames().
+     * @return The number of unsuccessful operations for each type
+     */
+    public abstract int[] getErrorCountSteady();
+
+    /**
+     * Obtains the number of errors in operations of a certain type executed
+     * during the whole run.
+     *
+     * @param opsName The name of the operation to query
+     * @return The number of unsuccessful operations
+     */
+    public abstract int getErrorCountTotal(String opsName);
+
+    /**
+     * Obtains the number of errors in operations of each type
+     * executed during the whole run. The index into the array returned
+     * corresponds to the index of getOpsNames().
+     * @return The number of unsuccessful operations for each type
+     */
+    public abstract int[] getErrorCountTotal();
 
     /**
      * Obtains the actual mix of the operation. The return value ranges
