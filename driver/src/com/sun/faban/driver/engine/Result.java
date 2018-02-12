@@ -155,7 +155,7 @@ public class Result extends com.sun.faban.driver.Result {
     }
 
     /**
-     * Obtains the number of operatioins of each type successfully executed
+     * Obtains the number of operations of each type successfully executed
      * during the whole run. The index into the array returned corresponds
      * to the index of getOpsNames().
      *
@@ -163,6 +163,52 @@ public class Result extends com.sun.faban.driver.Result {
      */
 	public int[] getOpsCountTotal() {
         return m.txCntTotal.clone();
+    }
+
+    /**
+     * Obtains the number of errors in operations of a certain type executed
+     * during steady state.
+     *
+     * @param opsName The name of the operation to query
+     * @return The number of unsuccessful operations
+     */
+    @Override
+    public int getErrorCountSteady(String opsName) {
+      return m.errCntStdy[getOpsIdx(opsName)];
+    }
+
+    /**
+     * Obtains the number of errors in operations of each type
+     * executed during steady state. The index into the array returned
+     * corresponds to the index of getOpsNames().
+     * @return The number of unsuccessful operations for each type
+     */
+    @Override
+    public int[] getErrorCountSteady() {
+        return m.errCntStdy.clone();
+    }
+
+    /**
+     * Obtains the number of errors in operations of a certain type executed
+     * during the whole run.
+     *
+     * @param opsName The name of the operation to query
+     * @return The number of unsuccessful operations
+     */
+    @Override
+    public int getErrorCountTotal(String opsName) {
+        return m.errCntTotal[getOpsIdx(opsName)];
+    }
+
+    /**
+     * Obtains the number of errors in operations of each type
+     * executed during the whole run. The index into the array returned
+     * corresponds to the index of getOpsNames().
+     * @return The number of unsuccessful operations for each type
+     */
+    @Override
+    public int[] getErrorCountTotal() {
+        return m.errCntTotal.clone();
     }
 
     /**
