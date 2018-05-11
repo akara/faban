@@ -9,7 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-
+import java.util.List;
 
 public class DetailReport {
     ArrayList<Double> timeList = new ArrayList<Double>();
@@ -21,14 +21,17 @@ public class DetailReport {
     ArrayList<Double> respList[] = null;   // each array element is RT for one operation
     ArrayList<Integer> distRespList[] = null; // for response time distribution
     ArrayList<Double> distTimeList = new ArrayList<Double>(); // time axis for RT distribution
+    boolean hasNextDriver = false;
+
+    private static final Double ZERO = new Double(0.0);
 
     String detFile;
     int numOps = 0;
 
-    public DetailReport(String detFile) throws IOException {
+    public DetailReport(String detFile, int targetDriver) throws IOException {
         this.detFile = detFile;
-        processThruput();
-        processResponseTimes();
+        processThruput(targetDriver);
+        processResponseTimes(targetDriver);
     }
 
     /*
@@ -38,7 +41,7 @@ public class DetailReport {
     */
     int timeInterval;   // holds time interval for x-axis
 
-    private void processThruput() throws IOException {
+    private void processThruput(int targetDriver) throws IOException {
         BufferedReader bi;
         try {
             bi = new BufferedReader(new FileReader(detFile));
@@ -47,19 +50,26 @@ public class DetailReport {
             return;
         }
         String line;
+        int driverCount = 0;
         while ((line = bi.readLine()) != null) {
-            if (line.startsWith("Time")) {
+            //skip to content for a driver
+            if (line.endsWith("Throughput")) {
+                driverCount += 1;
+            }
+            if (driverCount < targetDriver) {
+                continue;
+            }
+            if (line.startsWith("Time (s)")) {
                 // get names of operations
-                String token[] = line.split("\\s+");
-                operations = new String[token.length - 2];  //ignore 'Time (s)' which is 2 tokens
-                for (int i = 2; i < token.length; i++)
-                    operations[i - 2] = token[i];
+                String token[] = line.split("\\s{2}");
+                operations = new String[token.length - 1];  //ignore 'Time (s)' which is 2 tokens
+                for (int i = 1; i < token.length; i++)
+                    operations[i - 1] = token[i];
                 break;
             }
         }
         // Process thruput histogram
         bi.readLine();  //Skip dashes line
-        int t = 0;
         // initialize array to hold individual operation thruputs
         opThruList = new ArrayList[operations.length];
         opAvgThruput = new double[operations.length];
@@ -86,14 +96,21 @@ public class DetailReport {
             thruput.add(d);
         }
 
+        while ((line = bi.readLine()) != null) {
+            if (operations != null && line.endsWith("Throughput")) {
+                hasNextDriver = true;
+                break;
+            }
+        }
         // compute averages
         for (int i = 0; i < opAvgThruput.length; i++) {
             opAvgThruput[i] /= timeList.size();
         }
+        bi.close();
         return;
     }
 
-    private void processResponseTimes() throws IOException {
+    private void processResponseTimes(int targetDriver) throws IOException {
 
         BufferedReader bi;
         try {
@@ -103,18 +120,33 @@ public class DetailReport {
             return;
         }
         String line;
+        int driverCount = 0;
         while ((line = bi.readLine()) != null) {
-            if (line.matches("Section:.* Response Times.*")) {
-                bi.readLine();  //Skip Display line
-                line = bi.readLine();
+            if (line.endsWith("Throughput")) {
+                driverCount += 1;
+            }
+            if (driverCount < targetDriver) {
+                continue;
+            }
+            if (!line.matches("Section:.* Response Times.*")) {
+                continue;
+            }
+            bi.readLine();
+            line = bi.readLine();
+            if (line.startsWith("Time (s)")) {
                 // get names of operations
-                String token[] = line.split("\\s+");
-                operations = new String[token.length - 2];  //ignore 'Time (s)'
-
-                respList = new ArrayList[operations.length];
-                for (int i = 2; i < token.length; i++) {
-                    operations[i - 2] = token[i];
-                    respList[i - 2] = new ArrayList<Double>();
+                String token[] = line.split("\\s{2}");
+                List<String> opNames = new ArrayList();
+                for (int i = 1; i < token.length; i++) {
+                    if (!token[i].trim().equals("")) {
+                        opNames.add(token[i]);
+                    }
+                }
+                operations = new String[opNames.size()];
+                operations = opNames.toArray(operations);
+                respList = new ArrayList[opNames.size()];
+                for (int i = 0; i < opNames.size(); i++) {
+                    respList[i] = new ArrayList<Double>();
                 }
                 bi.readLine();  // Skip dashes after header line
                 break;
@@ -160,10 +192,11 @@ public class DetailReport {
             if (first)
                 first = false;
         }
+        bi.close();
         return;
     }
 
-    /*
+    /**
     * This method returns the operation name
     */
     public String getOpName(int opIdx) {
@@ -173,7 +206,7 @@ public class DetailReport {
             return operations[opIdx];
     }
 
-    /*
+    /**
     * Return overall throughput over run
     *
     * @return ArrayList<Double> array of thruput values, one per interval
@@ -182,7 +215,30 @@ public class DetailReport {
         return (thruput);
     }
 
-    /*
+    /**
+    * Return overall throughput over run
+    *
+    * @return ArrayList<Double> array of thruput values, one per interval
+    */
+    public ArrayList<Double> getThruput(int expected) {
+        return pad(getThruput(), expected);
+    }
+        
+    private ArrayList<Double> pad(ArrayList<Double> values, int expected) {
+        ArrayList paddedTimes = null;
+        if (values.size() == expected){
+            paddedTimes = values;
+        } else {
+            paddedTimes = new ArrayList(expected);
+            paddedTimes.addAll(values);
+            for ( int i = values.size(); i < expected; i++){
+                paddedTimes.add(ZERO);
+            }
+        }
+        return paddedTimes;
+    }
+
+    /**
     * This method returns the avg. thruput for the specified operation
     * @param int opIdx 0-<numOps-1> to select operation
     * @return double - avg. throughput for this operation over run
@@ -194,7 +250,7 @@ public class DetailReport {
             return (opAvgThruput[opIdx]);
     }
 
-    /*
+    /**
     * This method returns the thruput over time for the specified operation
     * @param int opIdx 0-<numOps-1> to select operation
     * @return ArrayList<Double> - all throughput for this operation
@@ -206,7 +262,7 @@ public class DetailReport {
             return (opThruList[opIdx]);
     }
 
-    /*
+    /**
     * This method returns the Response Time over time for the specified operation
     * @param int opIdx 0-<numOps-1> to select operation
     * @return ArrayList<Double> - all RT for this operation
@@ -218,7 +274,7 @@ public class DetailReport {
             return (respList[opIdx]);
     }
 
-   /*
+   /**
     * This method returns the Response Time distribution for the specified operation
     * @param int opIdx 0-<numOps-1> to select operation
     * @return ArrayList<Double> - RT distribution for this operation
@@ -230,7 +286,7 @@ public class DetailReport {
             return (distRespList[opIdx]);
     }
 
-    /*
+    /**
     * This method returns the Time array for the x-axis
     * @return ArrayList<Double> - all time values in detail file
     */
@@ -238,11 +294,22 @@ public class DetailReport {
         return (timeList);
     }
 
-    /*
+    /**
     * This method returns the Time array for the x-axis for the RT distribution
     * @return ArrayList<Double> - all time values in detail file for RT distribution
     */
     public ArrayList<Double> getTimesDist() throws IOException {
         return (distTimeList);
     }
+
+    /**
+    * This method returns the Time array for the x-axis for the RT distribution
+    * @param expected - expected number of values
+    * @return ArrayList<Double> - all time values in detail file for RT distribution
+    */
+    public ArrayList<Double> getTimesDist(int expected) throws IOException {
+        return pad(distTimeList, expected);
+    }
+
+
 }
