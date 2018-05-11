@@ -215,250 +215,273 @@ public class RunAnalyzer {
     */
     public void compare(String runDirs[], String outDir) throws IOException {
         String outFile = outDir + File.separator + "compare.xan";
-        TextTable infoTable, thruTable, opAvgThruTable = null, opThruTable;
-        TextTable respTable, percentRespTable[] = null, avgRespTable = null, cpuTable = null;
-        String thruMetric = null, respMetric = null;
+        TextTable infoTable;
+        TextTable cpuTable = null;
         PrintWriter p;
-        ArrayList<String> rtAvgList;
-        ArrayList<String> rtPercentNames = null;
-        ArrayList<String> opNames = new ArrayList<String>();
-
-        ArrayList<Double> thruList[] = new ArrayList[runDirs.length];
-        ArrayList<Double> opThruList[][] = null;
-        ArrayList<Double> timeVals = new ArrayList<Double>();
-        ArrayList<Double> timeDistVals = new ArrayList<Double>();
         List<String> cpuList[];
         int maxThruRows = 0, maxDistRows = 0;
-        ArrayList<Double> respList[][] = null;
-        ArrayList<Integer> respDistList[][] = null;
         infoTable = new TextTable(runDirs.length, 4);
         infoTable.setHeader(0, "RunID");
         infoTable.setHeader(1, "Avg. Throughput");
         infoTable.setHeader(2, "Passed");
         infoTable.setHeader(3, "Description");
 
-
         p = openOutFile(outFile, "Compare");
+
         for (int i = 0; i < runDirs.length; i++) {
             String sumFile = getSumFile(runDirs[i]);
-            String detFile = getDetFile(runDirs[i]);
 
             reader = new XMLReader(sumFile, false, false);
 
             // parse Run Info section of summary file
             getRunInfo(runDirs[i], reader, infoTable, i);
-
-            // parse throughput section of detail.xan
-            DetailReport detail = new DetailReport(detFile);
-            thruList[i] = detail.getThruput();
-            ArrayList<Double> thisTimeVals = detail.getTimes();
-
-            if (thruList[i].size() > maxThruRows) {
-                maxThruRows = thruList[i].size();
-                timeVals = thisTimeVals;
-            }
-            ArrayList<Double> thisDistTimeVals = detail.getTimesDist();
-            if (thisDistTimeVals.size() > maxDistRows) {
-                maxDistRows = thisDistTimeVals.size();
-                timeDistVals = thisDistTimeVals;
-            }
-
-            // read the metric from the first file
-            if (i == 0) {
-                respMetric = getRespUnit(reader);
-                thruMetric = getThruUnit(reader);
-            }
-
-            // Now get the response times
-            rtAvgList = new ArrayList<String>();
-            rtPercentNames = new ArrayList<String>();
-            try {
-                getResponseTimes(reader, opNames, rtAvgList, rtPercentNames);
-            } catch (IOException ie) {
-                throw new IOException(ie.getMessage() + " : " + sumFile);
-            }
-
-            // Get cpu util.
-            cpuList = getCpuUtil(Config.OUT_DIR + runDirs[i]);
-
-            if (i == 0) {
-                respList = new ArrayList[runDirs.length][opNames.size()];
-                respDistList = new ArrayList[runDirs.length][opNames.size()];
-
-                // thru. table on a per operation basis
-                opAvgThruTable = new TextTable(runDirs.length, opNames.size() + 1);
-                opAvgThruTable.setHeader(0, "RunID");
-
-                opThruList = new ArrayList[runDirs.length][opNames.size()];
-
-                /*
-                 * We have the following types of RT tables:
-                 * a) Avg. RT which simply has one row per run listing avg RT. of each operation
-                 * b) nth Percentile RT tables - same info as above
-                 * c) Detailed RT - one table per operation listing RT over time
-                 */
-                avgRespTable = new TextTable(runDirs.length, opNames.size() + 1);
-                avgRespTable.setHeader(0, "RunID");
-
-                //percentile resp. tables (e.g. 90th, 99th)
-                percentRespTable = new TextTable[rtPercentNames.size()];
-                for (int j = 0; j < rtPercentNames.size(); j++) {
-                    percentRespTable[j] = new TextTable(runDirs.length, opNames.size() + 1);
-                    percentRespTable[j].setHeader(0, "RunID");
-                }
-
-                for (int j = 0; j < opNames.size(); j++) {
-                    opAvgThruTable.setHeader(j + 1, opNames.get(j));
-                    avgRespTable.setHeader(j + 1, opNames.get(j));
-                    for (int k = 0; k < rtPercentNames.size(); k++) {
-                        percentRespTable[k].setHeader(j + 1, opNames.get(j));
-                    }
-                }
-
-                /*** CPU info is tough for comparison. The hosts may not be the same */
-                // CPU info. We print 1 row per RunID with each col. being cpu% for one host
-                cpuTable = new TextTable(runDirs.length, cpuList.length + 1);
-                cpuTable.setHeader(0, "RunID");
-                for (int j = 0; j < cpuList.length; j++) {
-                    cpuTable.setHeader(j + 1, cpuList[j].get(0));    // hostname
-                }
-            }
-
-
-            // Get avg. thruput per operation
-            opAvgThruTable.setField(i, 0, runDirs[i]);
-            avgRespTable.setField(i, 0, runDirs[i]);
-            for (int j = 0; j < opNames.size(); j++) {
-                opAvgThruTable.setField(i, j + 1, String.format("%4.3f", detail.getOpAvgThruput(j)));
-                opThruList[i][j] = detail.getOpThruput(j);
-                respList[i][j] = detail.getOpRT(j);
-                respDistList[i][j] = detail.getOpRTDist(j);
-                avgRespTable.setField(i, j + 1, rtAvgList.get(j));
-                for (int k = 0; k < rtPercentNames.size(); k++) {
-                    percentRespTable[k].setField(i, 0, runDirs[i]);
-                    percentRespTable[k].setField(i, j + 1, rtPercentList[k].get(j));
-                }
-            }
-            cpuTable.setField(i, 0, runDirs[i]);
-            for (int j = 0; j < cpuList.length; j++) {
-                cpuTable.setField(i, j + 1, cpuList[j].get(1));  // avg. util
-            }
+            reader = null;
         }
-
-        // Create the thruput tables. We create it with the largest #rows
-        thruTable = new TextTable(maxThruRows, runDirs.length + 1); //1st col is time
-        thruTable.setHeader(0, "Time");
-        for (int i = 0; i < timeVals.size(); i++)
-            thruTable.setField(i, 0, timeVals.get(i).toString());
-
-        for (int i = 0; i < runDirs.length; i++) {
-            thruTable.setHeader(i + 1, runDirs[i]);
-            int j;
-            for (j = 0; j < thruList[i].size(); j++) {
-                thruTable.setField(j, i + 1, thruList[i].get(j).toString());
-            }
-            int rem = timeVals.size() - thruList[i].size();
-            // Fill remaning timevals with dash - null value for .xan
-            for (; rem > 0; rem--) {
-                thruTable.setField(j++, i + 1, "-");
-            }
-        }
-        // Print out the TextTables
         p.println("Section: Run Information");
         p.println(infoTable.toString());
 
-        p.println("Section: Overall Throughput (" + thruMetric + ")");
-        p.println("Display: Line");
-        p.println(thruTable.toString());
+        DetailReport detail = null;
+        for (int driver = 1, maxDriver = 1; driver <= maxDriver; driver++ ) {
+            TextTable thruTable, opAvgThruTable = null, opThruTable;
+            TextTable respTable, percentRespTable[] = null, avgRespTable = null;
+            String thruMetric = null, respMetric = null;
+            ArrayList<String> rtAvgList;
+            ArrayList<String> rtPercentNames = null;
+            ArrayList<String> opNames = new ArrayList<String>();
 
-        p.println("Section: Summary Throughput Per Operation (" + thruMetric + ")");
-        p.println(opAvgThruTable.toString());
+            ArrayList<Double> thruList[] = new ArrayList[runDirs.length];
+            ArrayList<Double> opThruList[][] = null;
+            ArrayList<Double> timeVals = new ArrayList<Double>();
+            ArrayList<Double> timeDistVals = new ArrayList<Double>();
 
-        // Print detailed thruput only if more than one operation as otherwise overall thruput is same as detail
-        if (opNames.size() > 1) {
+            ArrayList<Double> respList[][] = null;
+            ArrayList<Integer> respDistList[][] = null;
+
+            for (int i = 0; i < runDirs.length; i++) {
+                String detFile = getDetFile(runDirs[i]);
+                detail = new DetailReport(detFile, driver);
+                List<Double> throughput = detail.getThruput();
+                List<Double> distVals = detail.getTimesDist();
+                if (i == 0) {
+                    maxThruRows = throughput.size();
+                    maxDistRows = distVals.size();
+                }
+                if (throughput.size() > maxThruRows) {
+                    maxThruRows = throughput.size();
+                }
+                if (distVals.size() > maxDistRows) {
+                    maxDistRows = distVals.size();
+                }
+            }
+
+            for (int i = 0; i < runDirs.length; i++) {
+                String sumFile = getSumFile(runDirs[i]);
+                String detFile = getDetFile(runDirs[i]);
+                reader = new XMLReader(sumFile, false, false);
+
+                // parse throughput section of detail.xan
+                detail = new DetailReport(detFile, driver);
+                thruList[i] = detail.getThruput();
+                timeVals = detail.getTimes();
+                timeDistVals = detail.getTimesDist(maxDistRows);
+
+                // read the metric from the first file
+                if (i == 0) {
+                    respMetric = getRespUnit(reader, driver);
+                    thruMetric = getThruUnit(reader, driver);
+                }
+
+                // Now get the response times
+                rtAvgList = new ArrayList<String>();
+                rtPercentNames = new ArrayList<String>();
+                try {
+                    getResponseTimes(reader, opNames, rtAvgList, rtPercentNames, driver);
+                } catch (IOException ie) {
+                    throw new IOException(ie.getMessage() + " : " + sumFile);
+                }
+
+                // Get cpu util.
+                cpuList = getCpuUtil(Config.OUT_DIR + runDirs[i]);
+
+                if (i == 0) {
+                    if (detail.hasNextDriver) {
+                        maxDriver++;
+                    }
+                    respList = new ArrayList[runDirs.length][opNames.size()];
+                    respDistList = new ArrayList[runDirs.length][opNames.size()];
+
+                    // thru. table on a per operation basis
+                    opAvgThruTable = new TextTable(runDirs.length, opNames.size() + 1);
+                    opAvgThruTable.setHeader(0, "RunID");
+
+                    opThruList = new ArrayList[runDirs.length][opNames.size()];
+
+                    /*
+                     * We have the following types of RT tables:
+                     * a) Avg. RT which simply has one row per run listing avg RT. of each operation
+                     * b) nth Percentile RT tables - same info as above
+                     * c) Detailed RT - one table per operation listing RT over time
+                     */
+                    avgRespTable = new TextTable(runDirs.length, opNames.size() + 1);
+                    avgRespTable.setHeader(0, "RunID");
+
+                    //percentile resp. tables (e.g. 90th, 99th)
+                    percentRespTable = new TextTable[rtPercentNames.size()];
+                    for (int j = 0; j < rtPercentNames.size(); j++) {
+                        percentRespTable[j] = new TextTable(runDirs.length, opNames.size() + 1);
+                        percentRespTable[j].setHeader(0, "RunID");
+                    }
+
+                    for (int j = 0; j < opNames.size(); j++) {
+                        opAvgThruTable.setHeader(j + 1, opNames.get(j));
+                        avgRespTable.setHeader(j + 1, opNames.get(j));
+                        for (int k = 0; k < rtPercentNames.size(); k++) {
+                            percentRespTable[k].setHeader(j + 1, opNames.get(j));
+                        }
+                    }
+
+                    /*** CPU info is tough for comparison. The hosts may not be the same */
+                    // CPU info. We print 1 row per RunID with each col. being cpu% for one host
+                    cpuTable = new TextTable(runDirs.length, cpuList.length + 1);
+                    cpuTable.setHeader(0, "RunID");
+                    for (int j = 0; j < cpuList.length; j++) {
+                        cpuTable.setHeader(j + 1, cpuList[j].get(0));    // hostname
+                    }
+                }
+                // Get avg. thruput per operation
+                opAvgThruTable.setField(i, 0, runDirs[i]);
+                avgRespTable.setField(i, 0, runDirs[i]);
+                for (int j = 0; j < opNames.size(); j++) {
+                    opAvgThruTable.setField(i, j + 1, String.format("%4.3f", detail.getOpAvgThruput(j)));
+                    opThruList[i][j] = detail.getOpThruput(j);
+                    respList[i][j] = detail.getOpRT(j);
+                    respDistList[i][j] = detail.getOpRTDist(j);
+                    avgRespTable.setField(i, j + 1, rtAvgList.get(j));
+                    for (int k = 0; k < rtPercentNames.size(); k++) {
+                        percentRespTable[k].setField(i, 0, runDirs[i]);
+                        percentRespTable[k].setField(i, j + 1, rtPercentList[k].get(j));
+                    }
+                }
+
+                cpuTable.setField(i, 0, runDirs[i]);
+                for (int j = 0; j < cpuList.length; j++) {
+                    cpuTable.setField(i, j + 1, cpuList[j].get(1));  // avg. util
+                }
+            }
+            // Create the thruput tables. We create it with the largest #rows
+            thruTable = new TextTable(maxThruRows, runDirs.length + 1); //1st col is time
+            thruTable.setHeader(0, "Time");
+            for (int i = 0; i < timeVals.size(); i++)
+                thruTable.setField(i, 0, timeVals.get(i).toString());
+
+            for (int i = 0; i < runDirs.length; i++) {
+                thruTable.setHeader(i + 1, runDirs[i]);
+                int j;
+                for (j = 0; j < thruList[i].size(); j++) {
+                    thruTable.setField(j, i + 1, thruList[i].get(j).toString());
+                }
+                int rem = timeVals.size() - thruList[i].size();
+                // Fill remaning timevals with dash - null value for .xan
+                for (; rem > 0; rem--) {
+                    thruTable.setField(j++, i + 1, "-");
+                }
+            }
+            p.println("Section: Overall Throughput (" + thruMetric + ")");
+            p.println("Display: Line");
+            p.println(thruTable.toString());
+
+            p.println("Section: Summary Throughput Per Operation (" + thruMetric + ")");
+            p.println(opAvgThruTable.toString());
+
+            // Print detailed thruput only if more than one operation as otherwise overall thruput is same as detail
+            if (opNames.size() > 1) {
+                for (int k = 0; k < opNames.size(); k++) {
+                    p.println("Section: Detailed Throughput For  Operation '" +
+                            opNames.get(k) + "' (" + thruMetric + ")");
+                    p.println("Display: Line");
+                    opThruTable = new TextTable(maxThruRows, runDirs.length + 1);
+                    opThruTable.setHeader(0, "Time");
+                    for (int i = 0; i < timeVals.size(); i++)
+                        opThruTable.setField(i, 0, timeVals.get(i).toString());
+
+                    for (int i = 0; i < runDirs.length; i++) {
+                        opThruTable.setHeader(i + 1, runDirs[i]);
+                        int j;
+                        for (j = 0; j < opThruList[i][k].size(); j++) {
+                            opThruTable.setField(j, i + 1, opThruList[i][k].get(j).toString());
+                        }
+                        // Fill with dash for remaining time intervals (if any)
+                        int rem = timeVals.size() - opThruList[i][k].size();
+                        for (; rem > 0; rem--) {
+                            opThruTable.setField(j++, i + 1, "-");
+                        }
+                    }
+                    p.println(opThruTable.toString());
+                }
+            }
+
+            p.println("Section: Average Response Times (" + respMetric + ")");
+            p.println(avgRespTable.toString());
+
+            // Print nth percentile RT info
+            for (int j = 0; j < rtPercentList.length; j++) {
+                p.println("Section: " + rtPercentNames.get(j) + " Percentile Response Times (" + respMetric + ")");
+                p.println(percentRespTable[j].toString());
+            }
+
             for (int k = 0; k < opNames.size(); k++) {
-                p.println("Section: Detailed Throughput For  Operation '" +
-                        opNames.get(k) + "' (" + thruMetric + ")");
+                p.println("Section: Average Response Times for Operation '" +
+                        opNames.get(k) + "' (" + respMetric + ")");
                 p.println("Display: Line");
-                opThruTable = new TextTable(maxThruRows, runDirs.length + 1);
-                opThruTable.setHeader(0, "Time");
+                respTable = new TextTable(maxThruRows, runDirs.length + 1);
+                respTable.setHeader(0, "Time");
+
+                // Set time column for all rows
                 for (int i = 0; i < timeVals.size(); i++)
-                    opThruTable.setField(i, 0, timeVals.get(i).toString());
+                    respTable.setField(i, 0, timeVals.get(i).toString());
 
                 for (int i = 0; i < runDirs.length; i++) {
-                    opThruTable.setHeader(i + 1, runDirs[i]);
+                    respTable.setHeader(i + 1, runDirs[i]);
                     int j;
-                    for (j = 0; j < opThruList[i][k].size(); j++) {
-                        opThruTable.setField(j, i + 1, opThruList[i][k].get(j).toString());
+                    for (j = 0; j < respList[i][k].size(); j++) {
+                        respTable.setField(j, i + 1, respList[i][k].get(j).toString());
                     }
-                    // Fill with dash for remaining time intervals (if any)
-                    int rem = timeVals.size() - opThruList[i][k].size();
+                    int rem = timeVals.size() - respList[i][k].size();
                     for (; rem > 0; rem--) {
-                        opThruTable.setField(j++, i + 1, "-");
+                        respTable.setField(j++, i + 1, "-");
                     }
                 }
-                p.println(opThruTable.toString());
+                p.println(respTable.toString());
             }
-        }
 
-        p.println("Section: Average Response Times (" + respMetric + ")");
-        p.println(avgRespTable.toString());
+            // Print distribution of response times
+            for (int k = 0; k < opNames.size(); k++) {
+                p.println("Section: Distribution of Response Times for Operation '" +
+                        opNames.get(k) + "' (" + respMetric + ")");
+                p.println("Display: Line");
+                respTable = new TextTable(maxDistRows, runDirs.length + 1);
+                respTable.setHeader(0, "Time");
 
-        // Print nth percentile RT info
-        for (int j = 0; j < rtPercentList.length; j++) {
-            p.println("Section: " + rtPercentNames.get(j) + " Percentile Response Times (" + respMetric + ")");
-            p.println(percentRespTable[j].toString());
-        }
+                // Set time column for all rows
+                for (int i = 0; i < timeDistVals.size(); i++)
+                    respTable.setField(i, 0, timeDistVals.get(i).toString());
 
-        for (int k = 0; k < opNames.size(); k++) {
-            p.println("Section: Average Response Times for Operation '" +
-                    opNames.get(k) + "' (" + respMetric + ")");
-            p.println("Display: Line");
-            respTable = new TextTable(maxThruRows, runDirs.length + 1);
-            respTable.setHeader(0, "Time");
-
-            // Set time column for all rows
-            for (int i = 0; i < timeVals.size(); i++)
-                respTable.setField(i, 0, timeVals.get(i).toString());
-
-            for (int i = 0; i < runDirs.length; i++) {
-                respTable.setHeader(i + 1, runDirs[i]);
-                int j;
-                for (j = 0; j < respList[i][k].size(); j++) {
-                    respTable.setField(j, i + 1, respList[i][k].get(j).toString());
+                for (int i = 0; i < runDirs.length; i++) {
+                    respTable.setHeader(i + 1, runDirs[i]);
+                    int j;
+                    for (j = 0; j < respDistList[i][k].size(); j++) {
+                        respTable.setField(j, i + 1, respDistList[i][k].get(j).toString());
+                    }
+                    int rem = timeDistVals.size() - respDistList[i][k].size();
+                    for (; rem > 0; rem--) {
+                        respTable.setField(j++, i + 1, "-");
+                    }
                 }
-                int rem = timeVals.size() - respList[i][k].size();
-                for (; rem > 0; rem--) {
-                    respTable.setField(j++, i + 1, "-");
-                }
+                p.println(respTable.toString());
             }
-            p.println(respTable.toString());
-        }
-
-        // Print distribution of response times
-        for (int k = 0; k < opNames.size(); k++) {
-            p.println("Section: Distribution of Response Times for Operation '" +
-                    opNames.get(k) + "' (" + respMetric + ")");
-            p.println("Display: Line");
-            respTable = new TextTable(maxDistRows, runDirs.length + 1);
-            respTable.setHeader(0, "Time");
-
-            // Set time column for all rows
-            for (int i = 0; i < timeDistVals.size(); i++)
-                respTable.setField(i, 0, timeDistVals.get(i).toString());
-
-            for (int i = 0; i < runDirs.length; i++) {
-                respTable.setHeader(i + 1, runDirs[i]);
-                int j;
-                for (j = 0; j < respDistList[i][k].size(); j++) {
-                    respTable.setField(j, i + 1, respDistList[i][k].get(j).toString());
-                }
-                int rem = timeDistVals.size() - respDistList[i][k].size();
-                for (; rem > 0; rem--) {
-                    respTable.setField(j++, i + 1, "-");
-                }
-            }
-            p.println(respTable.toString());
+            first = true;
+            maxDistRows = 0;
+            maxThruRows = 0;
         }
 
         // Print CPU utilization
@@ -510,35 +533,34 @@ public class RunAnalyzer {
     * @return String unit
     */
 
-    String getThruUnit(XMLReader r) {
+    String getThruUnit(XMLReader r, int driver) {
 
         List<String> m;
-        m = r.getAttributeValues("benchSummary/metric", "unit");
+        m = r.getAttributeValues("driverSummary["+driver+"]/metric", "unit");
         String unit = m.get(0);
         return (unit);
     }
 
-    String getRespUnit(XMLReader r) {
+    String getRespUnit(XMLReader r, int driver) {
 
         List<String> m;
-        m = r.getAttributeValues("driverSummary/responseTimes", "unit");
+        m = r.getAttributeValues("driverSummary["+driver+"]/responseTimes", "unit");
         String unit = m.get(0);
         return (unit);
     }
 
-    /*
+    private boolean first = true;
+    /**
     * @method getResponseTimes
     * @param List opnames - list to add operation names to
     * @param List rtAvgList - list to add avg. RT
     * @param List rt90List - list to add 90% RT
     */
-    private boolean first = true;
-
-    void getResponseTimes(XMLReader reader, List opNames, List rtAvgList, List rtPercentNames)
+    void getResponseTimes(XMLReader reader, List opNames, List rtAvgList, List rtPercentNames, int driver)
             throws IOException {
         Element root = reader.getRootNode();
 
-        Node operationsNode = reader.getNode("driverSummary/responseTimes", root);
+        Node operationsNode = reader.getNode("driverSummary["+driver+"]/responseTimes", root);
 
         if (operationsNode.getNodeType() != Node.ELEMENT_NODE) {
             throw new IOException("Error: Can't find node driverSummary/responseTimes");
