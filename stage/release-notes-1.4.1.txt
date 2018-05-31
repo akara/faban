@@ -1,0 +1,15 @@
+The following bug fixes went into the 1.4.1 release. See github.com/akara/faban for details
+
+Description: Fix for issue #99: Added Xerces and Xalan to the Faban web app.
+
+Description: fix: Add IOException to method signature.
+
+Description: fix: Suppress Smap debug information. JDK9 generates bytecodes the Smap generator does not recognise. 
+
+Description: fix: Conditional endorsed directories. JDK9 has removed support for endorsed directories. Remove the property when JDK9 and above detected.
+
+Description: feature: Expose number of errors in Result.
+
+Description: feature: Run comparison report supports multiple drivers
+
+Description: fix: More situations the xml implementation requires switching for Chiba library.
