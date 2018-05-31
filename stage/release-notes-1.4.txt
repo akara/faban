@@ -1,0 +1,22 @@
+The following bug fixes went into the 1.4 release. See github.com/akara/faban for details
+
+Description: Fix for Issue #80: Minor bugs in 1.3 release
+
+Description: Fix for Issue #82: Support all JDKs of 1.5 or higher 
+
+Description: Fix for Issue #83: Added support for JDK8.
+
+Description: Fix for Issue #78: Fixed NPE in XPath processing. 
+
+Description: Fix for: Quotations relocation for Windows support.
+
+Description: Fix for: Possible NPE when using 'RunQ.listRunQ'.
+
+Description: Fix for Issue 78: Solved file protocol prefixing for resource path.
+
+Description: Fix for Issue 89: Added rmi lease value to bootstrap process arguments.
+
+Description: Fixes for Issue #92: JDK9 readiness.
+
+Description: Fix for benchmark operations only after agents have completed <init>.
+  
