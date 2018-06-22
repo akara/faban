@@ -32,11 +32,14 @@ import com.sun.faban.driver.util.PairwiseAggregator;
 import com.sun.faban.driver.util.Timer;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.rmi.ConnectException;
 import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -156,6 +159,8 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
     protected java.util.Timer scheduler;
 
     StatsWriter statsWriter;
+
+    private static final String HASH_ALGORITHM = "SHA-512";
 
     /**
      * Creates and exports a new Master.
@@ -1029,8 +1034,8 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 
         CharSequence summaryContent = createSummaryReport(
                                 getHostMetrics(results, "__MASTER__"), null);
+        String runOutputDir = runInfo.resultsDir + fs;
         if (summaryContent != null) {
-            String runOutputDir = runInfo.resultsDir + fs;
             FileWriter summary = new FileWriter(runOutputDir + "summary.xml");
             FileWriter detail = new FileWriter(runOutputDir + "detail.xan");
 
@@ -1047,6 +1052,25 @@ public class MasterImpl extends UnicastRemoteObject implements Master {
 
             logger.info("Detail finished. Results written to " +
                     runInfo.resultsDir + '.');
+        }
+
+        try {
+            File summaryXmlFile = new File(runOutputDir, "summary.xml");
+            List<String> lines = Files.readAllLines(summaryXmlFile.toPath());
+            MessageDigest md = MessageDigest.getInstance(HASH_ALGORITHM);
+            try {
+                for (String line : lines) {
+                    md.update(line.getBytes("UTF-8"));
+                }
+            } catch (UnsupportedEncodingException uee) {}
+            byte[] hash = md.digest();
+            String hashString = Base64.getEncoder().encodeToString(hash);
+            if (logger.isLoggable(Level.FINE)){
+               logger.fine(String.format("Using hash algorithm [%1$s].", HASH_ALGORITHM));
+            }
+            String message = String.format("Hash of generated summary.xml file [%2$s]", HASH_ALGORITHM, hashString);
+            logger.info(message);
+        } catch (NoSuchAlgorithmException nsae) {
         }
     }
 
