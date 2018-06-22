@@ -112,7 +112,7 @@ public class Config {
     public static final String HARNESS_NAME = "Faban";
 
     /** The harness version. */
-    public static final String HARNESS_VERSION = "1.4.1";
+    public static final String HARNESS_VERSION = "1.4.2";
 
     /** The log file name. */
     public static final String LOG_FILE = "log.xml";
