@@ -1,0 +1,4 @@
+The following bug fixes went into the 1.4.1 release. See github.com/akara/faban for details
+
+Description: feature: Add a comment with the SHA hash of summary.xml to aid verification.
+
