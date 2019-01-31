@@ -22,7 +22,7 @@ JAVA_VER_STRING=`${JAVA_HOME}/bin/java -version 2>&1`
 
 JAVA_VERSION=`echo $JAVA_VER_STRING | \
                awk '{ print substr($3, 2, length($3) - 2)}'`
-if [[ "$JAVA_VERSION" =~ "\." ]] ; then
+if [ "$JAVA_VERSION" = "\." ] ; then
    MAJORVER=$JAVA_VERSION
    MINORVER="0"
 else
