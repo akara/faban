@@ -127,7 +127,7 @@ fi
 #echo "MINORVER:$MINORVER"
 
 # add java.endorsed.dirs for pre JRE 9 image
-if  (("$MAJORVER" > 8))  || [ -z "$MAJORVER" ]; then
+if  [ "$MAJORVER" > 8 ]  || [ -z "$MAJORVER" ]; then
     ENDORSED_OPTS=""
 else
     ENDORSED_OPTS=" -Djava.endorsed.dirs=$JAVA_ENDORSED_DIRS "
