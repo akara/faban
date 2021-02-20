@@ -17,7 +17,7 @@ if [ -z "${TARGET}" ] ; then
     usage
 fi
 
-INTERFACE=`ping -c1 "${TARGET}" | grep PING | cut -d "(" -f2 | cut -d ")" -f1 2>/tmp/interface.$$.err`
+INTERFACE=`ping -R -c1 "${TARGET}" | grep RR | awk '{ print $2 }' 2>/tmp/interface.$$.err`
 
 if [ -z "${INTERFACE}" ] ; then
     cat /tmp/interface.$$.err >&2
