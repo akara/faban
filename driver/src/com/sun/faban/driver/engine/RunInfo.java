@@ -24,6 +24,7 @@
 package com.sun.faban.driver.engine;
 
 import com.sun.faban.common.ParamReader;
+import com.sun.faban.common.Tools;
 import com.sun.faban.driver.ConfigurationException;
 import com.sun.faban.driver.RunControl;
 import org.w3c.dom.CDATASection;
@@ -39,7 +40,7 @@ import java.net.URLClassLoader;
 import java.util.StringTokenizer;
 import java.util.logging.Handler;
 
-
+import static com.sun.faban.common.Tools.JAVAC;
 /**
  * RunInfo
  * This class contains the run parameters used for the run.
@@ -949,10 +950,12 @@ public class RunInfo implements Serializable {
             }
 
             String classpath = System.getProperty("java.class.path");
-            
+
             String arg[] = new String[] { "-classpath", classpath, className };
-            int errorCode = com.sun.tools.javac.Main.compile(arg);
-            
+            int errorCode = -1;
+
+            errorCode = compile(arg);
+
             if(errorCode != 0){
                 throw new ConfigurationException(
                         "unable to compile generated driver file. " +
@@ -1312,6 +1315,24 @@ public class RunInfo implements Serializable {
                         " not recognized!");
 			}
             return retVal;
+        }
+
+        private static int compile ( String[] arguments )
+            throws IOException {
+            String javac = Tools.getToolsInstance().executable(JAVAC);
+            Process proc = Runtime.getRuntime().exec (
+                    command(javac, arguments),
+                    null,
+                    cwd() );
+            return proc.exitValue();
+        }
+
+        private static File cwd() {
+            return new File("");
+        }
+
+        private static String[] command(String javac, String[] args) {
+            return new String[] { javac, args[0], args[1], args[2]};
         }
     }
 }
